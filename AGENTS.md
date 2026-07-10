@@ -1,187 +1,32 @@
 ---
-description: Stable repository-wide rules for the Sinon plugin marketplace.
+description: Repository-wide guidance for the Sinon plugin marketplace.
 ---
 
-# Sinon Project Rules
+# Repository Guidelines
 
-Sinon is a marketplace repository for Claude Code plugins and portable Agent Skills.
-Normative keywords MUST be interpreted under BCP 14.
-Repository rules and agent-facing documents MUST be written in English.
+Sinon publishes Claude Code plugins and portable Agent Skills. Read this file, `README.md`, each nearer `AGENTS.md`, and the affected plugin README before changing a package. A closer `AGENTS.md` overrides this one for its subtree. `CLAUDE.md` files are exact pointers and must not become duplicate rule files.
 
-## Entry Point
+## Project Structure
 
-Before changing the repository, read:
+- `plugins/` contains publishable packages.
+- `.claude-plugin/marketplace.json` lists package roots.
+- `.codex/agents/` contains Codex counterparts for shared agents.
+- `scripts/` contains repository validation and routing checks.
 
-1. this `AGENTS.md`
-2. the root `README.md`
-3. every nearer `AGENTS.md` from the repository root to the changed file
-4. the affected plugin README and component files
+Open `plugins/AGENTS.md` for package, documentation, and script rules. Open the affected plugin's `AGENTS.md` for its local contract. Open `plugins/harness/skills/harness-install/assets/common/WORKFLOW.md` for delegation lifecycle and publication decisions.
 
-`CLAUDE.md` files are pointer documents that import the nearest `AGENTS.md`.
-They MUST NOT become parallel rule copies.
+## Build, Test, and Development Commands
 
-## Working Behavior
+Run `bun ci` after dependency changes. Run `bun run check` before a repository-wide handoff. Use `plugins/harness/scripts/plugin-self-check.ts` for Harness runtime or packaged-asset changes. Run `claude plugin validate plugins/<plugin>` after changing a plugin package.
 
-- Surface material ambiguity, assumptions, tradeoffs, and simpler alternatives before implementation.
-- Write the minimum change that satisfies observable acceptance criteria.
-- Preserve unrelated user changes and report unrelated defects without fixing them.
-- Match existing local style and remove only orphans introduced by the current change.
-- Continue until acceptance criteria are verified or an exact blocker is reported.
-- Prefer a focused reproduction or test before a bug fix when the repository has an appropriate test surface.
+## Coding Style and Testing
 
-## Orchestration Authority
+Make the smallest change that satisfies observable acceptance criteria. Preserve unrelated work. Match local style, remove only newly introduced orphans, and add a focused regression for a behavior fix. Use TypeScript and Bun commands already present in the package. Report a precise blocker when required evidence or authority is missing.
 
-The user-facing top-level session is the sole general orchestrator.
-Sinon MUST NOT package a `project-orchestrator` or equivalent delegated profile.
+## Commit and Publication
 
-The top-level orchestrator owns:
+Inspect `git status --short --branch` and the intended diff before staging. The user-facing root session is the sole general orchestrator for integration and publication. Sinon MUST NOT package a `project-orchestrator`. It delegates exploration, implementation, documentation, audit, review, and validation to bounded leaves. Writers receive disjoint ownership and worktrees; failed or missing workers block fan-in. When a dispatch API exposes `fork_turns`, new workers use `fork_turns: "none"` with self-contained context. Do not infer this field for CLI dispatch.
 
-- requirement clarification and verifiable planning
-- difficulty and model classification
-- worker scope, ownership, and worktree selection
-- complete fan-in and contradiction resolution
-- integrated review and validation
-- commits, pushes, pull or merge requests, and other publication
+## Security and Configuration
 
-It delegates every exploration, implementation, documentation edit, audit, and validation task to a bounded leaf worker. It does not execute leaf work itself.
-
-Claude Code supports nested subagents to a fixed depth when an agent receives the `Agent` tool.
-Sinon deliberately omits delegation tools from installable agents, and installed Codex workflows use `max_depth = 1`.
-Every packaged or project agent is a repository-policy leaf and MUST return a decomposition handoff when its task needs further delegation.
-
-## Model and Effort Routing
-
-Every agent file in this repository MUST declare a model and effort.
-
-| Work class | Claude | Codex | Effort |
-| --- | --- | --- | --- |
-| Interactive top-level orchestration | `opus` | `gpt-5.6-sol` | `medium` |
-| Substantive implementation, review, validation, or domain expertise | `sonnet` | `gpt-5.6-terra` | `medium` |
-| Lightweight inventory or exhaustive mechanical edits | `haiku` | `gpt-5.6-luna` | `low` |
-
-Opus and Sol MUST NOT be selected in installable agent runtime fields.
-Use `high`, `xhigh`, or `max` only with a written `Effort Exception` in the agent body.
-A substantive leaf using `low` MUST include a `Low Effort Rationale`.
-
-Claude accepts `effort: low` with Haiku, but current official documentation does not list Haiku as effort-aware.
-Treat the field as required, runtime-inert compatibility metadata and MUST NOT claim that it changes Haiku reasoning.
-
-Codex agent TOML uses `model_reasoning_effort`, not `effort`.
-Canonical mappings and counterpart paths live in `scripts/agent-routing-manifest.json` and are validated by `scripts/agent-routing.ts`.
-
-## Agent Boundaries
-
-- Leaf agents MUST NOT expose `Agent`, `Task`, or another child-delegation tool.
-- Read-only reviewers, validators, scanners, routers, and drafters MUST NOT expose mutation tools.
-- Agent bodies MUST state their leaf topology, ordinary process, stop conditions, escalation, and output.
-- Intentional Claude and Codex counterparts MUST keep descriptions, instruction bodies, model pairs, and efforts aligned.
-- Optional depth MUST stay outside recursively scanned `agents/` directories.
-- `agents/` directories MUST contain only direct agent files; nested Markdown is prohibited.
-
-Portable Agent Skills MUST NOT contain runtime `model`, `effort`, or `model_reasoning_effort` frontmatter.
-Runtime routing belongs in agent files and repository workflow policy.
-
-## Delegation and Single-Editor Safety
-
-Before parallel work, classify every unit as read-only or mutating.
-
-Dispatch independent reads and disjoint writers in parallel. Assign even narrow work to the lightest suitable worker with an explicit prompt, ownership, behavior, and completion check.
-
-When the dispatch API exposes `fork_turns`, every new worker spawn MUST set `fork_turns: "none"`. Supply the worker's cwd or worktree, objective, exact ownership, constraints, user decisions, validation, output contract, and the instruction that other workers may be editing nearby and their work must not be reverted. Existing-worker follow-up APIs without `fork_turns` are unchanged.
-
-- Independent read-only workers MAY share a worktree.
-- Each writer MUST receive one explicit, disjoint ownership scope, one base commit, one worktree, acceptance criteria, and validation target.
-- Overlapping file, contract, or generated-output ownership MUST be serialized under one writer.
-- Ambiguous affected-file scope MUST be explored or planned before selecting a writer.
-- The lightweight scoped implementer is appropriate only for an exhaustive single-file or small related-file set with no architecture or scope expansion.
-- The general implementation agent owns affected-set discovery, related-file changes, multi-module or multi-layer reasoning, and integrated validation.
-
-## Fan-In and Review
-
-The top-level orchestrator MUST wait for every requested worker result before dependent action.
-A missing, failed, or contradictory result blocks completion.
-
-After fan-in:
-
-1. reconcile assumptions and overlapping evidence
-2. integrate accepted work
-3. run independent read-only review
-4. return fixes to the owning writer
-5. re-review the fixes
-6. validate the integrated tree
-
-Worker-branch checks MUST NOT substitute for integrated-tree validation.
-
-## Completion and Publication Gates
-
-Do not report completion or publish while any required acceptance criterion, worker result, owner fix, re-review, validation command, or publication result is missing.
-
-Before publication, verify:
-
-- the diff contains only authorized changes
-- agent routing and counterpart parity pass
-- plugin manifests and README inventories match the filesystem
-- changed skills remain self-sufficient and portable
-- security-sensitive hooks, scripts, MCP, LSP, settings, and packaged assets were reviewed
-- the narrowest relevant checks and full repository check pass
-- unresolved risks and skipped checks have explicit owners
-
-Only the user-facing top-level orchestrator MAY commit, push, or create/update a review record unless the user explicitly grants another authority.
-
-## Escalation
-
-Stop and return the exact evidence, blocker, and safest next action when:
-
-- requirements have materially different interpretations
-- ownership overlaps or a safe worktree boundary cannot be established
-- a required reference, tool, credential, or model is unavailable
-- a configured model or effort is unsupported at runtime
-- validation or review fails
-- publication authority is missing
-
-## Repository Invariants
-
-- `AGENTS.md` is the canonical root contract.
-- root `CLAUDE.md` MUST remain the exact pointer to root `AGENTS.md`.
-- `.claude/skills/` MUST point to `plugins/agent-capability-kit/skills/`.
-- `.claude/agents/` MUST point to `plugins/agent-capability-kit/agents/`.
-- `.agents/skills/` MUST point to `.claude/skills/`.
-- `.agents/agents/` MUST NOT exist.
-- `.codex/agents/` MUST be a regular directory with one TOML counterpart per shared agent.
-- `.claude-plugin/marketplace.json` is the root Claude marketplace catalog.
-- Plugins MUST live under `plugins/` and keep their runtime files inside the owning plugin root.
-- Target Harness assets MUST stay under `plugins/harness/skills/harness-install/assets/`.
-- Root documentation MUST describe repository-wide contracts, not fast-changing plugin internals.
-
-## Instruction Hierarchy
-
-Narrow rules live near their activation surface:
-
-- `plugins/AGENTS.md`: plugin packaging, documentation, code, and shell rules
-- `plugins/agent-capability-kit/AGENTS.md`: agent and Agent Skill authoring
-- `plugins/harness/AGENTS.md`: Harness package and installed-runtime contracts
-- `plugins/workspace-workflow/AGENTS.md`: host detection and publication routing
-- plugin-specific `AGENTS.md`: narrower domain rules
-
-Every root-to-leaf project instruction chain MUST stay below the Codex default 32 KiB project-instruction limit.
-Measure changed chains and verify live discovery before release.
-
-## Required Validation
-
-Run the narrowest relevant checks first, then `bun run check` before merging repository-wide changes.
-
-Required release probes for agent-routing changes are:
-
-```sh
-bun scripts/agent-routing.ts
-bun run probe:claude-plugins
-bun run probe:agent-models
-bun run probe:instruction-discovery
-bun run check
-```
-
-Harness runtime or packaged-asset changes also require:
-
-```sh
-plugins/harness/scripts/plugin-self-check.ts
-```
+Do not edit credentials, local configuration, caches, or vendored files unless the task names them. Review changed hooks, scripts, MCP, LSP, settings, and packaged assets for command, filesystem, network, credential, and publication risks.

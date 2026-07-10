@@ -1,28 +1,23 @@
-# Repository Instructions
+# Repository Guidelines
 
-Keep this file short, practical, and focused on behavior that applies to every task.
-Child `AGENTS.md` files may add narrower rules for their directories.
+This file applies to {{scope_description}}. A closer `AGENTS.md` overrides it for its subtree. Read {{primary_context}} before changing this area.
 
-## Working Rules
+## Project Structure
 
-- Keep changes scoped to {{scope_rule}}.
-- Prefer {{local_pattern_source}} over new abstractions.
-- Surface unclear requirements before editing.
-- Preserve user changes present in the worktree.
-- Do not edit {{protected_paths_or_assets}} unless the task names them.
-- Update {{related_context_surfaces}} when a change makes them inaccurate.
+{{project_structure}}
 
-## Workflow
+## Build, Test, and Development Commands
 
-- Use `WORKFLOW.md` for branch, worktree, validation, review, and publication decisions.
-- Use `ARCHITECTURE.md` and relevant `docs/**` files for task-specific context.
-- Run {{validation_command}} before completion, or report the blocker.
-- Report changed files, validation evidence, skipped checks, and remaining risks.
+Run {{setup_command}} when setup is required. Run {{build_command}} for builds, {{development_command}} for local development, and {{validation_command}} before handoff.
 
-## Documentation
+## Coding Style and Testing
 
-- Keep Markdown headings in English.
-- Use fenced code blocks with a language.
-- Use ASCII tree markers such as `+--` and `|`; do not use Unicode box drawing characters.
-- Add durable documentation under {{approved_docs_directory}}.
-- Generated outputs under `docs/generated/` must record source command, input files, freshness, and regeneration trigger.
+Follow {{style_source}}. Preserve unrelated work. Add or update {{testing_surface}} when behavior changes.
+
+## Commit and Publication
+
+Stage only {{ownership_scope}}. {{commit_and_review_rule}}
+
+## Security and Configuration
+
+{{security_or_configuration_rule}}

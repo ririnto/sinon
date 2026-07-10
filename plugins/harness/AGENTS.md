@@ -1,87 +1,27 @@
-# Harness Plugin Rules
+# Repository Guidelines
 
-These rules apply to `plugins/harness/`.
-Normative keywords follow BCP 14.
+This file applies to `plugins/harness/`. It overrides broader plugin guidance. Harness is plugin source, not an installed target; target-owned files stay under `skills/harness-install/assets/`.
 
-## Package Boundary
+## Project Structure
 
-This repository is the Harness plugin source, not an installed target repository.
-Target-owned files such as root `ARCHITECTURE.md`, `WORKFLOW.md`, project docs, project agents, project skills, CI, and hooks MUST remain packaged under `skills/harness-install/assets/`.
-They MUST NOT become active requirements at the Sinon repository root.
+`skills/harness-install/` owns packaged target assets and installer behavior. `skills/harness-validate/` owns installed-record validation. Open the packaged `assets/common/WORKFLOW.md` for target delegation and publication lifecycle.
 
-Plugin-root agents are structural Harness specialists.
-Installed `.claude/agents/` and `.codex/agents/` files are day-to-day target repository leaves.
+## Build, Test, and Development Commands
 
-## Installed Instruction Contract
+Run `plugins/harness/scripts/plugin-self-check.ts`, `claude plugin validate plugins/harness`, and `bun run check` for runtime, installer, validator, workflow, or asset changes. Regenerate the checked-in asset manifest after intentional asset inventory changes.
 
-- Target `AGENTS.md` is the primary repository contract.
-- Target `CLAUDE.md` MUST remain a pointer to target `AGENTS.md`.
-- `WORKFLOW.md` owns branch, worktree, delegation, validation, review, and publication decisions.
-- Installed Codex configuration MUST use `max_depth = 1`.
-- Claude and Codex project agents MUST remain leaves and return decomposition handoffs instead of nesting.
+## Coding Style and Testing
 
-## Installed Agent Routing
+Keep installer-owned content reproducible and package-local. Preserve an existing target `AGENTS.md`; only explicit tool-owned refresh may change proven managed content. Test installer behavior from plugin-only and nested-superproject fixtures.
 
-The target workflow distinguishes two implementation scopes:
+## Commit and Publication
 
-- `scoped-implementer`: Haiku/Luna low for an exhaustive single-file or small related-file set.
-  - It MUST NOT discover a broader affected set, make architecture choices, expand scope, delegate, integrate unrelated work, or publish.
-  - Ambiguity MUST return to inventory or planning before assignment.
-- `implementation`: Sonnet/Terra medium for affected-set discovery, related-file changes, large cross-file, module, or layer work, design choices, and integrated validation.
-  - It owns one complete related-file scope in one worktree.
-- `review`: Sonnet/Terra medium and read-only.
-  - Fixes return to the owning writer and require re-review.
+Keep target agents as leaves, use disjoint writer ownership, and return review fixes to the owning writer. The root session integrates and publishes.
 
-The scoped-implementer asset files are supplied by the concurrent Harness asset workstream.
-Release integration MUST promote its pending entry in `scripts/agent-routing-manifest.json` into the canonical inventory when those files land.
+## Security and Configuration
 
-## Orchestration Lifecycle
+Review installer path handling, hooks, command execution, records, and copied configuration for escape, ownership, credential, and publication risks.
 
-The user-facing root session is the sole orchestrator and MUST follow:
+## Scope and Precedence
 
-1. define a verifiable plan and acceptance criteria
-2. classify difficulty and choose model and effort
-3. run independent read-only work in parallel when useful
-4. give each writer a disjoint scope, base commit, worktree, and validation target
-5. wait for complete fan-in
-6. return findings to the owning writer
-7. re-review fixes
-8. validate the integrated tree
-9. publish only from the root session
-
-A failed, missing, or contradictory worker blocks completion.
-Overlapping writers MUST be serialized.
-Worker-branch validation MUST NOT replace integrated validation.
-
-## Asset Consistency
-
-When one rule changes across installed docs, templates, agents, skills, validators, CI, hooks, or manifest inventory, update every owning surface together.
-Do not weaken validation to hide drift.
-Do not install fake product truth or generated artifacts without a reproducible source.
-
-The checked-in asset manifest is deny-by-default.
-Any added, removed, or renamed install asset requires regeneration with the packaged generator.
-
-## Security Review
-
-Review changed hooks, settings, scripts, MCP configuration, CI, and installer behavior for:
-
-- command execution and shell injection
-- path traversal and symlink escape
-- filesystem mutation and ownership drift
-- network and credential exposure
-- implicit publication or Git-state mutation
-
-Installed review and validation agents MUST NOT publish, push, tag, or edit marketplace metadata.
-
-## Validation
-
-Harness runtime, installer, validator, workflow, or packaged-asset changes require:
-
-```sh
-plugins/harness/scripts/plugin-self-check.ts
-claude plugin validate plugins/harness
-bun run check
-```
-
-The self-check MUST cover asset-manifest parity, installer outcomes, package surface, agent routing, native command parity, and executable modes.
+Open the affected install or validation skill before changing its runtime. `assets/common/AGENTS.md` controls installed targets; this file controls plugin source. Do not mirror target-owned files into the marketplace root.
