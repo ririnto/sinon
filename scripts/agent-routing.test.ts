@@ -169,7 +169,7 @@ test("the repository routing inventory is valid", () => {
   const root = path.resolve(import.meta.dirname, "..");
   const result = validateAgentRouting(root);
   expect(result.errors).toEqual([]);
-  expect(result.warnings).toHaveLength(1);
+  expect(result.warnings).toHaveLength(2);
   expect(result.warnings[0]).toContain("runtime-inert compatibility metadata");
 });
 

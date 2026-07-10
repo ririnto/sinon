@@ -14,6 +14,7 @@ Use subagents as the normal tool for bounded exploration, implementation, and re
 The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
 Only the user-facing top-level or root agent acts as orchestrator.
 Installed repository agents are delegation targets only; do not create or delegate to a `project-orchestrator` agent.
+
 | Work | Claude | Codex | Effort | Agent |
 | --- | --- | --- | --- | --- |
 | Top-level orchestration and GitHub publication | `opus` | `gpt-5.6-sol` | `medium` | interactive root session |

@@ -6,6 +6,13 @@ description: |-
 color: green
 model: sonnet
 effort: medium
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Edit
+  - Write
+  - Bash
 ---
 
 # Implementation

@@ -1,18 +1,5 @@
 {
   "schemaVersion": 1,
-  "pendingIntegrations": [
-    {
-      "name": "scoped-implementer",
-      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/scoped-implementer.md",
-      "claudeModel": "haiku",
-      "claudeEffort": "low",
-      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml",
-      "codexModel": "gpt-5.6-luna",
-      "codexEffort": "low",
-      "topology": "mechanical",
-      "access": "writer"
-    }
-  ],
   "agents": [
     {
       "name": "agent-creator",
@@ -91,6 +78,17 @@
       "codexModel": "gpt-5.6-terra",
       "codexEffort": "medium",
       "topology": "leaf",
+      "access": "writer"
+    },
+    {
+      "name": "scoped-implementer",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/scoped-implementer.md",
+      "claudeModel": "haiku",
+      "claudeEffort": "low",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml",
+      "codexModel": "gpt-5.6-luna",
+      "codexEffort": "low",
+      "topology": "mechanical",
       "access": "writer"
     },
     {

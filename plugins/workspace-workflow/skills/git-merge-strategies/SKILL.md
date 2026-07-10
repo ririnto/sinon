@@ -230,19 +230,19 @@ Example (conflict markers):
 
 ```text
 function greet(name) {
-<<<<<<< HEAD
+[current branch: HEAD]
   return "Hello, " + name;
-=======
+[incoming branch separator]
   return "Hi, " + name + "!";
->>>>>>> feature-branch
+[incoming branch: feature-branch]
 }
 ```
 
 Markers:
 
-- `<<<<<<< HEAD` – start of base (current) branch
-- `=======` – separator
-- `>>>>>>> {{branch}}` – end of feature branch
+- `[current branch: HEAD]` marks the start of the base branch content.
+- `[incoming branch separator]` marks the separator.
+- `[incoming branch: {{branch}}]` marks the end of feature branch content.
 
 ### Step 3: Resolve conflict manually
 
@@ -340,11 +340,11 @@ Feature branch modified it.
 Conflict marker:
 
 ```text
-<<<<<<< HEAD
+[current branch: HEAD]
 (deleted file)
-=======
+[incoming branch separator]
 (modified content)
->>>>>>> feature-branch
+[incoming branch: feature-branch]
 ```
 
 Resolution: Decide:
