@@ -92,7 +92,7 @@ Profile this method.
 
 ```text
 Found one Java-level deadlock:
-===================
+-------------------
 "Thread-A":
   waiting to lock Monitor@0x00007f..001 which is held by "Thread-B"
 "Thread-B":
