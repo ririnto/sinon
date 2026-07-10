@@ -5,6 +5,7 @@ This file applies to `plugins/`. Closer plugin instructions override it. Each pu
 ## Project Structure
 
 Use the plugin README for its layout and supported runtime components. Open `agent-capability-kit/AGENTS.md` when changing agents or skills, and the owning plugin `AGENTS.md` for package-specific checks.
+Open [repository conventions](../docs/agent-references/repository-conventions.md) when editing source, scripts, docs, or config.
 
 ## Build, Test, and Development Commands
 
