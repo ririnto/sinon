@@ -1,5 +1,6 @@
-import { pathExists, readInstallAsset, readUtf8 } from "./files.js";
-import { checkSafeFileDestination, requiredSrc } from "./paths.js";
+import { renderCandidateContent } from "./content.js";
+import { pathExists, readUtf8 } from "./files.js";
+import { checkSafeFileDestination } from "./paths.js";
 import { canRefreshOwnedAsset, digestContent } from "./record.js";
 import type {
   InstallAssetRecord,
@@ -43,7 +44,7 @@ export const decideFileInstall = async (
   previousAssets: ReadonlyMap<string, InstallAssetRecord>
 ): Promise<FileInstallDecision> => {
   await checkSafeFileDestination(candidate.dst);
-  const source = await readInstallAsset(requiredSrc(candidate));
+  const source = await renderCandidateContent(candidate);
   if (!(await pathExists(candidate.dst))) {
     return {
       diagnostic: "stdout",

@@ -26,28 +26,6 @@ export const workflowNameForMode = (mode: Mode): string => {
   }
 };
 
-export const workflowAssetNameForCiHost = (ciHost: CiHost): string => {
-  switch (ciHost) {
-    case "github": {
-      return "WORKFLOW.github.md";
-    }
-    case "gitlab": {
-      return "WORKFLOW.gitlab.md";
-    }
-    case "both": {
-      return "WORKFLOW.md";
-    }
-    case "none": {
-      return "WORKFLOW.none.md";
-    }
-    default: {
-      return fail(
-        `unsupported ci host (must be github|gitlab|both|none): ${ciHost}`
-      );
-    }
-  }
-};
-
 /**
  * Shared guard and `spotlessFiles` builder for Maven check and fix commands.
  *

@@ -1,3 +1,5 @@
+import { prepareAtomicWrite } from "./atomic-write.js";
+import { renderCandidateContent } from "./content.js";
 import {
   ensureCodexAgentDirectory,
   ensureOneRootContract,
@@ -6,16 +8,7 @@ import {
   ensureRuntimeDirectories
 } from "./contracts.js";
 import { decideFileInstall } from "./decisions.js";
-import {
-  copyMode,
-  matchCandidate,
-  pathExists,
-  readInstallAsset,
-  readUtf8,
-  replaceFile,
-  temporaryDestination,
-  writeUtf8
-} from "./files.js";
+import { matchCandidate, pathExists, readUtf8 } from "./files.js";
 import {
   checkSafeFileDestination,
   ensureSafeFileDestination,
@@ -44,10 +37,14 @@ const writeCandidateSource = async (
   label: string
 ): Promise<void> => {
   const src = requiredSrc(candidate);
-  const temporary = await temporaryDestination(candidate.dst, label);
-  await writeUtf8(temporary, await readInstallAsset(src));
-  await copyMode(src, temporary);
-  await replaceFile(temporary, candidate.dst);
+  const write = await prepareAtomicWrite(candidate.dst, label);
+  try {
+    await write.write(await renderCandidateContent(candidate));
+    await write.copyMode(src);
+    await write.commit();
+  } finally {
+    await write.discard();
+  }
 };
 
 const keptOwnership = (
@@ -92,17 +89,24 @@ const installGitkeep = async (
 ): Promise<InstallOperationResult> => {
   await ensureSafeFileDestination(candidate.dst);
   if (!(await pathExists(candidate.dst))) {
-    await writeUtf8(candidate.dst, "");
+    const write = await prepareAtomicWrite(candidate.dst, "create_gitkeep");
+    try {
+      await write.write("");
+      await write.commit();
+    } finally {
+      await write.discard();
+    }
     console.log(`write: ${candidate.dst}`);
     return { outcome: "created", ownership: "harness" };
   }
   if (config.force) {
-    const temporary = await temporaryDestination(
-      candidate.dst,
-      "force_gitkeep"
-    );
-    await writeUtf8(temporary, "");
-    await replaceFile(temporary, candidate.dst);
+    const write = await prepareAtomicWrite(candidate.dst, "force_gitkeep");
+    try {
+      await write.write("");
+      await write.commit();
+    } finally {
+      await write.discard();
+    }
     console.log(`overwrite (--force): ${candidate.dst}`);
     return { outcome: "updated", ownership: "harness" };
   }

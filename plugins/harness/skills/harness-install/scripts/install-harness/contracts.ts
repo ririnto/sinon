@@ -1,17 +1,15 @@
 import { lstat, mkdir, readlink } from "node:fs/promises";
 import path from "node:path";
 
+import { prepareAtomicWrite } from "./atomic-write.js";
+import { renderCandidateContent } from "./content.js";
 import {
-  copyMode,
   createSymlink,
   isDirectory,
   isSymlink,
   pathExists,
-  readInstallAsset,
   readUtf8,
-  removePath,
-  replaceFile,
-  writeUtf8
+  removePath
 } from "./files.js";
 import { applyManagedBlock, hasManagedBlock } from "./managed.js";
 import {
@@ -31,17 +29,20 @@ import type {
 const writeRootContractUpdate = async (
   realTarget: string,
   dst: string,
-  templatePath: string,
+  candidate: InstallCandidate,
   exists: boolean
 ): Promise<void> => {
-  const tmp = `${realTarget}.harness.tmp.${process.pid}`;
-  await ensureSafeFileDestination(tmp);
-  const template = await readInstallAsset(templatePath);
+  const template = await renderCandidateContent(candidate);
   const existing = exists ? await readUtf8(realTarget) : "";
   const content = applyManagedBlock(existing, template);
-  await writeUtf8(tmp, content);
-  await copyMode(templatePath, tmp);
-  await replaceFile(tmp, realTarget);
+  const write = await prepareAtomicWrite(realTarget, "write_root_contract");
+  try {
+    await write.write(content);
+    await write.copyMode(requiredSrc(candidate));
+    await write.commit();
+  } finally {
+    await write.discard();
+  }
   console.log(
     exists
       ? `update root contract (--force): ${dst}`
@@ -69,16 +70,16 @@ const checkRootContractConflict = async (dst: string): Promise<boolean> => {
 const ensureRootContract = async (
   config: InstallerConfig,
   dst: string,
-  templatePath: string
+  candidate: InstallCandidate
 ): Promise<InstallOperationResult> => {
   await ensureSafeFileDestination(dst);
   if (!(await pathExists(dst))) {
-    await writeRootContractUpdate(dst, dst, templatePath, false);
+    await writeRootContractUpdate(dst, dst, candidate, false);
     return { outcome: "created", ownership: "shared" };
   }
   const content = await readUtf8(dst);
   if (hasManagedBlock(content) && !config.force) {
-    const template = await readInstallAsset(templatePath);
+    const template = await renderCandidateContent(candidate);
     if (applyManagedBlock(content, template) === content) {
       console.log(`skip root contract: ${dst}`);
       return { outcome: "kept", ownership: "shared" };
@@ -94,7 +95,7 @@ const ensureRootContract = async (
     );
     return { outcome: "conflict", ownership: "shared" };
   }
-  await writeRootContractUpdate(dst, dst, templatePath, true);
+  await writeRootContractUpdate(dst, dst, candidate, true);
   return { outcome: "updated", ownership: "shared" };
 };
 
@@ -190,16 +191,18 @@ export const ensureRootContracts = async (
       );
     }
   }
-  const agents = await ensureRootContract(
-    config,
-    "AGENTS.md",
-    path.join(templateDir, "common", "AGENTS.md")
-  );
-  const claude = await ensureRootContract(
-    config,
-    "CLAUDE.md",
-    path.join(templateDir, "common", "CLAUDE.md")
-  );
+  const agents = await ensureRootContract(config, "AGENTS.md", {
+    dst: "AGENTS.md",
+    kind: "root-contract",
+    realTarget: "AGENTS.md",
+    src: path.join(templateDir, "common", "AGENTS.md")
+  });
+  const claude = await ensureRootContract(config, "CLAUDE.md", {
+    dst: "CLAUDE.md",
+    kind: "root-contract",
+    realTarget: "CLAUDE.md",
+    src: path.join(templateDir, "common", "CLAUDE.md")
+  });
   return new Map([
     ["AGENTS.md", agents],
     ["CLAUDE.md", claude]
@@ -212,12 +215,11 @@ export const ensureOneRootContract = async (
   candidate: InstallCandidate
 ): Promise<InstallOperationResult> => {
   const realTarget = requiredRealTarget(candidate);
-  const templatePath = requiredSrc(candidate);
   await ensureSafeFileDestination(realTarget);
   if ((await pathExists(realTarget)) && !config.force) {
     const current = await readUtf8(realTarget);
     if (hasManagedBlock(current)) {
-      const template = await readInstallAsset(templatePath);
+      const template = await renderCandidateContent(candidate);
       if (applyManagedBlock(current, template) === current) {
         console.log(`skip root contract: ${candidate.dst}`);
         return { outcome: "kept", ownership: "shared" };
@@ -232,12 +234,7 @@ export const ensureOneRootContract = async (
     );
   }
   const existed = await pathExists(realTarget);
-  await writeRootContractUpdate(
-    realTarget,
-    candidate.dst,
-    templatePath,
-    existed
-  );
+  await writeRootContractUpdate(realTarget, candidate.dst, candidate, existed);
   return {
     outcome: existed ? "updated" : "created",
     ownership: "shared"
