@@ -1,43 +1,45 @@
 ---
 name: autonomous-execution
 description: >-
-  Orchestrate repeated autonomous work cycles across discovery, planning, implementation, validation, review, and publication.
-  Use when the user asks the agent to keep working beyond one scoped item, continue autonomously, find the next improvement candidates, or run an execution loop until a stop condition is met.
+  Run authorized autonomous work cycles with explicit scope, stop conditions, and per-candidate retry limits.
+  Use when the user asks for continued follow-through beyond one scoped item or requests a bounded execution loop.
 ---
 
 # Autonomous Execution
 
-Run repeated scoped work cycles until the user-approved stop condition is met or a named owner decision is required.
+Run one candidate at a time until the loop reaches the approved stop condition
+or blocks.
 Use this skill only after the user explicitly authorizes autonomous follow-through beyond one scoped work item.
 
 ## Operating Rules
 
-- Use `WORKFLOW.md` for branch and worktree policy, subagent selection, model class, evidence, and publication or completion.
-- Write down the user-approved scope and stop condition before the first cycle.
-- Use one scoped outcome per cycle.
-- Give each candidate an owning record, acceptance criteria, failure limit, validation command, review checklist, and publication or completion target before implementation.
-- Process non-overlapping candidates in separate worktrees when their files, contracts, validation surfaces, and publication or completion targets do not conflict.
-- Investigate and register issues, review readiness, and delegate implementation through whatever skills and agents are installed; when a dedicated skill or agent for that step is absent, perform the step directly against the candidate's acceptance criteria.
+- Record the user's authorization, approved scope, and stop condition before the first cycle.
+- Process exactly one candidate per cycle.
+- Use `WORKFLOW.md` for document-edit rules, routing, and delegated phase ownership.
+- Track failure counts separately for each candidate.
 
 ## First Safe Checks
 
-1. Confirm the user request authorizes autonomous follow-through.
-2. Use `WORKFLOW.md` to confirm the host or local review flow.
-3. Confirm the host flow: GitHub, GitLab, or local review.
-4. Write down scope, stop condition, validation command, review target, and publication or completion target.
-5. Identify candidate sources: user request, issue investigation, validation failures, review findings, or repository scan.
+1. Confirm the user's authorization for autonomous follow-through.
+2. Record the approved scope and concrete stop condition.
+3. Identify eligible candidates from the approved sources.
+4. Select one candidate and initialize its failure count at zero.
 
 ## Procedure
 
-1. Select the next improvement candidate inside the user-approved scope.
-2. Define impact, acceptance criteria, changed files, validation, review target, and publication or completion target.
-3. Split candidates into separate worktrees only when their scopes do not overlap.
-4. Execute one scoped work cycle per candidate through `WORKFLOW.md`.
-5. Run the selected validation command from `WORKFLOW.md`.
-6. Request an independent `review` agent through `WORKFLOW.md` and collect its findings.
-7. Fix blocking failures within the failure limit.
-8. Publish or complete the owning record through `WORKFLOW.md` after validation, review, and evidence are complete.
-9. Continue to the next candidate only while it remains inside the user-approved scope and stop condition.
+1. Select one candidate inside the approved scope and define its acceptance criteria and owning record.
+2. Execute the candidate through `WORKFLOW.md`.
+3. Stop immediately for an authority, policy, authentication, missing user intent, or unavailable environment or dependency failure.
+   These terminal failures do not consume a retry budget.
+4. Apply the failed-leaf recovery lifecycle to exploration, implementation, review, and validation failures.
+   A failed leaf clears only with discarded disposition, changed remediation, and a passed replacement with a globally fresh identity.
+5. Define `failedCycles` as the integer count of prior retryable failed cycles for that candidate.
+   The value MUST be zero before the first failure or one before the second; negative, fractional, and larger values block the cycle.
+6. A valid current retryable failure consumes one failure budget.
+   Zero permits one retry; one exhausts the budget and stops without a third attempt.
+7. Block autonomous execution for an invalid recovery or two failed cycles and report the evidence, owner, and next decision required.
+8. Defer routing, isolation, review, validation, and completion authority to `WORKFLOW.md`.
+9. Continue only while the next candidate remains inside the approved scope and stop condition.
 
 ## Exit Conditions
 
@@ -45,23 +47,23 @@ Stop when either outcome applies.
 
 Success:
 
-- The user-approved autonomous scope is complete.
-- Validation passes for each completed candidate.
-- No unresolved high or critical findings remain.
-- Evidence is complete for the owning record.
+- The approved autonomous scope and stop condition are satisfied.
+- Each completed candidate passes the `Canonical Workflow Completion Gate`.
 
 Blocked:
 
-- A human owner must decide business intent or platform policy.
-- A repeated blocker has been retried twice without convergence.
+- A human owner must decide business intent, scope, or platform policy.
+- A candidate reaches two failed cycles.
 - Remaining blockers name an owner and next action.
 
 ## Output Contract
 
 Return:
 
+- `authorization and stop condition`: explicit authorization, scope, and stop condition
 - `cycles completed`: completed candidates and owning records
 - `current status`: success, blocked, or stopped by scope
+- `failure counts`: each attempted candidate and count
 - `validation`: commands run and results
 - `review`: findings, approvals, or residual risks
 - `publication/completion`: host records, local records, or reason not completed

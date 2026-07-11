@@ -13,6 +13,9 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 +-- CLAUDE.md            (imports AGENTS.md)
 +-- ARCHITECTURE.md
 +-- WORKFLOW.md
++-- WORKFLOW.github.md
++-- WORKFLOW.gitlab.md
++-- WORKFLOW.none.md
 +-- .gitignore
 +-- .worktreeinclude
 +-- .mcp.json
@@ -21,24 +24,24 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 |   +-- .gitignore
 +-- .claude/
 |   +-- agents/
-|   |   +-- implementation.md
-|   |   +-- review.md
+|   |   +-- implementer.md
+|   |   +-- reviewer.md
 |   |   +-- scoped-implementer.md
+|   |   +-- validation-executor.md
 |   +-- settings.json
 |   +-- skills/
 |       +-- autonomous-execution/
 |       |   +-- SKILL.md
 |       +-- issue-mining/
-|       |   +-- SKILL.md
-|       +-- review/
 |           +-- SKILL.md
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
 +-- .codex/
 |   +-- agents/
-|       +-- implementation.toml
-|       +-- review.toml
+|       +-- implementer.toml
+|       +-- reviewer.toml
 |       +-- scoped-implementer.toml
+|       +-- validation-executor.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -68,15 +71,20 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 
 ## Runtime Assets
 
-- `.claude/agents/scoped-implementer.md` defines the exhaustive-file-scope Haiku contract for exact edits and targeted validation.
-- `.claude/agents/implementation.md` defines the Sonnet contract for large or cross-file work that requires discovery and integration validation.
-- `.claude/agents/review.md` defines the independent review subagent contract.
-- `.claude/skills/autonomous-execution/SKILL.md` defines the explicit autonomous follow-through loop.
-- `.claude/skills/issue-mining/SKILL.md` defines issue investigation and optional issue-registration workflow.
+- `.claude/agents/` contains four installed agents: `implementer`, `scoped-implementer`, `reviewer`, and `validation-executor`.
+  Each file owns its bounded leaf contract.
+- `.claude/skills/` contains two installed skills: `autonomous-execution` and `issue-mining`.
+  Each `SKILL.md` owns its named workflow.
 - `.agents/skills/` links to `.claude/skills/`.
-- `.codex/agents/scoped-implementer.toml` defines the equivalent Luna low-effort exact-scope agent.
-- `.codex/agents/implementation.toml` defines the Terra medium-effort general implementation agent.
-- `.codex/agents/review.toml` defines the Codex review agent.
+- `.codex/agents/` contains Codex counterparts for the four installed agents.
+- `WORKFLOW.md` owns target orchestration, review, validation, and completion policy.
+- `WORKFLOW.github.md`, `WORKFLOW.gitlab.md`, and `WORKFLOW.none.md` are independently
+  installed record-host addenda.
+  Run the installer to copy all three.
+  Select the addendum for each work item through `WORKFLOW.md`, then open only the selected
+  addendum.
+  The addenda contain host-specific record procedures; `WORKFLOW.md` remains the canonical
+  policy.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
 - `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
 - `.worktreeinclude` lists portable gitignored local inputs for Claude Code worktrees.

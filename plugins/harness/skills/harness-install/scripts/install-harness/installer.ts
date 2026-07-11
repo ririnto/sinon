@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 
 import { validationCommandForMode } from "./commands.js";
-import { isExecutable, readUtf8 } from "./files.js";
+import { hookActivationMessage, activateHooks } from "./hook-activation.js";
 import {
   adoptOneTargetPath,
   installFullPlan,
@@ -10,15 +10,9 @@ import {
 } from "./operations.js";
 import { normalizeRequestedTargetPath, requiredSelectedPath } from "./paths.js";
 import { previewInstallSet, showOneTargetPath } from "./preview.js";
-import { writeInstallRecord } from "./record.js";
+import { requireCompatibleInstallPlan, writeInstallRecord } from "./record.js";
 import { fail } from "./types.js";
 import type { InstallerConfig, Mode } from "./types.js";
-
-type HookActivation = Readonly<{
-  command: readonly string[];
-  executable: string;
-  message: string;
-}>;
 
 const executableExists = (executable: string): boolean =>
   Bun.which(executable) !== null;
@@ -31,13 +25,6 @@ const isolateTargetGitEnvironment = (): void => {
     }
   }
 };
-
-/** Return the shared explicit Git hook activation command. */
-const hookActivation = (): HookActivation => ({
-  command: ["git", "config", "--local", "core.hooksPath", ".githooks/"],
-  executable: "git",
-  message: "git config --local core.hooksPath .githooks/"
-});
 
 const printSummary = (
   config: InstallerConfig,
@@ -53,67 +40,8 @@ const printSummary = (
   }
 };
 
-/**
- * Activate Git hooks when explicitly requested; fail on any activation error.
- *
- * @param config Installer config.
- */
-const activateHooks = async (config: InstallerConfig): Promise<void> => {
-  if (!config.activateHooks) {
-    return;
-  }
-  const activation = hookActivation();
-  if (!executableExists(activation.executable)) {
-    return fail(
-      `--activate-hooks: ${activation.executable} not in PATH; cannot run ${activation.message}`
-    );
-  }
-  const expectedHeader = "#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\n";
-  const hookStates = await Promise.all(
-    [".githooks/pre-commit", ".githooks/pre-push"].map(async (hook) => ({
-      content: await readUtf8(hook).catch(() => ""),
-      executable: await isExecutable(hook),
-      hook
-    }))
-  );
-  for (const state of hookStates) {
-    if (!state.executable) {
-      return fail(
-        `--activate-hooks: ${state.hook} must exist and be executable`
-      );
-    }
-    if (!state.content.startsWith(expectedHeader)) {
-      return fail(
-        `--activate-hooks: ${state.hook} must use the POSIX hook header`
-      );
-    }
-  }
-  const proc = Bun.spawnSync([...activation.command], {
-    stderr: "pipe",
-    stdout: "pipe"
-  });
-  if (!proc.success) {
-    return fail(
-      `--activate-hooks: ${activation.message} failed: ${proc.stderr.toString().trim()}`
-    );
-  }
-  const configured = Bun.spawnSync(
-    ["git", "config", "--local", "--get", "core.hooksPath"],
-    { stderr: "pipe", stdout: "pipe" }
-  );
-  if (
-    !configured.success ||
-    configured.stdout.toString().trim() !== ".githooks/"
-  ) {
-    return fail(
-      "--activate-hooks: core.hooksPath did not persist as .githooks/"
-    );
-  }
-  console.log(`activate git hooks: ${activation.message}`);
-};
-
 const runtimeAdvisoryForMode = (mode: Mode, hooksActive: boolean): void => {
-  const activation = hookActivation();
+  const activationMessage = hookActivationMessage();
   switch (mode) {
     case "gradle": {
       if (!existsSync("./gradlew")) {
@@ -161,8 +89,8 @@ const runtimeAdvisoryForMode = (mode: Mode, hooksActive: boolean): void => {
   }
   console.error(
     hooksActive
-      ? `[advisory] Git hooks are active through: ${activation.message}`
-      : `[advisory] To activate Git hooks, run: ${activation.message}`
+      ? `[advisory] Git hooks are active through: ${activationMessage}`
+      : `[advisory] To activate Git hooks, run: ${activationMessage}`
   );
 };
 
@@ -206,6 +134,7 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
       const selectedPath = normalizeRequestedTargetPath(
         requiredSelectedPath(config)
       );
+      await requireCompatibleInstallPlan(config);
       const results = await installOneTargetPath(config, selectedPath);
       await writeInstallRecord(config, results, false);
       printSummary(config, selectedPath);

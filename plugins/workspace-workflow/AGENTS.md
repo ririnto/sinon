@@ -8,7 +8,9 @@ This file applies to `plugins/workspace-workflow/` and overrides broader plugin 
 
 ## Build, Test, and Development Commands
 
-Inspect `git remote -v`, `git status --short --branch`, and `git branch -vv` before host advice. Run `claude plugin validate plugins/workspace-workflow`, `bun test scripts/workflow-contract.test.ts`, and `bun run check` after routing changes.
+Inspect `git remote -v`, `git status --short --branch`, and `git branch -vv` before host advice.
+Run `claude plugin validate plugins/workspace-workflow`, `bun run check:authoring-assets`, and
+`bun run check` after routing changes.
 
 ## Coding Style and Testing
 

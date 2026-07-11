@@ -4,6 +4,20 @@ import path from "node:path";
 import type { CiHost, InstallCandidate, InstallerConfig } from "./types.js";
 import { fail } from "./types.js";
 
+const isEnoent = (error: unknown): boolean =>
+  error instanceof Error && "code" in error && error.code === "ENOENT";
+
+const lstatOrAbsent = async (targetPath: string) => {
+  try {
+    return await lstat(targetPath);
+  } catch (error) {
+    if (isEnoent(error)) {
+      return null;
+    }
+    throw error;
+  }
+};
+
 /** Check parent components in order so no lookup crosses a symlink. */
 const checkParentComponents = async (
   parents: readonly string[],
@@ -16,7 +30,7 @@ const checkParentComponents = async (
   if (checkedParent === undefined) {
     return;
   }
-  const stat = await lstat(checkedParent).catch(() => null);
+  const stat = await lstatOrAbsent(checkedParent);
   if (stat?.isSymbolicLink() === true) {
     fail(
       `[safe_parent] refusing symlink directory component: ${checkedParent}`
@@ -88,7 +102,7 @@ export const checkSafeFileDestination = async (
     : targetPath;
   ensureSafeRelativePath(cleanPath);
   await checkSafeParentDir(cleanPath);
-  const stat = await lstat(cleanPath).catch(() => null);
+  const stat = await lstatOrAbsent(cleanPath);
   if (stat?.isSymbolicLink() === true) {
     fail(`[safe_destination] refusing symlink file destination: ${cleanPath}`);
   }
@@ -125,11 +139,7 @@ export const ensureSafeParentDir = async (
 };
 
 export const isCommonSkipPath = (rel: string): boolean =>
-  rel === "AGENTS.md" ||
-  rel === "CLAUDE.md" ||
-  rel === "WORKFLOW.github.md" ||
-  rel === "WORKFLOW.gitlab.md" ||
-  rel === "WORKFLOW.none.md";
+  rel === "AGENTS.md" || rel === "CLAUDE.md";
 
 export const isHostTemplatePath = (rel: string, ciHost: CiHost): boolean => {
   if (rel.startsWith(".github/ISSUE_TEMPLATE/")) {

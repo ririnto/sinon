@@ -33,7 +33,8 @@ Installed assets under `assets/common` and `assets/<mode>` carry repository runt
 - Preserve harness-only development readiness.
   - Target repositories still supply requirements, architecture decisions, source code, runtime
     configuration, secrets, and domain references.
-- Provide `WORKFLOW.md` for branch policy, host CLI use, validation, review, and publication.
+- Provide `WORKFLOW.md`, `WORKFLOW.github.md`, `WORKFLOW.gitlab.md`, and `WORKFLOW.none.md`
+  for base policy and separately installed host record addenda.
 
 ## Lifecycle
 
@@ -97,6 +98,22 @@ The plugin does not expose top-level hooks.
 Stack assets provide inactive POSIX `pre-commit` and `pre-push` templates for the selected mode.
 The installer activates them only when `--activate-hooks` is supplied.
 
+## Atomic Write Security Boundary
+
+Installer writes provide these supported guarantees:
+
+- lexical traversal rejection
+- observed symlink rejection
+- exclusive same-dir regular temp
+- immediate-parent identity recheck
+- destination symlink rejection
+
+The installer requires trusted, non-hostile target ancestry during installation.
+It does not claim protection against concurrent hostile ancestor replacement after
+the checks, full TOCTOU-safe or sandbox containment, APFS normalization, or
+hard-link containment. Public Bun and Node APIs don't provide a supported
+descriptor-relative boundary for this installer.
+
 ## Target Ownership
 
 `.harness/install-record.json` records the exact expected plan and each asset as `harness`, `shared`, or `target` owned for refresh purposes.
@@ -123,6 +140,8 @@ Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
 The installer requires `--ci-host` to select which CI files to create.
 `--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither.
 CI files are stack-specific initial install assets selected by `--ci-host`.
+`--ci-host` does not select workflow addenda.
+The installer copies all four workflow files, and each work item selects its record-host addendum separately.
 Installed `pre-push` hooks may run a stronger stack final check.
 Hook templates remain inactive unless the installer receives `--activate-hooks`.
 
@@ -154,6 +173,10 @@ The installer creates this target repository structure, and validators require i
 +-- AGENTS.md
 +-- ARCHITECTURE.md
 +-- CLAUDE.md            (imports AGENTS.md)
++-- WORKFLOW.md
++-- WORKFLOW.github.md
++-- WORKFLOW.gitlab.md
++-- WORKFLOW.none.md
 +-- .gitignore
 +-- .worktreeinclude
 +-- .mcp.json
@@ -161,24 +184,24 @@ The installer creates this target repository structure, and validators require i
 |   +-- .gitignore
 +-- .claude/
 |   +-- agents/
-|   |   +-- implementation.md
-|   |   +-- review.md
+|   |   +-- implementer.md
+|   |   +-- reviewer.md
 |   |   +-- scoped-implementer.md
+|   |   +-- validation-executor.md
 |   +-- settings.json
 |   +-- skills/
 |       +-- autonomous-execution/
 |       |   +-- SKILL.md
 |       +-- issue-mining/
-|       |   +-- SKILL.md
-|       +-- review/
 |           +-- SKILL.md
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
 +-- .codex/
 |   +-- agents/
-|       +-- implementation.toml
-|       +-- review.toml
+|       +-- implementer.toml
+|       +-- reviewer.toml
 |       +-- scoped-implementer.toml
+|       +-- validation-executor.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -210,26 +233,16 @@ The installer creates this target repository structure, and validators require i
     +-- exec-plan-links.ts
 ```
 
-The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and inactive hook templates for every stack.
-Installed day-to-day runtime surfaces are three project agents (`implementation`,
-`scoped-implementer`, `review`) and three project skills (`autonomous-execution`, `issue-mining`,
-`review`).
-The general `implementation` agent uses Sonnet/Terra medium for related-file discovery,
-cross-module or cross-layer changes, design choices, and integrated validation.
-`scoped-implementer` uses Haiku/Luna low for exhaustive single-file or small related-file edits,
-and `review` uses Sonnet/Terra medium as a read-only reviewer.
+The installed inventory also includes `WORKFLOW.md`, `WORKFLOW.github.md`, `WORKFLOW.gitlab.md`, and `WORKFLOW.none.md`.
+It includes stack-specific validation adapters, CI files when enabled, and inactive hook templates for each stack.
+Installed day-to-day runtime surfaces include four project agents: `implementer`, `scoped-implementer`, `reviewer`, and `validation-executor`.
+They include two project skills: `autonomous-execution` and `issue-mining`.
 Plugin-root Harness skills and agents remain plugin-owned and are not copied into target repositories.
-`WORKFLOW.md` defines branch, review, validation, and publication decisions.
-Installed target agents receive workflow decisions through their task prompt.
-Only the user-facing top-level or root agent orchestrates work; installed repository agents are delegation targets, and the Harness does not install a `project-orchestrator` agent.
-Use the Haiku/Luna low-effort `scoped-implementer` only when the caller supplies an exhaustive
-single-file or related-file ownership list, exact desired behavior, and targeted validation
-commands.
-Use the Sonnet/Terra medium-effort `implementation` agent when the change is large, spans related
-files, modules, or layers, requires discovering the complete affected set, or needs cross-file
-reasoning and integration validation.
-An orchestrator MUST explore and plan an ambiguous file set before delegation and MUST NOT send it directly to `scoped-implementer`.
-Parallel `scoped-implementer` assignments MUST own disjoint file sets.
+`WORKFLOW.md` is the installed target's normative workflow contract.
+This README inventories its runtime surfaces.
+Installed target agents receive applicable workflow decisions through their task prompt.
+See `WORKFLOW.md` for root orchestration policy.
+Installed repository agents remain delegation targets, and the Harness does not install a `project-orchestrator` agent.
 
 Each stack ships POSIX `.githooks/pre-commit` and `.githooks/pre-push` files.
 `pre-commit` runs the selected-mode command and may include stack preflight checks.
@@ -276,12 +289,14 @@ Gradle, Maven, uv, and shell fix commands also run `markdownlint-cli2 --fix` whe
 The Bun validator uses its packaged `markdownlint-cli2` dependency and fails normally if dependency installation is missing or broken.
 
 The Bun validator runs through `bun run check`, a package.json script that runs packaged `markdownlint-cli2` and `ultracite check`.
-Root and Bun target manifests declare Node.js 22 or newer because their CLI dependencies require it. Bun target hooks and CI use `bun run`, which resolves packaged CLIs without a global install.
+Root and Bun target manifests declare Node.js 22 or newer because their CLI dependencies require it.
+Bun target hooks and CI use `bun run`, which resolves packaged CLIs without a global install.
 JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type input.
 The local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported APIs.
 That means exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.
 
-The Bun-side validator and the plugin installer are covered by plugin checks for packaged files, manifest alignment, and syntax-level validation.
+`scripts/plugin-self-check.ts` checks the packaged plugin, asset manifest, installer behavior, and runtime metadata.
+The installed target's selected stack command and `harness-validate` own target validation after installation.
 
 The uv validator self-provisions ruff on first use with two commands:
 
@@ -391,7 +406,7 @@ The `skills/` directory contains `harness-evolve/`, `harness-install/`, and `har
 
 - This plugin prepares repository knowledge, guardrails, templates, and validation paths.
 - Installed agents are starting points, not immutable plugin internals.
-- The plugin skill `harness-validate` validates packaged and installed harness assets before or after installation.
+- The package self-check validates packaged assets; `harness-validate` validates an installed target's recorded harness state.
 - Installed repositories run validation through their stack command and update records through `WORKFLOW.md`.
 - GitHub Actions and GitLab CI files use ordinary version tags from the archive.
   - Projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.

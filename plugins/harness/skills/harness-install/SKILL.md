@@ -3,7 +3,7 @@ name: harness-install
 description: >-
   Install repository harness assets from the plugin asset package.
   Use when setting up or refreshing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `WORKFLOW.md`,
-  docs, project agents, project skills, validators, CI files, and Git hook templates.
+  workflow addenda, docs, project agents, project skills, validators, CI files, and Git hook templates.
 ---
 
 # Harness Install
@@ -30,6 +30,21 @@ Target business logic and day-to-day feature code stay in the target repository.
 - Target repository agents, project skills, docs, validators, CI files, and hook scaffolds come from `skills/harness-install/assets/`.
 - Plugin-root structural agents are not installable target assets.
 
+## Atomic Write Security Boundary
+
+Installer writes provide these supported guarantees:
+
+- lexical traversal rejection
+- observed symlink rejection
+- exclusive same-dir regular temp
+- immediate-parent identity recheck
+- destination symlink rejection
+
+Installation requires trusted, non-hostile target ancestry.
+The installer excludes protection against concurrent hostile ancestor replacement
+after checks, full TOCTOU-safe containment, APFS normalization, and hard-link
+containment. It doesn't claim descriptor-relative containment.
+
 ## First Safe Checks
 
 1. Confirm the target repository working tree is clean before running the installer.
@@ -44,8 +59,10 @@ Target business logic and day-to-day feature code stay in the target repository.
      - Inspect manifests in the target root.
        - Examples: `pom.xml`, `build.gradle*`, `pyproject.toml`/`uv.lock`, `package.json`/`bun.lock`, and `Makefile`/`*.sh`.
 4. Identify the active CI host.
-   - Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither.
-   - Remove unused CI files as a post-install step.
+    - Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither.
+    - Remove unused CI files as a post-install step.
+    - `--ci-host` selects CI assets only.
+      The installer copies all workflow files, and each work item selects its record-host addendum separately.
 5. Every stack ships executable POSIX hooks under `.githooks/`.
    - `pre-commit` runs the selected canonical check.
    - `pre-push` runs the selected final gate.
@@ -118,18 +135,24 @@ A first-time `--only` record remains explicitly partial until a full install est
 
 - `skills/harness-install/assets/common/AGENTS.md`: root contract.
 - `skills/harness-install/assets/common/ARCHITECTURE.md`: architecture and component roles.
-- `skills/harness-install/assets/common/WORKFLOW.md`: process rules.
+- `skills/harness-install/assets/common/WORKFLOW.md`: host-neutral process rules.
+- `skills/harness-install/assets/common/WORKFLOW.github.md`: GitHub record-host addendum.
+- `skills/harness-install/assets/common/WORKFLOW.gitlab.md`: GitLab record-host addendum.
+- `skills/harness-install/assets/common/WORKFLOW.none.md`: local record-host addendum.
 - `skills/harness-install/assets/common/docs/**`: operating and domain context.
 - `skills/harness-install/assets/<mode>/**`: stack validation and hook assets for the chosen mode.
 - `skills/harness-install/assets/common/.claude/agents/scoped-implementer.md`: Haiku low-effort
-  subagent for exact edits with an exhaustive file ownership list, desired behavior, and targeted
-  validation commands.
-- `skills/harness-install/assets/common/.claude/agents/implementation.md`: Sonnet medium-effort
-  subagent for large or cross-file work that requires affected-set discovery, reasoning, and
-  integration validation.
-- `skills/harness-install/assets/common/.claude/agents/review.md`: independent read-only review subagent.
+  subagent for exact edits with an exhaustive file ownership list, acceptance criteria, and
+  requested validation phases.
+- `skills/harness-install/assets/common/.claude/agents/implementer.md`: Sonnet medium-effort
+  subagent for large or cross-file work that requires affected-set discovery and reasoning.
+- `skills/harness-install/assets/common/.claude/agents/reviewer.md`: independent read-only review subagent.
+- `skills/harness-install/assets/common/.claude/agents/validation-executor.md`: exact-command focused or integrated validation subagent.
 - `skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml`: Luna low-effort counterpart for exact exhaustive file scopes.
-- `skills/harness-install/assets/common/.codex/agents/implementation.toml`: Terra medium-effort counterpart for broad or cross-file implementation.
+- `skills/harness-install/assets/common/.codex/agents/implementer.toml`: Terra medium-effort counterpart for broad or cross-file implementation.
+- `skills/harness-install/assets/common/.codex/agents/reviewer.toml`: Terra medium-effort
+  independent read-only reviewer counterpart.
+- `skills/harness-install/assets/common/.codex/agents/validation-executor.toml`: Luna low-effort counterpart for exact-command focused or integrated validation.
 - `skills/harness-install/assets/common/.claude/skills/autonomous-execution/SKILL.md`: orchestration loop for explicit autonomous follow-through.
 - `skills/harness-install/assets/common/.claude/skills/issue-mining/SKILL.md`: investigation and issue-registration skill.
 
@@ -149,6 +172,7 @@ A first-time `--only` record remains explicitly partial until a full install est
 | Target mirrors to GitHub and GitLab | Pass `--ci-host both` to write both CI files. |
 | | Both CI scripts must run the same canonical check command. |
 | Target has a no-CI policy | Pass `--ci-host none`. |
+| Work item needs a record host | Select the separately installed addendum from the work item's record host. |
 | No CI host is specified | Request an explicit choice: GitHub, GitLab, both, or none. |
 | | Pass `--ci-host <github\|gitlab\|both\|none>` to the installer. |
 | Complex Gradle settings already exist | Review `settings.gradle(.kts)` after installer wiring. |

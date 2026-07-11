@@ -1,14 +1,9 @@
 import { readlink } from "node:fs/promises";
 
 import { validationCommandForMode } from "./commands.js";
+import { renderCandidateContent } from "./content.js";
 import { decideFileInstall } from "./decisions.js";
-import {
-  isSymlink,
-  matchCandidate,
-  pathExists,
-  readInstallAsset,
-  readUtf8
-} from "./files.js";
+import { isSymlink, matchCandidate, pathExists, readUtf8 } from "./files.js";
 import {
   applyManagedBlock,
   hasManagedBlock,
@@ -17,8 +12,7 @@ import {
 import {
   checkSafeFileDestination,
   checkSafeParentDir,
-  requiredRealTarget,
-  requiredSrc
+  requiredRealTarget
 } from "./paths.js";
 import { buildPlan } from "./planning.js";
 import { previousAssetsForConfig } from "./record.js";
@@ -53,7 +47,7 @@ const previewRootContractCandidate = async (
   const exists = await pathExists(realTarget);
   const current = exists ? await readUtf8(realTarget) : "";
   if (exists && hasManagedBlock(current) && !config.force) {
-    const template = await readInstallAsset(requiredSrc(candidate));
+    const template = await renderCandidateContent(candidate);
     if (applyManagedBlock(current, template) === current) {
       console.log(`skip root contract: ${candidate.dst}`);
       return;
@@ -136,7 +130,7 @@ const showRootContractCandidate = async (
       `note: requested root contract managed block would be added to existing file: ${realTarget}`
     );
   }
-  const template = await readInstallAsset(requiredSrc(candidate));
+  const template = await renderCandidateContent(candidate);
   process.stdout.write(renderManagedBlock(template));
 };
 
@@ -212,7 +206,7 @@ export const showOneTargetPath = async (
     case "seed":
     case "stack-file": {
       await checkSafeFileDestination(candidate.dst);
-      process.stdout.write(await readInstallAsset(requiredSrc(candidate)));
+      process.stdout.write(await renderCandidateContent(candidate));
       return;
     }
     case "root-contract": {
