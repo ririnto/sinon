@@ -70,11 +70,11 @@
       "access": "read-only"
     },
     {
-      "name": "implementation",
-      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/implementation.md",
+      "name": "implementer",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/implementer.md",
       "claudeModel": "sonnet",
       "claudeEffort": "medium",
-      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/implementation.toml",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/implementer.toml",
       "codexModel": "gpt-5.6-terra",
       "codexEffort": "medium",
       "topology": "leaf",
@@ -92,11 +92,22 @@
       "access": "writer"
     },
     {
-      "name": "review",
-      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/review.md",
+      "name": "validation-executor",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/validation-executor.md",
+      "claudeModel": "haiku",
+      "claudeEffort": "low",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/validation-executor.toml",
+      "codexModel": "gpt-5.6-luna",
+      "codexEffort": "low",
+      "topology": "mechanical",
+      "access": "executor"
+    },
+    {
+      "name": "reviewer",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/reviewer.md",
       "claudeModel": "sonnet",
       "claudeEffort": "medium",
-      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/review.toml",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/reviewer.toml",
       "codexModel": "gpt-5.6-terra",
       "codexEffort": "medium",
       "topology": "leaf",

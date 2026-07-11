@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { workflowAssetNameForCiHost, workflowNameForMode } from "./commands.js";
+import { workflowNameForMode } from "./commands.js";
 import { listTrackedTreeFiles } from "./files.js";
 import {
   isCommonSkipPath,
@@ -31,16 +31,12 @@ const commonInstallCandidates = async (
     ) {
       continue;
     }
-    const selectedSrc =
-      rel === "WORKFLOW.md"
-        ? path.join(srcDir, workflowAssetNameForCiHost(config.ciHost))
-        : src;
     const seed = isDirectTemplateEntry(rel);
     candidates.push({
       dst: rel,
       kind: seed ? "seed" : "file",
       seed,
-      src: selectedSrc
+      src
     });
   }
   return candidates;

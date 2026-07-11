@@ -1,14 +1,5 @@
 import { constants } from "node:fs";
-import {
-  access,
-  chmod,
-  lstat,
-  readFile,
-  rename,
-  rm,
-  symlink,
-  writeFile
-} from "node:fs/promises";
+import { access, lstat, readFile, rm, symlink } from "node:fs/promises";
 import path from "node:path";
 
 import { manifestFilesForSubdir } from "../asset-manifest.js";
@@ -49,20 +40,6 @@ export const isExecutable = async (filePath: string): Promise<boolean> => {
 export const readUtf8 = (filePath: string): Promise<string> =>
   readFile(filePath, "utf-8");
 
-export const writeUtf8 = async (
-  filePath: string,
-  content: string
-): Promise<void> => {
-  await writeFile(filePath, content, "utf-8");
-};
-
-export const replaceFile = async (
-  tmp: string,
-  target: string
-): Promise<void> => {
-  await rename(tmp, target);
-};
-
 export const removePath = async (filePath: string): Promise<void> => {
   await rm(filePath, { force: true, recursive: false });
 };
@@ -72,23 +49,6 @@ export const createSymlink = async (
   linkPath: string
 ): Promise<void> => {
   await symlink(target, linkPath, "dir");
-};
-
-export const temporaryDestination = async (
-  dst: string,
-  label: string
-): Promise<string> => {
-  const parent = path.dirname(dst) === "." ? "." : path.dirname(dst);
-  const tmp = path.join(
-    parent,
-    `.harness-tmp-${process.pid}-${path.basename(dst)}`
-  );
-  if (await pathExists(tmp)) {
-    fail(
-      `[${label}] temporary destination already exists: ${tmp} (cleanup or retry)`
-    );
-  }
-  return tmp;
 };
 
 export const readInstallAsset = async (assetFile: string): Promise<string> => {
@@ -106,12 +66,6 @@ export const listTrackedTreeFiles = async (
   }
   const subdir = path.basename(srcDir);
   return manifestFilesForSubdir(skillDir, subdir);
-};
-
-export const copyMode = async (srcFile: string, tmp: string): Promise<void> => {
-  if (await isExecutable(srcFile)) {
-    await chmod(tmp, 0o755);
-  }
 };
 
 export const matchCandidate = (
