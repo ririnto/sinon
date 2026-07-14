@@ -31,7 +31,8 @@ Narrow package, authoring, Harness, and forge rules load from nearer `AGENTS.md`
 - `scripts/no-box-drawing.ts`: `-> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts`.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
 - `.claude/skills/` and `.claude/agents/`: `-> plugins/agent-capability-kit/{skills,agents}/`.
-- `.agents/skills/`: `-> .claude/skills/`; `.agents/agents/` is intentionally absent.
+- `.agents/skills/` points to `.claude/skills/`.
+- `.agents/agents/` is intentionally absent.
 - `.codex/agents/`: regular directory containing one Codex TOML file per shared agent.
 - `scripts/agent-routing-manifest.json`: canonical agent model, effort, topology, and counterpart inventory.
 - `scripts/agent-routing.ts`: deterministic routing and mirror validator.
@@ -56,7 +57,16 @@ Each plugin directory may expose a Claude Code manifest from the same plugin roo
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 
 Optional assets live beside the manifest at the plugin root.
-Common examples include `README.md`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, `settings.json`, and executable `bin/`.
+Common plugin assets include:
+
+- `README.md`.
+- `agents/`.
+- `skills/`.
+- `hooks/`.
+- `.mcp.json`.
+- `settings.json`.
+- Executable `bin/`.
+
 Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
 
 ## Current Plugins
@@ -66,7 +76,8 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, and cross-platform Agent Skills.
 - `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including `SPEC.md` creation.
-- `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project agents, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
+- `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
+  The active host supplies agents and Harness requires capability-based delegation.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
 - `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.

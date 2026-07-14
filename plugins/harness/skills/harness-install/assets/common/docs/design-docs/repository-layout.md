@@ -3,7 +3,12 @@
 ## Purpose
 
 This document records the repository structure and runtime assets that support agent work.
-It is the inventory for files, directories, local settings, worktree setup, and generated-artifact locations.
+It inventories these repository surfaces:
+
+- Files and directories.
+- Local settings.
+- Worktree setup.
+- Generated-artifact locations.
 
 ## Required Structure
 
@@ -13,9 +18,6 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 +-- CLAUDE.md            (imports AGENTS.md)
 +-- ARCHITECTURE.md
 +-- WORKFLOW.md
-+-- WORKFLOW.github.md
-+-- WORKFLOW.gitlab.md
-+-- WORKFLOW.none.md
 +-- .gitignore
 +-- .worktreeinclude
 +-- .mcp.json
@@ -23,11 +25,6 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 +-- .codegraph/
 |   +-- .gitignore
 +-- .claude/
-|   +-- agents/
-|   |   +-- implementer.md
-|   |   +-- reviewer.md
-|   |   +-- scoped-implementer.md
-|   |   +-- validation-executor.md
 |   +-- settings.json
 |   +-- skills/
 |       +-- autonomous-execution/
@@ -36,12 +33,6 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 |           +-- SKILL.md
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
-+-- .codex/
-|   +-- agents/
-|       +-- implementer.toml
-|       +-- reviewer.toml
-|       +-- scoped-implementer.toml
-|       +-- validation-executor.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -71,34 +62,28 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 
 ## Runtime Assets
 
-- `.claude/agents/` contains four installed agents: `implementer`, `scoped-implementer`, `reviewer`, and `validation-executor`.
-  Each file owns its bounded leaf contract.
-- `.claude/skills/` contains two installed skills: `autonomous-execution` and `issue-mining`.
-  Each `SKILL.md` owns its named workflow.
+- `.claude/skills/` contains `autonomous-execution` and `issue-mining`.
+Each `SKILL.md` owns its named workflow.
 - `.agents/skills/` links to `.claude/skills/`.
-- `.codex/agents/` contains Codex counterparts for the four installed agents.
+- Runtime inventory includes the two project skills, target policy, and host-provided native agents.
 - `WORKFLOW.md` owns target orchestration, review, validation, and completion policy.
-- `WORKFLOW.github.md`, `WORKFLOW.gitlab.md`, and `WORKFLOW.none.md` are independently
-  installed record-host addenda.
-  Run the installer to copy all three.
-  Select the addendum for each work item through `WORKFLOW.md`, then open only the selected
-  addendum.
-  The addenda contain host-specific record procedures; `WORKFLOW.md` remains the canonical
-  policy.
+- The installer always copies one target-facing `WORKFLOW.md`.
+- `--ci-host` selects CI files only.
+- Existing target workflow variants remain unmanaged and unchanged.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
 - `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
-- `.worktreeinclude` lists portable gitignored local inputs for Claude Code worktrees.
-- `.claude/settings.json` contains the active stack worktree setup hook.
+- `.worktreeinclude` lists portable gitignored local inputs for worktrees.
+- `.claude/settings.json` contains the Claude Code adapter for stack worktree setup.
 
 ## Worktree Setup
 
-Claude worktrees use Claude Code's default Git worktree behavior.
+Each host uses its native Git worktree behavior.
 `.worktreeinclude` lists portable gitignored local inputs.
 Examples include `.env` and `*.local.*` files.
 `.gitignore` ignores `.claude/worktrees/`.
 
-The `hooks.PostToolUse[]` entry in `.claude/settings.json` matches the `EnterWorktree` tool and runs async setup commands from the worktree directory.
-All stacks run `codegraph init; codegraph index`.
+The installed Claude Code settings hook matches `EnterWorktree` and runs async setup commands from the worktree directory.
+All stacks run `codegraph init` followed by `codegraph index`.
 Bun runs `bun install`.
 uv runs `uv sync`.
 Gradle runs `./gradlew help`.

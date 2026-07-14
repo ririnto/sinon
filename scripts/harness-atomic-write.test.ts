@@ -18,7 +18,8 @@ mock.module("node:crypto", () => ({
   randomUUID: () => TEMPORARY_UUID
 }));
 
-const { prepareAtomicWrite } = await import("./atomic-write.js");
+const { prepareAtomicWrite } =
+  await import("../plugins/harness/skills/harness-install/scripts/install-harness/atomic-write.js");
 
 const temporaryNameFor = (target: string): string =>
   path.join(

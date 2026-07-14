@@ -14,7 +14,6 @@ Open [repository conventions](../docs/agent-references/repository-conventions.md
 
 Run `claude plugin validate plugins/<plugin>` after changing that package.
 Run `bun run check` before an integrated handoff.
-Harness changes also require `plugins/harness/scripts/plugin-self-check.ts`.
 
 ## Coding Style and Testing
 
