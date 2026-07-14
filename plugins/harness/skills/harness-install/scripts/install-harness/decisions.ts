@@ -1,47 +1,18 @@
 import { renderCandidateContent } from "./content.js";
 import { pathExists, readUtf8 } from "./files.js";
 import { checkSafeFileDestination } from "./paths.js";
-import { canRefreshOwnedAsset, digestContent } from "./record.js";
-import type {
-  InstallAssetRecord,
-  InstallCandidate,
-  InstallerConfig,
-  InstallOperationResult
-} from "./types.js";
+import type { InstallCandidate, InstallerConfig } from "./types.js";
 
 export type FileInstallDecision = Readonly<{
   diagnostic: "stderr" | "stdout";
   message: string;
-  operation: InstallOperationResult;
   write: boolean;
 }>;
 
-const canKeepAdoptedAsset = (
-  previous: InstallAssetRecord | undefined
-): boolean => previous?.ownership === "target" && previous.outcome === "kept";
-
-const keptOwnership = (
-  candidate: InstallCandidate,
-  previous: InstallAssetRecord | undefined,
-  currentDigest: string
-): InstallOperationResult["ownership"] => {
-  if (candidate.kind === "seed") {
-    return "target";
-  }
-  if (
-    previous?.ownership === "harness" &&
-    previous.targetDigest === currentDigest
-  ) {
-    return "harness";
-  }
-  return "target";
-};
-
-/** Decide one file install from safe target state without writing anything. */
+/** Decide one file install from the target bytes without consulting history. */
 export const decideFileInstall = async (
   config: InstallerConfig,
-  candidate: InstallCandidate,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
+  candidate: InstallCandidate
 ): Promise<FileInstallDecision> => {
   await checkSafeFileDestination(candidate.dst);
   const source = await renderCandidateContent(candidate);
@@ -52,15 +23,11 @@ export const decideFileInstall = async (
         candidate.kind === "seed"
           ? `deliver seed: ${candidate.dst}`
           : `write: ${candidate.dst}`,
-      operation: {
-        outcome: "created",
-        ownership: candidate.kind === "seed" ? "target" : "harness"
-      },
       write: true
     };
   }
+
   const current = await readUtf8(candidate.dst);
-  const currentDigest = digestContent(current);
   if (config.force) {
     return {
       diagnostic: "stdout",
@@ -68,54 +35,29 @@ export const decideFileInstall = async (
         candidate.kind === "seed"
           ? `overwrite seed (--force): ${candidate.dst}`
           : `overwrite (--force): ${candidate.dst}`,
-      operation: {
-        outcome: "updated",
-        ownership: candidate.kind === "seed" ? "target" : "harness"
-      },
       write: true
     };
   }
-  if (candidate.kind === "seed") {
-    return {
-      diagnostic: "stdout",
-      message: `skip seed (target exists): ${candidate.dst}`,
-      operation: { outcome: "kept", ownership: "target" },
-      write: false
-    };
-  }
-  const sourceDigest = digestContent(source);
-  const previous = previousAssets.get(candidate.dst);
-  if (currentDigest === sourceDigest) {
+
+  if (current === source) {
     return {
       diagnostic: "stdout",
       message: `keep existing (matches template): ${candidate.dst}`,
-      operation: {
-        outcome: "kept",
-        ownership: keptOwnership(candidate, previous, currentDigest)
-      },
       write: false
     };
   }
-  if (canRefreshOwnedAsset(previous, currentDigest, sourceDigest)) {
+
+  if (candidate.kind === "seed") {
     return {
       diagnostic: "stdout",
-      message: `refresh owned: ${candidate.dst}`,
-      operation: { outcome: "updated", ownership: "harness" },
-      write: true
-    };
-  }
-  if (canKeepAdoptedAsset(previous)) {
-    return {
-      diagnostic: "stdout",
-      message: `keep adopted target: ${candidate.dst}`,
-      operation: { outcome: "kept", ownership: "target" },
+      message: `preserve seed (target differs): ${candidate.dst}`,
       write: false
     };
   }
+
   return {
     diagnostic: "stderr",
-    message: `conflict: ${candidate.dst} differs from the plugin source; preserving target; run --adopt ${candidate.dst} to keep target ownership or --force to overwrite`,
-    operation: { outcome: "conflict", ownership: "target" },
+    message: `conflict: ${candidate.dst} differs from the plugin source; preserving target; rerun with --force to overwrite`,
     write: false
   };
 };
