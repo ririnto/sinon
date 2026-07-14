@@ -27,11 +27,10 @@ import type {
 } from "./types.js";
 
 const writeRootContractUpdate = async (
-  realTarget: string,
-  dst: string,
   candidate: InstallCandidate,
   exists: boolean
 ): Promise<void> => {
+  const realTarget = requiredRealTarget(candidate);
   const template = await renderCandidateContent(candidate);
   const existing = exists ? await readUtf8(realTarget) : "";
   const content = applyManagedBlock(existing, template);
@@ -45,8 +44,8 @@ const writeRootContractUpdate = async (
   }
   console.log(
     exists
-      ? `update root contract (--force): ${dst}`
-      : `create root contract: ${dst}`
+      ? `update root contract (--force): ${candidate.dst}`
+      : `create root contract: ${candidate.dst}`
   );
 };
 
@@ -69,33 +68,33 @@ const checkRootContractConflict = async (dst: string): Promise<boolean> => {
 
 const ensureRootContract = async (
   config: InstallerConfig,
-  dst: string,
   candidate: InstallCandidate
 ): Promise<InstallOperationResult> => {
-  await ensureSafeFileDestination(dst);
-  if (!(await pathExists(dst))) {
-    await writeRootContractUpdate(dst, dst, candidate, false);
+  const realTarget = requiredRealTarget(candidate);
+  await ensureSafeFileDestination(realTarget);
+  if (!(await pathExists(realTarget))) {
+    await writeRootContractUpdate(candidate, false);
     return { outcome: "created", ownership: "shared" };
   }
-  const content = await readUtf8(dst);
+  const content = await readUtf8(realTarget);
   if (hasManagedBlock(content) && !config.force) {
     const template = await renderCandidateContent(candidate);
     if (applyManagedBlock(content, template) === content) {
-      console.log(`skip root contract: ${dst}`);
+      console.log(`skip root contract: ${candidate.dst}`);
       return { outcome: "kept", ownership: "shared" };
     }
     console.error(
-      `conflict root contract: ${dst} managed block differs from template; rerun with --force to update it`
+      `conflict root contract: ${candidate.dst} managed block differs from template; rerun with --force to update it`
     );
     return { outcome: "conflict", ownership: "shared" };
   }
   if (!config.force) {
     console.error(
-      `conflict root contract: ${dst} has no managed block; rerun with --force to add one while preserving existing content`
+      `conflict root contract: ${candidate.dst} has no managed block; rerun with --force to add one while preserving existing content`
     );
     return { outcome: "conflict", ownership: "shared" };
   }
-  await writeRootContractUpdate(dst, dst, candidate, true);
+  await writeRootContractUpdate(candidate, true);
   return { outcome: "updated", ownership: "shared" };
 };
 
@@ -161,20 +160,11 @@ const ensureTargetDirectory = async (
   console.log(`create directory: ${directoryPath}`);
 };
 
-/** Ensure the regular Codex agent directory required by installed TOML files. */
-export const ensureCodexAgentDirectory = async (
-  config: InstallerConfig
-): Promise<void> => {
-  await ensureTargetDirectory(config, ".codex");
-  await ensureTargetDirectory(config, ".codex/agents");
-};
-
-/** Ensure runtime parent directories before capturing or installing assets. */
-export const ensureRuntimeDirectories = async (
+/** Ensure the portable Agent Skill link parent before capturing assets. */
+export const ensureAgentSkillDirectory = async (
   config: InstallerConfig
 ): Promise<void> => {
   await ensureTargetDirectory(config, ".agents");
-  await ensureCodexAgentDirectory(config);
 };
 
 /** Ensure both root contract documents are present or safely updated. */
@@ -191,13 +181,13 @@ export const ensureRootContracts = async (
       );
     }
   }
-  const agents = await ensureRootContract(config, "AGENTS.md", {
+  const agents = await ensureRootContract(config, {
     dst: "AGENTS.md",
     kind: "root-contract",
     realTarget: "AGENTS.md",
     src: path.join(templateDir, "common", "AGENTS.md")
   });
-  const claude = await ensureRootContract(config, "CLAUDE.md", {
+  const claude = await ensureRootContract(config, {
     dst: "CLAUDE.md",
     kind: "root-contract",
     realTarget: "CLAUDE.md",
@@ -234,7 +224,7 @@ export const ensureOneRootContract = async (
     );
   }
   const existed = await pathExists(realTarget);
-  await writeRootContractUpdate(realTarget, candidate.dst, candidate, existed);
+  await writeRootContractUpdate(candidate, existed);
   return {
     outcome: existed ? "updated" : "created",
     ownership: "shared"

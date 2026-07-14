@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { prepareAtomicWrite } from "./atomic-write.js";
+import { prepareAtomicWrite } from "../plugins/harness/skills/harness-install/scripts/install-harness/atomic-write.js";
 
 const permissionBits = (mode: number): number => mode % 0o1000;
 

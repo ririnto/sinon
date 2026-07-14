@@ -13,7 +13,6 @@ A closer `AGENTS.md` overrides this one for its subtree.
 
 - `plugins/` contains publishable packages.
 - `.claude-plugin/marketplace.json` lists package roots.
-- `.codex/agents/` contains Codex counterparts for shared agents.
 - `scripts/` contains repository validation and routing checks.
 
 Open `plugins/AGENTS.md` for package, documentation, and script rules.
@@ -25,7 +24,6 @@ Open [repository conventions](docs/agent-references/repository-conventions.md) w
 
 Run `bun ci` after dependency changes.
 Run `bun run check` before a repository-wide handoff.
-Use `plugins/harness/scripts/plugin-self-check.ts` for Harness runtime or packaged-asset changes.
 Run `claude plugin validate plugins/<plugin>` after changing a plugin package.
 
 ## Coding Style and Testing
