@@ -8,28 +8,10 @@ import {
 } from "./contracts.js";
 import { decideFileInstall } from "./decisions.js";
 import { matchCandidate, pathExists, readUtf8 } from "./files.js";
-import {
-  checkSafeFileDestination,
-  ensureSafeFileDestination,
-  requiredSrc
-} from "./paths.js";
+import { ensureSafeFileDestination, requiredSrc } from "./paths.js";
 import { buildPlan } from "./planning.js";
-import {
-  buildInstallResults,
-  captureCandidateStates,
-  digestContent,
-  previousAssetsForConfig,
-  readInstallRecord,
-  requireCompatibleRecord,
-  sourceDigestForCandidate
-} from "./record.js";
 import { fail } from "./types.js";
-import type {
-  InstallAssetRecord,
-  InstallCandidate,
-  InstallerConfig,
-  InstallOperationResult
-} from "./types.js";
+import type { InstallCandidate, InstallerConfig } from "./types.js";
 
 const writeCandidateSource = async (
   candidate: InstallCandidate,
@@ -46,46 +28,25 @@ const writeCandidateSource = async (
   }
 };
 
-const keptOwnership = (
-  candidate: InstallCandidate,
-  previous: InstallAssetRecord | undefined,
-  currentDigest: string
-): InstallOperationResult["ownership"] => {
-  if (candidate.kind === "seed") {
-    return "target";
-  }
-  if (
-    previous?.ownership === "harness" &&
-    previous.targetDigest === currentDigest
-  ) {
-    return "harness";
-  }
-  return "target";
-};
-
 const copyAssetFile = async (
   config: InstallerConfig,
-  candidate: InstallCandidate,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
-): Promise<InstallOperationResult> => {
-  const decision = await decideFileInstall(config, candidate, previousAssets);
+  candidate: InstallCandidate
+): Promise<void> => {
+  const decision = await decideFileInstall(config, candidate);
+  if (decision.diagnostic === "stderr") {
+    return fail(decision.message);
+  }
   if (decision.write) {
     await ensureSafeFileDestination(candidate.dst);
     await writeCandidateSource(candidate, "install_file");
   }
-  if (decision.diagnostic === "stderr") {
-    console.error(decision.message);
-  } else {
-    console.log(decision.message);
-  }
-  return decision.operation;
+  console.log(decision.message);
 };
 
 const installGitkeep = async (
   config: InstallerConfig,
-  candidate: InstallCandidate,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
-): Promise<InstallOperationResult> => {
+  candidate: InstallCandidate
+): Promise<void> => {
   await ensureSafeFileDestination(candidate.dst);
   if (!(await pathExists(candidate.dst))) {
     const write = await prepareAtomicWrite(candidate.dst, "create_gitkeep");
@@ -96,50 +57,50 @@ const installGitkeep = async (
       await write.discard();
     }
     console.log(`write: ${candidate.dst}`);
-    return { outcome: "created", ownership: "harness" };
+    return;
   }
-  if (config.force) {
-    const write = await prepareAtomicWrite(candidate.dst, "force_gitkeep");
-    try {
-      await write.write("");
-      await write.commit();
-    } finally {
-      await write.discard();
-    }
-    console.log(`overwrite (--force): ${candidate.dst}`);
-    return { outcome: "updated", ownership: "harness" };
+  const current = await readUtf8(candidate.dst);
+  if (current === "") {
+    console.log(`keep existing: ${candidate.dst}`);
+    return;
   }
-  console.log(`keep existing: ${candidate.dst}`);
-  const currentDigest = digestContent(await readUtf8(candidate.dst));
-  return {
-    outcome: "kept",
-    ownership: keptOwnership(
-      candidate,
-      previousAssets.get(candidate.dst),
-      currentDigest
-    )
-  };
+  if (!config.force) {
+    return fail(
+      `conflict: ${candidate.dst} differs from the packaged empty file; preserving target; rerun with --force to overwrite`
+    );
+  }
+  const write = await prepareAtomicWrite(candidate.dst, "force_gitkeep");
+  try {
+    await write.write("");
+    await write.commit();
+  } finally {
+    await write.discard();
+  }
+  console.log(`overwrite (--force): ${candidate.dst}`);
 };
 
-const installCandidate = (
+const installCandidate = async (
   config: InstallerConfig,
-  candidate: InstallCandidate,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
-): Promise<InstallOperationResult> => {
+  candidate: InstallCandidate
+): Promise<void> => {
   switch (candidate.kind) {
     case "file":
     case "seed":
     case "stack-file": {
-      return copyAssetFile(config, candidate, previousAssets);
+      await copyAssetFile(config, candidate);
+      return;
     }
     case "gitkeep": {
-      return installGitkeep(config, candidate, previousAssets);
+      await installGitkeep(config, candidate);
+      return;
     }
     case "root-contract": {
-      return ensureOneRootContract(config, candidate);
+      await ensureOneRootContract(config, candidate);
+      return;
     }
     case "symlink": {
-      return ensureOneRuntimeSymlink(config, candidate);
+      await ensureOneRuntimeSymlink(config, candidate);
+      return;
     }
     default: {
       return fail(`unsupported install candidate: ${candidate.dst}`);
@@ -150,8 +111,6 @@ const installCandidate = (
 const installCandidates = async (
   config: InstallerConfig,
   candidates: readonly InstallCandidate[],
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>,
-  results: Map<string, InstallOperationResult>,
   index = 0
 ): Promise<void> => {
   if (index >= candidates.length) {
@@ -159,87 +118,29 @@ const installCandidates = async (
   }
   const candidate = candidates[index];
   if (candidate !== undefined) {
-    results.set(
-      candidate.dst,
-      await installCandidate(config, candidate, previousAssets)
-    );
+    await installCandidate(config, candidate);
   }
-  await installCandidates(
-    config,
-    candidates,
-    previousAssets,
-    results,
-    index + 1
-  );
+  await installCandidates(config, candidates, index + 1);
 };
 
 /** Install exactly one selected target path from the resolved install plan. */
 export const installOneTargetPath = async (
   config: InstallerConfig,
   requestedPath: string
-): Promise<readonly InstallAssetRecord[]> => {
-  const candidates = await buildPlan(config);
-  const candidate = matchCandidate(candidates, requestedPath);
-  const previousAssets = await previousAssetsForConfig(config, true);
-  const before = await captureCandidateStates([candidate]);
-  const operation = await installCandidate(config, candidate, previousAssets);
-  const operations = new Map<string, InstallOperationResult>([
-    [candidate.dst, operation]
-  ]);
-  return buildInstallResults([candidate], before, operations);
-};
-
-/** Adopt one existing target-owned file without changing its content. */
-export const adoptOneTargetPath = async (
-  config: InstallerConfig,
-  requestedPath: string
-): Promise<readonly InstallAssetRecord[]> => {
-  const record = await readInstallRecord();
-  if (record === null || !record.complete) {
-    return fail("--adopt requires an existing complete install record");
-  }
-  requireCompatibleRecord(record, config);
+): Promise<void> => {
   const candidate = matchCandidate(await buildPlan(config), requestedPath);
-  if (candidate.kind === "root-contract" || candidate.kind === "symlink") {
-    return fail(`--adopt does not support ${candidate.kind}: ${requestedPath}`);
-  }
-  if (!record.assets.some((asset) => asset.path === candidate.dst)) {
-    return fail(
-      `--adopt path is missing from the complete install record: ${requestedPath}`
-    );
-  }
-  await checkSafeFileDestination(candidate.dst);
-  if (!(await pathExists(candidate.dst))) {
-    return fail(`--adopt requires an existing file: ${requestedPath}`);
-  }
-  const currentDigest = digestContent(await readUtf8(candidate.dst));
-  if (currentDigest === (await sourceDigestForCandidate(candidate))) {
-    return fail(
-      `--adopt is unnecessary because the target matches the source: ${requestedPath}`
-    );
-  }
-  const before = await captureCandidateStates([candidate]);
-  return buildInstallResults(
-    [candidate],
-    before,
-    new Map([[candidate.dst, { outcome: "kept", ownership: "target" }]])
-  );
+  await installCandidate(config, candidate);
 };
 
-/** Install the full harness plan for the selected stack and CI host. */
+/** Install the full Harness plan for the selected stack and CI host. */
 export const installFullPlan = async (
   config: InstallerConfig
-): Promise<readonly InstallAssetRecord[]> => {
+): Promise<void> => {
   const candidates = await buildPlan(config);
-  const previousAssets = await previousAssetsForConfig(config, false);
   await ensureAgentSkillDirectory(config);
-  const before = await captureCandidateStates(candidates);
-  const operations = new Map(await ensureRootContracts(config));
+  await ensureRootContracts(config);
   await installCandidates(
     config,
-    candidates.filter((candidate) => candidate.kind !== "root-contract"),
-    previousAssets,
-    operations
+    candidates.filter((candidate) => candidate.kind !== "root-contract")
   );
-  return buildInstallResults(candidates, before, operations);
 };

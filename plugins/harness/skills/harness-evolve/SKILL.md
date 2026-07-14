@@ -11,9 +11,9 @@ Produce an evolution report by default. Implement only when the user separately 
 ## First Safe Checks
 
 1. Classify the request as installed-target or plugin-default evolution.
-2. For an installed target, read `.harness/install-record.json` and inspect the target diff. For a plugin default, inspect the packaged assets, asset manifest, and repository diff.
+2. For an installed target, inspect the target files and diff directly. For a plugin default, inspect the packaged assets, asset manifest, and repository diff.
 3. Separate product changes from harness-contract changes.
-4. Identify the validation surface. Use the recorded canonical command for an installed target and repository checks for a plugin default.
+4. Identify the validation surface. Use the target repository's canonical check command for an installed target and repository checks for a plugin default.
 
 ## Procedure
 
@@ -25,9 +25,9 @@ Produce an evolution report by default. Implement only when the user separately 
     | Plugin default | `skills/harness-install/assets/` and plugin packaging | Future installs; existing targets need an explicit refresh. |
 
 2. Decide `evolve`, `reject as drift`, or `defer`.
-3. For legitimate one-target divergence, plan `harness-install --adopt <path>` only when it must remain target-owned. Adoption preserves bytes and requires a complete record.
+3. For legitimate one-target divergence, plan a bounded installer refresh that preserves target-owned files and inspect the resulting diff.
 4. List each contract surface that must stay aligned: docs, templates, skills, stack validation, CI, hooks, or generated-artifact guidance.
-5. Record validation after implementation. For an installed target, CI and `pre-commit`, when present, MUST use the exact recorded canonical command; `pre-push` may be stricter. For a plugin default, record the repository checks and representative install smoke.
+5. Run validation after implementation. For an installed target, CI and `pre-commit`, when present, MUST use the target repository's canonical check command; `pre-push` may be stricter. For a plugin default, run the repository checks and representative install smoke.
 6. For nontrivial work, add or update the relevant repository's execution-plan record using its local format.
 
 ## Decisions
@@ -53,4 +53,4 @@ Report:
 ## Support Files
 
 - Read installed docs, templates, or `WORKFLOW.md` only when they govern a surface in the proposed change.
-- Use `harness-validate` after implementation; this skill does not replace validation.
+- Use the target repository's canonical check command after implementation; this skill does not replace validation.
