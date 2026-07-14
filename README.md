@@ -76,7 +76,7 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, and cross-platform Agent Skills.
 - `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including `SPEC.md` creation.
-- `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
+- `plugins/harness`: Repository harness plugin for installing and evolving agent instructions, docs structure, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
   The active host supplies agents and Harness requires capability-based delegation.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.

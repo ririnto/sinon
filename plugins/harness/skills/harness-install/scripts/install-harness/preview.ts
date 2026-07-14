@@ -5,34 +5,21 @@ import { renderCandidateContent } from "./content.js";
 import { decideFileInstall } from "./decisions.js";
 import { isSymlink, matchCandidate, pathExists, readUtf8 } from "./files.js";
 import {
-  applyManagedBlock,
-  hasManagedBlock,
-  renderManagedBlock
-} from "./managed.js";
-import {
   checkSafeFileDestination,
   checkSafeParentDir,
   requiredRealTarget
 } from "./paths.js";
 import { buildPlan } from "./planning.js";
-import { previousAssetsForConfig } from "./record.js";
 import { fail } from "./types.js";
-import type {
-  InstallAssetRecord,
-  InstallCandidate,
-  InstallerConfig
-} from "./types.js";
+import type { InstallCandidate, InstallerConfig } from "./types.js";
 
 const previewFileCandidate = async (
   config: InstallerConfig,
-  candidate: InstallCandidate,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
+  candidate: InstallCandidate
 ): Promise<void> => {
-  const decision = await decideFileInstall(config, candidate, previousAssets);
+  const decision = await decideFileInstall(config, candidate);
   if (decision.diagnostic === "stderr") {
-    console.error(
-      `drift: ${candidate.dst} differs from the plugin source; run --adopt ${candidate.dst} to preserve target truth or --force to overwrite it`
-    );
+    console.error(decision.message);
   } else {
     console.log(decision.message);
   }
@@ -45,28 +32,22 @@ const previewRootContractCandidate = async (
   const realTarget = requiredRealTarget(candidate);
   await checkSafeFileDestination(realTarget);
   const exists = await pathExists(realTarget);
-  const current = exists ? await readUtf8(realTarget) : "";
-  if (exists && hasManagedBlock(current) && !config.force) {
-    const template = await renderCandidateContent(candidate);
-    if (applyManagedBlock(current, template) === current) {
-      console.log(`skip root contract: ${candidate.dst}`);
-      return;
-    }
-    console.error(
-      `drift root contract: ${candidate.dst} managed block differs from template; rerun with --force to update it`
-    );
+  if (!exists) {
+    console.log(`create root contract: ${candidate.dst}`);
     return;
   }
-  if (exists && !config.force) {
-    console.error(
-      `conflict root contract: ${realTarget} has no managed block; rerun with --force to add one while preserving existing content`
-    );
+  const current = await readUtf8(realTarget);
+  const source = await renderCandidateContent(candidate);
+  if (current === source) {
+    console.log(`keep root contract: ${candidate.dst}`);
     return;
   }
-  console.log(
-    exists
-      ? `update root contract (--force): ${candidate.dst}`
-      : `create root contract: ${candidate.dst}`
+  if (config.force) {
+    console.log(`update root contract (--force): ${candidate.dst}`);
+    return;
+  }
+  console.error(
+    `preserve root contract: ${candidate.dst} differs from the packaged source; rerun with --force to replace it`
   );
 };
 
@@ -79,7 +60,7 @@ const previewSymlinkCandidate = async (
     const currentTarget = await readlink(candidate.dst);
     if (currentTarget === candidate.symlinkTarget) {
       console.log(
-        `skip existing symlink: ${candidate.dst} -> ${candidate.symlinkTarget ?? ""}`
+        `keep existing symlink: ${candidate.dst} -> ${candidate.symlinkTarget ?? ""}`
       );
       return;
     }
@@ -90,12 +71,12 @@ const previewSymlinkCandidate = async (
       return;
     }
     console.error(
-      `skip existing symlink: ${candidate.dst} -> ${currentTarget}`
+      `conflict symlink: ${candidate.dst} points to ${currentTarget}; rerun with --force to replace it`
     );
     return;
   }
   if (await pathExists(candidate.dst)) {
-    console.log(`skip existing: ${candidate.dst}`);
+    console.error(`conflict symlink: ${candidate.dst} already exists`);
     return;
   }
   console.log(
@@ -108,15 +89,22 @@ const previewGitkeepCandidate = async (
   candidate: InstallCandidate
 ): Promise<void> => {
   await checkSafeFileDestination(candidate.dst);
-  if (await pathExists(candidate.dst)) {
-    console.log(
-      config.force
-        ? `overwrite (--force): ${candidate.dst}`
-        : `keep existing: ${candidate.dst}`
-    );
+  if (!(await pathExists(candidate.dst))) {
+    console.log(`write: ${candidate.dst}`);
     return;
   }
-  console.log(`write: ${candidate.dst}`);
+  const current = await readUtf8(candidate.dst);
+  if (current === "") {
+    console.log(`keep existing: ${candidate.dst}`);
+    return;
+  }
+  if (config.force) {
+    console.log(`overwrite (--force): ${candidate.dst}`);
+    return;
+  }
+  console.error(
+    `conflict: ${candidate.dst} differs from the packaged empty file; preserving target; rerun with --force to overwrite`
+  );
 };
 
 const showRootContractCandidate = async (
@@ -124,26 +112,18 @@ const showRootContractCandidate = async (
 ): Promise<void> => {
   const realTarget = requiredRealTarget(candidate);
   await checkSafeFileDestination(realTarget);
-  const exists = await pathExists(realTarget);
-  if (exists && !hasManagedBlock(await readUtf8(realTarget))) {
-    console.error(
-      `note: requested root contract managed block would be added to existing file: ${realTarget}`
-    );
-  }
-  const template = await renderCandidateContent(candidate);
-  process.stdout.write(renderManagedBlock(template));
+  process.stdout.write(await renderCandidateContent(candidate));
 };
 
 const previewCandidateStatus = async (
   config: InstallerConfig,
-  candidate: InstallCandidate,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
+  candidate: InstallCandidate
 ): Promise<void> => {
   switch (candidate.kind) {
     case "file":
     case "seed":
     case "stack-file": {
-      await previewFileCandidate(config, candidate, previousAssets);
+      await previewFileCandidate(config, candidate);
       return;
     }
     case "root-contract": {
@@ -167,7 +147,6 @@ const previewCandidateStatus = async (
 const previewCandidates = async (
   config: InstallerConfig,
   candidates: readonly InstallCandidate[],
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>,
   index = 0
 ): Promise<void> => {
   if (index >= candidates.length) {
@@ -175,9 +154,9 @@ const previewCandidates = async (
   }
   const candidate = candidates[index];
   if (candidate !== undefined) {
-    await previewCandidateStatus(config, candidate, previousAssets);
+    await previewCandidateStatus(config, candidate);
   }
-  await previewCandidates(config, candidates, previousAssets, index + 1);
+  await previewCandidates(config, candidates, index + 1);
 };
 
 /** Print the selected install set and each candidate status without writing files. */
@@ -188,19 +167,15 @@ export const previewInstallSet = async (
   console.log(`mode: ${config.mode}`);
   console.log(`ci-host: ${config.ciHost}`);
   console.log(`validation command: ${validationCommandForMode(config.mode)}`);
-  await previewCandidates(
-    config,
-    await buildPlan(config),
-    await previousAssetsForConfig(config, false)
-  );
+  await previewCandidates(config, await buildPlan(config));
 };
 
 /** Print rendered content for one target path without writing files. */
 export const showOneTargetPath = async (
-  config: InstallerConfig,
+  _config: InstallerConfig,
   requestedPath: string
 ): Promise<void> => {
-  const candidate = matchCandidate(await buildPlan(config), requestedPath);
+  const candidate = matchCandidate(await buildPlan(_config), requestedPath);
   switch (candidate.kind) {
     case "file":
     case "seed":
@@ -211,11 +186,11 @@ export const showOneTargetPath = async (
     }
     case "root-contract": {
       await showRootContractCandidate(candidate);
-      break;
+      return;
     }
     case "gitkeep": {
       await checkSafeFileDestination(candidate.dst);
-      break;
+      return;
     }
     case "symlink": {
       return fail(

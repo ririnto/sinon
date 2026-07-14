@@ -11,7 +11,6 @@ import {
   readUtf8,
   removePath
 } from "./files.js";
-import { applyManagedBlock, hasManagedBlock } from "./managed.js";
 import {
   ensureSafeFileDestination,
   ensureSafeParentDir,
@@ -20,23 +19,16 @@ import {
   requiredSrc
 } from "./paths.js";
 import { fail, templateDir } from "./types.js";
-import type {
-  InstallCandidate,
-  InstallerConfig,
-  InstallOperationResult
-} from "./types.js";
+import type { InstallCandidate, InstallerConfig } from "./types.js";
 
-const writeRootContractUpdate = async (
+const writeRootContract = async (
   candidate: InstallCandidate,
   exists: boolean
 ): Promise<void> => {
   const realTarget = requiredRealTarget(candidate);
-  const template = await renderCandidateContent(candidate);
-  const existing = exists ? await readUtf8(realTarget) : "";
-  const content = applyManagedBlock(existing, template);
   const write = await prepareAtomicWrite(realTarget, "write_root_contract");
   try {
-    await write.write(content);
+    await write.write(await renderCandidateContent(candidate));
     await write.copyMode(requiredSrc(candidate));
     await write.commit();
   } finally {
@@ -49,65 +41,46 @@ const writeRootContractUpdate = async (
   );
 };
 
-const checkRootContractConflict = async (dst: string): Promise<boolean> => {
-  if (await isSymlink(dst)) {
-    console.error(
-      `conflict root contract: ${dst} is a symlink; replace it with a regular file before installing`
-    );
-    return true;
-  }
-  await ensureSafeFileDestination(dst);
-  if ((await pathExists(dst)) && !hasManagedBlock(await readUtf8(dst))) {
-    console.error(
-      `conflict root contract: ${dst} has no managed block; rerun with --force to add one while preserving existing content`
-    );
-    return true;
-  }
-  return false;
-};
-
 const ensureRootContract = async (
   config: InstallerConfig,
   candidate: InstallCandidate
-): Promise<InstallOperationResult> => {
+): Promise<void> => {
   const realTarget = requiredRealTarget(candidate);
   await ensureSafeFileDestination(realTarget);
-  if (!(await pathExists(realTarget))) {
-    await writeRootContractUpdate(candidate, false);
-    return { outcome: "created", ownership: "shared" };
-  }
-  const content = await readUtf8(realTarget);
-  if (hasManagedBlock(content) && !config.force) {
-    const template = await renderCandidateContent(candidate);
-    if (applyManagedBlock(content, template) === content) {
-      console.log(`skip root contract: ${candidate.dst}`);
-      return { outcome: "kept", ownership: "shared" };
-    }
-    console.error(
-      `conflict root contract: ${candidate.dst} managed block differs from template; rerun with --force to update it`
+  if (await isSymlink(realTarget)) {
+    return fail(
+      `conflict root contract: ${candidate.dst} is a symlink; replace it with a regular file before installing`
     );
-    return { outcome: "conflict", ownership: "shared" };
+  }
+  if (!(await pathExists(realTarget))) {
+    await writeRootContract(candidate, false);
+    return;
+  }
+  const current = await readUtf8(realTarget);
+  const source = await renderCandidateContent(candidate);
+  if (current === source) {
+    console.log(`keep root contract: ${candidate.dst}`);
+    return;
   }
   if (!config.force) {
     console.error(
-      `conflict root contract: ${candidate.dst} has no managed block; rerun with --force to add one while preserving existing content`
+      `preserve root contract: ${candidate.dst} differs from the packaged source; rerun with --force to replace it`
     );
-    return { outcome: "conflict", ownership: "shared" };
+    return;
   }
-  await writeRootContractUpdate(candidate, true);
-  return { outcome: "updated", ownership: "shared" };
+  await writeRootContract(candidate, true);
 };
 
 const ensureTargetSymlink = async (
   config: InstallerConfig,
   linkPath: string,
   target: string
-): Promise<InstallOperationResult> => {
-  let replaced = false;
+): Promise<void> => {
   if (await isSymlink(linkPath)) {
     const currentTarget = await readlink(linkPath);
     if (currentTarget === target) {
-      return { outcome: "kept", ownership: "harness" };
+      console.log(`keep existing symlink: ${linkPath} -> ${target}`);
+      return;
     }
     if (!config.force) {
       return fail(
@@ -115,7 +88,6 @@ const ensureTargetSymlink = async (
       );
     }
     await removePath(linkPath);
-    replaced = true;
   } else if (await pathExists(linkPath)) {
     return fail(
       `conflict symlink: ${linkPath} already exists and is not a symlink`
@@ -124,10 +96,6 @@ const ensureTargetSymlink = async (
   await ensureSafeFileDestination(linkPath);
   await createSymlink(target, linkPath);
   console.log(`create symlink: ${linkPath} -> ${target}`);
-  return {
-    outcome: replaced ? "updated" : "created",
-    ownership: "harness"
-  };
 };
 
 const ensureTargetDirectory = async (
@@ -160,82 +128,42 @@ const ensureTargetDirectory = async (
   console.log(`create directory: ${directoryPath}`);
 };
 
-/** Ensure the portable Agent Skill link parent before capturing assets. */
+/** Ensure the portable Agent Skill link parent before installing assets. */
 export const ensureAgentSkillDirectory = async (
   config: InstallerConfig
 ): Promise<void> => {
   await ensureTargetDirectory(config, ".agents");
 };
 
-/** Ensure both root contract documents are present or safely updated. */
+/** Ensure both root contract documents are present or safely preserved. */
 export const ensureRootContracts = async (
   config: InstallerConfig
-): Promise<ReadonlyMap<string, InstallOperationResult>> => {
-  if (!config.force) {
-    const hasConflict =
-      (await checkRootContractConflict("AGENTS.md")) ||
-      (await checkRootContractConflict("CLAUDE.md"));
-    if (hasConflict) {
-      return fail(
-        "root contract conflicts must be resolved before installing assets"
-      );
-    }
-  }
-  const agents = await ensureRootContract(config, {
+): Promise<void> => {
+  await ensureRootContract(config, {
     dst: "AGENTS.md",
     kind: "root-contract",
     realTarget: "AGENTS.md",
     src: path.join(templateDir, "common", "AGENTS.md")
   });
-  const claude = await ensureRootContract(config, {
+  await ensureRootContract(config, {
     dst: "CLAUDE.md",
     kind: "root-contract",
     realTarget: "CLAUDE.md",
     src: path.join(templateDir, "common", "CLAUDE.md")
   });
-  return new Map([
-    ["AGENTS.md", agents],
-    ["CLAUDE.md", claude]
-  ]);
 };
 
-/** Install or update one root-contract candidate selected through `--only`. */
-export const ensureOneRootContract = async (
+/** Install one selected root contract using the stateless byte decision. */
+export const ensureOneRootContract = (
   config: InstallerConfig,
   candidate: InstallCandidate
-): Promise<InstallOperationResult> => {
-  const realTarget = requiredRealTarget(candidate);
-  await ensureSafeFileDestination(realTarget);
-  if ((await pathExists(realTarget)) && !config.force) {
-    const current = await readUtf8(realTarget);
-    if (hasManagedBlock(current)) {
-      const template = await renderCandidateContent(candidate);
-      if (applyManagedBlock(current, template) === current) {
-        console.log(`skip root contract: ${candidate.dst}`);
-        return { outcome: "kept", ownership: "shared" };
-      }
-      console.error(
-        `conflict root contract: ${candidate.dst} managed block differs from template; rerun with --force to update it`
-      );
-      return { outcome: "conflict", ownership: "shared" };
-    }
-    return fail(
-      `conflict root contract: ${realTarget} has no managed block; rerun with --force to add one while preserving existing content`
-    );
-  }
-  const existed = await pathExists(realTarget);
-  await writeRootContractUpdate(candidate, existed);
-  return {
-    outcome: existed ? "updated" : "created",
-    ownership: "shared"
-  };
-};
+): Promise<void> => ensureRootContract(config, candidate);
 
 /** Install one selected runtime symlink after checking its real target. */
 export const ensureOneRuntimeSymlink = async (
   config: InstallerConfig,
   candidate: InstallCandidate
-): Promise<InstallOperationResult> => {
+): Promise<void> => {
   if (candidate.symlinkTarget === undefined) {
     return fail(`candidate has no symlink target: ${candidate.dst}`);
   }
@@ -245,5 +173,5 @@ export const ensureOneRuntimeSymlink = async (
     );
   }
   await ensureTargetDirectory(config, ".agents");
-  return ensureTargetSymlink(config, candidate.dst, candidate.symlinkTarget);
+  await ensureTargetSymlink(config, candidate.dst, candidate.symlinkTarget);
 };

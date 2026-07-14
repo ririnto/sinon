@@ -32,7 +32,7 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Install, validate, and evolve project harness assets for agent instructions, docs, templates, project skills, stack validators, CI snippets, and opt-in Git hook templates. The active host supplies agents and Harness requires capability-based delegation.",
+      "description": "Install and evolve project harness assets for agent instructions, docs, templates, project skills, stack validators, CI snippets, and opt-in Git hook templates. The active host supplies agents and Harness requires capability-based delegation.",
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness"

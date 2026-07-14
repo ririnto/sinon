@@ -1,7 +1,7 @@
 # Third Party Notices
 
 Harness includes local documentation concepts and taxonomy adapted from public sources.
-The plugin remains a repository harness installer and validator.
+The plugin remains a repository harness installer and evolution toolkit.
 External sources are used only as attributed design inputs.
 
 ## OpenAI Harness Engineering

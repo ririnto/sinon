@@ -1,25 +1,26 @@
 ---
 name: harness-install
 description: >-
-  Install or refresh packaged Harness assets in a target repository. Use when setting up target contracts, docs, project skills, stack validation, optional CI files, or inactive Git hook templates.
+  Install packaged Harness assets in a target repository.
+  Use when setting up target contracts, docs, project skills, stack validation, optional CI files, or inactive Git hook templates.
 ---
 
 # Harness Install
 
-Install one explicit stack mode into a target repository. The installer writes `.harness/install-record.json`; it is the canonical source for installed commands, inventory, and ownership.
+Install one explicit stack mode into a target repository and use the canonical validation command printed by the installer.
 
 ## First Safe Checks
 
 1. Run `git status --short` in the target. If it is dirty, stop unless the user explicitly accepts mixing installation with existing changes.
 2. Confirm the target path, `--mode`, and required `--ci-host` value.
-3. Inspect existing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, and `WORKFLOW.md` before a refresh.
+3. Inspect existing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, and `WORKFLOW.md` before installing into an existing repository.
 4. Obtain explicit approval before using `--force` or `--activate-hooks`.
 
 ## Procedure
 
 1. Choose `gradle`, `maven`, `uv`, `bun`, or `shell`. The installer does not auto-detect.
 2. Choose `github`, `gitlab`, `both`, or `none` for `--ci-host`. The flag controls CI assets only; every choice installs the same target `WORKFLOW.md`.
-3. Preview a refresh when existing target assets need review:
+3. Preview the installation when target paths already exist:
 
     ```sh
     "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.ts" \
@@ -32,11 +33,10 @@ Install one explicit stack mode into a target repository. The installer writes `
 
 ## Decisions
 
-- Use `--force` only to replace approved conflicting content. It cannot be combined with `--adopt`.
-- Use `--adopt <path>` only for a reviewed legitimate divergence. It preserves bytes, requires a complete record, and cannot adopt a shared root contract. Validate afterward, then run a normal refresh.
-- Use `--only <path>` for a bounded repair. Its first use creates a partial record, so it does not prove a complete installation.
+- Use `--force` only to replace approved conflicting content.
+- Use `--only <path>` to install one selected target path.
 - Use `--activate-hooks` only on a full install with approval. It validates copied `.githooks/pre-commit` and `.githooks/pre-push`, then sets local `core.hooksPath`.
-- If the chosen CI host is `none`, no CI file is installed. When CI files exist, they MUST use the record's canonical check command.
+- If the chosen CI host is `none`, no CI file is installed. When CI files exist, they MUST use the printed canonical check command.
 
 ## Output Contract
 

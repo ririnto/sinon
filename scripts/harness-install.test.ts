@@ -1,5 +1,5 @@
 import { test } from "bun:test";
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -27,11 +27,12 @@ const run = async (command: string[], cwd: string): Promise<void> => {
 
 const exists = (target: string): Promise<boolean> => Bun.file(target).exists();
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 const manifestPaths = (manifest: unknown): string[] => {
-  if (!isRecord(manifest)) {
+  if (
+    typeof manifest !== "object" ||
+    manifest === null ||
+    Array.isArray(manifest)
+  ) {
     throw new Error("asset manifest must be an object");
   }
   return Object.entries(manifest)
@@ -56,35 +57,23 @@ test("installs from a non-Git plugin cache with only target runtime assets", asy
   try {
     await cp(pluginDir, cachedPlugin, { recursive: true });
     await run(["git", "init", target], fixture);
-    await run(
-      [
-        "bun",
-        path.join(
-          cachedPlugin,
-          "skills/harness-install/scripts/install-harness.ts"
-        ),
-        "--target",
-        target,
-        "--mode",
-        "bun",
-        "--ci-host",
-        "github"
-      ],
-      fixture
-    );
+    const installerCommand = [
+      "bun",
+      path.join(
+        cachedPlugin,
+        "skills/harness-install/scripts/install-harness.ts"
+      ),
+      "--target",
+      target,
+      "--mode",
+      "bun",
+      "--ci-host",
+      "github"
+    ];
+    await run(installerCommand, fixture);
 
-    const record: unknown = JSON.parse(
-      await readFile(path.join(target, ".harness/install-record.json"), "utf-8")
-    );
     if (
-      !isRecord(record) ||
-      record.schemaVersion !== 2 ||
-      record.complete !== true ||
-      !Array.isArray(record.assets)
-    ) {
-      throw new Error("installer must write a complete schema-v2 record");
-    }
-    if (
+      (await exists(path.join(target, ".harness"))) ||
       !(await exists(path.join(target, "WORKFLOW.md"))) ||
       (await exists(path.join(target, "WORKFLOW.github.md"))) ||
       (await exists(path.join(target, "WORKFLOW.gitlab.md"))) ||
@@ -95,6 +84,20 @@ test("installs from a non-Git plugin cache with only target runtime assets", asy
         "installer must copy only selected target runtime assets"
       );
     }
+    const contractFiles = await Promise.all(
+      ["AGENTS.md", "CLAUDE.md"].map(async (relativePath) => ({
+        content: await readFile(path.join(target, relativePath), "utf-8"),
+        relativePath
+      }))
+    );
+    const managedFiles = contractFiles
+      .filter(({ content }) => content.includes("harness:managed"))
+      .map(({ relativePath }) => relativePath);
+    if (managedFiles.length > 0) {
+      throw new Error(
+        `installer must not emit managed markers: ${managedFiles.join(",")}`
+      );
+    }
     const hooks = await Bun.spawn(
       ["git", "config", "--local", "--get", "core.hooksPath"],
       { cwd: target }
@@ -102,17 +105,27 @@ test("installs from a non-Git plugin cache with only target runtime assets", asy
     if (hooks === 0) {
       throw new Error("installer must leave hooks inactive by default");
     }
-    await run(
-      [
-        "bun",
-        path.join(
-          cachedPlugin,
-          "skills/harness-validate/scripts/validate-install-record.ts"
-        ),
-        target
-      ],
-      fixture
-    );
+    const localWorkflow = "# Local workflow\n";
+    await writeFile(path.join(target, "WORKFLOW.md"), localWorkflow, "utf-8");
+    const conflict = Bun.spawn(installerCommand, {
+      cwd: fixture,
+      stderr: "pipe",
+      stdout: "pipe"
+    });
+    const conflictExit = await conflict.exited;
+    const conflictStderr = await new Response(conflict.stderr).text();
+    if (
+      conflictExit === 0 ||
+      !conflictStderr.includes("conflict: WORKFLOW.md")
+    ) {
+      throw new Error("installer must fail when a packaged asset conflicts");
+    }
+    if (
+      (await readFile(path.join(target, "WORKFLOW.md"), "utf-8")) !==
+      localWorkflow
+    ) {
+      throw new Error("installer must preserve a conflicting target asset");
+    }
   } finally {
     await rm(fixture, { force: true, recursive: true });
   }

@@ -3,14 +3,9 @@ import path from "node:path";
 
 import { validationCommandForMode } from "./commands.js";
 import { hookActivationMessage, activateHooks } from "./hook-activation.js";
-import {
-  adoptOneTargetPath,
-  installFullPlan,
-  installOneTargetPath
-} from "./operations.js";
+import { installFullPlan, installOneTargetPath } from "./operations.js";
 import { normalizeRequestedTargetPath, requiredSelectedPath } from "./paths.js";
 import { previewInstallSet, showOneTargetPath } from "./preview.js";
-import { requireCompatibleInstallPlan, writeInstallRecord } from "./record.js";
 import { fail } from "./types.js";
 import type { InstallerConfig, Mode } from "./types.js";
 
@@ -106,19 +101,6 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
   process.chdir(targetRoot);
   isolateTargetGitEnvironment();
   switch (config.action) {
-    case "adopt": {
-      if (config.force) {
-        return fail("--adopt cannot be combined with --force");
-      }
-      const selectedPath = normalizeRequestedTargetPath(
-        requiredSelectedPath(config)
-      );
-      const results = await adoptOneTargetPath(config, selectedPath);
-      await writeInstallRecord(config, results, false);
-      printSummary(config, selectedPath);
-      runtimeAdvisoryForMode(config.mode, false);
-      return;
-    }
     case "preview": {
       await previewInstallSet(config);
       return;
@@ -134,16 +116,13 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
       const selectedPath = normalizeRequestedTargetPath(
         requiredSelectedPath(config)
       );
-      await requireCompatibleInstallPlan(config);
-      const results = await installOneTargetPath(config, selectedPath);
-      await writeInstallRecord(config, results, false);
+      await installOneTargetPath(config, selectedPath);
       printSummary(config, selectedPath);
       runtimeAdvisoryForMode(config.mode, false);
       return;
     }
     case "install": {
-      const results = await installFullPlan(config);
-      await writeInstallRecord(config, results, true);
+      await installFullPlan(config);
       await activateHooks(config);
       printSummary(config, null);
       runtimeAdvisoryForMode(config.mode, config.activateHooks);
