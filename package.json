@@ -20,8 +20,7 @@
   "scripts": {
     "check": "run-p check:*",
     "check:agent-routing": "bun scripts/agent-routing.ts",
-    "check:authoring-assets": "bun test scripts/agent-routing.test.ts scripts/agent-routing-manifest.test.ts scripts/agent-routing-claude.test.ts scripts/agent-routing-executor.test.ts scripts/agent-routing-codex.test.ts scripts/agent-routing-inventory.test.ts scripts/authoring-assets.test.ts scripts/instruction-chain.test.ts scripts/root-capability-contract.test.ts scripts/sdd-assets.test.ts scripts/workflow-autonomous.test.ts scripts/workflow-completion.test.ts scripts/workflow-completion-identity.test.ts scripts/workflow-documentation.test.ts scripts/workflow-failure.test.ts scripts/workflow-policy-document.test.ts scripts/workflow-record.test.ts scripts/workflow-review.test.ts scripts/workflow-routing.test.ts scripts/workflow-validation.test.ts plugins/harness/scripts/harness-checks/installer-assets.test.ts plugins/harness/scripts/harness-checks/installer-runtime.test.ts plugins/harness/scripts/harness-checks/installer-runtime-workflow.test.ts plugins/harness/skills/harness-install/scripts/install-harness/atomic-write.test.ts plugins/harness/skills/harness-install/scripts/install-harness/atomic-write.permissions.test.ts plugins/harness/skills/harness-install/scripts/install-harness/record-persistence.test.ts plugins/harness/skills/harness-install/scripts/install-harness/record-persistence-atomic.test.ts plugins/harness/scripts/harness-checks/asset-versions.test.ts",
-    "check:harness": "plugins/harness/scripts/plugin-self-check.ts",
+    "check:authoring-assets": "bun test scripts/authoring-assets.test.ts scripts/harness-atomic-write.permissions.test.ts scripts/harness-atomic-write.test.ts scripts/harness-install.test.ts scripts/harness-record-persistence-atomic.test.ts scripts/harness-record-persistence.test.ts scripts/instruction-chain.test.ts scripts/sdd-assets.test.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
@@ -29,9 +28,6 @@
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "fix:ultracite": "ultracite fix",
-    "probe:agent-models": "bun scripts/agent-model-probes.ts",
-    "probe:claude-plugins": "bun scripts/claude-plugin-probes.ts",
-    "probe:instruction-discovery": "bun scripts/instruction-discovery-probe.ts",
     "prepare": "husky"
   },
   "devDependencies": {

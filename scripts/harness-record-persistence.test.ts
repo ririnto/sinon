@@ -3,9 +3,15 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { installRecordPath, writeInstallRecord } from "./record-persistence.js";
-import { readInstallRecord } from "./record-schema.js";
-import type { InstallAssetRecord, InstallerConfig } from "./types.js";
+import {
+  installRecordPath,
+  writeInstallRecord
+} from "../plugins/harness/skills/harness-install/scripts/install-harness/record-persistence.js";
+import { readInstallRecord } from "../plugins/harness/skills/harness-install/scripts/install-harness/record-schema.js";
+import type {
+  InstallAssetRecord,
+  InstallerConfig
+} from "../plugins/harness/skills/harness-install/scripts/install-harness/types.js";
 
 const configFor = (targetRoot: string): InstallerConfig => ({
   action: "only",

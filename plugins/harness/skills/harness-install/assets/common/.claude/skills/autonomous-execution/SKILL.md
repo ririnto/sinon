@@ -1,71 +1,43 @@
 ---
 name: autonomous-execution
 description: >-
-  Run authorized autonomous work cycles with explicit scope, stop conditions, and per-candidate retry limits.
-  Use when the user asks for continued follow-through beyond one scoped item or requests a bounded execution loop.
+  Run an explicitly authorized, bounded autonomous work loop. Use when a user asks for follow-through across multiple scoped work items with a clear stop condition.
 ---
 
 # Autonomous Execution
 
-Run one candidate at a time until the loop reaches the approved stop condition
-or blocks.
-Use this skill only after the user explicitly authorizes autonomous follow-through beyond one scoped work item.
-
-## Operating Rules
-
-- Record the user's authorization, approved scope, and stop condition before the first cycle.
-- Process exactly one candidate per cycle.
-- Use `WORKFLOW.md` for document-edit rules, routing, and delegated phase ownership.
-- Track failure counts separately for each candidate.
+Run one approved candidate at a time until the stop condition is met or work becomes blocked.
 
 ## First Safe Checks
 
-1. Confirm the user's authorization for autonomous follow-through.
+1. Confirm explicit authorization for autonomous follow-through.
 2. Record the approved scope and concrete stop condition.
-3. Identify eligible candidates from the approved sources.
-4. Select one candidate and initialize its failure count at zero.
+3. Identify eligible candidates and select one.
 
 ## Procedure
 
-1. Select one candidate inside the approved scope and define its acceptance criteria and owning record.
-2. Execute the candidate through `WORKFLOW.md`.
-3. Stop immediately for an authority, policy, authentication, missing user intent, or unavailable environment or dependency failure.
-   These terminal failures do not consume a retry budget.
-4. Apply the failed-leaf recovery lifecycle to exploration, implementation, review, and validation failures.
-   A failed leaf clears only with discarded disposition, changed remediation, and a passed replacement with a globally fresh identity.
-5. Define `failedCycles` as the integer count of prior retryable failed cycles for that candidate.
-   The value MUST be zero before the first failure or one before the second; negative, fractional, and larger values block the cycle.
-6. A valid current retryable failure consumes one failure budget.
-   Zero permits one retry; one exhausts the budget and stops without a third attempt.
-7. Block autonomous execution for an invalid recovery or two failed cycles and report the evidence, owner, and next decision required.
-8. Defer routing, isolation, review, validation, and completion authority to `WORKFLOW.md`.
-9. Continue only while the next candidate remains inside the approved scope and stop condition.
+1. Define acceptance criteria and an owning record for the selected candidate.
+2. Execute and validate the candidate with the project's available commands and required local rules.
+3. Stop for missing authority, policy, authentication, user intent, environment, or dependency. These failures do not consume a retry budget.
+4. Record evidence, outcome, and the next decision for a failed or blocked candidate.
+5. Continue only while another candidate remains within scope and the stop condition has not been met.
 
-## Exit Conditions
+## Decisions
 
-Stop when either outcome applies.
-
-Success:
-
-- The approved autonomous scope and stop condition are satisfied.
-- Each completed candidate passes the `Canonical Workflow Completion Gate`.
-
-Blocked:
-
-- A human owner must decide business intent, scope, or platform policy.
-- A candidate reaches two failed cycles.
-- Remaining blockers name an owner and next action.
+- Do not start work outside the approved scope.
+- Do not perform remote mutation without explicit authority.
+- Use native delegation only when it materially improves the work.
+- Read `WORKFLOW.md` only when the target repository makes it relevant to the candidate.
 
 ## Output Contract
 
 Return:
 
-- `authorization and stop condition`: explicit authorization, scope, and stop condition
-- `cycles completed`: completed candidates and owning records
-- `current status`: success, blocked, or stopped by scope
-- `failure counts`: each attempted candidate and count
-- `validation`: commands run and results
-- `review`: findings, approvals, or residual risks
-- `publication/completion`: host records, local records, or reason not completed
-- `remaining candidates`: candidates not started
-- `blockers`: owner and next action
+- `authorization and stop condition`.
+- `cycles completed`.
+- `current status`: success, blocked, or stopped by scope.
+- `validation`.
+- `review`: findings or residual risks.
+- `completion`: completed records or reason not completed.
+- `remaining candidates`.
+- `blockers`: owner and next action.

@@ -3,13 +3,13 @@ import { lstat, mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { AtomicWrite } from "./atomic-write.js";
+import type { AtomicWrite } from "../plugins/harness/skills/harness-install/scripts/install-harness/atomic-write.js";
 import {
   installRecordPath,
   persistInstallRecord
-} from "./record-persistence.js";
-import type { InstallRecord } from "./record-schema.js";
-import type { InstallAssetRecord } from "./types.js";
+} from "../plugins/harness/skills/harness-install/scripts/install-harness/record-persistence.js";
+import type { InstallRecord } from "../plugins/harness/skills/harness-install/scripts/install-harness/record-schema.js";
+import type { InstallAssetRecord } from "../plugins/harness/skills/harness-install/scripts/install-harness/types.js";
 
 const result: InstallAssetRecord = {
   kind: "file",

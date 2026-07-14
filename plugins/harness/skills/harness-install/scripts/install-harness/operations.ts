@@ -1,11 +1,10 @@
 import { prepareAtomicWrite } from "./atomic-write.js";
 import { renderCandidateContent } from "./content.js";
 import {
-  ensureCodexAgentDirectory,
+  ensureAgentSkillDirectory,
   ensureOneRootContract,
   ensureOneRuntimeSymlink,
-  ensureRootContracts,
-  ensureRuntimeDirectories
+  ensureRootContracts
 } from "./contracts.js";
 import { decideFileInstall } from "./decisions.js";
 import { matchCandidate, pathExists, readUtf8 } from "./files.js";
@@ -181,9 +180,6 @@ export const installOneTargetPath = async (
 ): Promise<readonly InstallAssetRecord[]> => {
   const candidates = await buildPlan(config);
   const candidate = matchCandidate(candidates, requestedPath);
-  if (candidate.dst.startsWith(".codex/agents/")) {
-    await ensureCodexAgentDirectory(config);
-  }
   const previousAssets = await previousAssetsForConfig(config, true);
   const before = await captureCandidateStates([candidate]);
   const operation = await installCandidate(config, candidate, previousAssets);
@@ -236,7 +232,7 @@ export const installFullPlan = async (
 ): Promise<readonly InstallAssetRecord[]> => {
   const candidates = await buildPlan(config);
   const previousAssets = await previousAssetsForConfig(config, false);
-  await ensureRuntimeDirectories(config);
+  await ensureAgentSkillDirectory(config);
   const before = await captureCandidateStates(candidates);
   const operations = new Map(await ensureRootContracts(config));
   await installCandidates(

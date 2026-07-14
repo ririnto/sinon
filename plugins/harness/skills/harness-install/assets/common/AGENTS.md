@@ -3,18 +3,20 @@
 This file defines the installed repository safety and precedence contract.
 A closer `AGENTS.md` overrides it for its subtree.
 `CLAUDE.md` points here exactly.
-`WORKFLOW.md` is the sole operational policy; open it before planning, dispatch, review, validation, or completion.
+`WORKFLOW.md` defines target lifecycle policy.
+You MUST open it when that lifecycle or another target-local workflow rule governs the current task.
 
 ## Project Structure
 
-Use `.claude/agents/` and `.claude/skills/` only for their named task.
+Use installed skills only for their named tasks.
+Let the host select agents through its native delegation mechanism.
 Keep durable documents under `docs/` and use `docs/templates/` for new project artifacts.
 Read a nearer `AGENTS.md` before changing its subtree because it replaces this contract.
 Do not edit credentials, local environment files, caches, or vendored code unless the user names them.
 
 ## Build, Test, and Development Commands
 
-Use the project’s existing setup and development commands rather than inventing replacements.
+Use the project’s setup and development commands instead of inventing replacements.
 Report changed files, validation evidence, skipped checks, and risks.
 Name each unavailable command and explain why it was not run.
 
@@ -24,7 +26,7 @@ Keep changes scoped to the request and local patterns.
 Preserve other work.
 Do not broaden a requested change into unrelated cleanup.
 Use English Markdown headings, language-tagged fences, and ASCII tree markers.
-Update related documentation, templates, agents, skills, validation helpers, and generated metadata when behavior changes.
+Update related documentation, templates, delegation policy, skills, validation helpers, and generated metadata when behavior changes.
 
 ## Commit and Publication
 
