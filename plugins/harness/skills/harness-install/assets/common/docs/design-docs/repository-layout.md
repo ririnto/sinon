@@ -64,7 +64,7 @@ It inventories these repository surfaces:
 
 - `.claude/skills/` contains `autonomous-execution` and `issue-mining`.
 Each `SKILL.md` owns its named workflow.
-- `.agents/skills/` links to `.claude/skills/`.
+- `.agents/skills/` links to `.claude/skills/` so hosts without a Claude-style skill loader read the same skills as plain documents.
 - Runtime inventory includes the two project skills, target policy, and host-provided native agents.
 - `WORKFLOW.md` owns target orchestration, review, validation, and completion policy.
 - The installer always copies one target-facing `WORKFLOW.md`.
@@ -73,7 +73,8 @@ Each `SKILL.md` owns its named workflow.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
 - `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
 - `.worktreeinclude` lists portable gitignored local inputs for worktrees.
-- `.claude/settings.json` contains the Claude Code adapter for stack worktree setup.
+- `.claude/settings.json` is a host adapter: it wires stack worktree setup for Claude Code only.
+Other hosts run the same setup commands through their own configuration or manually; the workflow does not depend on this adapter.
 
 ## Worktree Setup
 
@@ -82,13 +83,15 @@ Each host uses its native Git worktree behavior.
 Examples include `.env` and `*.local.*` files.
 `.gitignore` ignores `.claude/worktrees/`.
 
-The installed Claude Code settings hook matches `EnterWorktree` and runs async setup commands from the worktree directory.
-All stacks run `codegraph init` followed by `codegraph index`.
+The setup commands per stack are host-independent:
+all stacks run `codegraph init` followed by `codegraph index`.
 Bun runs `bun install`.
 uv runs `uv sync`.
 Gradle runs `./gradlew help`.
 Maven runs `./mvnw -q -DskipTests dependency:go-offline`.
-Claude Code reports async hook command failures.
+
+On Claude Code, the installed settings hook matches `EnterWorktree` and runs these commands asynchronously from the worktree directory, reporting async hook command failures.
+On other hosts, run the stack setup command once per new worktree.
 
 ## Generated Artifacts
 

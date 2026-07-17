@@ -1,17 +1,16 @@
 # Repository Guidelines
 
-This file defines the installed repository safety and precedence contract.
+This file defines the installed repository safety and precedence contract for any agent runtime.
 A closer `AGENTS.md` overrides it for its subtree.
-`CLAUDE.md` points here exactly.
-`WORKFLOW.md` defines target lifecycle policy.
+`WORKFLOW.md` defines target lifecycle policy, orchestration, model-tier routing, and runtime fallbacks.
 You MUST open it when that lifecycle or another target-local workflow rule governs the current task.
 
 ## Project Structure
 
 Use installed skills only for their named tasks.
-Let the host select agents through its native delegation mechanism.
+Skills live under `.claude/skills/` and are mirrored at `.agents/skills/`; a host without a skill loader reads each `SKILL.md` as a procedure document.
+Let the host select agents through its native delegation mechanism, or follow the sequential fallback in `WORKFLOW.md` when it has none.
 Keep durable documents under `docs/` and use `docs/templates/` for new project artifacts.
-Read a nearer `AGENTS.md` before changing its subtree because it replaces this contract.
 Do not edit credentials, local environment files, caches, or vendored code unless the user names them.
 
 ## Build, Test, and Development Commands

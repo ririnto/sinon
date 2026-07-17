@@ -21,7 +21,7 @@ Structural checks that cannot be automated remain prose conventions in the insta
 ### Gradle
 
 - Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`, using the Gradle ktlint plugin's project discovery)
-- Custom rules (buildSrc): 14 rules in the `code` ruleset family:
+- Custom rules (buildSrc): 15 rules in the `code` ruleset family:
   - `if-statement-braces`.
   - `import-over-fqn`.
   - `kotlin-top-level-declaration-count`.
@@ -33,6 +33,7 @@ Structural checks that cannot be automated remain prose conventions in the insta
   - `unstructured-logging`.
   - `companion-object-position`.
   - `explicit-property-type`.
+  - `comparison-direction`.
   - `terminal-branch-when`.
   - `public-declaration-doc-comment`.
   - `slf-direct-logging`.

@@ -37,7 +37,7 @@ Run `--preview` before installing into a repository that already contains target
 | `harness-install` | Install packaged target assets. |
 | `harness-evolve` | Report how one target or future defaults should change. |
 
-Installed targets also receive `autonomous-execution` and `issue-mining` under `.claude/skills/`.
+Installed targets also receive `autonomous-execution` and `issue-mining` under `.claude/skills/`, mirrored at `.agents/skills/` for hosts without a Claude-style skill loader.
 They work from their own instructions; a target `WORKFLOW.md` may add local constraints.
 
 ## Package Inventory
@@ -61,10 +61,18 @@ The installer compares target bytes with packaged sources:
 
 `--force` overwrites allowed conflicting content. Use it only with explicit approval.
 `--only <path>` creates or updates one selected target path.
+`--show <path>` prints the packaged content for one target path without writing.
 
 Each mode copies `pre-commit` and `pre-push` templates to `.githooks/` but leaves Git configuration unchanged. `--activate-hooks` is supported only for a full install and sets repository-local `core.hooksPath` after validating the copied hooks. Use it only with explicit approval.
 
 `--ci-host` controls CI files only. Every selection installs the same target `WORKFLOW.md`.
+
+## Orchestration Contract
+
+The installed `WORKFLOW.md` makes any capable model act as the root orchestrator of its target repository:
+scope requests into bounded worker tasks, delegate bulk work by default, route workers by capability tier weighing token cost against accuracy, and keep foreground work to coordination, integration, and review.
+It states compact autonomy boundaries (report-only versus change requests, approval-gated remote or destructive actions) and explicit fallbacks - sequential execution with the same phases and gates, effort-based routing, skills as plain documents - for hosts that lack worker dispatch, model selection, or a skill loader.
+Only `.claude/settings.json` and `.mcp.json` are host adapters; no lifecycle rule depends on them.
 
 ## Validation
 
