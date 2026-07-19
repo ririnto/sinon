@@ -22,29 +22,28 @@ Structural checks that cannot be automated remain prose conventions in the insta
 
 - Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`, using the Gradle ktlint plugin's project discovery)
 - Custom rules (buildSrc): 20 rules in the `code` ruleset family:
-  - `control-flow-braces` (autocorrect wraps non-empty unbraced bodies).
-  - `import-over-fqn`.
-  - `kotlin-top-level-declaration-count` (non-script files require exactly one class, object, interface, enum, annotation, or type alias).
-  - `implicit-lambda-it`.
-  - `leading-underscore`.
-  - `unchecked-cast-suppression`.
-  - `non-null-assertion`.
-  - `multiline-doc-style` (disabled by default; opt in via `ktlint_multiline_doc_style_mode = multiline` or `on`; autocorrect expands one-line KDoc).
-  - `unstructured-logging`.
-  - `companion-object-position`.
-  - `explicit-property-type`.
-  - `comparison-direction` (diagnostic-only because swapping operands is not generally equivalent for custom `Comparable` implementations).
-  - `terminal-branch-when` (requires an outermost `if` chain with a final `else` to use `when`).
-  - `public-declaration-doc-comment`.
-  - `slf-direct-logging`.
-  - `no-regex-constructor` (autocorrects one positional string-template expression to `String.toRegex()`).
-  - `no-decorative-function-body-blank-lines` (autocorrect collapses the blank line).
-  - `explicit-function-return-type`.
-  - `nullable-elvis-return`.
-  - `nested-data-class-last`.
+  - `control-flow-braces` (autocorrect wraps non-empty unbraced bodies of `if`, `else` excluding else-if chains, `for`, `while`, and `do-while`).
+  - `import-over-fqn` (autocorrect rewrites fully-qualified references to short names and inserts the deduplicated import, when seven safety preconditions hold: no same-name import, no conflicting star import, no top-level declaration collision, no conflicting alias import, no same-name overload at any usage site, no same-name local/parameter/receiver shadow, and the FQN package differs from the file's own package).
+  - `kotlin-top-level-declaration-count` (non-script files require exactly one class, object, interface, enum, annotation, or type alias; lint-only because filesystem splitting cannot be automated).
+  - `implicit-lambda-it` (autocorrect inserts an explicit `it ->` parameter; multi-line lambdas place the arrow on its own line at body indentation).
+  - `leading-underscore` (autocorrect renames a private non-override unused parameter to `_` when no sibling collision, no call-site named argument, and no body reference exist; file basenames and override parameters remain lint-only).
+  - `unchecked-cast-suppression` (autocorrect removes a stale `@Suppress("UNCHECKED_CAST")` annotation when its scope contains no `as` or `as?` operator).
+  - `non-null-assertion` (autocorrect strips the redundant `!!` that immediately follows `requireNotNull(...)` or `checkNotNull(...)`).
+  - `multiline-doc-style` (disabled by default; opt in via `ktlint_multiline_doc_style_mode = multiline` or `on`; autocorrect expands one-line KDoc to multi-line).
+  - `unstructured-logging` (lint-only because the requested name or behavior change cannot be invented deterministically).
+  - `companion-object-position` (flags companion objects that are not the first non-enum-entry declaration in their class or object body; lint-only because reordering declarations changes initialization order and may break forward references).
+  - `explicit-property-type` (autocorrect inserts the type for class-body properties whose initializer is a bare literal whose Kotlin type is unambiguous: `String`, `Boolean`, `Char`, `Int`, `Long` via `L` suffix, `Double`, `Float` via `f` suffix; null literal, unsigned-suffixed literals, and prefix-unary expressions remain lint-only).
+  - `comparison-direction` (lint-only because swapping operands is not generally equivalent for custom `Comparable` implementations).
+  - `terminal-branch-when` (lint-only because subject detection requires resolver-level type analysis; a no-subject `when` would not satisfy the rule's stated intent).
+  - `public-declaration-doc-comment` (lint-only because truthful documentation cannot be generated).
+  - `slf-direct-logging` (lint-only because receiver type cannot be proven from the AST).
+  - `no-regex-constructor` (autocorrects the single-positional string-template form `Regex("...")` to `"...".toRegex()`; hoisting into top-level or companion `val` remains lint-only because identity, placement, and visibility cannot be derived deterministically).
+  - `no-decorative-function-body-blank-lines` (autocorrect collapses multi-blank-line whitespace inside named function bodies to a single newline plus the body indentation; blank lines between declarations, between local functions, and adjacent to comments are preserved).
+  - `explicit-function-return-type` (autocorrect inserts the type for expression-bodied functions whose body is a bare literal whose Kotlin type is unambiguous; `override`, `external`, `expect`, and `suspend` functions remain lint-only, as do bodies that are calls, binary expressions, `if`/`when`, or prefix-unary expressions).
+  - `nullable-elvis-return` (lint-only because eliminating the local binding requires non-local dataflow analysis and a lambda parameter name would have to be invented).
+  - `nested-data-class-last` (autocorrect moves offending nested `data class` declarations to the end of their enclosing class body via stable partition; forward references to nested types are safe in Kotlin, so the move preserves semantics).
 - EditorConfig knobs:
   - `ktlint_multiline_doc_style_mode` (defaults to `off`; set to `multiline` or `on` to enable).
-  - `ktlint_companion_object_position` (`top`, `bottom`, or `any`).
   - `ktlint_standard_trailing-comma-on-call-site`.
   - `ktlint_standard_trailing-comma-on-declaration-site`.
 - Standard ktlint ruleset: also runs alongside custom rules.
