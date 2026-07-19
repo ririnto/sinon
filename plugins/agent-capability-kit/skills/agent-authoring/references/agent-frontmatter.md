@@ -6,7 +6,7 @@ description: >-
 
 # Agent Frontmatter
 
-Open this reference when an agent needs field-level compatibility detail or a Codex counterpart.
+Open this reference when an agent needs field-level runtime detail.
 
 ## Field Matrix
 
@@ -35,10 +35,10 @@ Open this reference when an agent needs field-level compatibility detail or a Co
 
 ```yaml
 ---
-name: migration-runner
+name: isolated-editor
 description: >-
-  Apply and verify a bounded repository migration in an isolated worktree.
-  Use this agent when a multi-file migration needs direct edits, focused checks, and worktree isolation.
+  Apply and verify bounded repository edits in an isolated worktree.
+  Use this agent when multi-file changes need focused checks and worktree isolation.
 model: sonnet
 effort: medium
 tools:
@@ -81,13 +81,13 @@ Every Sinon Claude agent declares `model` and `effort`.
 | Substantive leaf | `sonnet` | `medium` |
 | Lightweight inventory or mechanical leaf | `haiku` | `low` |
 
-Sinon reserves `opus` and `gpt-5.6-sol` for the user-facing root session and does not package that orchestrator as an agent file.
+Do not package the host workflow's general orchestrator as an agent file.
 
 Use `high`, `xhigh`, or `max` only with a body section named `Effort Exception`.
 Use low on a substantive leaf only with a body section named `Low Effort Rationale`.
 
 Current Claude documentation does not list Haiku as effort-aware.
-Declare `effort: low` for explicit routing, but treat it as runtime-inert compatibility metadata.
+Declare `effort: low` as the repository route without claiming effective reasoning control.
 
 Claude resolves subagent model selection in this order:
 
@@ -100,28 +100,7 @@ Runtime `availableModels` policy may further restrict selection.
 Frontmatter therefore declares the repository route; it does not prove the final backend identity, especially behind a model gateway.
 Treat backend identity as unobservable unless the runtime event explicitly reports the resolved backend model.
 
-## Codex Counterpart
-
-Use these exact pairs:
-
-| Claude | Codex |
-| --- | --- |
-| `sonnet` | `gpt-5.6-terra` |
-| `haiku` | `gpt-5.6-luna` |
-
-The top-level runtime policy maps `opus` to `gpt-5.6-sol`, but neither value belongs in a Sinon installable agent.
-
-Codex TOML uses:
-
-```toml
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
-```
-
-Keep paired descriptions and instruction bodies semantically identical.
-Use `sandbox_mode = "read-only"` for report-only roles and `workspace-write` only for writers or the main orchestrator.
-
 ## Scope Check
 
-Before retaining an existing field, determine whether the file is loaded from a plugin, `.claude/agents/`, or `~/.claude/agents/`.
+Before retaining an existing field, determine whether the file is loaded from a plugin or user scope.
 A field that is valid for a project agent may still be ignored for a plugin agent.

@@ -18,37 +18,19 @@ Narrow package, authoring, Harness, and forge rules load from nearer `AGENTS.md`
 - Publish a curated Claude Code marketplace catalog from a Git repository.
 - Store installable plugin packages in a consistent directory layout.
 - Keep marketplace metadata and plugin manifests aligned.
-- Keep generic Agent Skills mirrored through `.claude/skills/` and `.agents/skills/` without treating those paths as plugin marketplace catalogs.
-- Keep Codex-facing agents available as TOML files under `.codex/agents/`.
+- Publish reusable agents and skills from their owning plugin roots.
 
 ## Repository Structure
 
-- `AGENTS.md`: stable repository invariants, orchestration, routing, and completion gates.
+- `AGENTS.md`: stable repository invariants and completion gates.
 - `CLAUDE.md`: Claude Code pointer that imports `AGENTS.md`.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
 - `scripts/no-box-drawing.ts`: `-> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts`.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
-- `.claude/skills/` and `.claude/agents/`: `-> plugins/agent-capability-kit/{skills,agents}/`.
-- `.agents/skills/` points to `.claude/skills/`.
-- `.agents/agents/` is intentionally absent.
-- `.codex/agents/`: regular directory containing one Codex TOML file per shared agent.
-- `scripts/agent-routing-manifest.json`: canonical agent model, effort, topology, and counterpart inventory.
-- `scripts/agent-routing.ts`: deterministic routing and mirror validator.
+- `plugins/agent-capability-kit/{skills,agents}/`: published authoring skills and bounded agents.
 - `plugins/`: plugins maintained in this repository.
-
-## Agent Routing
-
-The interactive top-level session is the sole general orchestrator and uses Claude `opus` or Codex `gpt-5.6-sol` with `medium` effort.
-It is workflow policy, not an installable agent profile.
-
-Installable substantive agents use Claude `sonnet` or Codex `gpt-5.6-terra` with `medium` effort.
-Lightweight inventory and exhaustive mechanical agents use Claude `haiku` or Codex `gpt-5.6-luna` with `low` effort.
-Every repository agent declares its model and effort explicitly.
-
-Current Claude documentation does not list Haiku as effort-aware.
-Sinon keeps the explicit `effort: low` declaration as runtime-inert compatibility metadata and reports that limitation during validation.
 
 ## Plugin Layout
 

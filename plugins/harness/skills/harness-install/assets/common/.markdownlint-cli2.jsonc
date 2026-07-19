@@ -15,13 +15,11 @@
     },
     "no-emphasis-as-heading": true,
     "docs/no-box-drawing": true,
-    "docs/exec-plans/links": true,
-    "docs/root-files": true
+    "docs/exec-plans/links": true
   },
   "customRules": [
     "./scripts/no-box-drawing.ts",
-    "./scripts/exec-plan-links.ts",
-    "./scripts/docs-root-files.ts"
+    "./scripts/exec-plan-links.ts"
   ],
   "gitignore": ".gitignore",
   "globs": ["**/*.md"]

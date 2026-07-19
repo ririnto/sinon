@@ -2,15 +2,14 @@
 
 ## Purpose
 
-This document records the repository structure and runtime assets that support agent work.
-It inventories these repository surfaces:
+This document describes repository surface categories and representative runtime assets that support agent work.
 
 - Files and directories.
 - Local settings.
 - Worktree setup.
 - Generated-artifact locations.
 
-## Required Structure
+## Representative Installed Structure
 
 ```text
 ./
@@ -56,7 +55,6 @@ It inventories these repository surfaces:
 |   +-- SECURITY.md
 +-- scripts/
     +-- no-box-drawing.ts
-    +-- docs-root-files.ts
     +-- exec-plan-links.ts
 ```
 
@@ -65,7 +63,7 @@ It inventories these repository surfaces:
 - `.claude/skills/` contains `autonomous-execution` and `issue-mining`.
 Each `SKILL.md` owns its named workflow.
 - `.agents/skills/` links to `.claude/skills/` so hosts without a Claude-style skill loader read the same skills as plain documents.
-- Runtime inventory includes the two project skills, target policy, and host-provided native agents.
+- Runtime assets include project skills, target policy, and host-provided native agents.
 - `WORKFLOW.md` owns target orchestration, review, validation, and completion policy.
 - The installer always copies one target-facing `WORKFLOW.md`.
 - `--ci-host` selects CI files only.
@@ -96,5 +94,5 @@ On other hosts, run the stack setup command once per new worktree.
 ## Generated Artifacts
 
 `docs/generated/` is reserved for deterministic generation outputs.
-Examples include command outputs, schemas, build outputs, migrations, and reports.
+Examples include command outputs, schemas, build outputs, and reports.
 Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.

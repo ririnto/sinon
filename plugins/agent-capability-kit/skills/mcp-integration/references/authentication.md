@@ -9,7 +9,7 @@ Open this reference when a remote MCP server requires credentials or when a plug
 
 ## OAuth
 
-Use OAuth only when the remote HTTP or SSE server advertises a compatible flow.
+Use OAuth only when the remote HTTP server advertises a compatible flow.
 Configure the authoritative server URL, reload the plugin, then authenticate from `/mcp`.
 Do not invent token files or callback paths in plugin documentation.
 

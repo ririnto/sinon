@@ -43,7 +43,7 @@ They work from their own instructions; a target `WORKFLOW.md` may add local cons
 ## Package Inventory
 
 - `.claude-plugin/plugin.json`: plugin metadata.
-- `skills/harness-install/`: installer, asset manifest, packaged target assets, and stack adapters.
+- `skills/harness-install/`: installer, packaged target assets, and stack adapters.
 - `skills/harness-evolve/`: report-first evolution guidance.
 
 The installer writes target contracts, docs, project skills, selected stack validation assets, optional CI assets, and inactive `.githooks/` templates.
@@ -70,8 +70,8 @@ Each mode copies `pre-commit` and `pre-push` templates to `.githooks/` but leave
 ## Orchestration Contract
 
 The installed `WORKFLOW.md` makes any capable model act as the root orchestrator of its target repository:
-scope requests into bounded worker tasks, delegate bulk work by default, route workers by capability tier weighing token cost against accuracy, and keep foreground work to coordination, integration, and review.
-It states compact autonomy boundaries (report-only versus change requests, approval-gated remote or destructive actions) and explicit fallbacks - sequential execution with the same phases and gates, effort-based routing, skills as plain documents - for hosts that lack worker dispatch, model selection, or a skill loader.
+scope requests into bounded worker tasks, delegate meaningful independent work by default, choose workers by required capability, cost, and consequence of error, and keep foreground work to coordination, integration, and review.
+It states compact autonomy boundaries (report-only versus change requests and approval-gated remote or destructive actions) and uses each host's native mechanisms for dispatch, parallel execution, workspace isolation, and model selection.
 Only `.claude/settings.json` and `.mcp.json` are host adapters; no lifecycle rule depends on them.
 
 ## Validation

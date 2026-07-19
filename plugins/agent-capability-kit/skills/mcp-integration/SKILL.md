@@ -2,7 +2,7 @@
 name: mcp-integration
 description: >-
   Integrate Model Context Protocol servers into Claude Code plugins through `.mcp.json` or manifest `mcpServers` configuration.
-  Use when choosing stdio, HTTP, SSE, or WebSocket transport, configuring authentication, or scoping plugin MCP tools.
+  Use when choosing stdio, HTTP, or WebSocket transport, configuring authentication, or scoping plugin MCP tools.
 ---
 
 # MCP Integration
@@ -13,7 +13,7 @@ Package MCP server definitions with a Claude Code plugin using current transport
 
 - plugin-root `.mcp.json`
 - inline or custom-path `mcpServers` in `.claude-plugin/plugin.json`
-- stdio, HTTP, SSE, and WebSocket server configuration
+- stdio, HTTP, and WebSocket server configuration
 - remote authentication and dynamic headers
 - plugin MCP tool names and permission patterns
 - startup, tool-call, and output limits
@@ -79,25 +79,23 @@ Every manifest path MUST begin with `./` and resolve inside the plugin root.
 | --- | --- | --- |
 | stdio | `command`, optional `args` and `env` | Bundled or locally installed process |
 | HTTP | `type: "http"`, `url`, optional headers | Preferred remote request-response server; supports OAuth |
-| SSE | `type: "sse"`, `url`, optional headers | Legacy remote server that has not migrated to HTTP |
 | WebSocket | `type: "ws"`, `url`, optional headers | Remote server that pushes events over a persistent connection |
 
 Stdio servers MUST exchange one JSON-RPC message per line on stdin and stdout.
 They MUST NOT use LSP `Content-Length` framing.
 
 Prefer HTTP for new remote integrations.
-SSE is deprecated but still supported for compatibility.
 Configure WebSocket in `.mcp.json` or through `claude mcp add-json`; `claude mcp add --transport` does not accept `ws`.
 WebSocket authentication is header-only and does not support the OAuth flow.
 
-Use HTTPS for HTTP and SSE and WSS for WebSocket, except explicit localhost development.
+Use HTTPS for HTTP and WSS for WebSocket, except explicit localhost development.
 Open `references/transport-types.md` for transport-specific failure and selection details.
 
 ## Authentication
 
 Choose one supported boundary:
 
-- OAuth-capable HTTP or SSE server: configure the URL, then authenticate through `/mcp`.
+- OAuth-capable HTTP server: configure the URL, then authenticate through `/mcp`.
 - Static token: reference an environment variable in `headers`.
 - Rotating or computed token: use `headersHelper` to produce headers at connection time.
 - stdio server: pass only the required environment variables in `env`.
@@ -186,7 +184,6 @@ Open `references/performance.md` when tuning a real connection or output problem
 
 - Do not omit the top-level `mcpServers` wrapper in `.mcp.json`.
 - Do not invent provider endpoints; use the server operator's authoritative URL.
-- Do not describe SSE as the preferred remote transport.
 - Do not reject WebSocket; Claude Code supports `type: "ws"` through JSON configuration.
 - Do not promise OAuth for WebSocket.
 - Do not use unscoped MCP tool names for plugin-bundled servers.

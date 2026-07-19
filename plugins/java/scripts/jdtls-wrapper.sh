@@ -3,9 +3,9 @@
 set -e
 
 script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
-lombok_override_jar="${JAVA_ASSISTANT_LOMBOK_JAR:-${JDK_ASSISTANT_LOMBOK_JAR:-${LOMBOK_JAR:-}}}"
-lombok_support_enabled="${JAVA_ASSISTANT_LOMBOK_ENABLED:-${JDK_ASSISTANT_LOMBOK_ENABLED:-true}}"
-lombok_project_jar_enabled="${JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED:-${JDK_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED:-false}}"
+lombok_override_jar="${JAVA_ASSISTANT_LOMBOK_JAR:-}"
+lombok_support_enabled="${JAVA_ASSISTANT_LOMBOK_ENABLED:-true}"
+lombok_project_jar_enabled="${JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED:-false}"
 
 # Check whether a path contains no whitespace or unsafe characters.
 #

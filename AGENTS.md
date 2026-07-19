@@ -13,24 +13,23 @@ A closer `AGENTS.md` overrides this one for its subtree.
 
 - `plugins/` contains publishable packages.
 - `.claude-plugin/marketplace.json` lists package roots.
-- `scripts/` contains repository validation and routing checks.
+- `scripts/` contains repository validation checks.
 
-Open `plugins/AGENTS.md` for package, documentation, and script rules.
-Open the affected plugin's `AGENTS.md` for its local contract.
-Open `plugins/harness/skills/harness-install/assets/common/WORKFLOW.md` for delegation lifecycle and publication decisions.
 Open [repository conventions](docs/agent-references/repository-conventions.md) when editing source, scripts, docs, or config.
 
 ## Build, Test, and Development Commands
 
 Run `bun ci` after dependency changes.
 Run `bun run check` before a repository-wide handoff.
-Run `claude plugin validate plugins/<plugin>` after changing a plugin package.
 
 ## Coding Style and Testing
 
 Make the smallest change that satisfies observable acceptance criteria.
 Preserve unrelated work.
-Match local style, remove only newly introduced orphans, and add a focused regression for a behavior fix.
+Match local style and remove only newly introduced orphans.
+Test executable behavior at the smallest useful scope.
+Use unit tests by default, integration tests only for behavior that requires a real process, database, network, or equivalent boundary, and end-to-end tests only for non-duplicated core user journeys.
+Do not turn prose guidance into source-string, heading, word-count, or file-presence tests.
 Use TypeScript and Bun commands already present in the package.
 Report a precise blocker when required evidence or authority is missing.
 
@@ -38,11 +37,7 @@ Report a precise blocker when required evidence or authority is missing.
 
 Inspect `git status --short --branch` and the intended diff before staging.
 The user-facing root session owns integration and publication.
-Do not package a general orchestration profile.
-It delegates exploration, implementation, documentation, audit, review, and validation to bounded leaves.
-Writers receive disjoint ownership and worktrees; failed or missing workers block fan-in.
-When a dispatch API exposes `fork_turns`, new workers use `fork_turns: "none"` with self-contained context.
-Do not infer this field for CLI dispatch.
+Do not publish a general orchestration profile as a plugin component.
 
 ## Security and Configuration
 

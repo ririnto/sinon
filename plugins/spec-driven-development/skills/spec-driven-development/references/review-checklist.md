@@ -30,7 +30,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] Every requirement is covered by one or more scenarios
 - [ ] Scenarios include Normal, Alternative, and Error flows; each flow is clear
 - [ ] SPEC content stays implementation-agnostic by default and does not introduce unnecessary language, framework, library, or code-style constraints unless they are explicitly requested or materially required
-- [ ] In authored `SPEC.md`, template scaffolding instruction lines are replaced (SPEC scaffolding fingerprint checks pass)
+- [ ] Authored content replaces template prompts with project-specific requirements
 
 ### Canonical Placement
 

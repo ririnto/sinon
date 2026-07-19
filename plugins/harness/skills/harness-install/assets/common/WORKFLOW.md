@@ -21,15 +21,9 @@ The workflow MUST NOT require shipped agent profiles, a specific CLI, or vendor-
 
 For non-trivial work, the root MUST state the affected scope, material assumptions, verifiable success criteria, and validation approach before implementation.
 
-Model capability and reasoning effort are separate choices, and routing MUST weigh token cost and accuracy together.
-Describe models by capability tier, never by vendor identifier:
-
-- fast, low-cost tier: bulk exploration, structure mapping, inventory, and mechanical collection, where a mistake is cheap to detect and correct;
-- balanced tier: routine implementation, documentation edits, and moderate analysis;
-- highest-accuracy tier: security review, contract-consistency rulings, risky design decisions, architecture, and non-trivial debugging, where a wrong decision is expensive.
-
-Start with the lowest tier and effort that can meet the success criteria, and escalate only on evidence that the result misses the bar.
-Never route bulk reading or enumeration to the highest tier, and never route security or contract judgment to the fast tier.
+Choose workers by the task's required capability, cost, and consequence of error.
+Use lightweight execution for routine collection and mechanical work, and require careful independent judgment for security, contracts, risky design, architecture, and non-trivial debugging.
+Increase review depth only when evidence shows that the current approach misses the success criteria.
 
 ## Delegation and Context
 
@@ -62,12 +56,16 @@ A failed, missing, or blocked worker MUST block fan-in until the root resolves t
 
 ## Validation and Completion
 
-The root MUST run focused validation for changed behavior.
-It SHOULD add or update a focused regression when the repository has an appropriate test surface for the behavior.
-It SHOULD run broader checks only when repository rules, scope, or integration risk warrants them.
+The root MUST validate changed executable behavior at the smallest useful scope.
+Unit tests are the default and should carry most behavioral coverage.
+Use integration tests only when the behavior depends on a real process, database, network, filesystem boundary, or equivalent infrastructure.
+Use end-to-end tests only for distinct core user journeys that lower-level tests do not already prove.
+The 60/30/10 split is a suite budget, not a requirement to add all three layers for each feature.
+Do not test prose instructions, headings, wording, word counts, or declared file lists when review can verify them.
+Do not add a test when the requested change affects guidance only and no machine consumes the changed value.
 
 Before completion, the root MUST inspect the integrated diff and review it for defects, regressions, unsafe effects, and missing documentation.
-High-risk work SHOULD receive independent review routed to the highest-accuracy tier.
+High-risk work SHOULD receive careful independent review.
 The root MUST resolve review findings and rerun affected checks before handoff.
 It MUST report validation results, skipped checks, and blockers with their reasons, then decide whether the evidence satisfies the stated success criteria.
 

@@ -235,7 +235,11 @@ Open the scaling reference only after the single-step path is correct and measur
 
 ## Minimal testing posture
 
-Start with one end-to-end job test and one restart or failure-path test.
+Start with unit tests for processors, policies, and transition logic.
+Use a Spring Batch integration test only when job repository state, step wiring, restart behavior, or the real job runtime defines the behavior.
+Reserve an end-to-end job journey for a distinct production-critical flow that lower-level tests do not prove.
+Treat 60/30/10 as a suite budget, not a requirement to add all three layers for each feature.
+Review prose guidance directly instead of testing its wording or file layout.
 
 ```java
 @SpringBatchTest

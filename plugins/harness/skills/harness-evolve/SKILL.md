@@ -11,7 +11,7 @@ Produce an evolution report by default. Implement only when the user separately 
 ## First Safe Checks
 
 1. Classify the request as installed-target or plugin-default evolution.
-2. For an installed target, inspect the target files and diff directly. For a plugin default, inspect the packaged assets, asset manifest, and repository diff.
+2. For an installed target, inspect the target files and diff directly. For a plugin default, inspect the packaged assets and repository diff.
 3. Separate product changes from harness-contract changes.
 4. Identify the validation surface. Use the target repository's canonical check command for an installed target and repository checks for a plugin default.
 
@@ -48,7 +48,7 @@ Report:
 - `contract updates`: paths or asset groups.
 - `validation impact`: exact command and coverage.
 - `ci impact`: none, GitHub, GitLab, or both.
-- `risks`: remaining target facts, migrations, or unresolved policy.
+- `risks`: remaining target facts or unresolved policy.
 
 ## Support Files
 

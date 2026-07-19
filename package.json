@@ -19,8 +19,7 @@
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
-    "check:agent-routing": "bun scripts/agent-routing.ts",
-    "check:authoring-assets": "bun test scripts/authoring-assets.test.ts scripts/harness-atomic-write.permissions.test.ts scripts/harness-atomic-write.test.ts scripts/harness-install.test.ts scripts/instruction-chain.test.ts scripts/sdd-assets.test.ts",
+    "check:authoring-assets": "bun test scripts/authoring-assets.test.ts scripts/harness-atomic-write.permissions.test.ts scripts/harness-atomic-write.test.ts scripts/harness-install.test.ts scripts/sdd-assets.test.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",

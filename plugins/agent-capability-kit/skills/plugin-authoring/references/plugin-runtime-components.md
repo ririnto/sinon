@@ -49,13 +49,11 @@ Keep it about output structure; workflow instructions belong in a skill or agent
 
 Default theme files live under `themes/`.
 Use `experimental.themes` for custom paths.
-Top-level manifest `themes` is deprecated.
 
 ## Monitors
 
 Default monitor configuration lives at `monitors/monitors.json`.
 Use `experimental.monitors` for custom paths or inline declarations.
-Top-level manifest `monitors` is deprecated.
 Each monitor object requires `name`, `command`, and `description`.
 The command MUST remain running for the intended monitoring lifetime and write notification lines to stdout.
 

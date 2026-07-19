@@ -9,7 +9,7 @@ Do not collapse MCP tool calls into ordinary tool-calling patterns.
 
 - Configuring Spring AI as an MCP client connecting to an external MCP server
 - Exposing Spring AI functions through an MCP server endpoint
-- Choosing the MCP transport protocol (stdio, SSE, Streamable HTTP, or Stateless)
+- Choosing the MCP transport protocol (stdio, Streamable HTTP, or Stateless)
 - Handling MCP-specific authorization or authentication
 - Debugging MCP tool resolution or capability negotiation
 
@@ -99,7 +99,6 @@ With the MCP server starter and annotation scanning enabled, Spring AI discovers
 | --- | --- | --- |
 | stdio | Local process, fast startup, containerized tools | Best for local or tightly coupled process boundaries |
 | Streamable HTTP | Remote servers, firewalls, request/response semantics | Preferred HTTP server protocol for Spring AI 2.0+ |
-| HTTP/SSE | Legacy remote servers | Deprecated for Spring AI 2.0+ MCP servers; prefer Streamable HTTP for new deployments |
 
 Choose the transport based on deployment topology, not library preference.
 
@@ -131,7 +130,7 @@ Do not treat MCP tools and ordinary Spring AI `@Tool` methods as equivalent.
 | Aspect | Ordinary `@Tool` | MCP tool |
 | --- | --- | --- |
 | Implementation | In-application Java method | External process or service |
-| Transport | Direct JVM call | stdio, SSE, Streamable HTTP, stateless HTTP |
+| Transport | Direct JVM call | stdio, Streamable HTTP, stateless HTTP |
 | Capability negotiation | Static annotation | Dynamic at runtime |
 | Tool list | Compile-time known | Resolved from MCP server |
 | Error handling | Standard Java exceptions | MCP protocol error messages |

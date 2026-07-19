@@ -11,20 +11,13 @@ Open `assets/common/WORKFLOW.md` when changing target delegation or publication 
 
 ## Build, Test, and Development Commands
 
-Run `claude plugin validate plugins/harness` and the relevant repository checks after runtime, installer, validator, workflow, or asset changes.
-Run `bun scripts/generate-harness-asset-manifest.ts` after intentional asset inventory changes.
+Run the copied-plugin smoke and installer safety tests after installer or asset changes.
 
 ## Coding Style and Testing
 
 Keep installer-owned content reproducible and package-local.
 Preserve an existing target `AGENTS.md`.
 Only `--force` may replace target content that differs from the packaged source.
-Use the repository-side copied-plugin smoke and focused installer safety tests.
-
-## Commit and Publication
-
-Keep delegated agents as bounded leaves, use capability-based delegation from the active host, assign disjoint writer ownership, and return review fixes to the owning writer.
-The root session integrates and publishes.
 
 ## Security and Configuration
 
@@ -34,5 +27,4 @@ Review installer path handling, hooks, command execution, and copied configurati
 
 Open the affected install or evolution skill before changing its runtime.
 `assets/common/AGENTS.md` controls installed targets.
-This file controls plugin source.
 Do not mirror target-owned files into the marketplace root.
