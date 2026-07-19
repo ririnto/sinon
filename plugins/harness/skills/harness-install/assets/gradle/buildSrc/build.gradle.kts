@@ -7,7 +7,20 @@ repositories {
 }
 
 dependencies {
-    compileOnly(platform("com.pinterest.ktlint:ktlint-bom:${libs.versions.ktlint.cli.get()}"))
-    compileOnly("com.pinterest.ktlint:ktlint-rule-engine-core")
-    compileOnly("com.pinterest.ktlint:ktlint-cli-ruleset-core")
+    compileOnly(platform(libs.ktlint.bom))
+    compileOnly(libs.ktlint.rule.engine.core)
+    compileOnly(libs.ktlint.cli.ruleset.core)
+    testImplementation(platform(libs.kotlin.bom))
+    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(platform(libs.ktlint.bom))
+    testImplementation(libs.ktlint.rule.engine)
+    testImplementation(libs.ktlint.rule.engine.core)
+    testImplementation(libs.ktlint.cli.ruleset.core)
+    testImplementation(libs.ktlint.test)
+    testRuntimeOnly(platform(libs.slf4j.bom))
+    testRuntimeOnly(libs.slf4j.simple)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
