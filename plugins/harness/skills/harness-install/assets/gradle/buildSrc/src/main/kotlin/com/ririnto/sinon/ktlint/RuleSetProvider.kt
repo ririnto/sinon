@@ -10,7 +10,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleSetId
 class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
     override fun getRuleProviders(): Set<RuleProvider> =
         setOf(
-            RuleProvider { IfStatementBracesKtlintRule() },
+            RuleProvider { ControlFlowBracesKtlintRule() },
             RuleProvider { ImportOverFqnKtlintRule() },
             RuleProvider { KotlinTopLevelDeclarationCountKtlintRule() },
             RuleProvider { ImplicitLambdaItKtlintRule() },
@@ -20,10 +20,15 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
             RuleProvider { MultilineDocStyleKtlintRule() },
             RuleProvider { UnstructuredLoggingKtlintRule() },
             RuleProvider { CompanionObjectPositionKtlintRule() },
-            RuleProvider { TerminalBranchWhenKtlintRule() },
-            RuleProvider { PublicDeclarationDocCommentKtlintRule() },
             RuleProvider { ExplicitPropertyTypeKtlintRule() },
             RuleProvider { ComparisonDirectionKtlintRule() },
-            RuleProvider { SlfDirectLoggingKtlintRule() }
+            RuleProvider { TerminalBranchWhenKtlintRule() },
+            RuleProvider { PublicDeclarationDocCommentKtlintRule() },
+            RuleProvider { SlfDirectLoggingKtlintRule() },
+            RuleProvider { RegexConstructorKtlintRule() },
+            RuleProvider { DecorativeFunctionBodyBlankLinesKtlintRule() },
+            RuleProvider { ExplicitFunctionReturnTypeKtlintRule() },
+            RuleProvider { NullableElvisReturnKtlintRule() },
+            RuleProvider { NestedDataClassLastKtlintRule() }
         )
 }

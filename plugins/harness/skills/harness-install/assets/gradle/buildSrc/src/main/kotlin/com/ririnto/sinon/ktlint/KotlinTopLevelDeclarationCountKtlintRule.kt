@@ -6,10 +6,12 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtTypeAlias
 
 /**
- * Requires each Kotlin source file to declare exactly one top-level declaration.
+ * Requires each non-script Kotlin source file to declare exactly one top-level type declaration.
  */
 class KotlinTopLevelDeclarationCountKtlintRule :
     Rule(
@@ -24,8 +26,9 @@ class KotlinTopLevelDeclarationCountKtlintRule :
         (node.psi as? KtFile)
             ?.takeUnless { ktFile -> ktFile.isScript() }
             ?.let { ktFile ->
-                if (ktFile.declarations.size != 1) {
-                    emit(0, "file must have single top-level declaration", false)
+                val declaration = ktFile.declarations.singleOrNull()
+                if (declaration !is KtClassOrObject && declaration !is KtTypeAlias) {
+                    emit(0, "file must have a single top-level type declaration", false)
                 }
             }
     }
