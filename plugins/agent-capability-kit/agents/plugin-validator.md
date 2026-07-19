@@ -35,7 +35,7 @@ Do not delegate or modify files; return evidence and blockers to the caller.
 - Default-only component paths remain undeclared.
 - `settings` is an inline object, not a path.
 - `userConfig` owns prompted values.
-- New custom theme and monitor paths use `experimental.themes` and `experimental.monitors`; top-level keys are deprecated.
+- Custom theme and monitor paths use `experimental.themes` and `experimental.monitors`.
 
 Apply field-specific path behavior:
 
@@ -48,7 +48,7 @@ Apply field-specific path behavior:
 
 - `hooks/hooks.json` parses and contains a top-level `hooks` object.
 - `.mcp.json` parses and contains a top-level `mcpServers` object.
-- Remote HTTP and SSE URLs use HTTPS outside localhost.
+- Remote HTTP URLs use HTTPS outside localhost.
 - Remote WebSocket entries use `type: "ws"` and WSS outside localhost.
 - `.lsp.json` parses and points only to supported server definitions.
 - `settings.json` contains only `agent` and `subagentStatusLine`.
@@ -65,7 +65,7 @@ For Sinon plugin agents:
 - `model` and `effort` are present and match the declared topology
 - Opus is reserved for the non-packaged user-facing root session, Sonnet for substantive leaves, and Haiku for lightweight inventory or mechanical work
 - high, xhigh, or max effort includes a written `Effort Exception`
-- Haiku effort is reported as runtime-inert compatibility metadata rather than effective reasoning control
+- Haiku effort is described as a declared route rather than effective reasoning control
 - plugin-supported optional fields are limited to `tools`, `disallowedTools`, `model`, `effort`, `maxTurns`, `skills`, `memory`, `background`, `isolation`, `color`, and `initialPrompt`
 - `hooks`, `mcpServers`, and `permissionMode` are absent because plugin agents ignore them
 - `Examples` is absent from frontmatter
@@ -73,11 +73,9 @@ For Sinon plugin agents:
 - leaf agents expose no Agent or Task delegation tools
 - installable agents do not expose child allowlists or claim general orchestration
 - read-only roles expose no mutation tools
-- intentional Claude and Codex counterparts keep mapped models, matching efforts, descriptions, and instruction bodies aligned
 
 ## Skill Checks
 
-- each skill directory contains `SKILL.md`
 - portable required frontmatter fields `name` and `description` are present
 - `name` matches the directory basename
 - optional Agent Skills fields `license`, `compatibility`, `metadata`, and experimental `allowed-tools` use valid types

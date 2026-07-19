@@ -1,10 +1,34 @@
 import { constants } from "node:fs";
-import { access, lstat, readFile, rm, symlink } from "node:fs/promises";
+import {
+  access,
+  lstat,
+  readFile,
+  readdir,
+  rm,
+  symlink
+} from "node:fs/promises";
 import path from "node:path";
 
-import { manifestFilesForSubdir } from "../asset-manifest.js";
 import type { InstallCandidate } from "./types.js";
-import { fail, skillDir } from "./types.js";
+import { fail } from "./types.js";
+
+const generatedDirectoryNames = new Set([
+  ".cache",
+  ".gradle",
+  ".mypy_cache",
+  ".output",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".turbo",
+  ".venv",
+  "__pycache__",
+  "build",
+  "coverage",
+  "dist",
+  "node_modules",
+  "out",
+  "target"
+]);
 
 export const pathExists = (filePath: string): Promise<boolean> =>
   Bun.file(filePath).exists();
@@ -58,14 +82,31 @@ export const readInstallAsset = async (assetFile: string): Promise<string> => {
   return readUtf8(assetFile);
 };
 
+const listTreeFiles = async (directory: string): Promise<readonly string[]> => {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map((entry) => {
+      const entryPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (generatedDirectoryNames.has(entry.name)) {
+          return [];
+        }
+        return listTreeFiles(entryPath);
+      }
+      return entry.isFile() ? [entryPath] : [];
+    })
+  );
+  return files.flat();
+};
+
 export const listTrackedTreeFiles = async (
   srcDir: string
 ): Promise<readonly string[]> => {
   if (!(await isDirectory(srcDir))) {
     return [];
   }
-  const subdir = path.basename(srcDir);
-  return manifestFilesForSubdir(skillDir, subdir);
+  const files = await listTreeFiles(srcDir);
+  return files.toSorted();
 };
 
 export const matchCandidate = (

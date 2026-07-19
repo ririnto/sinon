@@ -65,30 +65,19 @@ Open `references/agent-frontmatter.md` for field-specific constraints and plugin
 
 Classify topology before choosing a model:
 
-| Role | Claude | Codex counterpart | Effort |
-| --- | --- | --- | --- |
-| Substantive implementer, reviewer, validator, or domain expert | `sonnet` | `gpt-5.6-terra` | `medium` |
-| Lightweight inventory or exhaustive mechanical edit | `haiku` | `gpt-5.6-luna` | `low` |
+| Role | Model | Effort |
+| --- | --- | --- |
+| Substantive implementer, reviewer, validator, or domain expert | `sonnet` | `medium` |
+| Lightweight inventory or exhaustive mechanical edit | `haiku` | `low` |
 
 Sinon does not package a general orchestrator agent.
-The user-facing top-level session owns orchestration and reserves Claude `opus` or Codex
-`gpt-5.6-sol` with `medium` effort through repository policy.
-It delegates all task work to bounded leaves and keeps decomposition, ownership, fan-in,
-conflict coordination, and release decisions at the top level.
+Keep orchestration, integration, and release decisions outside packaged leaf agents.
 
 Use `high`, `xhigh`, or `max` only when the agent body contains an `Effort Exception` section that explains why medium is insufficient.
 A substantive leaf using `low` needs a `Low Effort Rationale` section.
 
 Claude Code accepts an `effort` declaration with Haiku, but the current official model-effort table does not list Haiku as effort-aware.
-Keep `effort: low` for explicit repository routing and report it as runtime-inert
-compatibility metadata rather than claiming it changes Haiku reasoning.
-
-Codex counterparts use `model_reasoning_effort`, not `effort`:
-
-```toml
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
-```
+Keep `effort: low` as the declared route without claiming that it changes Haiku reasoning.
 
 Do not put runtime `model` or `effort` fields in portable Agent Skill frontmatter.
 
@@ -223,7 +212,6 @@ When a leaf discovers work that needs decomposition, integration, or parallel wr
 returns a decomposition handoff to the root session.
 Current Claude Code supports nested subagents up to depth 5 when `Agent` is granted, but
 Sinon deliberately omits delegation tools from installable agents.
-Installed Codex workflows use `max_depth = 1`.
 
 Read-only reviewers and validators MUST NOT expose mutation tools.
 Writers receive one explicit ownership scope; overlapping writers are serialized or isolated in separate non-overlapping worktrees.
@@ -235,8 +223,7 @@ Writers receive one explicit ownership scope; overlapping writers are serialized
 - description has a capability and distinct trigger vocabulary
 - only supported plugin-agent fields are used
 - `model` and `effort` are present and match the declared topology
-- any Codex counterpart uses the mapped slug and `model_reasoning_effort`
-- Haiku effort is reported as runtime-inert compatibility metadata
+- Haiku effort is described as a declared route rather than effective reasoning control
 - high-or-greater effort has a written exception
 - no plugin agent relies on `hooks`, `mcpServers`, or `permissionMode`
 - tool list supports file discovery, action, and verification claims
@@ -268,7 +255,7 @@ Return:
 - Do not grant broad mutation or Bash access for a report-only role.
 - Do not hide required workflow instructions in another file.
 - Do not omit model or effort from a Sinon agent.
-- Do not assign Opus or Sol to an installable agent; reserve them for the user-facing root session.
+- Do not assign a host workflow's orchestration model to an installable agent.
 - Do not claim Haiku effort is effective under the current official compatibility table.
 - Do not use high-or-greater effort without a written exception.
 - Do not place model or effort in portable Agent Skill frontmatter.

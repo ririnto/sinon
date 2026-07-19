@@ -21,6 +21,11 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 ## Operating Rules
 
 - MUST choose the smallest test scope that proves the behavior.
+- MUST use a unit test by default.
+- MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
+- MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
+- MUST treat 60/30/10 as a suite budget, not a requirement to add all three layers for each feature.
+- MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD keep one observable behavior per test.
 - SHOULD name tests as `verbCondition` or `subjectVerb` describing the observable behavior (e.g., `returnsCachedProfile`, `emitsLoadingThenData`, `rejectsInvalidInput`).
 - SHOULD use `kotlin.test` annotations and baseline assertions as the default surface.
@@ -33,12 +38,13 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 ## Common-Path Procedure
 
 1. Read the production behavior and the nearest related tests first.
-2. Choose the smallest test scope that proves one observable contract.
-3. Start with `kotlin.test` assertions and plain synchronous structure.
-4. Add `runTest` only when the code under test uses `suspend`, delay, cancellation, or Flow collection, and confirm `kotlinx-coroutines-test` is available in test scope.
-5. Bound Flow collection to the exact items needed for the assertion.
-6. Layer JUnit 5 structure or other test libraries only when the suite already uses them.
-7. Open one blocker reference only when scheduler control, replay semantics, JUnit 5 structure, MockK, Kotest, or eventual-consistency helpers are the actual blocker.
+2. Start with a unit test for one observable contract.
+3. Use an integration test only when the behavior cannot exist without a real boundary.
+4. Add an end-to-end test only for a core user journey that lower-level tests do not duplicate.
+5. Add `runTest` only when the code under test uses `suspend`, delay, cancellation, or Flow collection, and confirm `kotlinx-coroutines-test` is available in test scope.
+6. Bound Flow collection to the exact items needed for the assertion.
+7. Layer JUnit 5 structure or other test libraries only when the suite already uses them.
+8. Open one blocker reference only when scheduler control, replay semantics, JUnit 5 structure, MockK, Kotest, or eventual-consistency helpers are the actual blocker.
 
 ## Core Decisions
 

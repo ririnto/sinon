@@ -181,9 +181,9 @@ Before marking `review` or higher:
 
 - In authored `SPEC.md` content, TODO markers MUST NOT remain.
 - In authored `SPEC.md` content, unresolved placeholders MUST NOT remain.
-- In authored `SPEC.md` content, template scaffolding instruction lines from `assets/templates/SPEC.md` MUST be replaced (SPEC scaffolding fingerprint checks MUST pass).
+- Replace template prompts while authoring `SPEC.md`; reviewers assess the resulting document in context.
 - Manual numbered headings (`## 1. Something` form) MUST NOT be used.
-  - The validator enforces this rule on `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
+  Reviewers assess heading style in `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
 - `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run when `bun` is available locally, and failures MUST be resolved.
   - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 
@@ -196,4 +196,4 @@ Before marking `review` or higher:
 - Linking to non-SPEC files in frontmatter `call`.
 - Forgetting to update frontmatter `call` after dependency changes.
 - Advancing status without updating `last_updated`.
-- Using manual numbered headings (`## 1. Something` form); the validator rejects these in `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
+- Using manual numbered headings (`## 1. Something` form); reviewers should request descriptive headings instead.

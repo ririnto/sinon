@@ -9,15 +9,13 @@ This file applies to `plugins/workspace-workflow/` and overrides broader plugin 
 ## Build, Test, and Development Commands
 
 Inspect `git remote -v`, `git status --short --branch`, and `git branch -vv` before host advice.
-Run `claude plugin validate plugins/workspace-workflow`, `bun run check:authoring-assets`, and
-`bun run check` after routing changes.
 
 ## Coding Style and Testing
 
 
 ## Commit and integration handoff
 
-Preserve dirty worktrees and unrelated branches. Treat force-push and history rewriting as explicit user decisions. The top-level session owns commits and integration handoff.
+Treat force-push and history rewriting as explicit user decisions.
 
 ## Security and Configuration
 

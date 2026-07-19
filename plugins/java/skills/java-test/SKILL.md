@@ -13,7 +13,11 @@ The common case is writing the smallest failing JUnit 5 test, making the smalles
 ## Operating rules
 
 - MUST write the smallest failing test that captures the requested behavior.
-- MUST choose the correct scope: unit, integration, or contract.
+- MUST use a unit test by default.
+- MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
+- MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
+- MUST treat 60/30/10 as a suite budget, not a requirement to add all three layers for each feature.
+- MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD prefer one observable behavior per test.
 - MUST keep test names descriptive and scenario-based.
 - SHOULD use JUnit 5 as the default baseline unless the repository already standardizes a different test runner.
@@ -33,10 +37,12 @@ The common case is writing the smallest failing JUnit 5 test, making the smalles
 
 1. Read the target production code and the nearest related tests.
 2. Identify the requested behavior or bug before touching implementation.
-3. Write the smallest failing JUnit 5 test that captures that behavior.
-4. Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later), and verify the returned exception message with `assertEquals` when the message matters.
-5. Use Mockito only for real collaboration boundaries and Awaitility only for genuinely asynchronous behavior.
-6. Wire the build tool (Maven Surefire or Gradle `useJUnitPlatform()`) only when execution setup is the actual blocker.
+3. Start with the smallest failing unit test that captures that behavior.
+4. Move to an integration test only when the behavior cannot exist without a real boundary.
+5. Add an end-to-end test only when it covers a core user journey without duplicating lower-level coverage.
+6. Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later), and verify the returned exception message with `assertEquals` when the message matters.
+7. Use Mockito only for real collaboration boundaries and Awaitility only for genuinely asynchronous behavior.
+8. Wire the build tool (Maven Surefire or Gradle `useJUnitPlatform()`) only when execution setup is the actual blocker.
 
 ## First runnable commands
 

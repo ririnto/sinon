@@ -107,42 +107,14 @@ These are documented code conventions, not automated enforcement.
 
 - Validator: `sh scripts/check.sh` (wrapper invoking native `shellcheck` and `shfmt -d`)
 - Fix command: `sh scripts/fix.sh` (wrapper invoking `markdownlint-cli2 --fix` when it is available on PATH, then `shfmt`, then rerunning `shellcheck` and `shfmt -d` through `scripts/check.sh`)
-- Structural checks are prose-only and cover:
-  - File and directory presence.
-  - Hook shebangs and executable bits.
-  - Hook and CI command parity.
-  - Symlink safety and scaffold-leak scanning.
-
 Every mode ships both hook stages under `.githooks/`.
 The installer copies those files without activating them.
 Only `--activate-hooks` MAY set repository-local `core.hooksPath` to `.githooks/`.
 Ordinary dependency installation, synchronization, and build commands MUST NOT activate hooks.
 
-## Structural Conventions (Prose-Only)
+## Installed Command Contract
 
-These checks are DOCUMENT-LEVEL PROSE CONVENTIONS enforced by code review and project discipline, not automated validators.
-Target repositories MUST uphold these in documentation, agent instructions, and hook templates:
-
-- filePresence: Required files (`AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, workflow files, etc.) MUST exist and be tracked in version control.
-- directoryPresence: Required directories (.claude/skills/, docs/templates/, docs/generated/, etc.) MUST exist.
-- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents/skills/ -> .claude/skills/`.
-- skillFrontmatter: Skill `SKILL.md` files MUST include required `name` frontmatter field and `description`.
-- docHeadings: Documentation MUST use properly nested Markdown headings, starting at level 1, with blank lines before headings.
-- docContent: Documentation MUST use appropriate fenced code blocks with language tags, blank lines before lists, and correct emphasis styles.
-- scaffoldLeaks: Placeholder tokens (e.g., `{{project-name}}`, `<command>`) MUST NOT appear in committed source code.
-  only in source templates under docs/templates/.
-- hookShebang: Hook files MUST use the `/usr/bin/env sh` shebang when executable.
-- hookExecutable: Installed hook files MUST have executable bits set (mode 755 or `a+x`).
-- hookSourceMarker: Installed hook files SHOULD identify the stack asset that owns their command contract.
-- hookStage: Hook files MUST declare which stage they run (pre-commit or pre-push).
-- hookCommand: The installed `pre-commit` hook MUST run the stack canonical check command.
-  the installed `pre-push` hook runs a local final gate that is a superset of the canonical check, adding tests for Gradle (`./gradlew check`), Maven (`./mvnw verify`), and Bun (`bun run check && bun test --pass-with-no-tests`), and identical to the canonical check for uv and Shell.
-- hookActivation: Both hook files MUST remain inactive until `--activate-hooks` sets repository-local `core.hooksPath` to `.githooks/`.
-- ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same canonical check command as the installed `pre-commit` hook.
-- The two CI hosts MUST agree with each other.
-  CI re-runs the canonical check, not the local `pre-push` superset.
-- envShebangUsage: Shell scripts MUST use the `/usr/bin/env` shebang pattern rather than direct interpreters.
-- uncheckedTasks: Completed execution plans in `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task items.
-- templateGroups: Templates under docs/templates/ MUST match the installed template structure and renderable variable names used by the installer.
-- delegation: The active host MAY use native delegation when it materially improves the work.
-  The root session MUST retain integration and publication authority.
+The installed `pre-commit` hook and selected CI configuration run the stack's canonical check command.
+The installed `pre-push` hook may add the stack's test command.
+Both hook files remain inactive until `--activate-hooks` sets repository-local `core.hooksPath` to `.githooks/`.
+The installer validates hook executability and command agreement before activation.

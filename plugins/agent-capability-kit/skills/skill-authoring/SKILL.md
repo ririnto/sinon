@@ -17,7 +17,7 @@ path is self-sufficient, and support files remain optional additive depth.
 2. Name the one coherent job the skill owns before writing instructions.
 3. Write or revise `SKILL.md` first, including activation surface, ordinary workflow, decisions, edge cases, and output contract.
 4. Add `references/`, `assets/`, or `scripts/` only for optional depth, copyable artifacts, or deterministic helpers.
-5. Validate the result; optionally use `assets/validation-checklist.md` as a final verification pass.
+5. Review the ordinary path, trigger wording, and support-file boundaries in `SKILL.md`.
 
 ## Operating rules
 
@@ -26,7 +26,7 @@ path is self-sufficient, and support files remain optional additive depth.
 - The Agent Skills specification also permits optional `license`, `compatibility`, `metadata`, and experimental `allowed-tools` fields.
 - For Sinon-published skills, use only `name` and `description` by default; add a portable optional field only when the task requires it and repository policy permits it.
 - Never add agent runtime `model` or `effort` fields to portable Agent Skill frontmatter.
-  - Put runtime routing in Claude agent frontmatter, Codex agent TOML, or repository workflow policy.
+  Put runtime configuration in the host-specific agent or repository workflow policy.
 - Put the display title in the first H1 heading, not in frontmatter.
 - Put version, baseline, source, owner, and official-documentation notes in the body when ordinary use needs them.
 - Treat `references/`, `assets/`, and `scripts/` as optional support files, not prerequisites.
@@ -166,8 +166,7 @@ description: >-
 6. Revise for trigger and scope.
    - Check the description trigger, fold always-needed reference content back into
      `SKILL.md`, and move additive catalogs out of the main file.
-7. Finish with the checklist.
-   - Use `assets/validation-checklist.md` as the final pass and fix each finding or report the blocker.
+7. Review the result against this skill's operating rules and report any blocker.
 
 ## `SKILL.md` body contract
 
@@ -254,7 +253,6 @@ Return:
 
 - `assets/skill-template.md` - copy when creating a new skill from scratch.
 - `assets/description-patterns.md` - use when rewriting or comparing trigger descriptions.
-- `assets/validation-checklist.md` - use for the final validation pass.
 - `references/context-budget-and-scope.md` - open when the skill feels too broad, too long, or split at the wrong boundary.
 - `references/description-design.md` - open when trigger wording is weak or overly broad.
 - `references/progressive-disclosure.md` - open when moving additive material without breaking the ordinary path.

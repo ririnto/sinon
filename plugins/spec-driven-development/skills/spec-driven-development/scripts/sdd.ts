@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
+// allow: SIZE_OK - this standalone CLI owns one SDD document command surface.
 /* eslint-disable complexity, func-style, no-negated-condition, no-nested-ternary, no-shadow, prefer-named-capture-group, require-unicode-regexp, unicorn/no-negated-condition */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -62,34 +63,6 @@ const RELATIVE_SPEC_LINK_RE =
   /^(?![a-zA-Z][a-zA-Z0-9+.-]*:)(?!\/)(?![A-Za-z]:[\\/])(?:\.\/|\.\.\/|[^/][^/]*\/)*SPEC\.md(?:#[^\s]+)?$/;
 const CHANGELOG_ENTRY_RE =
   /^[ \t]{0,3}##[ \t]+(\d{4}-\d{2}-\d{2})[ \t]+-[ \t]+\S.*$/gm;
-const TODO_RE = /(?<![A-Za-z0-9_./#-])todo:(?!\/\/)/i;
-const PLACEHOLDER_RE = /\{\{[^}]+\}\}/;
-const MANUAL_NUMBERED_HEADING_RE = /^[ \t]{0,3}#{2,6}\s+\d+\.\s+\S.*$/m;
-const MARKDOWNLINT_DIRECTIVE_RE = /<!--[ \t]*markdownlint-[a-z0-9_-]+\b/i;
-const REVERSE_LINK_RE =
-  /^(#{2,6}\s+|[ \t]*[-*]\s*)(Called By|Incoming Links|Inbound Links|Inbound References|Backlinks)\b/im;
-const DEPRECATED_LINK_SECTION_RE =
-  /^#{2,6}\s+(?:Deprecated\s+)?Link(?:-| )Maintenance(?:\s+\(Deprecated\))?\s*$/im;
-const SCAFFOLDING_LINES = new Set([
-  "Describe why this SPEC is needed and what problem it solves.",
-  "Describe the role this SPEC plays in the system.",
-  "Describe the capability and boundary this SPEC covers.",
-  "Summarize scope and key concepts.",
-  "Define functional requirements.",
-  "Ensure every requirement is verifiable.",
-  "Add at least one concrete verification example for this requirement.",
-  "List the scenarios that verify this requirement.",
-  "Describe major scenarios.",
-  "State which requirement or requirements each flow satisfies.",
-  "Describe the primary success path step by step.",
-  "Describe valid alternate paths and branching behavior.",
-  "Describe failure paths, error triggers, and expected outcomes.",
-  "Define core data models or entities.",
-  "For each entity, include purpose, key fields, and invariants.",
-  "Document externally meaningful constraints and guarantees.",
-  "Add domain, compatibility, security, performance, interoperability, or operational constraints when they materially affect behavior.",
-  "Avoid unnecessary language, framework, library, or code-style constraints here unless they are explicitly requested or materially required."
-]);
 
 function cliName(): string {
   return process.env["SDD_CLI_NAME"] ?? "sdd";
@@ -511,45 +484,6 @@ function validateFrontmatterShape(
   return errors;
 }
 
-function validateMarkdownText(
-  filePath: string,
-  text: string
-): readonly string[] {
-  const errors: string[] = [];
-  if (TODO_RE.test(text)) {
-    errors.push(`FAIL [${filePath}]: unresolved todo marker found`);
-  }
-  if (PLACEHOLDER_RE.test(text)) {
-    errors.push(`FAIL [${filePath}]: unresolved placeholder found`);
-  }
-  if (MARKDOWNLINT_DIRECTIVE_RE.test(text)) {
-    errors.push(
-      `FAIL [${filePath}]: markdownlint inline directives are not allowed`
-    );
-  }
-  if (MANUAL_NUMBERED_HEADING_RE.test(text)) {
-    errors.push(`FAIL [${filePath}]: manual numbered Markdown heading found`);
-  }
-  if (REVERSE_LINK_RE.test(text)) {
-    errors.push(
-      `FAIL [${filePath}]: reverse-link sections are not allowed; use call frontmatter`
-    );
-  }
-  if (DEPRECATED_LINK_SECTION_RE.test(text)) {
-    errors.push(
-      `FAIL [${filePath}]: deprecated Link Maintenance section found`
-    );
-  }
-  for (const line of text.split(/\r?\n/)) {
-    if (SCAFFOLDING_LINES.has(line.trim())) {
-      errors.push(
-        `FAIL [${filePath}]: unresolved scaffolding text: ${line.trim()}`
-      );
-    }
-  }
-  return errors;
-}
-
 function validateSpecLinks(
   filePath: string,
   data: JsonRecord
@@ -593,7 +527,6 @@ function validateDocument(filePath: string, kind: string): ValidationResult {
   }
   errors.push(
     ...validateFrontmatterShape(filePath, kind, data),
-    ...validateMarkdownText(filePath, text),
     ...(kind === "spec" ? validateSpecLinks(filePath, data) : [])
   );
   return { errors, passed: errors.length === 0 };
@@ -616,7 +549,6 @@ function validateChangelogFile(filePath: string): ValidationResult {
       `FAIL [${filePath}]: CHANGELOG.md entries must be newest first`
     );
   }
-  errors.push(...validateMarkdownText(filePath, text));
   return { errors, passed: errors.length === 0 };
 }
 

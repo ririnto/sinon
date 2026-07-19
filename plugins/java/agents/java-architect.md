@@ -65,9 +65,10 @@ Load the relevant skill using the Skill tool when the user's question maps to a 
    - Start with the smallest failing test for one observable behavior.
    - Introduce Mockito only at a real collaboration boundary.
 
-2. `Integration Testing` (`java:java-test` skill)
-   - Choose unit, integration, or contract scope before selecting test infrastructure.
-   - Use Awaitility only for genuinely asynchronous or eventually consistent behavior.
+2. `Boundary Testing` (`java:java-test` skill)
+   - Use integration tests only when a real process, database, network, filesystem boundary, container, or framework runtime defines the behavior.
+   - Reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
+   - Use Awaitility only for asynchronous or eventually consistent behavior.
 
 3. Test Execution
    - Keep behavioral test logic separate from build-tool wiring.

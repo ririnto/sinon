@@ -39,7 +39,7 @@ tools:
   - Edit
 ```
 
-## Isolated Migration
+## Isolated Editing
 
 ```yaml
 color: yellow
@@ -57,7 +57,7 @@ isolation: worktree
 
 ```yaml
 skills:
-  - repository-migration
+  - repository-validation
 ```
 
 Preloading injects the full skill content at startup.

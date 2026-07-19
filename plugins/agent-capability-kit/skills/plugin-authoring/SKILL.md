@@ -18,21 +18,9 @@ Build a minimal Claude Code plugin whose manifest, filesystem, and documentation
 - `output-styles/`, `themes/`, `monitors/monitors.json`, and `bin/`
 - helper programs bundled beside the component that owns them
 
-## Minimal Plugin
-
-```text
-your-plugin/
-+-- .claude-plugin/
-|   +-- plugin.json
-+-- README.md
-+-- skills/
-    +-- example/
-        +-- SKILL.md
-```
-
 Only `plugin.json` belongs inside `.claude-plugin/`.
 Runtime components stay at the plugin root.
-Remove `skills/` when the plugin does not ship a skill, and add no optional surface until the plugin needs it.
+Add only the runtime surfaces the plugin uses.
 
 Use this manifest:
 
@@ -84,8 +72,7 @@ When a replacing field must preserve the default directory, include that directo
 }
 ```
 
-Top-level `themes` and `monitors` remain accepted during migration but are deprecated and produce validation warnings.
-Use `experimental.themes` and `experimental.monitors` for new or updated manifests.
+Use `experimental.themes` and `experimental.monitors` for custom paths.
 
 Manifest `settings` is an inline object, not a path field.
 Claude Code applies only documented allowlisted plugin settings.
@@ -95,8 +82,8 @@ Manifest `userConfig` declares prompted values and is independent of component p
 
 1. Define one plugin purpose and its intended consumers.
 2. Inventory only the runtime components required for that purpose.
-3. Create `.claude-plugin/plugin.json` and the plugin `README.md`.
-4. Add each required default component at the plugin root.
+3. Create `.claude-plugin/plugin.json`.
+4. Add the selected runtime components at the plugin root.
 5. Add a manifest field only for a custom path or inline configuration.
 6. Keep bundled code under `${CLAUDE_PLUGIN_ROOT}` and generated state under `${CLAUDE_PLUGIN_DATA}`.
 7. Document included skills, agents, runtime behavior, layout, setup, and scope boundaries in the README.
@@ -108,7 +95,7 @@ Manifest `userConfig` declares prompted values and is independent of component p
 | Surface | Add when | Default path |
 | --- | --- | --- |
 | Skills | Reusable instructions should activate from task intent | `skills/<name>/SKILL.md` |
-| Commands | Legacy flat command or skill files are required | `commands/` |
+| Commands | A flat command component is required | `commands/` |
 | Agents | A bounded reusable subagent is shipped | `agents/<name>.md` |
 | Hooks | Lifecycle events must trigger deterministic or model-based behavior | `hooks/hooks.json` |
 | MCP | The plugin provides external or local MCP tools | `.mcp.json` |
@@ -155,15 +142,13 @@ Skill content changes are detected immediately.
 ## Validation
 
 - `plugin.json` has the required schema, name, and object-form author
-- every declared path begins with `./`, exists, and stays inside the plugin root
-- replacing fields preserve defaults explicitly when required
-- `experimental.themes` and `experimental.monitors` are used instead of deprecated top-level keys
+- every declared path begins with `./`, stays inside the plugin root, and exists
+- replacing fields preserve selected default directories
+- custom theme and monitor paths use `experimental.themes` and `experimental.monitors`
 - default-only component paths are omitted
 - `settings.json` contains only supported keys
 - `hooks/hooks.json` and `.mcp.json` use their required wrapper objects
 - each agent filename matches its frontmatter `name` for Sinon packages
-- each skill directory name matches its `SKILL.md` `name`
-- README inventory matches the shipped tree
 - no generated state is written under `${CLAUDE_PLUGIN_ROOT}`
 - `claude plugin validate .` has no blocking error
 

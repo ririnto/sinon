@@ -12,7 +12,12 @@ Run {{setup_command}} when setup is required. Run {{build_command}} for builds, 
 
 ## Coding Style and Testing
 
-Follow {{style_source}}. Preserve unrelated work. Add or update {{testing_surface}} when behavior changes.
+Follow {{style_source}}.
+Use unit tests by default.
+Use integration tests only when behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
+Use end-to-end tests only for distinct core user journeys that lower-level tests do not already prove.
+Review prose guidance instead of testing its wording or file layout.
+Use {{testing_surface}} for executable behavior in this scope.
 
 ## Commit and Publication
 

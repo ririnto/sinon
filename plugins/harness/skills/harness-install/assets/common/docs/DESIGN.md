@@ -61,7 +61,7 @@ Allowed categories:
 - Does the change preserve domain layering? No downward dependencies allowed.
 - Are cross-cutting concerns funneled only through Providers?
 - Do new boundary types parse instead of validate?
-- Is there a regression test or structural test for the new rule?
+- Does executable behavior have the smallest useful test, and can prose guidance remain review-only?
 - Does the change update documentation under `docs/design-docs/` when it shifts a durable invariant?
 
 ## When To Update
