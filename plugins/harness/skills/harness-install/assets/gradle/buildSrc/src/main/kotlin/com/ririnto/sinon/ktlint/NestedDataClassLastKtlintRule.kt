@@ -5,10 +5,13 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule
 import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
+import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
+import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
@@ -46,9 +49,35 @@ class NestedDataClassLastKtlintRule :
                     emit(
                         declaration.textOffset,
                         "nested data class `${declaration.name ?: "data class"}` must sit at the bottom of its enclosing class",
-                        false
-                    )
+                        true
+                    ).ifAutocorrectAllowed {
+                        reorderDeclarations(classOrObject, declarations)
+                    }
                 }
+        }
+
+        private fun reorderDeclarations(
+            classOrObject: KtClassOrObject,
+            declarations: List<org.jetbrains.kotlin.psi.KtDeclaration>
+        ) {
+            val orderedDeclarations = declarations.partition { declaration ->
+                declaration !is KtClass || !declaration.isData()
+            }.let { (nonData, data) -> nonData + data }
+
+            val header = classOrObject.text.substringBefore('{')
+            val bodyIndent = "    "
+            val bodyText = orderedDeclarations.joinToString("\n\n") { declaration ->
+                declaration.text.prependIndent(bodyIndent)
+            }
+            val rewrittenText = "$header{\n$bodyText\n}"
+
+            val factory = KtPsiFactory.contextual(classOrObject, false)
+            val replacement = if (classOrObject is KtClass) {
+                factory.createClass(rewrittenText)
+            } else {
+                factory.createObject(rewrittenText)
+            }
+            classOrObject.node.replaceWith(replacement.node)
         }
     }
 }

@@ -1,12 +1,14 @@
 package com.ririnto.sinon.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
+import com.pinterest.ktlint.rule.engine.core.api.ElementType
 import com.pinterest.ktlint.rule.engine.core.api.Rule
 import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfig
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfigProperty
+import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import org.ec4j.core.model.PropertyType
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -74,39 +76,102 @@ class UncheckedCastSuppressionKtlintRule :
         private val forbiddenTokens: Set<String>,
         private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) : KtTreeVisitorVoid() {
+        private val castRelatedTokens = setOf(
+            "UNCHECKED_CAST",
+            "USELESS_CAST",
+            "CAST_NEVER_SUCCEEDS",
+            "UNCHECKED_CAST_IN_SUSPEND"
+        )
+
         override fun visitAnnotationEntry(annotation: KtAnnotationEntry) {
             super.visitAnnotationEntry(annotation)
-            if (annotation.calleeExpression?.node?.findChildByType(KtTokens.IDENTIFIER)?.text == Suppress::class.java.simpleName &&
-                buildSet {
-                    for (arg in annotation.valueArguments) {
-                        val argExpr = arg.getArgumentExpression()
-                        when (argExpr) {
-                            is KtStringTemplateExpression -> {
-                                extractStringValue(argExpr)?.let { stringValue -> add(stringValue) }
-                            }
+            if (annotation.calleeExpression?.text != Suppress::class.java.simpleName) {
+                return
+            }
 
-                            is KtCollectionLiteralExpression -> {
-                                addAll(
-                                    generateSequence(listOf<PsiElement>(argExpr)) { layer ->
-                                        layer
-                                            .flatMap { element -> element.children.toList() }
-                                            .takeIf { children -> children.isNotEmpty() }
-                                    }.flatten()
-                                        .filterIsInstance<KtStringTemplateExpression>()
-                                        .mapNotNull(::extractStringValue)
-                                )
-                            }
+            val forbiddenToken = annotation.valueArguments
+                .singleOrNull()
+                ?.getArgumentExpression()
+                ?.let { argument ->
+                    (argument as? KtStringTemplateExpression)?.let(::extractStringValue)
+                }
+            val detectedTokens = buildSet {
+                for (arg in annotation.valueArguments) {
+                    val argExpr = arg.getArgumentExpression()
+                    when (argExpr) {
+                        is KtStringTemplateExpression -> {
+                            extractStringValue(argExpr)?.let { stringValue -> add(stringValue) }
+                        }
+
+                        is KtCollectionLiteralExpression -> {
+                            addAll(
+                                generateSequence(listOf<PsiElement>(argExpr)) { layer ->
+                                    layer
+                                        .flatMap { element -> element.children.toList() }
+                                        .takeIf { children -> children.isNotEmpty() }
+                                }.flatten()
+                                    .filterIsInstance<KtStringTemplateExpression>()
+                                    .mapNotNull(::extractStringValue)
+                            )
                         }
                     }
-                }.intersect(forbiddenTokens).isNotEmpty()
-            ) {
+                }
+            }
+            val detectedToken = detectedTokens.firstOrNull { token -> token in forbiddenTokens }
+
+            if (detectedToken != null) {
+                val canBeAutoCorrected = forbiddenToken == detectedToken &&
+                    detectedToken in castRelatedTokens &&
+                    annotation.parent?.parent?.let { scopeOwner ->
+                        containsCastToken(scopeOwner.node).not()
+                    } == true
                 emit(
                     annotation.textOffset,
                     "avoid suppression of forbidden tokens (`${annotation.text}`); refactor to type-safe cast or explicit handling",
-                    false
-                )
+                    canBeAutoCorrected
+                ).ifAutocorrectAllowed {
+                    if (canBeAutoCorrected) {
+                        val annotationNode = annotation.node
+                        val parent = annotationNode.treeParent
+                        val nextSibling = annotationNode.treeNext
+                        val previousSibling = parent.treePrev
+                        val isOnlyAnnotation = parent.getChildren(null).count { child ->
+                            child.elementType != ElementType.WHITE_SPACE
+                        } == 1
+                        if (nextSibling != null &&
+                            nextSibling.elementType == ElementType.WHITE_SPACE &&
+                            nextSibling.text.contains("\n")
+                        ) {
+                            parent.removeChild(nextSibling)
+                        }
+                        parent.removeChild(annotationNode)
+                        if (isOnlyAnnotation &&
+                            previousSibling != null &&
+                            previousSibling.elementType == ElementType.WHITE_SPACE &&
+                            previousSibling.text.contains("\n")
+                        ) {
+                            parent.treeParent.removeChild(previousSibling)
+                        }
+                        if (parent.getChildren(null).all { child -> child.elementType == ElementType.WHITE_SPACE }) {
+                            val parentParent = parent.treeParent
+                            val parentNextSibling = parent.treeNext
+                            if (parentNextSibling != null &&
+                                parentNextSibling.elementType == ElementType.WHITE_SPACE &&
+                                parentNextSibling.text.contains("\n")
+                            ) {
+                                parentParent.removeChild(parentNextSibling)
+                            }
+                            parentParent.removeChild(parent)
+                        }
+                    }
+                }
             }
         }
+
+        private fun containsCastToken(node: ASTNode): Boolean =
+            node.elementType == KtTokens.AS_KEYWORD ||
+                node.elementType == KtTokens.AS_SAFE ||
+                node.getChildren(null).any(::containsCastToken)
 
         private fun extractStringValue(expr: KtStringTemplateExpression): String? =
             expr.entries.joinToString("") { entry -> entry.text }
