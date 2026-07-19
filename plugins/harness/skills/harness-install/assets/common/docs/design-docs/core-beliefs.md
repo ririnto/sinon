@@ -16,7 +16,7 @@ Progressive layering (`SKILL.md` for workflow, references/ for exceptions) keeps
 
 - `AGENTS.md` and `SKILL.md` files stay under ~150 lines; deeper context lives in docs/design-docs/ and docs/references/.
 - Each reference/ file states its activation condition in the first paragraph (e.g., "Use this when X fails" or "When Y is unclear").
-- Skill structure separates common-case examples from edge-case templates; validators reject references that duplicate common-path content.
+- Skill structure keeps the common path in `SKILL.md` and moves blocker-specific detail to references.
 - Agents can reach the routine task without reading more than 3 sections.
 
 ### Agent legibility is a first-class quality attribute
@@ -40,8 +40,8 @@ When every commit needs sign-off on formatting or tooling choices, agents cannot
 
 - Contract rules state *what must not vary* (e.g., validators must not fail silently).
 - Implementation order, refactoring patterns, and local style are left to the implementer's judgment.
-- Validators check invariants only, not code style, comment density, or variable names.
-  - Examples: boundary enforcement, required files and directories, and hook executability.
+- Automated checks cover machine-consumed contracts and observable behavior.
+- Review covers prose quality, instruction ownership, and local design judgment.
 - Design docs distinguish hard constraints from guidelines.
   - Hard constraints cannot change without breaking the contract.
   - Guidelines include recommendations, patterns, and examples.
@@ -79,9 +79,7 @@ Small, incremental care keeps the contracts and docs aligned with reality and re
   - Update `core-beliefs.md`, `DESIGN.md`, or a new `references/` file.
 - Validators run locally before commit so agents catch staleness and broken contracts early.
   - CI does not become the discovery mechanism for document rot.
-- A weekly or biweekly doc-gardening agent opens PRs for stale examples and quality records.
-  - Refresh `QUALITY_SCORE.md`.
-  - Surface `tech-debt-tracker.md` items that are ready for resolution.
+- Maintainers refresh stale examples and quality records during related work.
 
 ## When To Update
 

@@ -115,7 +115,6 @@ Existing tables require a schema migration to add this column.
 ### MCP support updated for Spring AI 2.0
 
 Spring AI 2.0 requires MCP Java SDK 1.0.0 or later in the 1.0.x line.
-SSE MCP server transports are deprecated in favor of Streamable HTTP.
 Server-side tool input validation is enabled by default.
 `Tool.inputSchema` changed from `JsonSchema` to `Map`.
 
