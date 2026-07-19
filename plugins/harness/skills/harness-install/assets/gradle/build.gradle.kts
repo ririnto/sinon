@@ -25,7 +25,7 @@ allprojects {
                 .pluginId
     )
     configure<KtlintExtension> {
-        version.set(rootProject.libs.versions.ktlint.cli)
+        version.set(rootProject.libs.versions.ktlint.engine)
         android.set(false)
         ignoreFailures.set(false)
         reporters {

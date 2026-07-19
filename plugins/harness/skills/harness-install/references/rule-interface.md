@@ -21,24 +21,29 @@ Structural checks that cannot be automated remain prose conventions in the insta
 ### Gradle
 
 - Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`, using the Gradle ktlint plugin's project discovery)
-- Custom rules (buildSrc): 15 rules in the `code` ruleset family:
-  - `if-statement-braces`.
+- Custom rules (buildSrc): 20 rules in the `code` ruleset family:
+  - `control-flow-braces` (autocorrect wraps non-empty unbraced bodies).
   - `import-over-fqn`.
-  - `kotlin-top-level-declaration-count`.
+  - `kotlin-top-level-declaration-count` (non-script files require exactly one class, object, interface, enum, annotation, or type alias).
   - `implicit-lambda-it`.
   - `leading-underscore`.
   - `unchecked-cast-suppression`.
   - `non-null-assertion`.
-  - `multiline-doc-style`.
+  - `multiline-doc-style` (disabled by default; opt in via `ktlint_multiline_doc_style_mode = multiline` or `on`; autocorrect expands one-line KDoc).
   - `unstructured-logging`.
   - `companion-object-position`.
   - `explicit-property-type`.
-  - `comparison-direction`.
-  - `terminal-branch-when`.
+  - `comparison-direction` (diagnostic-only because swapping operands is not generally equivalent for custom `Comparable` implementations).
+  - `terminal-branch-when` (requires an outermost `if` chain with a final `else` to use `when`).
   - `public-declaration-doc-comment`.
   - `slf-direct-logging`.
+  - `no-regex-constructor` (autocorrects one positional string-template expression to `String.toRegex()`).
+  - `no-decorative-function-body-blank-lines` (autocorrect collapses the blank line).
+  - `explicit-function-return-type`.
+  - `nullable-elvis-return`.
+  - `nested-data-class-last`.
 - EditorConfig knobs:
-  - `ktlint_multiline_doc_style_mode`.
+  - `ktlint_multiline_doc_style_mode` (defaults to `off`; set to `multiline` or `on` to enable).
   - `ktlint_companion_object_position` (`top`, `bottom`, or `any`).
   - `ktlint_standard_trailing-comma-on-call-site`.
   - `ktlint_standard_trailing-comma-on-declaration-site`.

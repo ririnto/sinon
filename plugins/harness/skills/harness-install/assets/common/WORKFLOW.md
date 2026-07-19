@@ -2,6 +2,7 @@
 
 `WORKFLOW.md` defines the target repository's delivery lifecycle.
 The user-facing session is the root orchestrator described below.
+Normative requirements use BCP 14 keywords as defined by RFC 2119 and RFC 8174.
 
 ## Root Authority
 
@@ -68,6 +69,22 @@ Before completion, the root MUST inspect the integrated diff and review it for d
 High-risk work SHOULD receive careful independent review.
 The root MUST resolve review findings and rerun affected checks before handoff.
 It MUST report validation results, skipped checks, and blockers with their reasons, then decide whether the evidence satisfies the stated success criteria.
+
+## Unit Gate
+
+Each independently reviewable unit MUST pass focused checks for its changed boundary, including relevant tests, compilation, formatting, lint, or contract checks that the host provides.
+The root MUST inspect the exact unit diff for unintended files, unsafe effects, regressions, and missing documentation before integration.
+The unit's canonical validation command MUST be used when the repository defines one.
+The root MUST run `git diff --check` against the unit changes when Git is available.
+Any content change after review MUST invalidate the unit evidence and require the affected checks and diff review again.
+
+## Branch Gate
+
+Before handoff, the root MUST validate the complete integrated diff with the repository's canonical checks and review that exact diff for defects, regressions, unsafe effects, and missing documentation.
+The root MUST run `git diff --check` against the complete changes when Git is available.
+Any feature change or base-branch advance after branch review MUST invalidate the branch evidence and require checks and review of the new diff.
+Review depth SHOULD match the risk and boundary impact of the change.
+These gates MUST NOT require a commit, worktree, push, or other repository-state mutation unless the user or repository explicitly requires it.
 
 ## Remote Effects and Autonomous Work
 
