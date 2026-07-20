@@ -17,6 +17,7 @@ class RuleSetProviderTest {
                 "code:import-over-fqn",
                 "code:leading-underscore",
                 "code:multiline-doc-style",
+                "code:no-import-alias",
                 "code:no-decorative-function-body-blank-lines",
                 "code:no-regex-constructor",
                 "code:non-null-assertion",
