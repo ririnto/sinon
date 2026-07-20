@@ -28,14 +28,14 @@ Structural checks that cannot be automated remain prose conventions in the insta
   - `implicit-lambda-it` (autocorrect inserts an explicit `it ->` parameter; multi-line lambdas place the arrow on its own line at body indentation).
   - `leading-underscore` (autocorrect renames a private non-override unused parameter to `_` when no sibling collision, no call-site named argument, and no body reference exist; file basenames and override parameters remain lint-only).
   - `unchecked-cast-suppression` (autocorrect removes a stale `@Suppress("UNCHECKED_CAST")` annotation when its scope contains no `as` or `as?` operator).
-  - `non-null-assertion` (autocorrect strips the redundant `!!` that immediately follows `requireNotNull(...)` or `checkNotNull(...)`).
+  - `non-null-assertion` (flags every `!!` usage and autocorrects it: strips `!!` from `requireNotNull(...)` or `checkNotNull(...)`, and wraps any other operand in `requireNotNull(...)` while preserving trailing member access chains; `requireNotNull` is in the Kotlin standard library and needs no import).
   - `multiline-doc-style` (disabled by default; opt in via `ktlint_multiline_doc_style_mode = multiline` or `on`; autocorrect expands one-line KDoc to multi-line).
   - `unstructured-logging` (lint-only because the requested name or behavior change cannot be invented deterministically).
   - `companion-object-position` (flags companion objects that are not the first non-enum-entry declaration in their class or object body; lint-only because reordering declarations changes initialization order and may break forward references).
   - `explicit-property-type` (autocorrect inserts the type for class-body properties whose initializer is a bare literal whose Kotlin type is unambiguous: `String`, `Boolean`, `Char`, `Int`, `Long` via `L` suffix, `Double`, `Float` via `f` suffix; null literal, unsigned-suffixed literals, and prefix-unary expressions remain lint-only).
   - `comparison-direction` (lint-only because swapping operands is not generally equivalent for custom `Comparable` implementations).
   - `terminal-branch-when` (lint-only because subject detection requires resolver-level type analysis; a no-subject `when` would not satisfy the rule's stated intent).
-  - `public-declaration-doc-comment` (lint-only because truthful documentation cannot be generated).
+  - `public-declaration-doc-comment` (disabled by default; opt in via `ktlint_public_declaration_doc_comment_mode = on` or `public`; lint-only and flags public APIs missing KDoc).
   - `slf-direct-logging` (lint-only because receiver type cannot be proven from the AST).
   - `no-regex-constructor` (autocorrects the single-positional string-template form `Regex("...")` to `"...".toRegex()`; hoisting into top-level or companion `val` remains lint-only because identity, placement, and visibility cannot be derived deterministically).
   - `no-decorative-function-body-blank-lines` (autocorrect collapses multi-blank-line whitespace inside named function bodies to a single newline plus the body indentation; blank lines between declarations, between local functions, and adjacent to comments are preserved).
@@ -44,6 +44,7 @@ Structural checks that cannot be automated remain prose conventions in the insta
   - `nested-data-class-last` (autocorrect moves offending nested `data class` declarations to the end of their enclosing class body via stable partition; forward references to nested types are safe in Kotlin, so the move preserves semantics).
 - EditorConfig knobs:
   - `ktlint_multiline_doc_style_mode` (defaults to `off`; set to `multiline` or `on` to enable).
+  - `ktlint_public_declaration_doc_comment_mode` (defaults to `off`; set to `on` or `public` to enable).
   - `ktlint_standard_trailing-comma-on-call-site`.
   - `ktlint_standard_trailing-comma-on-declaration-site`.
 - Standard ktlint ruleset: also runs alongside custom rules.

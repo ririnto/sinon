@@ -16,7 +16,9 @@ import org.jetbrains.kotlin.psi.KtPostfixExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
- * Flags Kotlin non-null assertion operators (`!!`); use safe call, Elvis, or an explicit guard instead.
+ * Flags every Kotlin non-null assertion operator (`!!`) and rewrites it to an explicit
+ * `requireNotNull(...)` guard. When the operand is already wrapped in `requireNotNull(...)`
+ * or `checkNotNull(...)`, the redundant `!!` is simply stripped.
  */
 class NonNullAssertionKtlintRule :
     Rule(
@@ -31,23 +33,33 @@ class NonNullAssertionKtlintRule :
         if (node.elementType == OPERATION_REFERENCE && node.firstChildNode?.elementType == KtTokens.EXCLEXCL) {
             val postfixExpression = node.treeParent?.psi as? KtPostfixExpression
             val baseExpression = postfixExpression?.baseExpression
-            val calleeName = (baseExpression as? KtCallExpression)
-                ?.calleeExpression as? KtNameReferenceExpression
-            val canAutocorrect = calleeName?.getReferencedName() in setOf("requireNotNull", "checkNotNull")
-            emit(
-                node.startOffset,
-                "avoid non-null assertion `${KtTokens.EXCLEXCL.value}` on `${node.treeParent?.firstChildNode?.text ?: node.text}`; " +
-                    "use safe call (${KtTokens.SAFE_ACCESS.value}), Elvis (${KtTokens.ELVIS.value}), or explicit guard",
-                canAutocorrect
-            ).ifAutocorrectAllowed {
-                if (canAutocorrect && postfixExpression !== null && baseExpression !== null) {
+            if (postfixExpression !== null && baseExpression !== null) {
+                val calleeName = (baseExpression as? KtCallExpression)
+                    ?.calleeExpression as? KtNameReferenceExpression
+                val isGuardWrapped = calleeName?.getReferencedName() in GUARD_FUNCTIONS
+                emit(
+                    node.startOffset,
+                    "avoid non-null assertion `${KtTokens.EXCLEXCL.value}`; " +
+                        "use safe call (${KtTokens.SAFE_ACCESS.value}), " +
+                        "Elvis (${KtTokens.ELVIS.value}), or an explicit `requireNotNull` guard",
+                    true
+                ).ifAutocorrectAllowed {
+                    val replacement = if (isGuardWrapped) {
+                        baseExpression.text
+                    } else {
+                        "requireNotNull(${baseExpression.text})"
+                    }
                     postfixExpression.node.replaceWith(
                         KtPsiFactory.contextual(postfixExpression, false)
-                            .createExpression(baseExpression.text)
+                            .createExpression(replacement)
                             .node
                     )
                 }
             }
         }
+    }
+
+    private companion object {
+        val GUARD_FUNCTIONS = setOf("requireNotNull", "checkNotNull")
     }
 }

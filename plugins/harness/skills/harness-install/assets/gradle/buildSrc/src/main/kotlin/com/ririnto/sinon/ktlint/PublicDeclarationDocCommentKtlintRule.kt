@@ -5,6 +5,9 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule
 import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
+import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfig
+import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfigProperty
+import org.ec4j.core.model.PropertyType
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.lexer.KtKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -19,20 +22,28 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
  * Flags public declarations without documentation comments; require KDoc on public APIs.
+ * Disabled by default; set `ktlint_public_declaration_doc_comment_mode = on` in `.editorconfig` to enable.
  */
 class PublicDeclarationDocCommentKtlintRule :
     Rule(
         ruleId = RuleId("code:public-declaration-doc-comment"),
-        about = About()
+        about = About(),
+        usesEditorConfigProperties = setOf(DOC_COMMENT_MODE)
     ),
     RuleAutocorrectApproveHandler {
+    override fun beforeFirstNode(editorConfig: EditorConfig) {
+        mode = editorConfig[DOC_COMMENT_MODE]
+    }
+
     override fun beforeVisitChildNodes(
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.takeUnless { ktFile -> ktFile.isScript() }
-            ?.accept(PublicDocVisitor(emit))
+        if (mode in ENABLED_MODES) {
+            (node.psi as? KtFile)
+                ?.takeUnless { ktFile -> ktFile.isScript() }
+                ?.accept(PublicDocVisitor(emit))
+        }
     }
 
     private class PublicDocVisitor(
@@ -84,4 +95,21 @@ class PublicDeclarationDocCommentKtlintRule :
                 !(declaration is KtNamedFunction && declaration.parent is KtBlockExpression)
         }
     }
+
+    private companion object {
+        val ENABLED_MODES: Set<String> = setOf("on", "public")
+
+        val DOC_COMMENT_MODE: EditorConfigProperty<String> =
+            EditorConfigProperty(
+                type =
+                    PropertyType(
+                        "ktlint_public_declaration_doc_comment_mode",
+                        "Public doc comment mode (`on` or `public` to enable; any other value disables)",
+                        PropertyType.PropertyValueParser.IDENTITY_VALUE_PARSER
+                    ),
+                defaultValue = "off"
+            )
+    }
+
+    private lateinit var mode: String
 }
