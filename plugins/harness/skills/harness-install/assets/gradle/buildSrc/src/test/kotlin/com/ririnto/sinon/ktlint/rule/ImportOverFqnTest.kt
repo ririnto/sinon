@@ -51,6 +51,41 @@ class ImportOverFqnTest {
     }
 
     @Test
+    fun samePathImportAllowsShortening() {
+        val source = "import kotlin.collections.ArrayList\n\nval value = kotlin.collections.ArrayList<String>()\n"
+        val errors = lintRule(ruleProvider, source)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            "import kotlin.collections.ArrayList\n\nval value = ArrayList<String>()\n",
+            formatRule(ruleProvider, source)
+        )
+    }
+
+    @Test
+    fun samePathAliasImportDoesNotAllowShortening() {
+        val source = "import kotlin.collections.ArrayList as JList\n\nval value = kotlin.collections.ArrayList<String>()\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertFalse(
+            "aliased import does not bind the unaliased name, must stay lint-only: ${errors}"
+        ) { errors.single().canBeAutoCorrected }
+        assertEquals(source, formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun distinctFqnsWithSameSimpleNameStayLintOnly() {
+        val source = "val first = alpha.one.Widget()\nval second = beta.two.Widget()\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(2, errors.size)
+        errors.forEach { error ->
+            assertFalse(
+                "same simple name from distinct FQNs must stay lint-only: ${error}"
+            ) { error.canBeAutoCorrected }
+        }
+        assertEquals(source, formatRule(ruleProvider, source))
+    }
+
+    @Test
     fun ownPackageIsLintOnly() {
         val source = "package java.util\n\nval value = java.util.ArrayList<String>()\n"
         assertFalse(lintRule(ruleProvider, source).single().canBeAutoCorrected)

@@ -158,6 +158,60 @@ class NonNullAssertionTest {
     }
 
     @Test
+    fun disablesAutocorrectWhenUserDefinedGuardShadowsStdlib() {
+        val source = """
+            fun requireNotNull(value: Any?): String = value.toString()
+            fun sample(value: String?): String = value!!
+        """.trimIndent() + "\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+        assertEquals(source, formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun disablesAutocorrectWhenStarImportCouldProvideGuard() {
+        val source = """
+            import custom.guards.*
+
+            fun sample(value: String?): String = value!!
+        """.trimIndent() + "\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+        assertEquals(source, formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun keepsAutocorrectWhenOnlyStdlibGuardIsImportedExplicitly() {
+        val source = """
+            import kotlin.requireNotNull
+
+            fun sample(value: String?): String = value!!
+        """.trimIndent() + "\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            "import kotlin.requireNotNull\n\nfun sample(value: String?): String = requireNotNull(value)\n",
+            formatRule(ruleProvider, source)
+        )
+    }
+
+    @Test
+    fun disablesAutocorrectWhenCustomGuardIsAliasedToStdlibName() {
+        val source = """
+            import custom.requireNotNull as requireNotNull
+
+            fun sample(value: String?): String = value!!
+        """.trimIndent() + "\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+        assertEquals(source, formatRule(ruleProvider, source))
+    }
+
+    @Test
     fun autocorrectIsIdempotentAcrossShapes() {
         val sources = listOf(
             "fun sample(value: String?): String = requireNotNull(value)!!\n",

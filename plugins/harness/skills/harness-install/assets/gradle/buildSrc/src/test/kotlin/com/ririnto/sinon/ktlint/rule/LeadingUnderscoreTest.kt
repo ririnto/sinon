@@ -106,6 +106,21 @@ class LeadingUnderscoreTest {
     }
 
     @Test
+    fun leavesLintOnlyWhenCalledWithQualifiedReceiverAndNamedArgument() {
+        val source = """
+            class Example {
+                private fun compute(_unused: Int): Int = 42
+
+                fun caller(): Int = this.compute(_unused = 5)
+            }
+        """.trimIndent() + "\n"
+        val errors = lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+        assertEquals(source, formatRule(ruleProvider, source))
+    }
+
+    @Test
     fun leavesLintOnlyWhenParameterIsValInPrimaryConstructor() {
         val source = """
             class Example(private val _id: Int)
