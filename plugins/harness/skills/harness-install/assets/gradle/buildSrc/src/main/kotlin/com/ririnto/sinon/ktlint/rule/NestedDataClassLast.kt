@@ -8,9 +8,12 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.com.intellij.psi.TokenType
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtClassBody
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
@@ -62,7 +65,8 @@ class NestedDataClassLast :
                         val header = classOrObject.text.substring(0, headerEnd)
                         val body = declarations.partition { candidate -> candidate !is KtClass || !candidate.isData() }
                             .let { (nonData, data) -> nonData + data }
-                            .joinToString("\n\n") { candidate -> candidate.text.prependIndent("    ") }
+                            .map(::blockText)
+                            .joinToString("\n\n")
                         val rewrittenText = "$header\n$body\n}"
                         classOrObject.node.replaceWith(
                             KtPsiFactory.contextual(classOrObject, false).let { factory ->
@@ -75,5 +79,29 @@ class NestedDataClassLast :
                     }
                 }
         }
+
+        private fun blockText(declaration: KtDeclaration): String =
+            (buildList {
+                var sibling: ASTNode? = declaration.node.treePrev
+                while (sibling !== null) {
+                    when (sibling.elementType) {
+                        KtTokens.EOL_COMMENT, KtTokens.BLOCK_COMMENT -> {
+                            add(sibling.text)
+                            sibling = sibling.treePrev
+                        }
+                        TokenType.WHITE_SPACE -> {
+                            val newlineCount = sibling.text.count { character -> character == '\n' }
+                            when {
+                                2 <= newlineCount -> break
+                                newlineCount == 0 -> break
+                                else -> sibling = sibling.treePrev
+                            }
+                        }
+                        else -> {
+                            break
+                        }
+                    }
+                }
+            }.asReversed() + declaration.text).joinToString("\n").prependIndent("    ")
     }
 }
