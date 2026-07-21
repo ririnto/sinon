@@ -52,13 +52,12 @@ class ImplicitLambdaIt :
                         true
                     ).ifAutocorrectAllowed {
                         val originalText = lambdaExpression.node.text
-                        val match = "^\\{(\\s*)".toRegex().find(originalText)
-                        if (match !== null) {
-                            val whitespace = match.groupValues[1]
+                        "^\\{(?<whitespace>\\s*)".toRegex().find(originalText)?.let { match ->
+                            val whitespace = match.groups["whitespace"]?.value.orEmpty()
                             lambdaExpression.node.replaceWith(
                                 KtPsiFactory.contextual(lambdaExpression, false).createExpression(
-                                    "{${when {
-                                        whitespace.contains('\n') -> "${whitespace}it ->\n${whitespace.substringAfterLast('\n')}"
+                                    "{${when (whitespace.contains('\n')) {
+                                        true -> "${whitespace}it ->\n${whitespace.substringAfterLast('\n')}"
                                         else -> "${whitespace}it -> "
                                     }}${originalText.substring(match.range.last + 1)}"
                                 ).node

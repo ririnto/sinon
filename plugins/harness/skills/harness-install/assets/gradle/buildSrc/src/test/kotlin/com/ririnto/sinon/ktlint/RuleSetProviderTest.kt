@@ -21,7 +21,6 @@ class RuleSetProviderTest {
                 "code:no-decorative-function-body-blank-lines",
                 "code:no-regex-constructor",
                 "code:non-null-assertion",
-                "code:nullable-elvis-return",
                 "code:public-declaration-doc-comment",
                 "code:slf-direct-logging",
                 "code:terminal-branch-when",
