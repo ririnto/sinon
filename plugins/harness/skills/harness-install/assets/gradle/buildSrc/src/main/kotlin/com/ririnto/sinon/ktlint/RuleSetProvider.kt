@@ -15,8 +15,8 @@ import com.ririnto.sinon.ktlint.rule.LeadingUnderscore
 import com.ririnto.sinon.ktlint.rule.MultilineDocStyle
 import com.ririnto.sinon.ktlint.rule.NestedDataClassLast
 import com.ririnto.sinon.ktlint.rule.NoImportAlias
+import com.ririnto.sinon.ktlint.rule.NoLineComment
 import com.ririnto.sinon.ktlint.rule.NonNullAssertion
-import com.ririnto.sinon.ktlint.rule.NullableElvisReturn
 import com.ririnto.sinon.ktlint.rule.PublicDeclarationDocComment
 import com.ririnto.sinon.ktlint.rule.RegexConstructor
 import com.ririnto.sinon.ktlint.rule.SlfDirectLogging
@@ -49,8 +49,8 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
             RuleProvider { RegexConstructor() },
             RuleProvider { DecorativeFunctionBodyBlankLines() },
             RuleProvider { ExplicitFunctionReturnType() },
-            RuleProvider { NullableElvisReturn() },
             RuleProvider { NestedDataClassLast() },
-            RuleProvider { NoImportAlias() }
+            RuleProvider { NoImportAlias() },
+            RuleProvider { NoLineComment() }
         )
 }

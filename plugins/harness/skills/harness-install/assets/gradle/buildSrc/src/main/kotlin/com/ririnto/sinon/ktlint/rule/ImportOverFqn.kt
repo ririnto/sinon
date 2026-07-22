@@ -36,84 +36,134 @@ class ImportOverFqn :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                Visitor(ktFile, emit).visit()
-            }
-    }
-
-    private class Visitor(
-        private val ktFile: KtFile,
-        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
-    ) : KtTreeVisitorVoid() {
-        private val importsToAdd = linkedSetOf<String>()
-        private lateinit var simpleNames: Set<String>
-
-        fun visit() {
+        (node.psi as? KtFile)?.let { ktFile ->
             val imports = ktFile.importDirectives
-            simpleNames = imports.mapNotNull { directive ->
-                directive.importedName?.asString()?.let { name ->
-                    directive.importPath?.pathStr?.let { path -> name to path }
+            val importNamesToPaths: Map<String, List<String>> = imports
+                .mapNotNull { directive ->
+                    directive.importedName?.asString()?.let { name ->
+                        directive.importPath?.pathStr?.let { path -> name to path }
+                    }
                 }
-            }.toMap().keys + imports.mapNotNull { directive -> directive.aliasName }.toSet() + PsiTreeUtil.findChildrenOfType(
-                ktFile,
-                KtNamedDeclaration::class.java
-            )
+                .groupBy({ pair -> pair.first }, { pair -> pair.second })
+            val aliasNames: Set<String> = imports.mapNotNull { directive -> directive.aliasName }.toSet()
+            val aliasedImportPaths: Set<String> = imports
+                .filter { directive -> directive.aliasName !== null }
+                .mapNotNull { directive -> directive.importPath?.pathStr }
+                .toSet()
+            val declaredNames: Set<String> = PsiTreeUtil.findChildrenOfType(ktFile, KtNamedDeclaration::class.java)
                 .mapNotNull { declaration -> declaration.name }
                 .toSet()
-            ktFile.accept(this)
-            val existing = imports.mapNotNull { directive -> directive.importPath?.pathStr }.toSet()
-            val newImports = importsToAdd.filter { path -> path !in existing }.sorted()
-            val importList = ktFile.importList
-            when {
-                importList !== null -> {
-                    val existingPaths = imports.mapNotNull { directive -> directive.importPath?.pathStr }
-                    val importsAreSorted = existingPaths == existingPaths.sorted()
-                    newImports.forEach { path ->
-                        val importNode = KtPsiFactory.contextual(ktFile, false)
-                            .createImportDirective(ImportPath(FqName(path), false, null))
-                            .node
-                        val anchor = when {
-                            importsAreSorted -> importList.imports.firstOrNull { directive ->
-                                path < directive.importPath?.pathStr.orEmpty()
-                            }?.node
-                            else -> null
-                        }
-                        importList.node.addChild(importNode, anchor)
-                        importList.node.addChild(
-                            KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
-                            null
+            val existingPaths = imports.mapNotNull { directive -> directive.importPath?.pathStr }.toSet()
+            val findings = mutableListOf<FqnFinding>()
+            ktFile.accept(Visitor { nameParts, replacementElement ->
+                if (3 <= nameParts.size &&
+                    nameParts[0].firstOrNull()?.isLowerCase() == true &&
+                    nameParts[1].firstOrNull()?.isLowerCase() == true &&
+                    nameParts.last().firstOrNull()?.isUpperCase() == true
+                ) {
+                    findings.add(
+                        FqnFinding(
+                            nameParts = nameParts,
+                            replacementElement = replacementElement,
+                            importPath = nameParts.joinToString("."),
+                            simpleName = nameParts.last()
                         )
-                    }
-                    if (imports.isEmpty() && newImports.isNotEmpty()) {
-                        importList.node.addChild(
-                            KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
-                            null
+                    )
+                }
+            })
+            val candidatePathsBySimpleName = findings
+                .groupBy { finding -> finding.simpleName }
+                .mapValues { (_, group) -> group.map { finding -> finding.importPath }.toSet() }
+            val newImports = buildSet {
+                findings.forEach { finding ->
+                    val sameNamePaths = importNamesToPaths[finding.simpleName].orEmpty()
+                    val candidatePaths = candidatePathsBySimpleName[finding.simpleName].orEmpty()
+                    val resolvesUnambiguously = candidatePaths.all { path -> path == finding.importPath } &&
+                        sameNamePaths.all { path -> path == finding.importPath }
+                    emit(
+                        finding.replacementElement.textOffset,
+                        "fully qualified name `${finding.nameParts.joinToString(".")}` used inline; add an import and use the simple name",
+                        resolvesUnambiguously &&
+                            finding.importPath !in aliasedImportPaths &&
+                            finding.simpleName !in aliasNames &&
+                            finding.simpleName !in declaredNames &&
+                            imports.none { directive -> directive.isAllUnder } &&
+                            ktFile.packageFqName.asString() != finding.nameParts.dropLast(1).joinToString(".")
+                    ).ifAutocorrectAllowed {
+                        finding.replacementElement.node.replaceWith(
+                            KtPsiFactory.contextual(finding.replacementElement, false)
+                                .createExpression(
+                                    finding.replacementElement.text.replaceFirst(
+                                        finding.nameParts.joinToString("."),
+                                        finding.simpleName
+                                    )
+                                )
+                                .node
                         )
+                        add(finding.importPath)
                     }
                 }
-                else -> {
-                    val anchor = ktFile.declarations.firstOrNull()?.node
-                    newImports.asReversed().forEach { path ->
-                        val importNode = KtPsiFactory.contextual(ktFile, false)
-                            .createImportDirective(ImportPath(FqName(path), false, null))
-                            .node
-                        ktFile.node.addChild(importNode, anchor)
-                        ktFile.node.addChild(
-                            KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
-                            anchor
-                        )
+            }.filter { path -> path !in existingPaths }.sorted()
+            ktFile.importList?.let { importList ->
+                val importsAreSorted = importList.imports.mapNotNull { directive -> directive.importPath?.pathStr }
+                    .let { paths -> paths == paths.sorted() }
+                newImports.forEach { path ->
+                    val importNode = KtPsiFactory.contextual(ktFile, false)
+                        .createImportDirective(ImportPath(FqName(path), false, null))
+                        .node
+                    val anchor = when (importsAreSorted) {
+                        true -> importList.imports.firstOrNull { directive ->
+                            path < directive.importPath?.pathStr.orEmpty()
+                        }?.node
+                        else -> null
                     }
-                    if (newImports.isNotEmpty()) {
-                        ktFile.node.addChild(
-                            KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n\n").node,
-                            anchor
-                        )
-                    }
+                    importList.node.addChild(importNode, anchor)
+                    importList.node.addChild(
+                        KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
+                        anchor
+                    )
+                }
+                if (imports.isEmpty() && newImports.isNotEmpty()) {
+                    importList.node.addChild(
+                        KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
+                        null
+                    )
+                }
+            } ?: run {
+                val anchor = ktFile.declarations.firstOrNull()?.node
+                newImports.asReversed().forEach { path ->
+                    val importNode = KtPsiFactory.contextual(ktFile, false)
+                        .createImportDirective(ImportPath(FqName(path), false, null))
+                        .node
+                    ktFile.node.addChild(importNode, anchor)
+                    ktFile.node.addChild(
+                        KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
+                        anchor
+                    )
+                }
+                if (newImports.isNotEmpty()) {
+                    ktFile.node.addChild(
+                        KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n\n").node,
+                        anchor
+                    )
                 }
             }
         }
+    }
 
+    private data class FqnFinding(
+        val nameParts: List<String>,
+        val replacementElement: PsiElement,
+        val importPath: String,
+        val simpleName: String
+    )
+
+    private class Visitor(
+        private val onFqnFinding: (
+            nameParts: List<String>,
+            replacementElement: PsiElement
+        ) -> Unit
+    ) : KtTreeVisitorVoid() {
         override fun visitUserType(userType: KtUserType) {
             super.visitUserType(userType)
             if (
@@ -128,7 +178,7 @@ class ImportOverFqn :
                         .toList()
                         .asReversed()
                 if (2 <= fqnParts.size) {
-                    addFqnFinding(fqnParts, userType, userType)
+                    onFqnFinding(fqnParts, userType)
                 }
             }
         }
@@ -144,7 +194,7 @@ class ImportOverFqn :
                 val parts = expressionParts(expression)
                 val classIndex = parts.indexOfFirst { part -> part.firstOrNull()?.isUpperCase() == true }
                 if (2 <= classIndex) {
-                    addFqnFinding(parts.take(classIndex + 1), expression, expression)
+                    onFqnFinding(parts.take(classIndex + 1), expression)
                 }
             }
         }
@@ -157,7 +207,7 @@ class ImportOverFqn :
 
                 is KtDotQualifiedExpression -> {
                     expressionParts(expression.receiverExpression) +
-                            expression.selectorExpression?.let(::expressionParts).orEmpty()
+                        expression.selectorExpression?.let(::expressionParts).orEmpty()
                 }
 
                 is KtCallExpression -> {
@@ -168,42 +218,5 @@ class ImportOverFqn :
                     emptyList()
                 }
             }
-
-        private fun addFqnFinding(
-            nameParts: List<String>,
-            element: PsiElement,
-            replacementElement: PsiElement
-        ) {
-            if (3 <= nameParts.size &&
-                nameParts[0].firstOrNull()?.isLowerCase() == true &&
-                nameParts[1].firstOrNull()?.isLowerCase() == true &&
-                nameParts.last().firstOrNull()?.isUpperCase() == true
-            ) {
-                val simpleName = nameParts.last()
-                val importPath = nameParts.dropLast(1).joinToString(".") + "." + simpleName
-                val canCorrect = simpleName !in simpleNames &&
-                        ktFile.importDirectives.none { directive -> directive.isAllUnder } &&
-                        ktFile.importDirectives.none { directive ->
-                            directive.importedName?.asString() == simpleName && directive.importPath?.pathStr != importPath
-                        } &&
-                        ktFile.packageFqName.asString() != nameParts.dropLast(1).joinToString(".")
-                emit(
-                    element.textOffset,
-                    "fully qualified name `${nameParts.joinToString(".")}` used inline; add an import and use the simple name",
-                    canCorrect
-                ).ifAutocorrectAllowed {
-                    if (canCorrect) {
-                        val fqn = nameParts.joinToString(".")
-                        val replacementText = replacementElement.text.replaceFirst(fqn, simpleName)
-                        replacementElement.node.replaceWith(
-                            KtPsiFactory.contextual(replacementElement, false)
-                                .createExpression(replacementText)
-                                .node
-                        )
-                        importsToAdd += importPath
-                    }
-                }
-            }
-        }
     }
 }

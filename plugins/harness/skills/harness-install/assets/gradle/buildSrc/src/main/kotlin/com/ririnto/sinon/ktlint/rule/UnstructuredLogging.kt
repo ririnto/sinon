@@ -12,11 +12,14 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import kotlin.reflect.KFunction1
 
 /**
- * Flags forbidden unstructured logging calls; recommend structured logging instead.
+ * Flags forbidden unstructured logging calls.
+ *
+ * Recommend structured logging instead.
  */
 class UnstructuredLogging :
     Rule(
@@ -26,6 +29,11 @@ class UnstructuredLogging :
     RuleAutocorrectApproveHandler {
     private companion object {
         val PRINTLN: KFunction1<Any?, Unit> = ::println
+        val PRINTLN_PATHS: Set<String> = setOf(
+            PRINTLN.name,
+            "kotlin.${PRINTLN.name}",
+            "kotlin.io.${PRINTLN.name}"
+        )
     }
 
     override fun beforeVisitChildNodes(
@@ -43,17 +51,21 @@ class UnstructuredLogging :
             calleeName(expression)?.let { callName ->
                 val qualifiedCall =
                     (expression.parent as? KtDotQualifiedExpression)
-                        ?.takeIf { qualified -> qualified.selectorExpression === expression }
-                        ?.let { qualified -> (expressionParts(qualified.receiverExpression) + callName).joinToString(".") }
-                        ?: callName
-                when {
-                    callName == PRINTLN.name || qualifiedCall == PRINTLN.name -> {
-                        emit(
-                            expression.textOffset,
-                            "unstructured logging `$qualifiedCall`; use structured logger",
-                            false
-                        )
-                    }
+                        ?.takeIf { qualified -> qualified.selectorExpression == expression }
+                        ?.let { qualified ->
+                            expressionParts(qualified.receiverExpression)
+                                .takeIf { parts -> parts.isNotEmpty() }
+                                ?.plus(callName)
+                                ?.joinToString(".")
+                        }
+                if (qualifiedCall?.let { call -> call in PRINTLN_PATHS } == true ||
+                    (qualifiedCall === null && expression.parent !is KtQualifiedExpression && callName in PRINTLN_PATHS)
+                ) {
+                    emit(
+                        expression.textOffset,
+                        "unstructured logging `${qualifiedCall ?: callName}`; use structured logger",
+                        false
+                    )
                 }
             }
         }

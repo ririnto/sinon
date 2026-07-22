@@ -16,7 +16,9 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Flags Kotlin lambdas that use implicit `it` parameter; use an explicit parameter name instead.
+ * Flags Kotlin lambdas that use implicit `it` parameter.
+ *
+ * Use an explicit parameter name instead.
  */
 class ImplicitLambdaIt :
     Rule(
@@ -48,17 +50,16 @@ class ImplicitLambdaIt :
                 if (implicitItReferences.isNotEmpty()) {
                     emit(
                         implicitItReferences.first().textOffset,
-                        "Kotlin file uses implicit `it` lambda parameter; use an explicit name",
+                        "use an explicit name for the implicit `it` lambda parameter",
                         true
                     ).ifAutocorrectAllowed {
                         val originalText = lambdaExpression.node.text
-                        val match = "^\\{(\\s*)".toRegex().find(originalText)
-                        if (match !== null) {
-                            val whitespace = match.groupValues[1]
+                        "^\\{(?<whitespace>\\s*)".toRegex().find(originalText)?.let { match ->
+                            val whitespace = match.groups["whitespace"]?.value.orEmpty()
                             lambdaExpression.node.replaceWith(
                                 KtPsiFactory.contextual(lambdaExpression, false).createExpression(
-                                    "{${when {
-                                        whitespace.contains('\n') -> "${whitespace}it ->\n${whitespace.substringAfterLast('\n')}"
+                                    "{${when (whitespace.contains('\n')) {
+                                        true -> "${whitespace}it ->\n${whitespace.substringAfterLast('\n')}"
                                         else -> "${whitespace}it -> "
                                     }}${originalText.substring(match.range.last + 1)}"
                                 ).node
