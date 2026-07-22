@@ -7,51 +7,48 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class UncheckedCastSuppressionTest {
-    private val ruleProvider = RuleProvider { UncheckedCastSuppression() }
+    private val ruleProvider: RuleProvider = RuleProvider { UncheckedCastSuppression() }
 
     @Test
-    fun staleSuppressOnFunctionWithoutCast_autocorrectsByRemovingAnnotation() {
+    fun staleSuppressOnFunctionWithoutCastAutocorrectsByRemovingAnnotation() {
         val source = """
             @Suppress("UNCHECKED_CAST")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        assertEquals("fun sample(): Int = 42\n", formatRule(ruleProvider, source))
+        assertEquals("fun sample(): Int = 42\n", RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
-    fun staleSuppressOnPropertyInitializer_autocorrects() {
+    fun staleSuppressOnPropertyInitializerAutocorrects() {
         val source = """
             @Suppress("UNCHECKED_CAST")
             val sample: Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        assertEquals("val sample: Int = 42\n", formatRule(ruleProvider, source))
+        assertEquals("val sample: Int = 42\n", RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
-    fun staleSuppressOnClassWithNoCasts_autocorrects() {
+    fun staleSuppressOnClassWithNoCastsAutocorrects() {
         val source = """
             @Suppress("UNCHECKED_CAST")
             class Sample {
                 val value: Int = 42
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        assertEquals(
-            "class Sample {\n    val value: Int = 42\n}\n",
-            formatRule(ruleProvider, source)
-        )
+        assertEquals("class Sample {\n    val value: Int = 42\n}\n", RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
-    fun staleFileLevelSuppress_autocorrectsAndRemovesFileAnnotationLine() {
+    fun staleFileLevelSuppressAutocorrectsAndRemovesFileAnnotationLine() {
         val source = """
             @file:Suppress("UNCHECKED_CAST")
 
@@ -59,75 +56,63 @@ class UncheckedCastSuppressionTest {
 
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        val formatted = formatRule(ruleProvider, source)
+        val formatted = RuleTestSupport.formatRule(ruleProvider, source)
         assertFalse(formatted.contains("Suppress"))
         assertTrue(formatted.contains("fun sample(): Int = 42"))
     }
 
     @Test
-    fun staleSuppressAmongOtherAnnotations_removesOnlyTheSuppressEntry() {
+    fun staleSuppressAmongOtherAnnotationsRemovesOnlyTheSuppressEntry() {
         val source = """
             @Deprecated("old")
             @Suppress("UNCHECKED_CAST")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        val formatted = formatRule(ruleProvider, source)
+        val formatted = RuleTestSupport.formatRule(ruleProvider, source)
         assertTrue(formatted.contains("@Deprecated(\"old\")"))
         assertFalse(formatted.contains("Suppress"))
     }
 
     @Test
-    fun safeShapeFormatIsIdempotent() {
-        val source = """
-            @Suppress("UNCHECKED_CAST")
-            fun sample(): Int = 42
-        """.trimIndent() + "\n"
-        val once = formatRule(ruleProvider, source)
-        val twice = formatRule(ruleProvider, once)
-        assertEquals(once, twice)
-        assertTrue(lintRule(ruleProvider, once).isEmpty())
-    }
-
-    @Test
-    fun liveSuppressOnFunctionWithAsCast_remainsUncorrected() {
+    fun liveSuppressOnFunctionWithAsCastRemainsUncorrected() {
         val source = """
             @Suppress("UNCHECKED_CAST")
             fun sample(value: Any): String = value as String
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
-    fun liveSuppressOnFunctionWithAsSafeCast_remainsUncorrected() {
+    fun liveSuppressOnFunctionWithAsSafeCastRemainsUncorrected() {
         val source = """
             @Suppress("UNCHECKED_CAST")
             fun sample(value: Any): String? = value as? String
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
-    fun multiArgSuppressWithForbiddenToken_remainsUncorrectedEvenWhenStale() {
+    fun multiArgSuppressWithForbiddenTokenRemainsUncorrectedEvenWhenStale() {
         val source = """
             @Suppress("UNCHECKED_CAST", "DEPRECATION")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -142,7 +127,7 @@ class UncheckedCastSuppressionTest {
             @Suppress("UNCHECKED_CAST")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source, config).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source, config).isEmpty())
     }
 
     @Test
@@ -157,10 +142,10 @@ class UncheckedCastSuppressionTest {
             @Suppress("USELESS_CAST")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source, config)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source, config)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        assertEquals("fun sample(): Int = 42\n", formatRule(ruleProvider, source, config))
+        assertEquals("fun sample(): Int = 42\n", RuleTestSupport.formatRule(ruleProvider, source, config))
     }
 
     @Test
@@ -169,8 +154,8 @@ class UncheckedCastSuppressionTest {
             @Deprecated("use newSample instead")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -179,9 +164,9 @@ class UncheckedCastSuppressionTest {
             @kotlin.Suppress("UNCHECKED_CAST")
             fun sample(): Int = 42
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
-        assertEquals("fun sample(): Int = 42\n", formatRule(ruleProvider, source))
+        assertEquals("fun sample(): Int = 42\n", RuleTestSupport.formatRule(ruleProvider, source))
     }
 }

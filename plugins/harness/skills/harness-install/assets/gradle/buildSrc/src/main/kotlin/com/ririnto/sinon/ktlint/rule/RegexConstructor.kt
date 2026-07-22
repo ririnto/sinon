@@ -10,6 +10,7 @@ import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -18,8 +19,10 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Flags `Regex(...)` constructor calls; prefer `String.toRegex()` for single-argument literal patterns.
- * Autocorrects only when the call has one positional argument; otherwise the finding stays manual.
+ * Flags `Regex(...)` constructor calls.
+ * Prefer `String.toRegex()` for single-argument literal patterns.
+ * Autocorrects only when the call has one positional argument.
+ * Otherwise the finding stays manual.
  * Skips files that import or declare a conflicting `Regex` name that is not `kotlin.text.Regex`.
  */
 class RegexConstructor :
@@ -51,16 +54,16 @@ class RegexConstructor :
                 callee !== null &&
                 file !== null &&
                 callee.getReferencedName() == REGEX_NAME &&
-                !(
-                    file.importDirectives.any { directive ->
-                        val importedPath = directive.importPath?.pathStr
-                        (directive.aliasName ?: importedPath?.substringAfterLast('.')) == REGEX_NAME &&
-                            importedPath != KOTLIN_REGEX
-                    } ||
-                        PsiTreeUtil
-                            .findChildrenOfType(file, KtNamedDeclaration::class.java)
-                            .any { declaration -> declaration.name == REGEX_NAME }
-                )
+                (expression.parent as? KtDotQualifiedExpression)
+                    ?.takeIf { qualified -> qualified.selectorExpression == expression } === null &&
+                file.importDirectives.none { directive ->
+                    val importedPath = directive.importPath?.pathStr
+                    (directive.aliasName ?: importedPath?.substringAfterLast('.')) == REGEX_NAME &&
+                        importedPath != KOTLIN_REGEX
+                } &&
+                PsiTreeUtil
+                    .findChildrenOfType(file, KtNamedDeclaration::class.java)
+                    .none { declaration -> declaration.name == REGEX_NAME }
             ) {
                 val pattern =
                     expression.valueArguments
@@ -72,10 +75,10 @@ class RegexConstructor :
                     "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
                     pattern is KtStringTemplateExpression
                 ).ifAutocorrectAllowed {
-                    if (pattern is KtStringTemplateExpression) {
+                    (pattern as? KtStringTemplateExpression)?.let { template ->
                         expression.node.replaceWith(
                             KtPsiFactory.contextual(expression, false)
-                                .createExpression("${pattern.text}.toRegex()")
+                                .createExpression("${template.text}.toRegex()")
                                 .node
                         )
                     }

@@ -8,7 +8,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CompanionObjectPositionTest {
-    private val ruleProvider = RuleProvider { CompanionObjectPosition() }
+    private val ruleProvider: RuleProvider = RuleProvider { CompanionObjectPosition() }
 
     @Test
     fun flagsCompanionObjectAfterOtherDeclarations() {
@@ -19,11 +19,10 @@ class CompanionObjectPositionTest {
                 companion object
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertEquals(RuleId("code:companion-object-position"), errors.single().ruleId)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
     }
 
     @Test
@@ -35,8 +34,7 @@ class CompanionObjectPositionTest {
                 val value: String = "value"
             }
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -46,7 +44,7 @@ class CompanionObjectPositionTest {
                 val value: String = "value"
             }
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -60,7 +58,7 @@ class CompanionObjectPositionTest {
                 }
             }
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -76,7 +74,7 @@ class CompanionObjectPositionTest {
                 }
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
     }

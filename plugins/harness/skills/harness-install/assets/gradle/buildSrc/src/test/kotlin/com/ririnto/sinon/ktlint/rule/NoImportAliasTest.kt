@@ -7,25 +7,22 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class NoImportAliasTest {
-    private val ruleProvider = RuleProvider { NoImportAlias() }
+    private val ruleProvider: RuleProvider = RuleProvider { NoImportAlias() }
 
     @Test
     fun aliasMatchingSimpleNameIsFlagged() {
-        val source = "import a.Foo as Foo\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, "import a.Foo as Foo\n")
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
     }
 
     @Test
     fun aliasDifferentFromSimpleNameIsAllowed() {
-        val source = "import a.Foo as Bar\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, "import a.Foo as Bar\n").isEmpty())
     }
 
     @Test
     fun importWithoutAliasIsNotFlagged() {
-        val source = "import a.Foo\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, "import a.Foo\n").isEmpty())
     }
 }

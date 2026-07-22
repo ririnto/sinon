@@ -109,7 +109,9 @@ class UncheckedCastSuppression :
                         }
                     }
                 }.firstOrNull { token -> token in forbiddenTokens }?.let { detectedToken ->
-                    val canBeAutoCorrected =
+                    emit(
+                        annotation.textOffset,
+                        "avoid suppression of forbidden tokens (`${annotation.text}`); refactor to type-safe cast or explicit handling",
                         annotation.valueArguments
                             .singleOrNull()
                             ?.getArgumentExpression()
@@ -120,44 +122,38 @@ class UncheckedCastSuppression :
                             annotation.parent?.parent?.let { scopeOwner ->
                                 containsCastToken(scopeOwner.node).not()
                             } == true
-                    emit(
-                        annotation.textOffset,
-                        "avoid suppression of forbidden tokens (`${annotation.text}`); refactor to type-safe cast or explicit handling",
-                        canBeAutoCorrected
                     ).ifAutocorrectAllowed {
-                        if (canBeAutoCorrected) {
-                            val annotationNode = annotation.node
-                            val parent = annotationNode.treeParent
-                            val nextSibling = annotationNode.treeNext
-                            val previousSibling = parent.treePrev
-                            if (nextSibling !== null &&
-                                nextSibling.elementType === ElementType.WHITE_SPACE &&
-                                nextSibling.text.contains("\n")
+                        val annotationNode = annotation.node
+                        val parent = annotationNode.treeParent
+                        val nextSibling = annotationNode.treeNext
+                        val previousSibling = parent.treePrev
+                        if (nextSibling !== null &&
+                            nextSibling.elementType == ElementType.WHITE_SPACE &&
+                            nextSibling.text.contains("\n")
+                        ) {
+                            parent.removeChild(nextSibling)
+                        }
+                        parent.removeChild(annotationNode)
+                        if (
+                            parent.getChildren(null).count { child ->
+                                child.elementType != ElementType.WHITE_SPACE
+                            } == 1 &&
+                            previousSibling !== null &&
+                            previousSibling.elementType == ElementType.WHITE_SPACE &&
+                            previousSibling.text.contains("\n")
+                        ) {
+                            parent.treeParent.removeChild(previousSibling)
+                        }
+                        if (parent.getChildren(null).all { child -> child.elementType == ElementType.WHITE_SPACE }) {
+                            val parentParent = parent.treeParent
+                            val parentNextSibling = parent.treeNext
+                            if (parentNextSibling !== null &&
+                                parentNextSibling.elementType == ElementType.WHITE_SPACE &&
+                                parentNextSibling.text.contains("\n")
                             ) {
-                                parent.removeChild(nextSibling)
+                                parentParent.removeChild(parentNextSibling)
                             }
-                            parent.removeChild(annotationNode)
-                            if (
-                                parent.getChildren(null).count { child ->
-                                    child.elementType !== ElementType.WHITE_SPACE
-                                } == 1 &&
-                                previousSibling !== null &&
-                                previousSibling.elementType === ElementType.WHITE_SPACE &&
-                                previousSibling.text.contains("\n")
-                            ) {
-                                parent.treeParent.removeChild(previousSibling)
-                            }
-                            if (parent.getChildren(null).all { child -> child.elementType === ElementType.WHITE_SPACE }) {
-                                val parentParent = parent.treeParent
-                                val parentNextSibling = parent.treeNext
-                                if (parentNextSibling !== null &&
-                                    parentNextSibling.elementType === ElementType.WHITE_SPACE &&
-                                    parentNextSibling.text.contains("\n")
-                                ) {
-                                    parentParent.removeChild(parentNextSibling)
-                                }
-                                parentParent.removeChild(parent)
-                            }
+                            parentParent.removeChild(parent)
                         }
                     }
                 }
@@ -165,8 +161,8 @@ class UncheckedCastSuppression :
         }
 
         private fun containsCastToken(node: ASTNode): Boolean =
-            node.elementType === KtTokens.AS_KEYWORD ||
-                node.elementType === KtTokens.AS_SAFE ||
+            node.elementType == KtTokens.AS_KEYWORD ||
+                node.elementType == KtTokens.AS_SAFE ||
                 node.getChildren(null).any(::containsCastToken)
 
         private fun extractStringValue(expr: KtStringTemplateExpression): String? =
