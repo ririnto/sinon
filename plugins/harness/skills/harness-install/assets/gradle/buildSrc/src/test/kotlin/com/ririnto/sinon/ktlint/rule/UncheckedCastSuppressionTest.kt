@@ -80,6 +80,30 @@ class UncheckedCastSuppressionTest {
     }
 
     @Test
+    fun preservesWhitespaceBetweenAnnotationsAndPrecedingDeclaration() {
+        val source = """
+            val previous = 1
+
+            @Deprecated("old")
+            @Suppress("UNCHECKED_CAST")
+            fun sample() = 42
+        """.trimIndent() + "\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            """
+                val previous = 1
+
+                @Deprecated("old")
+
+                fun sample() = 42
+            """.trimIndent() + "\n",
+            RuleTestSupport.formatRule(ruleProvider, source)
+        )
+    }
+
+    @Test
     fun liveSuppressOnFunctionWithAsCastRemainsUncorrected() {
         val source = """
             @Suppress("UNCHECKED_CAST")

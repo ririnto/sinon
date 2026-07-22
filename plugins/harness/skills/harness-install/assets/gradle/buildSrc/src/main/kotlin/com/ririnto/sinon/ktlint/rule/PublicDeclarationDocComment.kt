@@ -9,6 +9,7 @@ import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfig
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfigProperty
 import org.ec4j.core.model.PropertyType
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -38,6 +39,7 @@ class PublicDeclarationDocComment :
     RuleAutocorrectApproveHandler {
     private companion object {
         val ENABLED_MODES: Set<String> = setOf("on", "public")
+        private val NON_PUBLIC_VISIBILITIES = setOf(KtTokens.PRIVATE_KEYWORD, KtTokens.INTERNAL_KEYWORD)
 
         val DOC_COMMENT_MODE: EditorConfigProperty<String> =
             EditorConfigProperty(
@@ -130,9 +132,24 @@ class PublicDeclarationDocComment :
 
         private fun shouldCheck(declaration: KtModifierListOwner, vararg declarationTokens: KtKeywordToken): Boolean {
             val visibility = declaration.visibilityModifierType()
-            return (visibility === null || visibility in setOf(KtTokens.PUBLIC_KEYWORD, KtTokens.PROTECTED_KEYWORD)) &&
+            return !isEnclosedByNonPublic(declaration) &&
+                (visibility === null || visibility in setOf(KtTokens.PUBLIC_KEYWORD, KtTokens.PROTECTED_KEYWORD)) &&
                 declarationTokens.any { token -> declaration.node.findChildByType(token) !== null } &&
                 (declaration !is KtNamedFunction || declaration.parent !is KtBlockExpression)
+        }
+
+        private fun isEnclosedByNonPublic(declaration: PsiElement): Boolean {
+            var parent = declaration.parent
+            var enclosedByNonPublic = false
+            while (parent !== null && !enclosedByNonPublic) {
+                enclosedByNonPublic = when (parent) {
+                    is KtClass -> parent.visibilityModifierType() in NON_PUBLIC_VISIBILITIES
+                    is KtObjectDeclaration -> parent.visibilityModifierType() in NON_PUBLIC_VISIBILITIES
+                    else -> false
+                }
+                parent = parent.parent
+            }
+            return enclosedByNonPublic
         }
     }
 }
