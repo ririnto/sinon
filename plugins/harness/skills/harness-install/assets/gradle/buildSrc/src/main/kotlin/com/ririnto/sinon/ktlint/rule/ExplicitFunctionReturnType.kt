@@ -17,10 +17,11 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
- * Flags named functions with missing or redundant return type declarations. Expression-bodied
- * functions must declare their return type so the signature stays stable when the body changes,
- * unless the body evaluates to `Unit`. Explicit `: Unit` annotations are always redundant and are
- * flagged for removal; `Unit` return types are intentionally omitted.
+ * Flags named functions with missing or redundant return type declarations.
+ * Expression-bodied functions must declare their return type so the signature stays stable when the body changes, unless the body evaluates to `Unit`.
+ * Explicit `: Unit` annotations are always redundant and are flagged for removal.
+ *
+ * `Unit` return types are intentionally omitted.
  */
 class ExplicitFunctionReturnType :
     Rule(
@@ -32,14 +33,14 @@ class ExplicitFunctionReturnType :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        if (node.elementType === ElementType.FUN) {
+        if (node.elementType == ElementType.FUN) {
             (node.psi as? KtNamedFunction)?.let { function ->
                 function.name?.let { functionName ->
                     when (val typeReference = function.typeReference) {
                         null -> {
                             if (!function.hasBlockBody()) {
                                 val body = function.bodyExpression
-                                if (body !== null && (body is KtStringTemplateExpression || body is KtConstantExpression || body.text != Unit::class.simpleName)) {
+                                if (body !== null && (body is KtStringTemplateExpression || body is KtConstantExpression || (body.text != "Unit" && body.text != "kotlin.Unit"))) {
                                     val modifierList = function.modifierList
                                     val typeName = if (modifierList?.hasModifier(KtTokens.OVERRIDE_KEYWORD) == true ||
                                         modifierList?.hasModifier(KtTokens.EXTERNAL_KEYWORD) == true ||
@@ -56,9 +57,21 @@ class ExplicitFunctionReturnType :
                                                 ElementType.BOOLEAN_CONSTANT -> Boolean::class.simpleName
                                                 ElementType.CHARACTER_CONSTANT -> Char::class.simpleName
                                                 ElementType.INTEGER_CONSTANT -> when {
-                                                    body.text.endsWith("L", ignoreCase = true) && !body.text.endsWith("U", ignoreCase = true) -> Long::class.simpleName
-                                                    !body.text.endsWith("L", ignoreCase = true) && !body.text.endsWith("U", ignoreCase = true) -> Int::class.simpleName
-                                                    else -> null
+                                                    body.text.contains("U", ignoreCase = true) -> null
+                                                    body.text.endsWith("L", ignoreCase = true) -> Long::class.simpleName
+                                                    else -> {
+                                                        val cleaned = body.text.replace("_", "")
+                                                        val (digits, radix) = when {
+                                                            cleaned.startsWith("0x", ignoreCase = true) -> cleaned.substring(2) to 16
+                                                            cleaned.startsWith("0b", ignoreCase = true) -> cleaned.substring(2) to 2
+                                                            else -> cleaned to 10
+                                                        }
+                                                        when {
+                                                            digits.toIntOrNull(radix) != null -> Int::class.simpleName
+                                                            digits.toLongOrNull(radix) != null -> Long::class.simpleName
+                                                            else -> null
+                                                        }
+                                                    }
                                                 }
                                                 ElementType.FLOAT_CONSTANT -> when {
                                                     body.text.endsWith("f", ignoreCase = true) -> Float::class.simpleName
@@ -71,7 +84,7 @@ class ExplicitFunctionReturnType :
                                     }
                                     emit(
                                         function.nameIdentifier?.textOffset ?: function.textOffset,
-                                        "named function `$functionName` must declare an explicit return type",
+                                        "declare an explicit return type on named function `$functionName`",
                                         typeName !== null
                                     ).ifAutocorrectAllowed {
                                         typeName?.let { type ->
@@ -97,19 +110,18 @@ class ExplicitFunctionReturnType :
                             }
                         }
                         else -> {
-                            if (typeReference.text == Unit::class.simpleName) {
+                            if (typeReference.text == Unit::class.simpleName || typeReference.text == "kotlin.Unit") {
                                 emit(
                                     typeReference.textOffset,
-                                    "named function `$functionName` declares redundant `Unit` return type; omit it",
+                                    "omit the redundant `Unit` return type on named function `$functionName`",
                                     true
                                 ).ifAutocorrectAllowed {
                                     val functionNode = function.node
-                                    val typeNode = typeReference.node
                                     val nodesToRemove = buildList {
-                                        var current: ASTNode? = typeNode
+                                        var current: ASTNode? = typeReference.node
                                         while (current !== null) {
                                             add(current)
-                                            if (current.elementType === KtTokens.COLON) {
+                if (current.elementType == KtTokens.COLON) {
                                                 break
                                             }
                                             current = current.treePrev

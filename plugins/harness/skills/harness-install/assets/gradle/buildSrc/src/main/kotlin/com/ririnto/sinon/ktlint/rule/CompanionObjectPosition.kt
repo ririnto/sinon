@@ -30,11 +30,11 @@ class CompanionObjectPosition :
                 declarations
                     .filterIsInstance<KtObjectDeclaration>()
                     .filter { declaration -> declaration.isCompanion() }
-                    .filter { declaration -> declarations.firstOrNull() !== declaration }
+                    .filter { declaration -> declarations.firstOrNull() != declaration }
                     .forEach { declaration ->
                         emit(
                             declaration.textOffset,
-                            "Place the companion object before other class members",
+                            "place the companion object before other class members",
                             false
                         )
                     }
