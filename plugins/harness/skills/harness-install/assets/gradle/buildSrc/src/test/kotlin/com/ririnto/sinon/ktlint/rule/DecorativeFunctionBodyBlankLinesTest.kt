@@ -6,10 +6,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DecorativeFunctionBodyBlankLinesTest {
-    private val ruleProvider = RuleProvider { DecorativeFunctionBodyBlankLines() }
+    private val ruleProvider: RuleProvider = RuleProvider { DecorativeFunctionBodyBlankLines() }
 
     @Test
-    fun singleBlankLineInFunctionBodyIsNotFlagged() {
+    fun singleBlankLineBetweenDeclarationsIsSkipped() {
         val source = """
             fun foo() {
                 val x = 1
@@ -17,9 +17,70 @@ class DecorativeFunctionBodyBlankLinesTest {
                 val y = 2
             }
         """.trimIndent() + "\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
+    }
 
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source))
+    @Test
+    fun singleBlankLineBetweenCallAndCallIsFlagged() {
+        val source = """
+            fun foo() {
+                println(1)
+
+                println(2)
+            }
+        """.trimIndent() + "\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            "fun foo() {\n    println(1)\n    println(2)\n}\n",
+            RuleTestSupport.formatRule(ruleProvider, source)
+        )
+    }
+
+    @Test
+    fun singleBlankLineBetweenDeclarationAndCallIsFlagged() {
+        val source = """
+            fun foo() {
+                val x = 1
+
+                println(x)
+            }
+        """.trimIndent() + "\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            "fun foo() {\n    val x = 1\n    println(x)\n}\n",
+            RuleTestSupport.formatRule(ruleProvider, source)
+        )
+    }
+
+    @Test
+    fun singleBlankLineBetweenCallAndDeclarationIsSkipped() {
+        val source = """
+            fun foo() {
+                println(1)
+
+                val x = 2
+            }
+        """.trimIndent() + "\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun singleBlankLineBetweenAnnotationAndDeclarationIsSkipped() {
+        val source = """
+            fun foo() {
+                println(1)
+
+                @Suppress("UNCHECKED_CAST")
+                val x = 2 as Int
+            }
+        """.trimIndent() + "\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -32,8 +93,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 println(2)
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
-
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
         assertEquals(
@@ -43,7 +103,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 println(2)
             }
             """.trimIndent() + "\n",
-            formatRule(ruleProvider, source)
+            RuleTestSupport.formatRule(ruleProvider, source)
         )
     }
 
@@ -57,9 +117,8 @@ class DecorativeFunctionBodyBlankLinesTest {
                 val y = 2
             }
         """.trimIndent() + "\n"
-
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -72,8 +131,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 fun second() = 2
             }
         """.trimIndent() + "\n"
-
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -87,8 +145,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 val y = 2
             }
         """.trimIndent() + "\n"
-
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -102,8 +159,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 val y = 2
             }
         """.trimIndent() + "\n"
-
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -117,8 +173,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 val y = 2
             }
         """.trimIndent() + "\n"
-
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
@@ -131,10 +186,9 @@ class DecorativeFunctionBodyBlankLinesTest {
                 println(2)
             }
         """.trimIndent() + "\n"
-        val formatted = formatRule(ruleProvider, source)
-
-        assertEquals(formatted, formatRule(ruleProvider, formatted))
-        assertTrue(lintRule(ruleProvider, formatted).isEmpty())
+        val formatted = RuleTestSupport.formatRule(ruleProvider, source)
+        assertEquals(formatted, RuleTestSupport.formatRule(ruleProvider, formatted))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, formatted).isEmpty())
     }
 
     @Test
@@ -149,7 +203,6 @@ class DecorativeFunctionBodyBlankLinesTest {
                 }
             }
         """.trimIndent() + "\n"
-
         assertEquals(
             """
             class C {
@@ -159,7 +212,7 @@ class DecorativeFunctionBodyBlankLinesTest {
                 }
             }
             """.trimIndent() + "\n",
-            formatRule(ruleProvider, source)
+            RuleTestSupport.formatRule(ruleProvider, source)
         )
     }
 
@@ -171,11 +224,39 @@ class DecorativeFunctionBodyBlankLinesTest {
                 work()
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
-        val formatted = formatRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        val formatted = RuleTestSupport.formatRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertTrue(errors.single().canBeAutoCorrected)
         assertEquals("fun sample() {\n    work()\n}\n", formatted)
-        assertEquals(formatted, formatRule(ruleProvider, formatted))
+        assertEquals(formatted, RuleTestSupport.formatRule(ruleProvider, formatted))
+    }
+
+    @Test
+    fun blankLineInLambdaBodyInsideFunctionIsNotFlagged() {
+        val source = """
+            fun foo() {
+                listOf(1).map { value ->
+                    val doubled = value * 2
+
+                    doubled.toString()
+                }
+            }
+        """.trimIndent() + "\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+    }
+
+    @Test
+    fun blankLineInAnonymousObjectBodyInsideFunctionIsNotFlagged() {
+        val source = """
+            fun foo() {
+                object {
+                    val value = 1
+
+                    fun getValue() = value
+                }
+            }
+        """.trimIndent() + "\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 }

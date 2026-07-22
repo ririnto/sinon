@@ -8,7 +8,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class LeadingUnderscoreTest {
-    private val ruleProvider = RuleProvider { LeadingUnderscore() }
+    private val ruleProvider: RuleProvider = RuleProvider { LeadingUnderscore() }
 
     @Test
     fun autocorrectsUnreferencedPrivateFunctionParameter() {
@@ -22,11 +22,11 @@ class LeadingUnderscoreTest {
                 private fun compute(_: Int): Int = 42
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertEquals(RuleId("code:leading-underscore"), errors.single().ruleId)
         assertTrue(errors.single().canBeAutoCorrected)
-        assertEquals(expected, formatRule(ruleProvider, source))
+        assertEquals(expected, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -36,8 +36,8 @@ class LeadingUnderscoreTest {
                 private fun compute(_: Int): Int = 42
             }
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -47,10 +47,10 @@ class LeadingUnderscoreTest {
                 private fun compute(_value: Int): Int = _value + 1
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -60,10 +60,10 @@ class LeadingUnderscoreTest {
                 fun compute(_unused: Int): Int = 42
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -73,8 +73,8 @@ class LeadingUnderscoreTest {
                 private fun compute(value: Int): Int = value + 1
             }
         """.trimIndent() + "\n"
-        assertTrue(lintRule(ruleProvider, source).isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -84,10 +84,10 @@ class LeadingUnderscoreTest {
                 private fun compute(_base: Int, other: Int = _base): Int = other
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -99,10 +99,10 @@ class LeadingUnderscoreTest {
                 fun caller(): Int = compute(_unused = 5)
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -110,10 +110,10 @@ class LeadingUnderscoreTest {
         val source = """
             class Example(private val _id: Int)
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
@@ -123,36 +123,63 @@ class LeadingUnderscoreTest {
                 private val _value: Int = 42
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
         assertEquals(1, errors.size)
         assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
 
     @Test
-    fun leavesLintOnlyWhenFunctionIsOverride() {
+    fun acceptsOverrideParameterWithLeadingUnderscore() {
         val source = """
-            abstract class Base {
-                abstract fun compute(_unused: Int): Int
+            interface Base {
+                fun compute(_unused: Int): Int
             }
+
+            class Impl : Base {
+                override fun compute(_unused: Int): Int = 0
+            }
+        """.trimIndent() + "\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertTrue(errors.isEmpty(), "override parameter should be allowed: ${errors}")
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun acceptsOverridePropertyWithLeadingUnderscore() {
+        val source = """
+            open class Base {
+                open val _value: Int = 0
+            }
+
             class Derived : Base() {
-                override fun compute(_unused: Int): Int = 42
+                override val _value: Int = 1
             }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source)
-        assertTrue(errors.size == 2)
-        assertTrue(errors.all { error -> !error.canBeAutoCorrected })
-        assertEquals(source, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
     }
 
     @Test
-    fun flagsFileBasenameAndLeavesLintOnly() {
+    fun acceptsInterfacePropertyWithLeadingUnderscore() {
         val source = """
-            class Example
+            interface I {
+                val _value: Int
+            }
+
+            class C : I {
+                override val _value: Int = 0
+            }
         """.trimIndent() + "\n"
-        val errors = lintRule(ruleProvider, source, fileName = "_Sample.kt")
-        assertEquals(1, errors.size)
-        assertFalse(errors.single().canBeAutoCorrected)
-        assertEquals(source, formatRule(ruleProvider, source, fileName = "_Sample.kt"))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+    }
+
+    @Test
+    fun rejectsNonOverridePropertyWithLeadingUnderscore() {
+        val source = """
+            class C {
+                val _value: Int = 0
+            }
+        """.trimIndent() + "\n"
+        assertEquals(1, RuleTestSupport.lintRule(ruleProvider, source).size)
     }
 }

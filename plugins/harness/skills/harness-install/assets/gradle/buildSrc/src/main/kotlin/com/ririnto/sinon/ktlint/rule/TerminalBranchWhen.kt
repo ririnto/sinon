@@ -41,7 +41,7 @@ class TerminalBranchWhen :
         private tailrec fun isElseIfBranch(expression: KtIfExpression, ancestor: PsiElement?): Boolean =
             when (ancestor) {
                 null, is KtFile -> false
-                is KtIfExpression -> ancestor.`else` === expression
+                is KtIfExpression -> ancestor.`else` == expression
                 else -> isElseIfBranch(expression, ancestor.parent)
             }
 

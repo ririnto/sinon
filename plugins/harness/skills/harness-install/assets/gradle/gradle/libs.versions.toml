@@ -9,12 +9,12 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 
 [libraries]
-kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
-kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5" }
-ktlint-bom = { module = "com.pinterest.ktlint:ktlint-bom", version.ref = "ktlint-engine" }
-ktlint-cli-ruleset-core = { module = "com.pinterest.ktlint:ktlint-cli-ruleset-core" }
-ktlint-rule-engine = { module = "com.pinterest.ktlint:ktlint-rule-engine" }
-ktlint-rule-engine-core = { module = "com.pinterest.ktlint:ktlint-rule-engine-core" }
-ktlint-test = { module = "com.pinterest.ktlint:ktlint-test" }
-slf4j-bom = { module = "org.slf4j:slf4j-bom", version.ref = "slf4j" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple" }
+kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }
+kotlin-test-junit5 = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit5" }
+ktlint-bom = { group = "com.pinterest.ktlint", name = "ktlint-bom", version.ref = "ktlint-engine" }
+ktlint-cli-ruleset-core = { group = "com.pinterest.ktlint", name = "ktlint-cli-ruleset-core" }
+ktlint-rule-engine = { group = "com.pinterest.ktlint", name = "ktlint-rule-engine" }
+ktlint-rule-engine-core = { group = "com.pinterest.ktlint", name = "ktlint-rule-engine-core" }
+ktlint-test = { group = "com.pinterest.ktlint", name = "ktlint-test" }
+slf4j-bom = { group = "org.slf4j", name = "slf4j-bom", version.ref = "slf4j" }
+slf4j-simple = { group = "org.slf4j", name = "slf4j-simple" }

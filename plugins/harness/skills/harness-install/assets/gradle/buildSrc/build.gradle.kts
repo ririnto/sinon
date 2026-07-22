@@ -14,7 +14,6 @@ dependencies {
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(platform(libs.ktlint.bom))
     testImplementation(libs.ktlint.rule.engine)
-    testImplementation(libs.ktlint.rule.engine.core)
     testImplementation(libs.ktlint.cli.ruleset.core)
     testImplementation(libs.ktlint.test)
     testRuntimeOnly(platform(libs.slf4j.bom))
