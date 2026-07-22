@@ -16,13 +16,18 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * Flags public declarations without documentation comments; require KDoc on public APIs.
- * Disabled by default; set `ktlint_public_declaration_doc_comment_mode = on` in `.editorconfig` to enable.
+ * Flags public declarations without documentation comments.
+ * Require KDoc on public APIs.
+ *
+ * Disabled by default.
+ *
+ * Set `ktlint_public_declaration_doc_comment_mode = on` in `.editorconfig` to enable.
  */
 class PublicDeclarationDocComment :
     Rule(
@@ -68,10 +73,13 @@ class PublicDeclarationDocComment :
     ) : KtTreeVisitorVoid() {
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
-            if (shouldCheck(klass, KtTokens.CLASS_KEYWORD) && klass.docComment === null) {
+            if (klass.parent !is KtBlockExpression &&
+                shouldCheck(klass, KtTokens.CLASS_KEYWORD) &&
+                klass.docComment === null
+            ) {
                 emit(
                     klass.textOffset,
-                    "public declaration `${klass.name ?: "unknown"}` is missing a documentation comment",
+                    "add a documentation comment to public declaration `${klass.name ?: "unknown"}`",
                     false
                 )
             }
@@ -85,7 +93,7 @@ class PublicDeclarationDocComment :
             ) {
                 emit(
                     function.textOffset,
-                    "public declaration `${function.name ?: "unknown"}` is missing a documentation comment",
+                    "add a documentation comment to public declaration `${function.name ?: "unknown"}`",
                     false
                 )
             }
@@ -99,7 +107,22 @@ class PublicDeclarationDocComment :
             ) {
                 emit(
                     property.textOffset,
-                    "public declaration `${property.name ?: "unknown"}` is missing a documentation comment",
+                    "add a documentation comment to public declaration `${property.name ?: "property"}`",
+                    false
+                )
+            }
+        }
+
+        override fun visitObjectDeclaration(declaration: KtObjectDeclaration) {
+            super.visitObjectDeclaration(declaration)
+            if (declaration.name !== null &&
+                !declaration.isCompanion() &&
+                shouldCheck(declaration, KtTokens.OBJECT_KEYWORD) &&
+                declaration.docComment === null
+            ) {
+                emit(
+                    declaration.textOffset,
+                    "add a documentation comment to public declaration `${declaration.name}`",
                     false
                 )
             }
@@ -109,7 +132,7 @@ class PublicDeclarationDocComment :
             val visibility = declaration.visibilityModifierType()
             return (visibility === null || visibility in setOf(KtTokens.PUBLIC_KEYWORD, KtTokens.PROTECTED_KEYWORD)) &&
                 declarationTokens.any { token -> declaration.node.findChildByType(token) !== null } &&
-                !(declaration is KtNamedFunction && declaration.parent is KtBlockExpression)
+                (declaration !is KtNamedFunction || declaration.parent !is KtBlockExpression)
         }
     }
 }

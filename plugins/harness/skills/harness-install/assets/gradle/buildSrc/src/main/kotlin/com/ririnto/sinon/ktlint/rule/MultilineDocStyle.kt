@@ -18,7 +18,9 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
  * Requires KDoc comments to use multiline block style `/** */` instead of single-line.
- * Disabled by default; set `ktlint_multiline_doc_style_mode = multiline` (or `on`) in `.editorconfig` to enable.
+ * Disabled by default.
+ *
+ * Set `ktlint_multiline_doc_style_mode = multiline` (or `on`) in `.editorconfig` to enable.
  */
 class MultilineDocStyle :
     Rule(
@@ -66,7 +68,7 @@ class MultilineDocStyle :
                 if (!docComment.text.contains('\n')) {
                     emit(
                         docComment.textOffset,
-                        "documentation comment must use multiline KDoc style",
+                        "use the multiline KDoc style for this documentation comment",
                         true
                     ).ifAutocorrectAllowed {
                         docComment.node.replaceWith(

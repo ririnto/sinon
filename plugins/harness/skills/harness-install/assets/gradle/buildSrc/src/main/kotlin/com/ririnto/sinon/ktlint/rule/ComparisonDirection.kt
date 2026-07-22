@@ -12,10 +12,10 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Flags comparison operators `>` and `>=`; prefer `<` and `<=` with the operands swapped so the
- * smaller value stays on the left (e.g. `a > b` -> `b < a`, `a >= b` -> `b <= a`). This rule is
- * diagnostic-only because operand swapping is not generally equivalent for asymmetric or custom
- * `Comparable` implementations.
+ * Flags comparison operators `>` and `>=`.
+ *
+ * Prefer `<` and `<=` with the operands swapped so the smaller value stays on the left (e.g. `a > b` -> `b < a`, `a >= b` -> `b <= a`).
+ * This rule is diagnostic-only because operand swapping is not generally equivalent for asymmetric or custom `Comparable` implementations.
  */
 class ComparisonDirection :
     Rule(
@@ -35,15 +35,10 @@ class ComparisonDirection :
     ) : KtTreeVisitorVoid() {
         override fun visitBinaryExpression(expression: KtBinaryExpression) {
             super.visitBinaryExpression(expression)
-            emit(
-                expression.operationReference.textOffset,
-                when (expression.operationToken) {
-                    KtTokens.GT -> "avoid `>` in comparisons; prefer `<` with operands swapped"
-                    KtTokens.GTEQ -> "avoid `>=` in comparisons; prefer `<=` with operands swapped"
-                    else -> return
-                },
-                false
-            )
+            when (expression.operationToken) {
+                KtTokens.GT -> emit(expression.operationReference.textOffset, "avoid `>` in comparisons; prefer `<` with operands swapped", false)
+                KtTokens.GTEQ -> emit(expression.operationReference.textOffset, "avoid `>=` in comparisons; prefer `<=` with operands swapped", false)
+            }
         }
     }
 }

@@ -1,19 +1,19 @@
 package com.ririnto.sinon.ktlint.rule
 
+import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ExplicitPropertyTypeTest {
-    private val ruleProvider = com.pinterest.ktlint.rule.engine.core.api.RuleProvider {
-        ExplicitPropertyType()
-    }
+    private val ruleProvider: RuleProvider = RuleProvider { ExplicitPropertyType() }
 
     @Test
     fun autocorrectsLiteralMemberProperties() {
         val cases = listOf(
             "class C { val count = 42 }" to "class C { val count: Int = 42 }",
+            "class C { val overflow = 3000000000 }" to "class C { val overflow: Long = 3000000000 }",
             "class C { val id = 42L }" to "class C { val id: Long = 42L }",
             "class C { val enabled = true }" to "class C { val enabled: Boolean = true }",
             "class C { val name = \"foo\" }" to "class C { val name: String = \"foo\" }",
@@ -25,12 +25,11 @@ class ExplicitPropertyTypeTest {
                 "class C { companion object { val n: Int = 42 } }",
             "object O { val n = 42 }" to "object O { val n: Int = 42 }"
         )
-
         cases.forEach { (source, expected) ->
-            val errors = lintRule(ruleProvider, source)
+            val errors = RuleTestSupport.lintRule(ruleProvider, source)
             assertEquals(1, errors.size, source)
             assertTrue(errors.single().canBeAutoCorrected, source)
-            assertEquals(expected, formatRule(ruleProvider, source), source)
+            assertEquals(expected, RuleTestSupport.formatRule(ruleProvider, source), source)
         }
     }
 
@@ -40,9 +39,9 @@ class ExplicitPropertyTypeTest {
             "class C { val count = 42 }",
             "class C { val name = \"foo\" }"
         ).forEach { source ->
-            val formatted = formatRule(ruleProvider, source)
-            assertEquals(formatted, formatRule(ruleProvider, formatted))
-            assertTrue(lintRule(ruleProvider, formatted).isEmpty())
+            val formatted = RuleTestSupport.formatRule(ruleProvider, source)
+            assertEquals(formatted, RuleTestSupport.formatRule(ruleProvider, formatted))
+            assertTrue(RuleTestSupport.lintRule(ruleProvider, formatted).isEmpty())
         }
     }
 
@@ -57,10 +56,10 @@ class ExplicitPropertyTypeTest {
             "class C { val x = 1u }",
             "class C { val x = 1UL }"
         ).forEach { source ->
-            val errors = lintRule(ruleProvider, source)
+            val errors = RuleTestSupport.lintRule(ruleProvider, source)
             assertEquals(1, errors.size, source)
             assertFalse(errors.single().canBeAutoCorrected, source)
-            assertEquals(source, formatRule(ruleProvider, source), source)
+            assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source), source)
         }
     }
 
@@ -71,8 +70,8 @@ class ExplicitPropertyTypeTest {
             "val top = 42",
             "class C { val x: Int = 42 }"
         ).forEach { source ->
-            assertTrue(lintRule(ruleProvider, source).isEmpty(), source)
-            assertEquals(source, formatRule(ruleProvider, source), source)
+            assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty(), source)
+            assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source), source)
         }
     }
 
@@ -80,7 +79,7 @@ class ExplicitPropertyTypeTest {
     fun autocorrectsPropertyWithAnnotationReferencingName() {
         val source = "class C { @Ann(name = \"name\") val name = 42 }"
         val expected = "class C { @Ann(name = \"name\") val name: Int = 42 }"
-        assertTrue(lintRule(ruleProvider, source).single().canBeAutoCorrected)
-        assertEquals(expected, formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).single().canBeAutoCorrected)
+        assertEquals(expected, RuleTestSupport.formatRule(ruleProvider, source))
     }
 }

@@ -11,10 +11,10 @@ import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 /**
- * Flags `import ... as Foo` directives where the alias text matches the imported simple name (e.g.
- * `import a.Foo as Foo`); the alias is redundant and should be removed. Collision detection across
- * same-package declarations or sibling imports is intentionally omitted because a single-file rule
- * cannot reliably resolve same-package symbols that are reachable without an explicit import.
+ * Flags `import ... as Foo` directives where the alias text matches the imported simple name (e.g. `import a.Foo as Foo`).
+ *
+ * The alias is redundant and should be removed.
+ * Collision detection across same-package declarations or sibling imports is intentionally omitted because a single-file rule cannot reliably resolve same-package symbols that are reachable without an explicit import.
  */
 class NoImportAlias :
     Rule(
@@ -33,7 +33,7 @@ class NoImportAlias :
                         if (text == name) {
                             emit(
                                 alias.textOffset,
-                                "import alias `$text` duplicates the imported simple name; remove the alias",
+                                "remove the import alias `$text` that duplicates the imported simple name",
                                 false
                             )
                         }

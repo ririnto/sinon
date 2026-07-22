@@ -28,7 +28,7 @@ class KotlinTopLevelDeclarationCount :
             ?.let { ktFile ->
                 val declaration = ktFile.declarations.singleOrNull()
                 if (declaration !is KtClassOrObject && declaration !is KtTypeAlias) {
-                    emit(0, "file must have a single top-level type declaration", false)
+                    emit(0, "declare a single top-level type declaration in this file", false)
                 }
             }
     }
