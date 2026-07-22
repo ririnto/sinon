@@ -126,7 +126,6 @@ class UncheckedCastSuppression :
                         val annotationNode = annotation.node
                         val parent = annotationNode.treeParent
                         val nextSibling = annotationNode.treeNext
-                        val previousSibling = parent.treePrev
                         if (nextSibling !== null &&
                             nextSibling.elementType == ElementType.WHITE_SPACE &&
                             nextSibling.text.contains("\n")
@@ -134,16 +133,6 @@ class UncheckedCastSuppression :
                             parent.removeChild(nextSibling)
                         }
                         parent.removeChild(annotationNode)
-                        if (
-                            parent.getChildren(null).count { child ->
-                                child.elementType != ElementType.WHITE_SPACE
-                            } == 1 &&
-                            previousSibling !== null &&
-                            previousSibling.elementType == ElementType.WHITE_SPACE &&
-                            previousSibling.text.contains("\n")
-                        ) {
-                            parent.treeParent.removeChild(previousSibling)
-                        }
                         if (parent.getChildren(null).all { child -> child.elementType == ElementType.WHITE_SPACE }) {
                             val parentParent = parent.treeParent
                             val parentNextSibling = parent.treeNext

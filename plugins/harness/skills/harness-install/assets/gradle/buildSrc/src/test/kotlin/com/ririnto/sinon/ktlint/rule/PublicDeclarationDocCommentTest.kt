@@ -96,6 +96,17 @@ class PublicDeclarationDocCommentTest {
     }
 
     @Test
+    fun excludesMemberOfPrivateClass() {
+        assertTrue(
+            RuleTestSupport.lintRule(
+                ruleProvider,
+                "private class Outer { class Inner }\n",
+                enabledConfig
+            ).isEmpty()
+        )
+    }
+
+    @Test
     fun flagsUndocumentedObjectDeclaration() {
         assertEquals(1, RuleTestSupport.lintRule(ruleProvider, "object Config\n", enabledConfig).size)
     }

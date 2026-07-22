@@ -18,6 +18,22 @@ Stacks may add native custom rules and structural prose conventions.
 Each stack delegates code-style and structure detection to its native ecosystem tools.
 Structural checks that cannot be automated remain prose conventions in the installed-target contract.
 
+## Known limitations (file-scoped)
+
+Single-file static analysis cannot resolve every name or declaration outside the current file.
+The following limitations are inherent to file-scoped linting and are guidance only:
+
+- **SlfDirectLogging - scope shadowing:** A file-wide logger name set cannot detect a local variable or parameter that shadows the same name with a different type.
+  This is a fundamental limitation of file-scoped linting without type resolution.
+- **NonNullAssertion - cross-file same-package guard:** A `requireNotNull` or `checkNotNull` declaration in another file of the same package can shadow the standard library guard.
+  Autocorrect may produce a call to the user-defined guard.
+  This is a fundamental limitation of file-scoped linting.
+- **ExplicitFunctionReturnType - type-name collision:** The rule inserts unqualified built-in type names such as `String`, `Int`, and `Long`.
+  An imported type, typealias, or same-package declaration with the same name could make the generated signature resolve incorrectly.
+  This is rare because Kotlin built-in types are auto-imported.
+- **ExplicitPropertyType - type-name collision:** The rule has the same limitation as `ExplicitFunctionReturnType`.
+  An unqualified built-in type name inserted by autocorrect can collide with an imported type, typealias, or local declaration.
+
 ### Gradle
 
 - Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`, using the Gradle ktlint plugin's project discovery)
