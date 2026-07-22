@@ -51,7 +51,19 @@ class ExplicitPropertyType :
                                     when {
                                         suffix.any { character -> character in "uU" } -> null
                                         suffix.any { character -> character in "lL" } -> Long::class.simpleName
-                                        else -> Int::class.simpleName
+                                        else -> {
+                                            val cleaned = text.replace("_", "")
+                                            val (digits, radix) = when {
+                                                cleaned.startsWith("0x", ignoreCase = true) -> cleaned.substring(2) to 16
+                                                cleaned.startsWith("0b", ignoreCase = true) -> cleaned.substring(2) to 2
+                                                else -> cleaned to 10
+                                            }
+                                            when {
+                                                digits.toIntOrNull(radix) != null -> Int::class.simpleName
+                                                digits.toLongOrNull(radix) != null -> Long::class.simpleName
+                                                else -> null
+                                            }
+                                        }
                                     }
                                 }
                                 ElementType.FLOAT_CONSTANT -> when {
@@ -66,12 +78,12 @@ class ExplicitPropertyType :
                 }
                 emit(
                     property.textOffset,
-                    "${
+                    "declare an explicit type on ${
                         when ((property.parent?.parent as? KtObjectDeclaration)?.isCompanion()) {
                             true -> "companion object property"
                             else -> "member property"
                         }
-                    } `${property.name ?: "property"}` must declare an explicit type",
+                    } `${property.name ?: "property"}`",
                     typeName !== null
                 ).ifAutocorrectAllowed {
                     val nameIdentifier = property.nameIdentifier

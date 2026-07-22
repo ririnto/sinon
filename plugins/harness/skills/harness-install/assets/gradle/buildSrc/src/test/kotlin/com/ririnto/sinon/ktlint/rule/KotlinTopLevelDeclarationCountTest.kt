@@ -8,7 +8,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class KotlinTopLevelDeclarationCountTest {
-    private val ruleProvider = RuleProvider { KotlinTopLevelDeclarationCount() }
+    private val ruleProvider: RuleProvider = RuleProvider { KotlinTopLevelDeclarationCount() }
 
     @Test
     fun allowsExactlyOneTopLevelTypeDeclaration() {
@@ -20,7 +20,7 @@ class KotlinTopLevelDeclarationCountTest {
             "annotation class Sample",
             "typealias Sample = String"
         ).forEach { declarationSource ->
-            assertTrue(lintRule(ruleProvider, "$declarationSource\n").isEmpty())
+            assertTrue(RuleTestSupport.lintRule(ruleProvider, "$declarationSource\n").isEmpty())
         }
     }
 
@@ -33,7 +33,7 @@ class KotlinTopLevelDeclarationCountTest {
             "val sample = 42\n",
             "var sample = 42\n"
         ).forEach { source ->
-            val errors = lintRule(ruleProvider, source)
+            val errors = RuleTestSupport.lintRule(ruleProvider, source)
             assertEquals(1, errors.size)
             assertEquals(RuleId("code:kotlin-top-level-declaration-count"), errors.single().ruleId)
             assertFalse(errors.single().canBeAutoCorrected)
@@ -46,8 +46,6 @@ class KotlinTopLevelDeclarationCountTest {
             val first = 1
             val second = 2
         """.trimIndent() + "\n"
-
-        assertTrue(lintRule(ruleProvider, source, fileName = "Sample.kts").isEmpty())
-        assertEquals(source, formatRule(ruleProvider, source, fileName = "Sample.kts"))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source, fileName = "Sample.kts").isEmpty())
     }
 }

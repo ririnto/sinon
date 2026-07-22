@@ -120,7 +120,7 @@ class ImportOverFqn :
                     importList.node.addChild(importNode, anchor)
                     importList.node.addChild(
                         KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
-                        null
+                        anchor
                     )
                 }
                 if (imports.isEmpty() && newImports.isNotEmpty()) {

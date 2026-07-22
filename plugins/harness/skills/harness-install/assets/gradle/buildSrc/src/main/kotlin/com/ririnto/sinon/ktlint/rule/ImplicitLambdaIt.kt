@@ -16,7 +16,9 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Flags Kotlin lambdas that use implicit `it` parameter; use an explicit parameter name instead.
+ * Flags Kotlin lambdas that use implicit `it` parameter.
+ *
+ * Use an explicit parameter name instead.
  */
 class ImplicitLambdaIt :
     Rule(
@@ -48,7 +50,7 @@ class ImplicitLambdaIt :
                 if (implicitItReferences.isNotEmpty()) {
                     emit(
                         implicitItReferences.first().textOffset,
-                        "Kotlin file uses implicit `it` lambda parameter; use an explicit name",
+                        "use an explicit name for the implicit `it` lambda parameter",
                         true
                     ).ifAutocorrectAllowed {
                         val originalText = lambdaExpression.node.text

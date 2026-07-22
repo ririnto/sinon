@@ -15,12 +15,16 @@ import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Flags nested data classes that are not placed at the bottom of their enclosing class; keep value
- * models together after behavior so the reader sees operations first.
+ * Flags nested data classes that are not placed at the bottom of their enclosing class.
+ *
+ * Keep value models together after behavior so the reader sees operations first.
  */
 class NestedDataClassLast :
     Rule(
@@ -40,44 +44,44 @@ class NestedDataClassLast :
     ) : KtTreeVisitorVoid() {
         override fun visitClassOrObject(classOrObject: KtClassOrObject) {
             super.visitClassOrObject(classOrObject)
-            val declarations = classOrObject.declarations
-            declarations
-                .filterIsInstance<KtClass>()
-                .filter { declaration -> declaration.isData() }
-                .filter { declaration ->
-                    declarations
-                        .dropWhile { candidate -> candidate !== declaration }
-                        .drop(1)
-                        .any { candidate -> candidate !is KtClass || !candidate.isData() }
-                }.forEach { declaration ->
-                    emit(
-                        declaration.textOffset,
-                        "nested data class `${declaration.name ?: "data class"}` must sit at the bottom of its enclosing class",
-                        true
-                    ).ifAutocorrectAllowed {
-                        val bodyPsi: KtClassBody? = when (classOrObject) {
-                            is KtClass -> classOrObject.body
-                            else -> (classOrObject as org.jetbrains.kotlin.psi.KtObjectDeclaration).body
+            if (classOrObject !is KtClass || !classOrObject.isEnum()) {
+                val declarations = classOrObject.declarations
+                declarations
+                    .filterIsInstance<KtClass>()
+                    .filter { declaration -> declaration.isData() }
+                    .filter { declaration ->
+                        declarations
+                            .dropWhile { candidate -> candidate != declaration }
+                            .drop(1)
+                            .any { candidate -> candidate !is KtClass || !candidate.isData() }
+                    }.forEach { declaration ->
+                        emit(
+                            declaration.textOffset,
+                            "move the nested data class `${declaration.name ?: "data class"}` to the bottom of its enclosing class",
+                            !declarations.any(::containsMultilineRawString)
+                        ).ifAutocorrectAllowed {
+                            val rewrittenText = classOrObject.text.substring(
+                                0,
+                                ((when (classOrObject) {
+                                    is KtClass -> classOrObject.body
+                                    else -> (classOrObject as KtObjectDeclaration).body
+                                })?.node?.findChildByType(KtTokens.LBRACE)?.startOffset ?: classOrObject.node.startOffset) - classOrObject.node.startOffset + 1
+                            ) + "\n" +
+                                declarations.partition { candidate -> candidate !is KtClass || !candidate.isData() }
+                                    .let { (nonData, data) -> nonData + data }
+                                    .map(::blockText)
+                                    .joinToString("\n\n") + "\n}"
+                            classOrObject.node.replaceWith(
+                                KtPsiFactory.contextual(classOrObject, false).let { factory ->
+                                    when (classOrObject) {
+                                        is KtClass -> factory.createClass(rewrittenText)
+                                        else -> factory.createObject(rewrittenText)
+                                    }
+                                }.node
+                            )
                         }
-                        val lbraceNode = bodyPsi?.node?.findChildByType(org.jetbrains.kotlin.lexer.KtTokens.LBRACE)
-                        val lbraceOffset = lbraceNode?.startOffset ?: classOrObject.node.startOffset
-                        val headerEnd = lbraceOffset - classOrObject.node.startOffset + 1
-                        val header = classOrObject.text.substring(0, headerEnd)
-                        val body = declarations.partition { candidate -> candidate !is KtClass || !candidate.isData() }
-                            .let { (nonData, data) -> nonData + data }
-                            .map(::blockText)
-                            .joinToString("\n\n")
-                        val rewrittenText = "$header\n$body\n}"
-                        classOrObject.node.replaceWith(
-                            KtPsiFactory.contextual(classOrObject, false).let { factory ->
-                                when (classOrObject) {
-                                    is KtClass -> factory.createClass(rewrittenText)
-                                    else -> factory.createObject(rewrittenText)
-                                }
-                            }.node
-                        )
                     }
-                }
+            }
         }
 
         private fun blockText(declaration: KtDeclaration): String =
@@ -103,5 +107,11 @@ class NestedDataClassLast :
                     }
                 }
             }.asReversed() + declaration.text).joinToString("\n").prependIndent("    ")
+
+        private fun containsMultilineRawString(declaration: KtDeclaration): Boolean =
+            declaration.collectDescendantsOfType<KtStringTemplateExpression>().any { template ->
+                template.node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
+                    template.text.contains('\n')
+            }
     }
 }

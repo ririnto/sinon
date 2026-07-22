@@ -15,12 +15,15 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtWhileExpression
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Flags unbraced bodies in `if`, `for`, `while`, and `do-while` control flow; wrap every branch and
- * body in `{ ... }` so structure stays explicit and edits stay safe.
+ * Flags unbraced bodies in `if`, `for`, `while`, and `do-while` control flow.
+ *
+ * Wrap every branch and body in `{ ... }` so structure stays explicit and edits stay safe.
  */
 class ControlFlowBraces :
     Rule(
@@ -43,7 +46,11 @@ class ControlFlowBraces :
             expression.`else`
                 ?.takeIf { elseBranch -> elseBranch !is KtBlockExpression && elseBranch !is KtIfExpression }
                 ?.let { elseBranch ->
-                    if (emit(elseBranch.textOffset, "wrap the `else` branch in `{ ... }`", true) ===
+                    if (emit(
+                            elseBranch.textOffset,
+                            "wrap the `else` branch in `{ ... }`",
+                            !containsMultilineRawString(elseBranch)
+                        ) ==
                         AutocorrectDecision.ALLOW_AUTOCORRECT
                     ) {
                         elseBranch.node.replaceWith(blockNode(elseBranch))
@@ -52,7 +59,11 @@ class ControlFlowBraces :
             expression.then
                 ?.takeIf { thenBranch -> thenBranch !is KtBlockExpression }
                 ?.let { thenBranch ->
-                    if (emit(thenBranch.textOffset, "wrap the `if` branch in `{ ... }`", true) ===
+                    if (emit(
+                            thenBranch.textOffset,
+                            "wrap the `if` branch in `{ ... }`",
+                            !containsMultilineRawString(thenBranch)
+                        ) ==
                         AutocorrectDecision.ALLOW_AUTOCORRECT
                     ) {
                         thenBranch.node.replaceWith(blockNode(thenBranch))
@@ -64,7 +75,11 @@ class ControlFlowBraces :
             super.visitForExpression(expression)
             when (val body = expression.body) {
                 null -> emit(expression.textOffset, "wrap the `for` body in `{ ... }`", false)
-                else -> if (body !is KtBlockExpression && emit(body.textOffset, "wrap the `for` body in `{ ... }`", true) ===
+                else -> if (body !is KtBlockExpression && emit(
+                        body.textOffset,
+                        "wrap the `for` body in `{ ... }`",
+                        !containsMultilineRawString(body)
+                    ) ==
                     AutocorrectDecision.ALLOW_AUTOCORRECT
                 ) {
                     body.node.replaceWith(blockNode(body))
@@ -76,7 +91,11 @@ class ControlFlowBraces :
             super.visitWhileExpression(expression)
             when (val body = expression.body) {
                 null -> emit(expression.textOffset, "wrap the `while` body in `{ ... }`", false)
-                else -> if (body !is KtBlockExpression && emit(body.textOffset, "wrap the `while` body in `{ ... }`", true) ===
+                else -> if (body !is KtBlockExpression && emit(
+                        body.textOffset,
+                        "wrap the `while` body in `{ ... }`",
+                        !containsMultilineRawString(body)
+                    ) ==
                     AutocorrectDecision.ALLOW_AUTOCORRECT
                 ) {
                     body.node.replaceWith(blockNode(body))
@@ -88,7 +107,11 @@ class ControlFlowBraces :
             super.visitDoWhileExpression(expression)
             when (val body = expression.body) {
                 null -> emit(expression.textOffset, "wrap the `do-while` body in `{ ... }`", false)
-                else -> if (body !is KtBlockExpression && emit(body.textOffset, "wrap the `do-while` body in `{ ... }`", true) ===
+                else -> if (body !is KtBlockExpression && emit(
+                        body.textOffset,
+                        "wrap the `do-while` body in `{ ... }`",
+                        !containsMultilineRawString(body)
+                    ) ==
                     AutocorrectDecision.ALLOW_AUTOCORRECT
                 ) {
                     body.node.replaceWith(blockNode(body))
@@ -115,5 +138,13 @@ class ControlFlowBraces :
                 }
             }
         }
+
+        private fun containsMultilineRawString(expression: KtExpression): Boolean =
+            (listOfNotNull(expression as? KtStringTemplateExpression) +
+                expression.collectDescendantsOfType<KtStringTemplateExpression>())
+                .any { template ->
+                    template.node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
+                        template.text.contains('\n')
+                }
     }
 }

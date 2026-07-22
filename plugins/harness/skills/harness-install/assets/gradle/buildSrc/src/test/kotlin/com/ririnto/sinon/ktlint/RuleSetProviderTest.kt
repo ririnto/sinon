@@ -19,6 +19,7 @@ class RuleSetProviderTest {
                 "code:multiline-doc-style",
                 "code:no-import-alias",
                 "code:no-decorative-function-body-blank-lines",
+                "code:no-line-comment",
                 "code:no-regex-constructor",
                 "code:non-null-assertion",
                 "code:public-declaration-doc-comment",

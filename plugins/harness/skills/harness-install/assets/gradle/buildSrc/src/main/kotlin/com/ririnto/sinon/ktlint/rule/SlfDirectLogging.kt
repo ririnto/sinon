@@ -10,13 +10,16 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Flags direct SLF4J logging calls; prefer the fluent SLF4J logging API.
+ * Flags direct SLF4J logging calls.
+ *
+ * Prefer the fluent SLF4J logging API.
  */
 class SlfDirectLogging :
     Rule(
@@ -38,65 +41,63 @@ class SlfDirectLogging :
                 ktFile.accept(
                     DirectLoggingVisitor(
                         loggerNames =
-                            loggerNames(
-                                ktFile = ktFile,
-                                loggerImported =
-                                    ktFile.importDirectives.any { directive ->
-                                        directive.importPath?.pathStr == "org.slf4j.Logger" ||
-                                            directive.importPath?.pathStr == "org.slf4j.*"
-                                    },
-                                loggerFactoryImported = loggerFactoryImported
-                            ),
+                            buildSet {
+                                val loggerImported = ktFile.importDirectives.any { directive ->
+                                    directive.importPath?.pathStr == "org.slf4j.Logger" ||
+                                        directive.importPath?.pathStr == "org.slf4j.*"
+                                }
+                                ktFile.collectDescendantsOfType<KtProperty>().forEach { property ->
+                                    property.name
+                                        ?.takeIf {
+                                            when (property.typeReference?.text) {
+                                                "org.slf4j.Logger" -> true
+                                                "Logger" -> loggerImported
+                                                else -> false
+                                            } ||
+                                                property.initializer
+                                                    ?.collectDescendantsOfType<KtCallExpression>()
+                                                    ?.any { callExpression ->
+                                                        (callExpression.calleeExpression as? KtNameReferenceExpression)
+                                                            ?.getReferencedName() == "getLogger" &&
+                                                            when ((callExpression.parent as? KtDotQualifiedExpression)
+                                                                ?.receiverExpression?.text) {
+                                                                "org.slf4j.LoggerFactory" -> true
+                                                                "LoggerFactory" -> loggerFactoryImported
+                                                                else -> false
+                                                            }
+                                                    } == true
+                                        }?.let(::add)
+                                }
+                                ktFile.collectDescendantsOfType<KtParameter>().forEach { parameter ->
+                                    parameter.name
+                                        ?.takeIf {
+                                            parameter.hasValOrVar() &&
+                                                when (parameter.typeReference?.text) {
+                                                    "org.slf4j.Logger" -> true
+                                                    "Logger" -> loggerImported
+                                                    else -> false
+                                                }
+                                        }?.let(::add)
+                                }
+                                ktFile.collectDescendantsOfType<KtNamedFunction>()
+                                    .flatMap { function -> function.valueParameters }
+                                    .forEach { parameter ->
+                                        parameter.name
+                                            ?.takeIf {
+                                                when (parameter.typeReference?.text) {
+                                                    "org.slf4j.Logger" -> true
+                                                    "Logger" -> loggerImported
+                                                    else -> false
+                                                }
+                                            }?.let(::add)
+                                    }
+                            },
                         loggerFactoryImported = loggerFactoryImported,
                         emit = emit
                     )
                 )
             }
     }
-
-    private fun loggerNames(
-        ktFile: KtFile,
-        loggerImported: Boolean,
-        loggerFactoryImported: Boolean
-    ): Set<String> =
-        buildSet {
-            ktFile.collectDescendantsOfType<KtProperty>().forEach { property ->
-                property.name
-                    ?.takeIf {
-                        when (property.typeReference?.text) {
-                            "org.slf4j.Logger" -> true
-                            "Logger" -> loggerImported
-                            else -> false
-                        } ||
-                            property.initializer
-                                ?.collectDescendantsOfType<KtCallExpression>()
-                                ?.any { callExpression ->
-                                    (callExpression.calleeExpression as? KtNameReferenceExpression)
-                                        ?.getReferencedName() == "getLogger" &&
-                                        when (
-                                            (callExpression.parent as? KtDotQualifiedExpression)
-                                                ?.receiverExpression
-                                                ?.text
-                                        ) {
-                                            "org.slf4j.LoggerFactory" -> true
-                                            "LoggerFactory" -> loggerFactoryImported
-                                            else -> false
-                                        }
-                                } == true
-                    }?.let(::add)
-            }
-            ktFile.collectDescendantsOfType<KtParameter>().forEach { parameter ->
-                parameter.name
-                    ?.takeIf {
-                        parameter.hasValOrVar() &&
-                            when (parameter.typeReference?.text) {
-                                "org.slf4j.Logger" -> true
-                                "Logger" -> loggerImported
-                                else -> false
-                            }
-                    }?.let(::add)
-            }
-        }
 
     private class DirectLoggingVisitor(
         private val loggerNames: Set<String>,
