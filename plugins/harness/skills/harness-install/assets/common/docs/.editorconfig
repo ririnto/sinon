@@ -1,9 +1,0 @@
-root = false
-
-[*]
-charset = utf-8
-ij_continuation_indent_size = 4
-
-[{*.markdown,*.md}]
-indent_size = 2
-max_line_length = unset

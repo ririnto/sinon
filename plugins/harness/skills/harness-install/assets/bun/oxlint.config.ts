@@ -4,7 +4,7 @@ import core from "ultracite/oxlint/core";
 export default defineConfig({
   extends: [core],
   ignorePatterns: core.ignorePatterns,
-  jsPlugins: ["./scripts/tsdoc-plugin.ts"],
+  jsPlugins: ["./plugins/style-plugin.ts", "./plugins/tsdoc-plugin.ts"],
   overrides: [
     {
       files: ["**/*.{js,jsx,mjs,cjs}"],
@@ -19,6 +19,12 @@ export default defineConfig({
     }
   ],
   rules: {
-    "tsdoc/require-export-tsdoc": "deny"
+    "style/no-blank-lines-in-functions": "deny",
+    "style/no-inline-comments-in-functions": "deny",
+    "tsdoc/require-export-tsdoc": "deny",
+    "typescript/consistent-type-imports": [
+      "error",
+      { fixStyle: "separate-type-imports", prefer: "type-imports" }
+    ]
   }
 });

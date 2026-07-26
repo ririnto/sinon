@@ -13,6 +13,7 @@ class RuleSetProviderTest {
                 "code:control-flow-braces",
                 "code:explicit-function-return-type",
                 "code:explicit-property-type",
+                "code:explicit-unit-branch",
                 "code:implicit-lambda-it",
                 "code:import-over-fqn",
                 "code:leading-underscore",
