@@ -13,16 +13,12 @@ This document describes repository surface categories and representative runtime
 
 ```text
 ./
-+-- AGENTS.md
-+-- CLAUDE.md            (imports AGENTS.md)
 +-- ARCHITECTURE.md
-+-- WORKFLOW.md
++-- CONTRIBUTING.md
 +-- .gitignore
 +-- .worktreeinclude
 +-- .mcp.json
 +-- .markdownlint-cli2.jsonc
-+-- .codegraph/
-|   +-- .gitignore
 +-- .claude/
 |   +-- settings.json
 |   +-- skills/
@@ -30,8 +26,6 @@ This document describes repository surface categories and representative runtime
 |       |   +-- SKILL.md
 |       +-- issue-mining/
 |           +-- SKILL.md
-+-- .agents/
-|   +-- skills/         -> .claude/skills/
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -53,7 +47,7 @@ This document describes repository surface categories and representative runtime
 |   +-- QUALITY_SCORE.md
 |   +-- RELIABILITY.md
 |   +-- SECURITY.md
-+-- scripts/
++-- rules/
     +-- no-box-drawing.ts
     +-- exec-plan-links.ts
 ```
@@ -62,17 +56,16 @@ This document describes repository surface categories and representative runtime
 
 - `.claude/skills/` contains `autonomous-execution` and `issue-mining`.
 Each `SKILL.md` owns its named workflow.
-- `.agents/skills/` links to `.claude/skills/` so hosts without a Claude-style skill loader read the same skills as plain documents.
 - Runtime assets include project skills, target policy, and host-provided native agents.
-- `WORKFLOW.md` owns target orchestration, review, validation, and completion policy.
-- The installer always copies one target-facing `WORKFLOW.md`.
-- `--ci-host` selects CI files only.
-- Existing target workflow variants remain unmanaged and unchanged.
+- `CONTRIBUTING.md` owns the shared contribution lifecycle, validation, review, handoff, and approval-gated remote effects.
+- `rules/` holds the custom markdownlint rules referenced by `.markdownlint-cli2.jsonc`.
+- A selected environment bundle may add `.github/` or `.gitlab/` resources.
+- Environment CI resources remain inert until the selected tool configuration activates them.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
-- `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
 - `.worktreeinclude` lists portable gitignored local inputs for worktrees.
 - `.claude/settings.json` is a host adapter: it wires stack worktree setup for Claude Code only.
-Other hosts run the same setup commands through their own configuration or manually; the workflow does not depend on this adapter.
+  Other hosts run the same setup commands through their own configuration or manually.
+  The workflow does not depend on this adapter.
 
 ## Worktree Setup
 

@@ -3,27 +3,30 @@
   "private": true,
   "workspaces": {
     "catalog": {
-      "@oxc-project/types": "^0.139.0",
+      "@oxc-project/types": "^0.141.0",
       "@tsconfig/node-lts": "^24.0.0",
       "bun-types": "^1.3.14",
       "husky": "^9.1.7",
-      "markdownlint": "^0.41.0",
-      "markdownlint-cli2": "^0.23.0",
+      "markdownlint": "^0.41.1",
+      "markdownlint-cli2": "^0.23.1",
       "npm-run-all2": "^9.0.2",
-      "oxfmt": "^0.58.0",
-      "oxlint": "^1.73.0",
+      "oxfmt": "^0.60.0",
+      "oxlint": "^1.75.0",
       "typescript": "^7.0.2",
-      "ultracite": "^7.9.3"
+      "ultracite": "^7.9.4"
     }
   },
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
-    "check:authoring-assets": "bun test scripts/authoring-assets.test.ts scripts/harness-atomic-write.permissions.test.ts scripts/harness-atomic-write.test.ts scripts/harness-install.test.ts scripts/sdd-assets.test.ts",
+    "check:authoring-hooks": "bun test scripts/tests/authoring/hooks.test.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:sdd-dispatch": "bun test scripts/tests/sdd/dispatch.test.ts",
+    "check:sdd-validation": "bun test scripts/tests/sdd/validation.test.ts",
+    "check:sdd-get-frontmatter": "bun test scripts/tests/sdd/get-frontmatter.test.ts",
+    "check:sdd-list-frontmatter": "bun test scripts/tests/sdd/list-frontmatter.test.ts",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
-    "check:version-policy": "bun test scripts/version-policy.test.ts",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "fix:ultracite": "ultracite fix",

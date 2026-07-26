@@ -96,6 +96,13 @@ class ExplicitFunctionReturnTypeTest {
     }
 
     @Test
+    fun ignoresExplicitKotlinUnitExpressionBodyWithSpacesAroundDot() {
+        val source = "fun noop() = kotlin . Unit\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
+    }
+
+    @Test
     fun stripsExplicitUnitReturnTypeFromExpressionBody() {
         val source = "fun noop(): Unit = Unit\n"
         val expected = "fun noop() = Unit\n"
@@ -112,6 +119,23 @@ class ExplicitFunctionReturnTypeTest {
         assertTrue(RuleTestSupport.lintRule(ruleProvider, source).single().canBeAutoCorrected)
         assertEquals(expected, RuleTestSupport.formatRule(ruleProvider, source))
         assertTrue(RuleTestSupport.lintRule(ruleProvider, expected).isEmpty())
+    }
+
+    @Test
+    fun ignoresQualifiedNonKotlinUnitReturnType() {
+        val source = "fun noop(): other.kotlin.Unit {}\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
+        assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun stripsExplicitKotlinUnitReturnTypeWithSpacesAroundDot() {
+        val source = "fun noop(): kotlin . Unit {}\n"
+        val expected = "fun noop() {}\n"
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, source).single().canBeAutoCorrected)
+        assertEquals(expected, RuleTestSupport.formatRule(ruleProvider, source))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, expected).isEmpty())
+        assertEquals(expected, RuleTestSupport.formatRule(ruleProvider, expected))
     }
 
     @Test

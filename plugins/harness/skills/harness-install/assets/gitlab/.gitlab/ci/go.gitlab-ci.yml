@@ -1,0 +1,17 @@
+stages:
+  - validate
+
+golangci-lint:
+  stage: validate
+  image: golang:1.26
+  before_script:
+    - |-
+      install_dir="${CI_PROJECT_DIR}/.bin"
+      mkdir -p "${install_dir}"
+      export GOBIN="${install_dir}"
+      go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+      go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260721205819-4a0f7653488a
+      go install github.com/go-task/task/v3/cmd/task@v3.52.0
+  script:
+    - export PATH="${CI_PROJECT_DIR}/.bin:${PATH}"
+    - task check

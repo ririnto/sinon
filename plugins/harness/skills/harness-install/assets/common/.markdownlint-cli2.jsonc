@@ -17,10 +17,7 @@
     "docs/no-box-drawing": true,
     "docs/exec-plans/links": true
   },
-  "customRules": [
-    "./scripts/no-box-drawing.ts",
-    "./scripts/exec-plan-links.ts"
-  ],
+  "customRules": ["./rules/no-box-drawing.ts", "./rules/exec-plan-links.ts"],
   "gitignore": ".gitignore",
   "globs": ["**/*.md"]
 }

@@ -95,4 +95,113 @@ class SlfDirectLoggingTest {
     fun unrelatedReceiverIsSafe() {
         assertTrue(RuleTestSupport.lintRule(ruleProvider, "fun log() = other.info(\"message\")\n").isEmpty())
     }
+
+    @Test
+    fun nullableSafeCallLoggerParameterIsFlagged() {
+        val errors = RuleTestSupport.lintRule(
+            ruleProvider,
+            """
+            import org.slf4j.Logger
+
+            fun log(logger: Logger?) {
+                logger?.info("message")
+            }
+            """.trimIndent() + "\n"
+        )
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+    }
+
+    @Test
+    fun nonNullAssertedLoggerParameterIsFlagged() {
+        val errors = RuleTestSupport.lintRule(
+            ruleProvider,
+            """
+            import org.slf4j.Logger
+
+            fun log(logger: Logger?) {
+                logger!!.info("message")
+            }
+            """.trimIndent() + "\n"
+        )
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+    }
+
+    @Test
+    fun nullableFullyQualifiedLoggerParameterIsFlagged() {
+        val errors = RuleTestSupport.lintRule(
+            ruleProvider,
+            """
+            fun log(logger: org.slf4j.Logger?) {
+                logger?.info("message")
+            }
+            """.trimIndent() + "\n"
+        )
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+    }
+
+    @Test
+    fun spacedFullyQualifiedNullableLoggerParameterIsFlagged() {
+        val errors = RuleTestSupport.lintRule(
+            ruleProvider,
+            """
+            fun log(logger: org . slf4j . Logger?) {
+                logger?.info("message")
+            }
+            """.trimIndent() + "\n"
+        )
+        assertEquals(1, errors.size)
+        assertFalse(errors.single().canBeAutoCorrected)
+    }
+
+    @Test
+    fun deeperQualifiedNullableLoggerParameterIsSafe() {
+        val errors = RuleTestSupport.lintRule(
+            ruleProvider,
+            """
+            fun log(logger: other.org.slf4j.Logger?) {
+                logger?.info("message")
+            }
+            """.trimIndent() + "\n"
+        )
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
+    fun unrelatedNullableSafeCallIsSafe() {
+        assertTrue(
+            RuleTestSupport.lintRule(
+                ruleProvider,
+                """
+                class Service {
+                    fun info(message: String) {}
+                }
+
+                fun log(service: Service?) {
+                    service?.info("message")
+                }
+                """.trimIndent() + "\n"
+            ).isEmpty()
+        )
+    }
+
+    @Test
+    fun unrelatedNonNullAssertedReceiverIsSafe() {
+        assertTrue(
+            RuleTestSupport.lintRule(
+                ruleProvider,
+                """
+                class Service {
+                    fun info(message: String) {}
+                }
+
+                fun log(service: Service?) {
+                    service!!.info("message")
+                }
+                """.trimIndent() + "\n"
+            ).isEmpty()
+        )
+    }
 }

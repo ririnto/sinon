@@ -31,11 +31,10 @@ The caller supplies:
 
 ## Process
 
-1. Read the nearest repository rules for the requested scope.
-2. Search only the supplied scope and the minimum linked files needed to answer the inventory question.
-3. Record exact paths and concise evidence.
-4. Separate confirmed inventory from missing, ambiguous, or inaccessible items.
-5. Stop when evidence would require design judgment or file mutation.
+1. Search only the supplied scope and the minimum linked files needed to answer the inventory question.
+2. Record exact paths and concise evidence.
+3. Separate confirmed inventory from missing, ambiguous, or inaccessible items.
+4. Stop when evidence would require design judgment or file mutation.
 
 ## Boundaries
 

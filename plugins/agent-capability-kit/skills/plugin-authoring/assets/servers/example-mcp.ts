@@ -1,6 +1,3 @@
-#!/usr/bin/env bun
-// -*- coding: utf-8 -*-
-
 import { createInterface } from "node:readline";
 
 type JsonValue =

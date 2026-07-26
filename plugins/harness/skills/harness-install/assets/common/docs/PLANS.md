@@ -5,7 +5,7 @@
 `PLANS.md` is the project-wide development plan.
 It covers the long-horizon roadmap, milestone-level scope, target outcomes per milestone, and sequencing rationale.
 It documents *what* the project intends to build and in what order.
-`WORKFLOW.md` documents *how* work moves through the repository.
+`CONTRIBUTING.md` documents how work moves through the repository.
 This is not a list of currently in-flight tasks.
 Those are maintained in `docs/exec-plans/` with execution status metadata.
 It is not a tech-debt tracker.
@@ -13,7 +13,8 @@ That lives at `docs/exec-plans/tech-debt-tracker.md`.
 
 ## Roadmap
 
-Replace the example milestones below with your own; keep the columns and status values.
+Replace the example milestones below with your own.
+Keep the columns and status values.
 
 | Milestone | Target outcome | Status | Owner | Notes |
 | --- | --- | --- | --- | --- |

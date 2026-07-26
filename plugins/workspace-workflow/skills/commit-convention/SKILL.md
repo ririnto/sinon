@@ -31,7 +31,7 @@ It does not cover:
     - MUST NOT exceed 72 characters.
 - If a commit has a body, it MUST begin with a blank line after the subject.
 - Body lines SHOULD wrap at 72 characters to ensure readability in terminal and email contexts.
-- Commit messages SHOULD be written in English by default, or in the language of the project documentation and team communication (per `AGENTS.md`).
+- Commit messages SHOULD be written in English by default, or in the language specified by project documentation and team communication.
   - Consistency within a single commit MUST be maintained.
 - Code identifiers, CLI tool names, and file paths MUST retain their original form regardless of the surrounding language.
 - The commit type, scope, and breaking-change marker MUST follow the Conventional Commits format specification.
@@ -62,8 +62,6 @@ A Conventional Commit has the structure:
   - No trailing period.
   - Lowercase preferred.
 - `body` (optional but recommended for non-trivial changes): Explains context, motivation, or design decisions.
-  - The diff explains what.
-    - The body explains why.
 - `footers` (optional): Issue references, co-authors, or breaking-change details.
   - Format: `Token: value` on separate lines.
 
@@ -189,7 +187,8 @@ Example: if a refactor touches the entire codebase, omit scope and explain in th
 refactor: modernize async patterns throughout codebase
 
 Migrated all Promise-based patterns to async/await for consistency.
-No behavior change; all tests pass.
+No behavior changed.
+All tests pass.
 ```
 
 ## When to Split a Commit

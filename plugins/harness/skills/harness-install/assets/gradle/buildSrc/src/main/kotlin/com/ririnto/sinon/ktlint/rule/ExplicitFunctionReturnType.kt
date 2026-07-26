@@ -11,9 +11,14 @@ import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
@@ -40,7 +45,7 @@ class ExplicitFunctionReturnType :
                         null -> {
                             if (!function.hasBlockBody()) {
                                 val body = function.bodyExpression
-                                if (body !== null && (body is KtStringTemplateExpression || body is KtConstantExpression || (body.text != "Unit" && body.text != "kotlin.Unit"))) {
+                                if (body !== null && (body is KtStringTemplateExpression || body is KtConstantExpression || !isUnitExpression(body))) {
                                     val modifierList = function.modifierList
                                     val typeName = if (modifierList?.hasModifier(KtTokens.OVERRIDE_KEYWORD) == true ||
                                         modifierList?.hasModifier(KtTokens.EXTERNAL_KEYWORD) == true ||
@@ -92,14 +97,10 @@ class ExplicitFunctionReturnType :
                                             if (eqNode !== null) {
                                                 val currentText = function.text
                                                 val eqIndex = eqNode.startOffset - function.node.startOffset
-                                                var insertPos = eqIndex
-                                                while (0 < insertPos && currentText[insertPos - 1].isWhitespace()) {
-                                                    insertPos--
-                                                }
                                                 function.node.replaceWith(
                                                     KtPsiFactory.contextual(function, false)
                                                         .createFunction(
-                                                            "${currentText.substring(0, insertPos)}: $type ${currentText.substring(eqIndex)}"
+                                                            "${currentText.substring(0, findInsertionPosition(currentText, eqIndex))}: $type ${currentText.substring(eqIndex)}"
                                                         )
                                                         .node
                                                 )
@@ -110,38 +111,83 @@ class ExplicitFunctionReturnType :
                             }
                         }
                         else -> {
-                            if (typeReference.text == Unit::class.simpleName || typeReference.text == "kotlin.Unit") {
+                            if (isUnitTypeReference(typeReference)) {
                                 emit(
                                     typeReference.textOffset,
                                     "omit the redundant `Unit` return type on named function `$functionName`",
                                     true
                                 ).ifAutocorrectAllowed {
                                     val functionNode = function.node
-                                    val nodesToRemove = buildList {
-                                        var current: ASTNode? = typeReference.node
-                                        while (current !== null) {
-                                            add(current)
-                if (current.elementType == KtTokens.COLON) {
-                                                break
-                                            }
-                                            current = current.treePrev
-                                        }
-                                    }
-                                    val whitespaceNodes = buildList {
-                                        var ws = nodesToRemove.lastOrNull()?.treePrev
-                                        while (ws?.text?.all { char -> char.isWhitespace() } == true) {
-                                            add(ws)
-                                            ws = ws.treePrev
-                                        }
-                                    }
+                                    val nodesToRemove = collectNodesThroughColon(typeReference.node)
+                                    val whitespaceNodes = collectWhitespaceNodes(nodesToRemove.lastOrNull()?.treePrev)
                                     nodesToRemove.asReversed().forEach { node -> functionNode.removeChild(node) }
-                                    whitespaceNodes.asReversed().forEach { node -> functionNode.removeChild(node) }
+                                    whitespaceNodes
+                                        .asReversed()
+                                        .forEach { node -> functionNode.removeChild(node) }
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private tailrec fun collectNodesThroughColon(
+        current: ASTNode?,
+        collected: List<ASTNode> = emptyList()
+    ): List<ASTNode> =
+        when {
+            current === null -> collected
+            current.elementType == KtTokens.COLON -> collected + current
+            else -> collectNodesThroughColon(current.treePrev, collected + current)
+        }
+
+    private tailrec fun collectWhitespaceNodes(
+        current: ASTNode?,
+        collected: List<ASTNode> = emptyList()
+    ): List<ASTNode> =
+        when {
+            current === null -> collected
+            current.text.all { character -> character.isWhitespace() } ->
+                collectWhitespaceNodes(current.treePrev, collected + current)
+            else -> collected
+        }
+
+    private tailrec fun findInsertionPosition(text: String, position: Int): Int =
+        when (0 < position && text[position - 1].isWhitespace()) {
+            true -> findInsertionPosition(text, position - 1)
+            else -> position
+        }
+
+    private fun isUnitExpression(expression: KtExpression): Boolean = when (expression) {
+        is KtNameReferenceExpression -> {
+            expression.getReferencedName() == "Unit"
+        }
+
+        is KtDotQualifiedExpression -> {
+            (expression.receiverExpression as? KtNameReferenceExpression)?.getReferencedName() == "kotlin" &&
+                (expression.selectorExpression as? KtNameReferenceExpression).getReferencedName() == "Unit"
+        }
+
+        else -> false
+    }
+
+    private fun isUnitTypeReference(typeReference: KtTypeReference): Boolean {
+        val userType = typeReference.typeElement as? KtUserType
+        val referenceExpression = userType?.referenceExpression
+        val qualifier = userType?.qualifier
+        return when {
+            referenceExpression !is KtNameReferenceExpression -> false
+            referenceExpression.getReferencedName() != "Unit" -> false
+            qualifier === null -> true
+            qualifier is KtUserType -> {
+                val qualifierReferenceExpression = qualifier.referenceExpression
+                qualifier.qualifier === null &&
+                    qualifierReferenceExpression is KtNameReferenceExpression &&
+                    qualifierReferenceExpression.getReferencedName() == "kotlin"
+            }
+            else -> false
         }
     }
 }

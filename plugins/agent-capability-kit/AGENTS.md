@@ -1,7 +1,5 @@
 # Repository Guidelines
 
-This file applies to shared agents and Agent Skills in `plugins/agent-capability-kit/`.
-It overrides broader plugin guidance.
 Keep published agents in this plugin's `agents/` directory.
 
 ## Project Structure
@@ -28,8 +26,5 @@ Do not add a general orchestrator profile or child-delegation tools to installab
 Read-only roles expose no mutation tools.
 Open the authoring skill when tool boundaries, frontmatter, or host behavior needs detailed guidance.
 
-## Scope and Precedence
-
 Do not duplicate agent inventories or current model catalogs here.
 The authoring skills own runtime field guidance.
-A closer skill instruction or component README controls its subtree when it differs from this file.

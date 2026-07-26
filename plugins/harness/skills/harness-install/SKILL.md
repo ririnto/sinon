@@ -1,55 +1,93 @@
 ---
 name: harness-install
 description: >-
-  Install packaged Harness assets in a target repository.
-  Use when setting up target contracts, docs, project skills, stack validation, optional CI files, or inactive Git hook templates.
+  Compose complete Harness resource bundles into a target repository.
+  Use when setting up common repository resources, one tool, and optional GitHub or GitLab configuration.
 ---
 
 # Harness Install
 
-Install one explicit stack mode into a target repository and use the canonical validation command printed by the installer.
+Compose packaged resource bundles directly into a target repository.
+Do not run a setup program and do not select individual files inside a chosen bundle.
 
-## First Safe Checks
+## Required Choices
 
-1. Run `git status --short` in the target. If it is dirty, stop unless the user explicitly accepts mixing installation with existing changes.
-2. Confirm the target path, `--mode`, and required `--ci-host` value.
-3. Inspect existing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, and `WORKFLOW.md` before installing into an existing repository.
-4. Obtain explicit approval before using `--force` or `--activate-hooks`.
+Obtain these inputs before changing the target:
 
-## Procedure
+1. The target repository path.
+2. Exactly one tool: `bun`, `gradle`, `maven`, `shell`, `uv`, `go`, or `rust`.
+3. Environments: `github`, `gitlab`, both, or neither.
 
-1. Choose `gradle`, `maven`, `uv`, `bun`, or `shell`. The installer does not auto-detect.
-2. Choose `github`, `gitlab`, `both`, or `none` for `--ci-host`. The flag controls CI assets only; every choice installs the same target `WORKFLOW.md`.
-3. Preview the installation when target paths already exist:
+Resolve the resource root from the installed plugin:
 
-    ```sh
-    "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.ts" \
-      --target /path/to/target-repo --mode bun --ci-host github --preview
-    ```
+```text
+${CLAUDE_PLUGIN_ROOT}/skills/harness-install/assets
+```
 
-4. Run the full installer without `--preview`.
-5. Run the printed canonical validation command from the target root.
-6. Inspect written, kept, and conflicting files. Report target-specific placeholders separately from successful installation.
+## Safety Check
 
-## Decisions
+Inspect the target worktree before copying.
+If it is dirty, stop unless the user explicitly accepts mixing these changes with existing work.
+Do not overwrite credentials, local configuration, caches, vendored files, or differing target content without explicit approval.
 
-- Use `--force` only to replace approved conflicting content.
-- Use `--only <path>` to install one selected target path.
-- Use `--activate-hooks` only on a full install with approval. It validates copied `.githooks/pre-commit` and `.githooks/pre-push`, then sets local `core.hooksPath`.
-- If the chosen CI host is `none`, no CI file is installed. When CI files exist, they MUST use the printed canonical check command.
+## Bundle Composition
 
-## Output Contract
+Copy complete bundle trees in this order while preserving relative paths, dotfiles, and executable modes:
 
+1. Every child resource from `common/`.
+2. Every child resource from the selected tool bundle.
+3. Every child resource from each selected environment bundle.
+
+For Gradle with GitHub, this means copying all of `common/`, all of `gradle/`, and all of `github/`.
+Do not filter files by name, extension, path, or repository state.
+
+For every source path:
+
+- Create it when the target path is absent.
+- Keep it when the target bytes match.
+- Preserve and report it when the target differs.
+- Replace differing content only after explicit user approval.
+
+`common/` MUST NOT provide root `AGENTS.md` or `CLAUDE.md`.
+The selected tool bundle owns both root instruction files.
+
+## Environment Configuration
+
+Environment bundles copy all of their resources before configuration.
+The CI definitions remain inert at their packaged locations until the selected tool is activated.
+
+### GitHub
+
+Copy the selected tool resource from `.github/ci/<tool>.yaml` to `.github/workflows/<tool>.yaml`.
+Leave the packaged resources under `.github/ci/` available as the environment catalog.
+
+### GitLab
+
+Create the target root `.gitlab-ci.yml` with an include for the selected tool resource:
+
+```yaml
+include:
+  - local: .gitlab/ci/<tool>.gitlab-ci.yml
+```
+
+Leave all packaged resources under `.gitlab/ci/` in place.
+
+When both environments are selected, configure both surfaces.
+When neither is selected, do not add an environment bundle.
+
+## Tool Configuration
+
+Read the copied root `AGENTS.md` from the selected tool bundle.
+Follow its native setup, hook, fix, and validation guidance.
+Do not invent a shared command layer across tools.
+
+## Completion
+
+Inspect the complete target diff and run the selected tool's documented validation.
 Report:
 
-- `mode` and `ci host`.
-- `installer command`.
-- `files`: written, kept, and conflicts.
-- `hooks`: inactive or explicitly activated.
-- `validation`: command and result.
-- `target follow-up`: placeholders, seed content, or CI policy decisions.
-
-## Support Files
-
-- Open `references/rule-interface.md` only when changing a stack validator, fix command, hook command, CI command, or native rule.
-- Target-facing runtime assets live in `assets/`; edit them only for plugin-default changes, not one target's local evolution.
+- target path, selected tool, and selected environments
+- complete bundles copied
+- files written, kept, conflicted, or replaced with approval
+- GitHub or GitLab CI resources activated
+- tool setup and validation results

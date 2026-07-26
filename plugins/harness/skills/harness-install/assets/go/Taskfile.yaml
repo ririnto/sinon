@@ -1,0 +1,47 @@
+# Requires Task v3.52.0.
+version: "3"
+
+tasks:
+  fmt:
+    desc: Format Go source and imports via golangci-lint fmt
+    cmds:
+      - golangci-lint fmt
+
+  fmt-check:
+    desc: Check Go source and import formatting
+    cmds:
+      - golangci-lint fmt --diff
+
+  lint:
+    desc: Run golangci-lint v2
+    cmds:
+      - golangci-lint run
+
+  nilaway:
+    desc: Run module-scoped NilAway
+    cmds:
+      - nilaway -include-pkgs="$(go list -m)" ./...
+
+  test:
+    desc: Run shuffled tests without the race detector
+    cmds:
+      - go test -shuffle=on -count=1 ./...
+
+  test-race:
+    desc: Run shuffled tests with the race detector
+    cmds:
+      - go test -race -shuffle=on -count=1 ./...
+
+  fix:
+    desc: Apply formatting then safe lint fixes
+    cmds:
+      - golangci-lint fmt
+      - golangci-lint run --fix
+
+  check:
+    desc: Run every repository gate
+    deps:
+      - fmt-check
+      - lint
+      - nilaway
+      - test-race

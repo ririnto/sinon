@@ -56,7 +56,8 @@ plugins/spec-driven-development/
         |   +-- review-checklist.md
         |   +-- examples/
         +-- scripts/
-        |   +-- sdd.ts          # Single CLI entrypoint and Bun toolkit
+        |   +-- sdd.ts          # Thin Bun/shebang CLI entrypoint
+        |   +-- sdd/            # Modular runtime source and command modules
         +-- assets/
         |   +-- templates/
         |   +-- schemas/
@@ -68,6 +69,7 @@ plugins/spec-driven-development/
 - The plugin ships one reusable skill under `skills/`.
 - `agents/` contains the Claude-facing agent trigger surface.
 - `skills/spec-driven-development/scripts/sdd.ts` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
+- The entrypoint delegates runtime work to modular source under `skills/spec-driven-development/scripts/sdd/`, including command modules.
 - `assets/templates/` contains scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `CHANGELOG.md`, and openapi.yaml.
 - `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
 
@@ -81,9 +83,10 @@ plugins/spec-driven-development/
 ## Offline-Capable Runtime
 
 The packaged skill is usable offline when [Bun](https://bun.sh/) is installed on the host.
-`skills/spec-driven-development/scripts/sdd.ts` uses a Bun shebang and Bun's built-in TypeScript runtime.
+`skills/spec-driven-development/scripts/sdd.ts` is a thin Bun/shebang entrypoint that delegates to modular source under `skills/spec-driven-development/scripts/sdd/`.
 
-Maintainers update the runtime by editing `skills/spec-driven-development/scripts/sdd.ts`.
+Maintainers update runtime source under `skills/spec-driven-development/scripts/sdd/`.
+The entrypoint remains the sole CLI surface.
 
 ## Installation
 

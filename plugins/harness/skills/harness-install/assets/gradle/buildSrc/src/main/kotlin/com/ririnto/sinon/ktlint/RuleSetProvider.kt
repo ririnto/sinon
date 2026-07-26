@@ -6,6 +6,7 @@ import com.ririnto.sinon.ktlint.rule.CompanionObjectPosition
 import com.ririnto.sinon.ktlint.rule.ComparisonDirection
 import com.ririnto.sinon.ktlint.rule.ControlFlowBraces
 import com.ririnto.sinon.ktlint.rule.DecorativeFunctionBodyBlankLines
+import com.ririnto.sinon.ktlint.rule.ExplicitUnitBranch
 import com.ririnto.sinon.ktlint.rule.ExplicitFunctionReturnType
 import com.ririnto.sinon.ktlint.rule.ExplicitPropertyType
 import com.ririnto.sinon.ktlint.rule.ImplicitLambdaIt
@@ -51,6 +52,7 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
             RuleProvider { ExplicitFunctionReturnType() },
             RuleProvider { NestedDataClassLast() },
             RuleProvider { NoImportAlias() },
-            RuleProvider { NoLineComment() }
+            RuleProvider { NoLineComment() },
+            RuleProvider { ExplicitUnitBranch() }
         )
 }

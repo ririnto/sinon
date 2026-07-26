@@ -1,6 +1,3 @@
-#!/usr/bin/env bun
-// -*- coding: utf-8 -*-
-
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 

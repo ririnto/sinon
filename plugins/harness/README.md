@@ -1,89 +1,73 @@
 ---
 description: >-
-  Overview of the Harness plugin for installing and evolving repository harness assets.
+  Overview of the Harness plugin for composing repository resource bundles.
 ---
 
 # Harness
 
-Harness installs repository scaffolding for agent-assisted development.
-It packages target-owned files only under `skills/harness-install/assets/`.
+Harness provides agent-readable guidance and packaged resource bundles for repository setup.
+It does not ship or run a setup program.
 
 ## Setup
 
-Register the marketplace, then install Harness:
+Register the marketplace and install Harness:
 
 ```sh
 claude plugin marketplace add /path/to/sinon
 claude plugin install harness@sinon
 ```
 
-Use an installed skill or run the installer from the plugin root. Choose one mode and one CI host explicitly:
+Ask an agent to use `harness-install` with one tool and zero or more repository environments.
+The skill composes complete resource bundles into the target repository.
 
-```sh
-"${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.ts" \
-  --target /path/to/target-repo \
-  --mode bun \
-  --ci-host github
-```
+## Bundle Model
 
-`--mode` MUST be one of `bun`, `gradle`, `maven`, `shell`, or `uv`.
-`--ci-host` MUST be one of `github`, `gitlab`, `both`, or `none`.
-Run `--preview` before installing into a repository that already contains target paths.
+Every composition starts with the complete `common/` bundle.
+Choose exactly one tool bundle:
+
+- `bun`
+- `gradle`
+- `maven`
+- `shell`
+- `uv`
+- `go`
+- `rust`
+
+Choose `github`, `gitlab`, both environments, or neither.
+For example, Gradle with GitHub places every child resource from `common/`, `gradle/`, and `github/`.
+Chosen bundles are copied as complete trees without file-level selection.
+
+`common/` contains only resources shared by every target.
+It does not contain root `AGENTS.md` or `CLAUDE.md`; the selected tool bundle owns those target instructions.
+
+Environment bundles keep CI definitions inert until the agent configures the selected tool:
+
+- `github/.github/ci/<tool>.yaml`
+- `gitlab/.gitlab/ci/<tool>.gitlab-ci.yml`
 
 ## Skills
 
 | Skill | Use |
 | --- | --- |
-| `harness-install` | Install packaged target assets. |
-| `harness-evolve` | Report how one target or future defaults should change. |
-
-Installed targets also receive `autonomous-execution` and `issue-mining` under `.claude/skills/`, mirrored at `.agents/skills/` for hosts without a Claude-style skill loader.
-They work from their own instructions; a target `WORKFLOW.md` may add local constraints.
+| `harness-install` | Compose common, tool, and environment bundles into a target. |
+| `harness-evolve` | Assess changes to an installed target or future bundle defaults. |
 
 ## Package Inventory
 
 - `.claude-plugin/plugin.json`: plugin metadata.
-- `skills/harness-install/`: installer, packaged target assets, and stack adapters.
+- `skills/harness-install/SKILL.md`: bundle composition and configuration procedure.
+- `skills/harness-install/assets/common/`: resources shared by every target.
+- `skills/harness-install/assets/{tool}/`: tool-owned configuration and root guidance.
+- `skills/harness-install/assets/github/`: GitHub templates and inert CI resources.
+- `skills/harness-install/assets/gitlab/`: GitLab templates and inert CI resources.
 - `skills/harness-evolve/`: report-first evolution guidance.
 
-The installer writes target contracts, docs, project skills, selected stack validation assets, optional CI assets, and inactive `.githooks/` templates.
+Root marketplace tests and support stay outside published plugin roots.
+A tool bundle may intentionally include tests for validation logic it distributes, such as Gradle `buildSrc` ktlint rules.
 
-Repository-side tests and development tools live outside this published plugin.
+## Ownership And Safety
 
-## Runtime and Ownership
-
-The installer compares target bytes with packaged sources:
-
-- Missing files are created.
-- Matching files are kept.
-- Differing seed and root-contract files are preserved.
-- Other differing files report conflicts.
-
-`--force` overwrites allowed conflicting content. Use it only with explicit approval.
-`--only <path>` creates or updates one selected target path.
-`--show <path>` prints the packaged content for one target path without writing.
-
-Each mode copies `pre-commit` and `pre-push` templates to `.githooks/` but leaves Git configuration unchanged. `--activate-hooks` is supported only for a full install and sets repository-local `core.hooksPath` after validating the copied hooks. Use it only with explicit approval.
-
-`--ci-host` controls CI files only. Every selection installs the same target `WORKFLOW.md`.
-
-## Orchestration Contract
-
-The installed `WORKFLOW.md` makes any capable model act as the root orchestrator of its target repository:
-scope requests into bounded worker tasks, delegate meaningful independent work by default, choose workers by required capability, cost, and consequence of error, and keep foreground work to coordination, integration, and review.
-It states compact autonomy boundaries (report-only versus change requests and approval-gated remote or destructive actions) and uses each host's native mechanisms for dispatch, parallel execution, workspace isolation, and model selection.
-Only `.claude/settings.json` and `.mcp.json` are host adapters; no lifecycle rule depends on them.
-
-## Validation
-
-After installation, run the canonical validation command printed by the installer from the target root:
-
-```sh
-<printed canonical validation command>
-```
-
-CI and installed `pre-commit`, when present, MUST use that same command. `pre-push` may run a stricter local command.
-
-## Security Boundary
-
-The installer rejects lexical traversal and observed symlinks, uses exclusive same-directory temporary files, rechecks immediate parent identity, and rejects destination symlinks. It requires trusted target ancestry and does not provide full TOCTOU, hostile-ancestor, APFS-normalization, or hard-link containment.
+The agent preserves relative paths and executable modes while copying complete bundles.
+Existing matching files are kept.
+Differing target files are preserved until the user explicitly approves replacement.
+After composition, the agent configures the selected CI resource and follows the selected tool's `AGENTS.md` for setup and validation.

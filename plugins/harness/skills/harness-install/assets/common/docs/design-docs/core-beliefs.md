@@ -2,27 +2,26 @@
 
 ## Purpose
 
-Core beliefs capture the durable agent-first operating principles that govern every design and review decision in this repository.
-Where `DESIGN.md` articulates *what* the rules are, this document articulates *why* the rules exist.
-These are the convictions that make the rules worth preserving across changes.
+This document records the durable agent-first principles behind the repository's design and review rules.
+`DESIGN.md` states the rules; these beliefs explain their purpose across changes.
 
 ## Beliefs
 
-### Progressive disclosure beats one-shot context
+### Keep agent contracts concise
 
-Agents pattern-match on structure and heading presence.
-When `AGENTS.md` grows above ~150 lines, agents waste cycles scanning dense sections and miss the common path.
-Progressive layering (`SKILL.md` for workflow, references/ for exceptions) keeps the activation surface lean and direct.
+Use structure and headings to expose the common path.
+Keep workflow in `SKILL.md` and exceptions in references/ so long contracts do not hide it.
 
-- `AGENTS.md` and `SKILL.md` files stay under ~150 lines; deeper context lives in docs/design-docs/ and docs/references/.
+- Root and child agent contracts stay concise.
+  Detailed autonomous procedures live in `SKILL.md`, and deeper context lives in docs/design-docs/ and docs/references/.
 - Each reference/ file states its activation condition in the first paragraph (e.g., "Use this when X fails" or "When Y is unclear").
 - Skill structure keeps the common path in `SKILL.md` and moves blocker-specific detail to references.
 - Agents can reach the routine task without reading more than 3 sections.
 
-### Agent legibility is a first-class quality attribute
+### Make agent intent legible
 
-Agents cannot backtrack through unclear intent or re-read undocumented decisions.
-When a tool output format is undocumented, when a config field's purpose lives only in a comment, or when a design rule is implicit, agents either pattern-match incorrectly or request clarification repeatedly, burning context.
+Document intent at the point of use.
+Specify output formats, config fields, and design rules so agents can match them without repeated clarification.
 
 - All externally visible declarations carry documentation comments in their native style.
   - Examples: functions, APIs, and config fields.
@@ -33,10 +32,10 @@ When a tool output format is undocumented, when a config field's purpose lives o
   - Naming conventions are explicit, not inferred from context.
 - Tool output shapes (e.g., validation results, plan formats) are specified with concrete examples and prose descriptions.
 
-### Enforce invariants, do not micromanage implementations
+### Invariant enforcement scope
 
-Heavy-handed style reviews and approval gates on minor details create friction in agent workflows and slow down routine changes.
-When every commit needs sign-off on formatting or tooling choices, agents cannot iterate; unclear rules make agents cautious where they should act freely.
+Set invariants for minor implementation details and let agents choose the implementation.
+Clear boundaries define where agents can act freely.
 
 - Contract rules state *what must not vary* (e.g., validators must not fail silently).
 - Implementation order, refactoring patterns, and local style are left to the implementer's judgment.
@@ -48,11 +47,10 @@ When every commit needs sign-off on formatting or tooling choices, agents cannot
 - Review feedback focuses on invariant violations and new patterns that reveal missing beliefs.
   - It does not focus on local implementation choices that do not affect the contract.
 
-### Plans, decisions, and quality scores are versioned artifacts
+### Version plans, decisions, and quality records
 
-Chat logs and ephemeral memory vanish after context resets or when teams grow.
-If decisions live only in threads or agent memory, future implementers cannot find the *why* behind a rule, postmortems are lost, and the same debates recur.
-Version control is the only source of truth that survives a team transition.
+Record decisions in version control rather than chat logs or ephemeral memory.
+Version control preserves the reason behind a rule, postmortem history, and auditability across team transitions.
 
 Execution plans live under `docs/exec-plans/` with dates in filenames.
 The filename form is `yyyy-MM-dd-<slug>.md`.
@@ -65,20 +63,19 @@ Closed plans remain in `docs/exec-plans/` so history and decision rationale stay
 - Review threads that surface a repeated pattern trigger a durable documentation update.
   - Update `core-beliefs.md`, `DESIGN.md`, or a new `references/` file.
 
-### Continuous gardening over occasional cleanups
+### Maintain documentation during feature work
 
-Deferred documentation and technical debt compound silently.
-By the time a refactor sprint happens, agents have already wasted cycles on stale guidance and the project is harder to navigate.
-Small, incremental care keeps the contracts and docs aligned with reality and reduces surprise failures during onboarding.
+Update documentation when implementation reality changes.
+Regular maintenance keeps contracts aligned and reduces stale guidance and onboarding failures.
 
 - Contract changes are committed as versioned updates during feature work when reality drifts from docs.
-  - Examples: updates to `AGENTS.md`, `ARCHITECTURE.md`, and validation rules.
-  - They do not wait for a separate refactor window.
+  - Examples: updates to agent contracts, `ARCHITECTURE.md`, and validation rules.
+  - Commit them during feature work rather than waiting for a separate refactor window.
 - Review feedback that reveals a recurring pattern triggers an immediate documentation update.
   - Examples: an applied-but-unwritten design rule or a repeated failure mode.
   - Update `core-beliefs.md`, `DESIGN.md`, or a new `references/` file.
 - Validators run locally before commit so agents catch staleness and broken contracts early.
-  - CI does not become the discovery mechanism for document rot.
+  - Find stale guidance locally before CI runs.
 - Maintainers refresh stale examples and quality records during related work.
 
 ## When To Update

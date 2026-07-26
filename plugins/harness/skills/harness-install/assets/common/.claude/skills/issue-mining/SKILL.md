@@ -28,7 +28,7 @@ Investigate and report. Do not implement a fix or create a record unless the use
 - Keep repository exploration read-only unless the user requests registration.
 - Name missing evidence and owner decisions as blockers.
 - Use native delegation only when it materially improves bounded investigation.
-- Read `WORKFLOW.md` only when target-local record rules apply.
+- Read `CONTRIBUTING.md` for the shared contribution lifecycle.
 
 ## Output Contract
 

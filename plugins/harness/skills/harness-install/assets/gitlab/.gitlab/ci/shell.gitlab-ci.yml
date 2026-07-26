@@ -1,0 +1,11 @@
+stages:
+  - validate
+
+shellcheck:
+  stage: validate
+  image: debian:stable-slim
+  before_script:
+    - apt-get update && apt-get install -y shellcheck shfmt
+  script:
+    - git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning
+    - git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d
