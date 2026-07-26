@@ -1,20 +1,30 @@
 # Repository Guidelines
 
-Harness contains publishable plugin source and packaged assets for installing into target repositories.
+Harness contains agent-readable composition guidance and packaged target resource bundles.
 
-## Source and Target Boundary
+## Bundle Boundary
 
-`skills/harness-install/` owns installer behavior and target-owned assets.
-Keep plugin source, installer code, and packaged target content reproducible and package-local.
+`skills/harness-install/SKILL.md` owns composition and configuration guidance.
+`skills/harness-install/assets/` contains flat common, tool, and environment bundles.
+
+- `common/` contains only resources copied to every target.
+- `common/` MUST NOT contain root `AGENTS.md` or `CLAUDE.md`.
+- Each tool bundle owns its root `AGENTS.md`, root `CLAUDE.md`, and native configuration.
+- `github/` owns `.github/` resources.
+- `gitlab/` owns `.gitlab/` resources.
+
+Chosen bundles are copied as complete trees.
+Do not add file-level selection, generated command layers, or parallel setup surfaces.
+
+## Change Discipline
+
+Keep packaged target content reproducible and package-local.
 Do not mirror target-owned files into the marketplace root.
-Use `assets/common/WORKFLOW.md` when a change affects target delegation or publication lifecycle.
-
-## Installer Contract
-
-Preserve an existing target `AGENTS.md`.
-Only `--force` may replace target content that differs from the packaged source.
-Run the copied-plugin smoke and installer safety tests after installer or asset changes.
+Adding, removing, or moving a resource must update its bundle ownership and consuming guidance.
+Preserve existing target content unless replacement is explicitly approved.
 
 ## Asset Safety
 
-Review installer path handling, hooks, command execution, and copied configuration for escape, ownership, credential, and publication risks.
+Review copied hooks, settings, CI resources, commands, and configuration for filesystem, network, credential, and publication risks.
+Do not add generated caches, vendored dependencies, or local build output to a bundle.
+Run repository checks, plugin validation, and representative whole-bundle copy smoke checks after bundle changes.

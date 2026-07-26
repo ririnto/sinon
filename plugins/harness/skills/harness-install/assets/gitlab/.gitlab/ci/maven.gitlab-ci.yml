@@ -1,0 +1,8 @@
+stages:
+  - validate
+
+spotless:
+  stage: validate
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - ./mvnw verify

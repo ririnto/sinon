@@ -62,7 +62,7 @@ Architecture changes require evidence at the boundary they alter.
 | --- | --- |
 | `<domain or boundary>` | `<focused test, contract check, smoke check, or review evidence>` |
 
-The complete change MUST pass the canonical repository checks in `WORKFLOW.md` before handoff.
+The complete change MUST pass the canonical repository checks in `CONTRIBUTING.md` before handoff.
 
 ## When This File Updates
 

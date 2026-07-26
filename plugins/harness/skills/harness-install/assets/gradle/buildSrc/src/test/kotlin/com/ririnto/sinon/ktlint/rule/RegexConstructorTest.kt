@@ -64,4 +64,53 @@ class RegexConstructorTest {
         assertTrue(RuleTestSupport.lintRule(ruleProvider, source).isEmpty())
         assertEquals(source, RuleTestSupport.formatRule(ruleProvider, source))
     }
+
+    @Test
+    fun autocorrectsFullyQualifiedKotlinTextRegexCall() {
+        val source = "val pattern = kotlin.text.Regex(\"a+\")\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals("val pattern = \"a+\".toRegex()\n", RuleTestSupport.formatRule(ruleProvider, source))
+    }
+
+    @Test
+    fun autocorrectsFullyQualifiedRegexCallUsedAsReceiver() {
+        val source = "val matched = kotlin.text.Regex(\"a+\").matches(\"aaa\")\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            "val matched = \"a+\".toRegex().matches(\"aaa\")\n",
+            RuleTestSupport.formatRule(ruleProvider, source)
+        )
+    }
+
+    @Test
+    fun fullyQualifiedRegexFormatIsIdempotent() {
+        val source = "val pattern = kotlin.text.Regex(\"a+\")\n"
+        val formatted = RuleTestSupport.formatRule(ruleProvider, source)
+        assertEquals(formatted, RuleTestSupport.formatRule(ruleProvider, formatted))
+        assertTrue(RuleTestSupport.lintRule(ruleProvider, formatted).isEmpty())
+    }
+
+    @Test
+    fun explicitQualificationBypassesNameConflictSuppression() {
+        val source = """
+            import com.example.Regex
+            val suppressed = Regex("a+")
+            val explicit = kotlin.text.Regex("a+")
+        """.trimIndent() + "\n"
+        val errors = RuleTestSupport.lintRule(ruleProvider, source)
+        assertEquals(1, errors.size)
+        assertTrue(errors.single().canBeAutoCorrected)
+        assertEquals(
+            """
+            import com.example.Regex
+            val suppressed = Regex("a+")
+            val explicit = "a+".toRegex()
+            """.trimIndent() + "\n",
+            RuleTestSupport.formatRule(ruleProvider, source)
+        )
+    }
 }

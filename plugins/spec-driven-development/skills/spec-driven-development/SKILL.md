@@ -53,8 +53,8 @@ The Ordinary offline-capable workflow and Review gates sections document that fa
 
 Use these bundled paths from `SKILL_ROOT`:
 
-- `./scripts/sdd.ts` - single CLI entrypoint and Bun toolkit.
-  - It uses a Bun shebang and Bun's built-in TypeScript runtime.
+- `./scripts/sdd.ts` - only documented CLI entrypoint.
+  - It is a thin Bun/shebang entrypoint that delegates to modular runtime source under `./scripts/sdd/`, including command modules.
   - The shipped subcommands are:
     - `validate <spec-root>` - validate a `spec/` tree or subtree (default Spec Review gate)
     - `list-frontmatter [spec-path]` - frontmatter inventory and inbound-call queries
@@ -242,7 +242,8 @@ Use this plugin guidance when maintaining the packaged runtime and documentation
 - Keep `./scripts/sdd.ts` as the only documented CLI entrypoint.
 - Keep subcommands documented as `"${SKILL_ROOT}/scripts/sdd.ts" <subcommand> ...`.
 - Keep offline wording conditional on locally available `bun`.
-- Keep runtime source changes inside `./scripts/sdd.ts`.
+- Keep runtime source changes inside `./scripts/sdd/`.
+  Keep `./scripts/sdd.ts` as the delegating entrypoint.
 - Keep user-facing validation guidance paired with the manual inline-checklist fallback.
 
 ## Output contract

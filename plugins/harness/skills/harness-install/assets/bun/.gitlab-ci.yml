@@ -1,9 +1,0 @@
-stages:
-  - validate
-
-ultracite:
-  stage: validate
-  image: oven/bun:1
-  script:
-    - bun install
-    - bun run check

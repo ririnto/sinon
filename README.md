@@ -11,7 +11,6 @@ It publishes curated plugins from a single source tree.
 Plugins live under `plugins/`.
 The Claude marketplace catalog lives at the repository root.
 Always-on repository rules are in `AGENTS.md`.
-Narrow package, authoring, Harness, and forge rules load from nearer `AGENTS.md` files under `plugins/`.
 
 ## Purpose
 
@@ -27,7 +26,6 @@ Narrow package, authoring, Harness, and forge rules load from nearer `AGENTS.md`
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
-- `scripts/no-box-drawing.ts`: `-> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts`.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
 - `plugins/agent-capability-kit/{skills,agents}/`: published authoring skills and bounded agents.
 - `plugins/`: plugins maintained in this repository.

@@ -56,6 +56,8 @@
               <module name="TreeWalker">
                 <module name="AvoidStarImport"/>
                 <module name="UnusedImports"/>
+                <module name="NoArrayTrailingComma"/>
+                <module name="NoEnumTrailingComma"/>
                 <module name="NeedBraces"/>
                 <module name="RegexpSinglelineJava">
                   <property name="format" value="^\s*System\.(out|err)\.print"/>
