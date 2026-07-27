@@ -21,7 +21,7 @@ Use [repository conventions](docs/agent-references/repository-conventions.md) fo
 
 ## Build, Test, and Development Commands
 
-Run `bun ci` after dependency changes.
+Run `bun install` after dependency changes.
 Run `bun run check` before a repository-wide handoff.
 
 ## Change Discipline
