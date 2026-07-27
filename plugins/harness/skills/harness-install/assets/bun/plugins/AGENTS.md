@@ -8,7 +8,7 @@ This directory implements the custom Oxlint plugins used by the Bun target.
 
 `style-plugin.ts` owns parser-based checks for blank lines and non-documentation inline comments inside function bodies.
 `tsdoc-plugin.ts` owns parser-based TSDoc checks for exported TypeScript declarations and public class methods.
-`oxlint.config.ts` owns the configured plugin rule names and diagnostics.
+Rule names and diagnostics are configured in the root-owned `../oxlint.config.ts`.
 
 ## Build, Test, and Development Commands
 
