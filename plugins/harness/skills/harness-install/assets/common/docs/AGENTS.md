@@ -1,5 +1,7 @@
 # Documentation Guidelines
 
+This directory holds durable project documentation, templates, references, and generated records for the target repository.
+
 ## Project Structure
 
 ### Ownership

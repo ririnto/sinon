@@ -1,5 +1,7 @@
 # Project Skill Guidelines
 
+This directory holds host-neutral project skills installed into the target repository's `.claude/skills/` tree.
+
 ## Project Structure
 
 ### Ownership
