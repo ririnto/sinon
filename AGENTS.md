@@ -22,7 +22,7 @@ Use [repository conventions](docs/agent-references/repository-conventions.md) fo
 ## Build, Test, and Development Commands
 
 Run `bun install` after dependency changes.
-Run `bun run check` before a repository-wide handoff.
+The repository-wide check command is `bun run check`.
 
 ## Change Discipline
 
@@ -33,7 +33,7 @@ Report a precise blocker when required evidence or authority is missing.
 ## Commit and Publication
 
 The user-facing root session owns integration and publication.
-Do not publish a general orchestration profile as a plugin component.
+Publish only capability-scoped plugin components; keep general orchestration profiles out of plugins.
 
 ## Security and Configuration
 
