@@ -12,7 +12,7 @@ Distinguish between:
 
 Those categories often need different retry, skip, or dead-letter outcomes.
 
-Stay on the ordinary path in `SKILL.md` when `@RetryableTopic` is enough.
+Stay on the ordinary path when `@RetryableTopic` is enough.
 
 ## Container error-handler shape
 
@@ -67,6 +67,6 @@ Verify one representative permanent failure goes directly to the DLT and one tra
 
 | Situation | Use |
 | --- | --- |
-| Retry with DLT topics and ordinary listener code | stay on the common path in `SKILL.md` |
+| Retry with DLT topics and ordinary listener code | stay on the common path |
 | Container-level recovery or recoverer policy | `DefaultErrorHandler` |
 | Permanent failure should skip retries | direct dead-letter or recoverer path |

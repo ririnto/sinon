@@ -15,9 +15,6 @@ Use this file to finish one of these jobs:
 - verify that a `SharedFlow` with `replay = 0` only reaches active collectors
 - keep collection bounded so the test finishes as soon as the contract is proven
 
-The canonical bounded cold Flow collection pattern (`.take(n).toList()`) is in `SKILL.md` under "Keep Flow collection bounded".
-This reference covers only additive material.
-
 Kotest Flow matcher shape:
 
 ```kotlin

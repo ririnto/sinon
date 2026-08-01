@@ -1,6 +1,6 @@
 # Testing refresh-token paths
 
-Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is not enough and the blocker is refresh-token path verification.
+Open this reference when the minimal validation is not enough and the blocker is refresh-token path verification.
 
 ```java
 @Test

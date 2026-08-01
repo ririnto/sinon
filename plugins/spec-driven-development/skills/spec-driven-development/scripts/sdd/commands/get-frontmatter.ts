@@ -45,18 +45,10 @@ const outputValue = (
   }
   const field = fields[0] ?? "";
   const value = field in entry.record ? entry.record[field] : outputData[field];
-  process.stdout.write(
-    Array.isArray(value) || isRecord(value)
-      ? stringifyJson(value)
-      : String(value ?? "")
-  );
-  if (
-    value !== undefined &&
-    value !== null &&
-    !Array.isArray(value) &&
-    !isRecord(value)
-  ) {
-    process.stdout.write("\n");
+  if (Array.isArray(value) || isRecord(value)) {
+    process.stdout.write(stringifyJson(value));
+  } else {
+    process.stdout.write(`${String(value ?? "")}\n`);
   }
   return 0;
 };

@@ -58,8 +58,8 @@ class UncheckedCastSuppression :
     private lateinit var allowedTokens: Set<String>
 
     override fun beforeFirstNode(editorConfig: EditorConfig) {
-        forbiddenTokens = parseTokens(editorConfig[FORBIDDEN_SUPPRESSIONS])
-        allowedTokens = parseTokens(editorConfig[ALLOWED_SUPPRESSIONS])
+        forbiddenTokens = editorConfig[FORBIDDEN_SUPPRESSIONS].parseTokens()
+        allowedTokens = editorConfig[ALLOWED_SUPPRESSIONS].parseTokens()
     }
 
     override fun beforeVisitChildNodes(
@@ -69,19 +69,19 @@ class UncheckedCastSuppression :
         (node.psi as? KtFile)?.accept(SuppressAnnotationVisitor(forbiddenTokens - allowedTokens, emit))
     }
 
-    private fun parseTokens(value: String): Set<String> =
-        value.split(",").map { token -> token.trim() }.filter { token -> token.isNotEmpty() }.toSet()
+    private fun String.parseTokens(): Set<String> = split(",").map { token -> token.trim() }.filter { token -> token.isNotEmpty() }.toSet()
 
     private class SuppressAnnotationVisitor(
         private val forbiddenTokens: Set<String>,
         private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) : KtTreeVisitorVoid() {
-        private val castRelatedTokens = setOf(
-            "UNCHECKED_CAST",
-            "USELESS_CAST",
-            "CAST_NEVER_SUCCEEDS",
-            "UNCHECKED_CAST_IN_SUSPEND"
-        )
+        private val castRelatedTokens =
+            setOf(
+                "UNCHECKED_CAST",
+                "USELESS_CAST",
+                "CAST_NEVER_SUCCEEDS",
+                "UNCHECKED_CAST_IN_SUSPEND"
+            )
 
         override fun visitAnnotationEntry(annotation: KtAnnotationEntry) {
             super.visitAnnotationEntry(annotation)
@@ -92,7 +92,7 @@ class UncheckedCastSuppression :
                         val argExpr = arg.getArgumentExpression()
                         when (argExpr) {
                             is KtStringTemplateExpression -> {
-                                extractStringValue(argExpr)?.let { stringValue -> add(stringValue) }
+                                argExpr.extractStringValue()?.let { stringValue -> add(stringValue) }
                             }
 
                             is KtCollectionLiteralExpression -> {
@@ -103,7 +103,7 @@ class UncheckedCastSuppression :
                                             .takeIf { children -> children.isNotEmpty() }
                                     }.flatten()
                                         .filterIsInstance<KtStringTemplateExpression>()
-                                        .mapNotNull(::extractStringValue)
+                                        .mapNotNull { expression -> expression.extractStringValue() }
                                 )
                             }
                         }
@@ -116,11 +116,11 @@ class UncheckedCastSuppression :
                             .singleOrNull()
                             ?.getArgumentExpression()
                             ?.let { argument ->
-                                (argument as? KtStringTemplateExpression)?.let(::extractStringValue)
+                                (argument as? KtStringTemplateExpression)?.extractStringValue()
                             } == detectedToken &&
                             detectedToken in castRelatedTokens &&
                             annotation.parent?.parent?.let { scopeOwner ->
-                                containsCastToken(scopeOwner.node).not()
+                                scopeOwner.node.containsCastToken().not()
                             } == true
                     ).ifAutocorrectAllowed {
                         val annotationNode = annotation.node
@@ -149,13 +149,14 @@ class UncheckedCastSuppression :
             }
         }
 
-        private fun containsCastToken(node: ASTNode): Boolean =
-            node.elementType == KtTokens.AS_KEYWORD ||
-                node.elementType == KtTokens.AS_SAFE ||
-                node.getChildren(null).any(::containsCastToken)
+        private fun ASTNode.containsCastToken(): Boolean =
+            elementType == KtTokens.AS_KEYWORD ||
+                elementType == KtTokens.AS_SAFE ||
+                getChildren(null).any { child -> child.containsCastToken() }
 
-        private fun extractStringValue(expr: KtStringTemplateExpression): String? =
-            expr.entries.joinToString("") { entry -> entry.text }
-                .takeIf { expr.entries.all { entry -> entry is KtLiteralStringTemplateEntry } }
+        private fun KtStringTemplateExpression.extractStringValue(): String? =
+            entries
+                .joinToString("") { entry -> entry.text }
+                .takeIf { entries.all { entry -> entry is KtLiteralStringTemplateEntry } }
     }
 }

@@ -1,6 +1,6 @@
 # Spring Data entity callbacks and conversions
 
-Open this reference when the blocker is entity callback registration, custom conversions, or per-property value conversion beyond the ordinary repository path in [`SKILL.md`](../SKILL.md).
+Open this reference when the blocker is entity callback registration, custom conversions, or per-property value conversion beyond the ordinary repository path.
 
 ## Entity callback blocker
 
@@ -88,7 +88,7 @@ class EncryptedStringValueConverter implements PropertyValueConverter<String, St
 Check store support before choosing this path.
 Property-value conversion is more specific than a type-wide converter and is not implemented uniformly by every Spring Data module.
 
-Register the converter through the store's `CustomConversions` / `PropertyValueConverterFactory` path before expecting `@ValueConverter` to take effect.
+The configured `PropertyValueConverterFactory` must be able to resolve the converter before expecting `@ValueConverter` to take effect.
 
 ## Decision points
 

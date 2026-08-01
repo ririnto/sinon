@@ -83,11 +83,18 @@ Use `ApplicationRunner` or `CommandLineRunner` for startup tasks that belong to 
 ### Configuration properties shape
 
 ```java
+@Configuration
+@EnableConfigurationProperties(CatalogProperties.class)
+class CatalogConfiguration {
+}
+
 @Validated
 @ConfigurationProperties("catalog")
 public record CatalogProperties(@NotBlank String region, int pageSize) {
 }
 ```
+
+Register each `@ConfigurationProperties` type with `@EnableConfigurationProperties`, `@ConfigurationPropertiesScan`, or an equivalent Boot registration mechanism before injecting it.
 
 ### Profile-specific configuration shape
 
@@ -162,7 +169,8 @@ Open [references/jackson-configuration.md](references/jackson-configuration.md) 
 ### Config import encoding
 
 Config imports now support explicit encoding.
-Files default to ISO-8859-1 encoding unless overridden.
+Imported `.properties` files default to ISO-8859-1 encoding unless overridden.
+This does not change YAML or other config formats.
 
 ```properties
 spring.config.import=classpath:file.properties[encoding=utf-8]
@@ -226,15 +234,15 @@ spring:
       propagate-context: true
 ```
 
-### @AutoConfigureWebServer
+### Embedded web server tests
 
-Slice tests that need an embedded web server without the full application context.
+`@AutoConfigureWebServer` is not a test slice. Use `@SpringBootTest` with an explicit web environment when the test needs the running server.
 
 ```java
-@AutoConfigureWebServer
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class MyWebServerTests {
     @Autowired
-    TomcatWebServerFactory webServerFactory;
+    TestRestTemplate restTemplate;
 }
 ```
 
@@ -335,16 +343,7 @@ Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of 
 
 Auto-configuration for Spring Batch with MongoDB is provided by the dedicated `spring-boot-starter-batch-data-mongodb` starter, with `spring.batch.data.mongodb.*` properties controlling schema initialization and transaction validation.
 
-## Spring Boot 4.1 changes
-
-- **Layertools jar mode removed.** Use `tools` jar mode instead (`java -Djarmode=tools -jar app.jar`).
-- **`-DskipTests` no longer skips AOT.** Use `-Dmaven.test.skip` for both test and AOT skip.
-- **Legacy Logback rolling-policy properties removed.** Move `logging.file.clean-history-on-start`, `logging.file.max-history`, `logging.file.max-size`, `logging.file.total-size-cap`, and `logging.pattern.rolling-file-name` to `logging.logback.rollingpolicy.*`; `logging.file.name` and `logging.file.path` remain supported.
-- **Derby support deprecated.** Deprecated in 4.1 and slated for removal; migrate to H2 or HSQLDB.
-- **LiveReload in DevTools deprecated.** Deprecated in 4.1 with no replacement; still functional and disabled by default since 4.0.
-- **Dynatrace V1 API deprecated.** Deprecated in 4.1; migrate to the V2 API.
-
-Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) for the full migration guide.
+Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) for Spring Boot 4.1 changes.
 
 ## Test strategy baseline
 

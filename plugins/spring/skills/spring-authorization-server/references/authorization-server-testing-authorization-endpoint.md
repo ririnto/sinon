@@ -1,6 +1,6 @@
 # Testing the authorization endpoint
 
-Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is not enough and the blocker is deeper authorization-endpoint verification.
+Open this reference when the minimal validation is not enough and the blocker is deeper authorization-endpoint verification.
 
 ```java
 @Test

@@ -17,13 +17,16 @@ Open this when you are seeing `IllegalReferenceCountException`, leak detector ou
 | `channelRead` in `ChannelInboundHandlerAdapter` | Yes | you received ownership |
 | `ctx.fireChannelRead(msg)` without keeping a copy | No | ownership moves downstream |
 | store a message for async work | Yes, after async work finishes | you kept ownership beyond the callback |
-| write a retained duplicate | Yes, if you created an extra retained reference | the extra reference is yours |
+| write a retained duplicate with `writeAndFlush` | No, after handing it off | the outbound pipeline owns and releases the handed-off reference |
+
+After `ctx.writeAndFlush(retained)` hands off the buffer, the outbound pipeline owns and releases that reference.
+Do not release it again after the call.
 
 ## Safe release patterns
 
 > [!NOTE]
 >
-> The manual release pattern for `ChannelInboundHandlerAdapter` is covered in the `SKILL.md` common path (`ManualReleaseHandler`).
+> `ManualReleaseHandler` shows the manual release pattern for `ChannelInboundHandlerAdapter`.
 > This reference focuses on ownership handoff patterns that go beyond single-handler release.
 
 Pass downstream from `SimpleChannelInboundHandler`:
@@ -42,8 +45,11 @@ Keep a buffer for real off-thread async work:
 `ChannelInboundHandlerAdapter` does not auto-release - you own `msg` at `ref=1`.
 Retain so the executor has its own reference at `ref=2`.
 In the executor: release the executor's reference (`ref=2 → 1`), then release the original since `ChannelInboundHandlerAdapter` does not auto-release (`ref=1 → 0`).
+If `executor.execute` rejects the task, release both references before rethrowing.
 
 ```java
+import java.util.concurrent.RejectedExecutionException;
+
 final class AsyncHandler extends ChannelInboundHandlerAdapter {
     private final Executor executor;
 
@@ -54,14 +60,20 @@ final class AsyncHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf retained = ((ByteBuf) msg).retain();
-        executor.execute(() -> {
-            try {
-                useLater(retained);
-            } finally {
-                retained.release();
-                ((ByteBuf) msg).release();
-            }
-        });
+        try {
+            executor.execute(() -> {
+                try {
+                    useLater(retained);
+                } finally {
+                    retained.release();
+                    ((ByteBuf) msg).release();
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            retained.release();
+            ((ByteBuf) msg).release();
+            throw e;
+        }
     }
 
     private void useLater(ByteBuf buf) {

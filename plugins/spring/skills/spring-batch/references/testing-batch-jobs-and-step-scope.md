@@ -1,6 +1,6 @@
 # Spring Batch testing, step scope, and failure paths
 
-Open this reference when the standard batch test shape in [`SKILL.md`](../SKILL.md) is not enough and the task needs step tests, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
+Open this reference when the standard batch test shape is not enough and the task needs step tests, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
 
 ## Step test blocker
 

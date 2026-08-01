@@ -19,7 +19,7 @@ Run `/reload-plugins` after changes.
 
 Plugin `.mcp.json` MUST contain a top-level `mcpServers` object.
 Copy `assets/.mcp.json` with `assets/servers/example-mcp.ts` for a local stdio starter.
-Stdio MCP uses one JSON-RPC message per line on stdin and stdout, without LSP `Content-Length` framing.
+Open the `mcp-integration` skill for stdio framing and transport contracts.
 Bundled server code belongs under `${CLAUDE_PLUGIN_ROOT}`; generated server data belongs under `${CLAUDE_PLUGIN_DATA}`.
 
 ## LSP

@@ -95,12 +95,19 @@ suspend fun loadDashboard(): Dashboard = coroutineScope {
 Sibling isolation is intentional:
 
 ```kotlin
+import kotlinx.coroutines.CancellationException
+
 suspend fun loadWidgets(): List<WidgetResult> = supervisorScope {
     listOf(
         async { loadOne("a") },
         async { loadOne("b") }
     ).map { deferred ->
-        runCatching { deferred.await() }.getOrElse { WidgetResult.Failed }
+        runCatching { deferred.await() }.getOrElse { error ->
+            if (error is CancellationException) {
+                throw error
+            }
+            WidgetResult.Failed
+        }
     }
 }
 ```
@@ -137,7 +144,6 @@ suspend fun processAll(items: List<Input>): List<Output> = withContext(boundedCo
 ```
 
 Use when you need to limit parallelism of CPU-bound work (e.g., to avoid exhausting CPU cores or rate-limiting external calls).
-The canonical `withContext(Dispatchers.IO)` and `withContext(Dispatchers.Default)` patterns are in `SKILL.md` under "Ownership and dispatchers".
 
 ## Pitfalls
 

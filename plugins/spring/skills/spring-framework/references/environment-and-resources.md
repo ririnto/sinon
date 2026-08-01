@@ -1,6 +1,6 @@
 # Spring Framework Environment, Profiles, and Resources
 
-Open this reference when the common path in `SKILL.md` is not enough and the task needs deeper control over profiles, property sources, or resource resolution.
+Open this reference when the common path is not enough and the task needs deeper control over profiles, property sources, or resource resolution.
 
 ## Profile-driven bean activation
 
@@ -14,7 +14,7 @@ class ProductionDataConfig {
     DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.hsqldb.jdbcDriver");
-        dataSource.setUrl("jdbc:hsqldb:hsql://prod-db:");
+        dataSource.setUrl("jdbc:hsqldb:hsql://prod-db/production");
         dataSource.setUsername("sa");
         dataSource.setPassword("");
         return dataSource;

@@ -24,10 +24,10 @@ When blocking or contention is suspected, capture three snapshots and compare:
 
 ```sh
 for i in 1 2 3; do
-    jcmd $PID Thread.print -l > "thread-$i.txt"
+    jcmd $PID Thread.print -l > "/path/to/private-diagnostics/thread-$i.txt"
     sleep 5
 done
-diff thread-1.txt thread-3.txt
+diff /path/to/private-diagnostics/thread-1.txt /path/to/private-diagnostics/thread-3.txt
 ```
 
 What to look for in the diff:

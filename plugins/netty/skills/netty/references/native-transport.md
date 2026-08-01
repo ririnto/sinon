@@ -53,7 +53,8 @@ macOS or BSD kqueue:
 </dependency>
 ```
 
-Linux io_uring on Java 9+ and kernel 5.14+ (a first-class transport since Netty 4.2, replacing the `netty-incubator-transport-io_uring` module; the `netty-transport-native-io_uring` README lists kernel 5.14 with `CONFIG_IO_URING=y` as the floor):
+Linux io_uring on Java 9+ and kernel 5.14+ (a first-class transport since Netty 4.2, replacing the `netty-incubator-transport-io_uring` module).
+The `netty-transport-native-io_uring` README lists kernel 5.14 with `CONFIG_IO_URING=y` as the floor:
 
 ```xml
 <dependency>
@@ -67,7 +68,10 @@ Linux io_uring on Java 9+ and kernel 5.14+ (a first-class transport since Netty 
 Choose the classifier that matches the target OS and architecture.
 The classifier determines which native library (`.so`, `.dylib`, `.dll`) is bundled in the artifact.
 
-## Conditional fallback
+## Conditional fallback for NIO, epoll, and kqueue
+
+The sample intentionally covers NIO, epoll, and kqueue.
+Add an explicit io_uring branch when opting into it.
 
 ```java
 import io.netty.channel.EventLoopGroup;
@@ -104,7 +108,7 @@ if (Epoll.isAvailable()) {
 The `MultiThreadIoEventLoopGroup` + `IoHandler` form requires Netty 4.2 or later.
 In Netty 4.2, the transport-specific event loop groups such as `EpollEventLoopGroup` and `KQueueEventLoopGroup` are deprecated in favor of the `IoHandlerFactory` constructor.
 
-## Channel mapping
+## Channel mapping for this fallback
 
 | Transport | Server | Client | UDP |
 | --- | --- | --- | --- |

@@ -41,10 +41,10 @@ jcmd <pid> VM.flags
 For the next deploy, enable bounded GC log output for basic pause visibility:
 
 ```sh
-java -Xlog:gc:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
+java -Xlog:gc:file=/path/to/private-diagnostics/gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
-Version-specific logging syntax - JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`).
+Version-specific logging syntax - JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:/path/to/private-diagnostics/gc.log`).
 JDK 9 and later use unified logging with `-Xlog:gc...`.
 
 ## First Runnable Commands or Code Shape
@@ -89,7 +89,7 @@ Use when: the pause or latency problem depends on runtime behavior over time.
 Startup-attached GC-oriented JFR:
 
 ```sh
-java -XX:StartFlightRecording=name=gc-startup,settings=profile,filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true -Xlog:gc=debug:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M -jar app.jar
+java -XX:StartFlightRecording=name=gc-startup,settings=profile,filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true -Xlog:gc=debug:file=/path/to/private-diagnostics/gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M -jar app.jar
 ```
 
 Use when: you need GC and allocation evidence from process start instead of after a later live attach.
@@ -105,7 +105,7 @@ Use when: you need GC and allocation evidence from process start instead of afte
 Bounded GC logging for the next deploy:
 
 ```sh
-java -Xlog:gc=debug:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
+java -Xlog:gc=debug:file=/path/to/private-diagnostics/gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
 Use when: you cannot diagnose the current issue from existing captures and need better next-run evidence.
@@ -113,7 +113,7 @@ Use when: you cannot diagnose the current issue from existing captures and need 
 Legacy JDK 8 GC logging:
 
 ```sh
-java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:gc.log ...
+java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:/path/to/private-diagnostics/gc.log ...
 ```
 
 Use when: the deployed runtime is JDK 8 or earlier and `-Xlog` is not available.
@@ -248,7 +248,7 @@ The value before `secs` is the wall-clock pause duration.
 ### `jfr summary` Output
 
 ```sh
-jfr summary /path/to/recording.jfr
+jfr summary /path/to/private-diagnostics/recording.jfr
 ```
 
 Shows event counts grouped by type.

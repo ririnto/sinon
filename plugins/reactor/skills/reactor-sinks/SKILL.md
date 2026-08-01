@@ -124,7 +124,7 @@ Do not activate for:
 | demand-aware buffering for subscribers | `onBackpressureBuffer()` | retains elements in memory |
 | fail immediately on downstream overflow | `onBackpressureError()` | propagates error to upstream producer |
 | late subscribers to see the full retained stream | `replay().all()` | retention grows unless bounded externally |
-| late subscribers to see only the current state | `replay().latest()` | emits last signal after first emission; `replay().limit(1)` replays even the first signal immediately |
+| late subscribers to see only the current state | `replay().latest()` | Emits the last signal after the first emission. `replay().limit(1)` replays even the first signal immediately. |
 | late subscribers to see bounded recent history | `replay().limit(...)` | history is explicit by size or time |
 
 ## Ready-to-adapt examples
@@ -141,7 +141,7 @@ final class CallbackBridge {
         return sink.asMono();
     }
     private void completeLater(Sinks.One<String> sink) {
-        sink.tryEmitValue("done");
+        sink.emitValue("done", Sinks.EmitFailureHandler.FAIL_FAST);
     }
 }
 ```
@@ -157,7 +157,7 @@ final class EventBus {
         return sink.asFlux();
     }
     void publish(String event) {
-        sink.tryEmitNext(event);
+        sink.emitNext(event, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 }
 ```
@@ -173,7 +173,7 @@ final class ReplayFeed {
         return sink.asFlux();
     }
     void record(String value) {
-        sink.tryEmitNext(value);
+        sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 }
 ```
@@ -201,7 +201,7 @@ final class CompletionSignal {
         return sink.asMono();
     }
     private void triggerShutdownLater(Sinks.Empty<Void> sink) {
-        sink.tryEmitEmpty();
+        sink.emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST);
     }
 }
 ```
@@ -221,7 +221,7 @@ final class UnicastStream {
         return sink.asFlux();
     }
     void send(String value) {
-        sink.tryEmitNext(value);
+        sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 }
 ```

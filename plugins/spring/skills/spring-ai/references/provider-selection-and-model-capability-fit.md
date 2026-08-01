@@ -1,10 +1,10 @@
 # Provider selection and model capability fit
 
-Open this reference when the common-path model-family choice in [`SKILL.md`](../SKILL.md) is not enough and the blocker is provider-specific incompatibility, configuration edge behavior, or portability risk.
+Open this reference when the common-path model-family choice is not enough and the blocker is provider-specific incompatibility, configuration edge behavior, or portability risk.
 
 ## Provider-specific blockers
 
-Use this file only after `SKILL.md` has already narrowed the workload to a model surface and the remaining question is provider-specific behavior.
+Use this file only after the common path has already narrowed the workload to a model surface and the remaining question is provider-specific behavior.
 
 - OpenAI or Azure OpenAI: when response-format support, deployment naming, or mature tool-calling examples are the deciding edge.
 - Anthropic: when instruction following is strong but embeddings, moderation, or image features may come from a different provider.

@@ -189,9 +189,12 @@ For instant queries: both resolve to the evaluation time.
 Runs an instant query over a range at a given resolution, producing a range vector.
 
 ```text
-<instant_query> '[' <range> ':' [<resolution> ']' [ @ <float_literal> ] [ offset <float_literal> ]
+<instant_query> '[' <range_expr> ':' [<resolution_expr>] ']' [ @ <float_literal> ] [ offset <offset_expr> ]
 ```
 
+`<range_expr>`, `<resolution_expr>`, and `<offset_expr>` accept numeric or duration literals such as `3600` and `1h`.
+On the repository's Prometheus 3.12.0 review baseline, duration arithmetic such as `5m * 2`, and the `step()` and `range()` duration expressions, require `--enable-feature=promql-duration-expr`.
+Duration expressions used with `offset` must be parenthesized, such as `offset (step() * 2)`.
 Resolution defaults to the global evaluation interval if omitted.
 
 The examples below show a subquery sampled every minute over a five-minute rate window and a subquery pinned with `@ start()`.

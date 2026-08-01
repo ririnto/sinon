@@ -1,6 +1,6 @@
 # Spring Web Services WS-Security
 
-Open this reference when the ordinary endpoint-plus-template path in `SKILL.md` is not enough and the task needs signing, encryption, username tokens, or message-level trust.
+Open this reference when the ordinary endpoint-plus-template path is not enough and the task needs signing, encryption, username tokens, or message-level trust.
 
 ## WS-Security boundary
 

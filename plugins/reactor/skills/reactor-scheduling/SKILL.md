@@ -182,7 +182,7 @@ final class ContextAcrossThreads {
 | adding multiple `subscribeOn(...)` calls for control | only the closest relevant source placement matters | place one `subscribeOn(...)` at the real boundary |
 | placing `subscribeOn(...)` inside a `flatMap` lambda to affect the outer chain | `subscribeOn` inside `flatMap` scopes to the inner publisher only | place `subscribeOn` at the outer source or on the inner publisher deliberately |
 | using `Schedulers.immediate()` in production code | runs on the caller thread with no isolation | reserve for test code or when you explicitly want caller-thread execution |
-| placing `contextWrite(...)` downstream of `publishOn(...)` | `contextWrite` affects upstream operators; placement after a thread switch may not reach intended targets | place `contextWrite` before `publishOn` when upstream needs the context |
+| placing `contextWrite(...)` before the operator that reads the context | `contextWrite` affects upstream operators, so the reader cannot see a write placed before it | place `contextWrite` downstream of the reader, as in the example above |
 
 ## Validation checklist
 

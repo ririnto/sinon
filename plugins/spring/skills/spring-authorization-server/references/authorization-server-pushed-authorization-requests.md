@@ -1,6 +1,6 @@
 # Pushed Authorization Requests
 
-Open this reference when the ordinary authorization request redirect in [`SKILL.md`](../SKILL.md) is not enough and the blocker is Pushed Authorization Request (PAR) support.
+Open this reference when the ordinary authorization request redirect is not enough and the blocker is Pushed Authorization Request (PAR) support.
 
 ## PAR blocker
 

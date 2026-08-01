@@ -7,7 +7,7 @@ Open this reference when redelivery, backoff, or dead-letter publishing behavior
 ```java
 @Bean
 PulsarMessageRecovererFactory<ShipmentEvent> shipmentRecovererFactory(PulsarTemplate<ShipmentEvent> pulsarTemplate) {
-    return () -> new PulsarDeadLetterPublishingRecoverer<>(pulsarTemplate, event -> "shipments-dlt");
+    return new PulsarDeadLetterPublishingRecoverer<>(pulsarTemplate, (consumer, message) -> "shipments-dlt");
 }
 ```
 
@@ -25,6 +25,7 @@ MultiplierRedeliveryBackoff backoff = MultiplierRedeliveryBackoff.builder()
 
 Pulsar's native `DeadLetterPolicy` works only with `Shared` subscriptions.
 For `Exclusive`, `Failover`, or `Key_Shared` subscriptions, use `PulsarConsumerErrorHandler` instead.
+`PulsarConsumerErrorHandler` is also valid for `Shared` subscriptions when Spring-native recovery is preferred.
 
 ```java
 @PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Exclusive, pulsarConsumerErrorHandler = "shipmentErrorHandler")
@@ -34,7 +35,7 @@ void handle(ShipmentEvent event) {
 
 @Bean
 PulsarConsumerErrorHandler<ShipmentEvent> shipmentErrorHandler(PulsarTemplate<ShipmentEvent> template) {
-    return new DefaultPulsarConsumerErrorHandler<>(new PulsarDeadLetterPublishingRecoverer<>(template, event -> "shipments-dlt"), backoff);
+    return new DefaultPulsarConsumerErrorHandler<>(new PulsarDeadLetterPublishingRecoverer<>(template, (consumer, message) -> "shipments-dlt"), backoff);
 }
 ```
 

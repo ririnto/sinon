@@ -285,6 +285,7 @@ Open [references/observability-and-production-debugging.md](references/observabi
 
 - Externalize provider credentials, endpoints, model names, moderation settings, and retrieval settings.
 - Keep prompts, tool contracts, retrieval settings, and structured-output types versioned and reviewable.
-- Put timeouts, retries, fallback behavior, and provider switching at the provider edge.
+- Put timeouts, retries, and provider switching at the provider edge.
+- Keep tool-failure fallback at the application seam.
 - Log latency, token usage, retrieval count, and tool usage without leaking secrets or personal data.
 - Treat image, audio, and moderation model choices as explicit configuration, not ambient defaults.

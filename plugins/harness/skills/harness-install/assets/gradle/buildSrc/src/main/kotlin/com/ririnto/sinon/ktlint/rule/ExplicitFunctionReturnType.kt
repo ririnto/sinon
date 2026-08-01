@@ -9,6 +9,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -19,7 +20,6 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
-import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
  * Flags named functions with missing or redundant return type declarations.
@@ -45,48 +45,24 @@ class ExplicitFunctionReturnType :
                         null -> {
                             if (!function.hasBlockBody()) {
                                 val body = function.bodyExpression
-                                if (body !== null && (body is KtStringTemplateExpression || body is KtConstantExpression || !isUnitExpression(body))) {
+                                if (body !== null &&
+                                    (body is KtStringTemplateExpression || body is KtConstantExpression || !body.isUnitExpression())
+                                ) {
                                     val modifierList = function.modifierList
-                                    val typeName = if (modifierList?.hasModifier(KtTokens.OVERRIDE_KEYWORD) == true ||
-                                        modifierList?.hasModifier(KtTokens.EXTERNAL_KEYWORD) == true ||
-                                        modifierList?.hasModifier(KtTokens.SUSPEND_KEYWORD) == true ||
-                                        generateSequence(function.parent) { element -> element.parent }
-                                            .filterIsInstance<KtDeclaration>()
-                                            .any { declaration -> declaration.modifierList?.hasModifier(KtTokens.EXPECT_KEYWORD) == true }
-                                    ) {
-                                        null
-                                    } else {
-                                        when (body) {
-                                            is KtStringTemplateExpression -> String::class.simpleName
-                                            is KtConstantExpression -> when (body.node.elementType) {
-                                                ElementType.BOOLEAN_CONSTANT -> Boolean::class.simpleName
-                                                ElementType.CHARACTER_CONSTANT -> Char::class.simpleName
-                                                ElementType.INTEGER_CONSTANT -> when {
-                                                    body.text.contains("U", ignoreCase = true) -> null
-                                                    body.text.endsWith("L", ignoreCase = true) -> Long::class.simpleName
-                                                    else -> {
-                                                        val cleaned = body.text.replace("_", "")
-                                                        val (digits, radix) = when {
-                                                            cleaned.startsWith("0x", ignoreCase = true) -> cleaned.substring(2) to 16
-                                                            cleaned.startsWith("0b", ignoreCase = true) -> cleaned.substring(2) to 2
-                                                            else -> cleaned to 10
-                                                        }
-                                                        when {
-                                                            digits.toIntOrNull(radix) != null -> Int::class.simpleName
-                                                            digits.toLongOrNull(radix) != null -> Long::class.simpleName
-                                                            else -> null
-                                                        }
-                                                    }
+                                    val typeName =
+                                        if (modifierList?.hasModifier(KtTokens.OVERRIDE_KEYWORD) == true ||
+                                            modifierList?.hasModifier(KtTokens.EXTERNAL_KEYWORD) == true ||
+                                            modifierList?.hasModifier(KtTokens.SUSPEND_KEYWORD) == true ||
+                                            generateSequence(function.parent) { element -> element.parent }
+                                                .filterIsInstance<KtDeclaration>()
+                                                .any { declaration ->
+                                                    declaration.modifierList?.hasModifier(KtTokens.EXPECT_KEYWORD) == true
                                                 }
-                                                ElementType.FLOAT_CONSTANT -> when {
-                                                    body.text.endsWith("f", ignoreCase = true) -> Float::class.simpleName
-                                                    else -> Double::class.simpleName
-                                                }
-                                                else -> null
-                                            }
-                                            else -> null
+                                        ) {
+                                            null
+                                        } else {
+                                            with(LiteralTypeInference) { body.inferLiteralType() }
                                         }
-                                    }
                                     emit(
                                         function.nameIdentifier?.textOffset ?: function.textOffset,
                                         "declare an explicit return type on named function `$functionName`",
@@ -98,11 +74,14 @@ class ExplicitFunctionReturnType :
                                                 val currentText = function.text
                                                 val eqIndex = eqNode.startOffset - function.node.startOffset
                                                 function.node.replaceWith(
-                                                    KtPsiFactory.contextual(function, false)
+                                                    KtPsiFactory
+                                                        .contextual(function, false)
                                                         .createFunction(
-                                                            "${currentText.substring(0, findInsertionPosition(currentText, eqIndex))}: $type ${currentText.substring(eqIndex)}"
-                                                        )
-                                                        .node
+                                                            "${currentText.substring(
+                                                                0,
+                                                                currentText.findInsertionPosition(eqIndex)
+                                                            )}: $type ${currentText.substring(eqIndex)}"
+                                                        ).node
                                                 )
                                             }
                                         }
@@ -110,16 +89,17 @@ class ExplicitFunctionReturnType :
                                 }
                             }
                         }
+
                         else -> {
-                            if (isUnitTypeReference(typeReference)) {
+                            if (typeReference.isUnitTypeReference()) {
                                 emit(
                                     typeReference.textOffset,
                                     "omit the redundant `Unit` return type on named function `$functionName`",
                                     true
                                 ).ifAutocorrectAllowed {
                                     val functionNode = function.node
-                                    val nodesToRemove = collectNodesThroughColon(typeReference.node)
-                                    val whitespaceNodes = collectWhitespaceNodes(nodesToRemove.lastOrNull()?.treePrev)
+                                    val nodesToRemove = typeReference.node.collectNodesThroughColon()
+                                    val whitespaceNodes = nodesToRemove.lastOrNull()?.treePrev.collectWhitespaceNodes()
                                     nodesToRemove.asReversed().forEach { node -> functionNode.removeChild(node) }
                                     whitespaceNodes
                                         .asReversed()
@@ -133,61 +113,77 @@ class ExplicitFunctionReturnType :
         }
     }
 
-    private tailrec fun collectNodesThroughColon(
-        current: ASTNode?,
-        collected: List<ASTNode> = emptyList()
-    ): List<ASTNode> =
+    private tailrec fun ASTNode?.collectNodesThroughColon(collected: List<ASTNode> = emptyList()): List<ASTNode> =
         when {
-            current === null -> collected
-            current.elementType == KtTokens.COLON -> collected + current
-            else -> collectNodesThroughColon(current.treePrev, collected + current)
+            this === null -> collected
+            elementType == KtTokens.COLON -> collected + this
+            else -> treePrev.collectNodesThroughColon(collected + this)
         }
 
-    private tailrec fun collectWhitespaceNodes(
-        current: ASTNode?,
-        collected: List<ASTNode> = emptyList()
-    ): List<ASTNode> =
+    private tailrec fun ASTNode?.collectWhitespaceNodes(collected: List<ASTNode> = emptyList()): List<ASTNode> =
         when {
-            current === null -> collected
-            current.text.all { character -> character.isWhitespace() } ->
-                collectWhitespaceNodes(current.treePrev, collected + current)
-            else -> collected
+            this === null -> {
+                collected
+            }
+
+            text.all { character -> character.isWhitespace() } -> {
+                treePrev.collectWhitespaceNodes(collected + this)
+            }
+
+            else -> {
+                collected
+            }
         }
 
-    private tailrec fun findInsertionPosition(text: String, position: Int): Int =
-        when (0 < position && text[position - 1].isWhitespace()) {
-            true -> findInsertionPosition(text, position - 1)
+    private tailrec fun String.findInsertionPosition(position: Int): Int =
+        when (0 < position && this[position - 1].isWhitespace()) {
+            true -> findInsertionPosition(position - 1)
             else -> position
         }
 
-    private fun isUnitExpression(expression: KtExpression): Boolean = when (expression) {
-        is KtNameReferenceExpression -> {
-            expression.getReferencedName() == "Unit"
+    private fun KtExpression.isUnitExpression(): Boolean =
+        when (this) {
+            is KtNameReferenceExpression -> {
+                getReferencedName() == "Unit"
+            }
+
+            is KtDotQualifiedExpression -> {
+                val receiver = receiverExpression
+                val selector = selectorExpression
+                receiver is KtNameReferenceExpression &&
+                    receiver.getReferencedName() == "kotlin" &&
+                    selector is KtNameReferenceExpression &&
+                    selector.getReferencedName() == "Unit"
+            }
+
+            else -> {
+                false
+            }
         }
 
-        is KtDotQualifiedExpression -> {
-            (expression.receiverExpression as? KtNameReferenceExpression)?.getReferencedName() == "kotlin" &&
-                (expression.selectorExpression as? KtNameReferenceExpression).getReferencedName() == "Unit"
-        }
-
-        else -> false
-    }
-
-    private fun isUnitTypeReference(typeReference: KtTypeReference): Boolean {
-        val userType = typeReference.typeElement as? KtUserType
+    private fun KtTypeReference.isUnitTypeReference(): Boolean {
+        val userType = typeElement as? KtUserType
         val referenceExpression = userType?.referenceExpression
         val qualifier = userType?.qualifier
         return when {
-            referenceExpression !is KtNameReferenceExpression -> false
-            referenceExpression.getReferencedName() != "Unit" -> false
-            qualifier === null -> true
-            qualifier is KtUserType -> {
+            referenceExpression !is KtNameReferenceExpression -> {
+                false
+            }
+
+            referenceExpression.getReferencedName() != "Unit" -> {
+                false
+            }
+
+            qualifier === null -> {
+                true
+            }
+
+            else -> {
                 val qualifierReferenceExpression = qualifier.referenceExpression
                 qualifier.qualifier === null &&
                     qualifierReferenceExpression is KtNameReferenceExpression &&
                     qualifierReferenceExpression.getReferencedName() == "kotlin"
             }
-            else -> false
         }
     }
 }

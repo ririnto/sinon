@@ -38,38 +38,62 @@ class ExplicitUnitBranch :
         override fun visitWhenExpression(expression: KtWhenExpression) {
             super.visitWhenExpression(expression)
             expression.entries.forEach { entry ->
-                entry.expression?.let(::reportIfExplicitUnit)
+                entry.expression?.reportIfExplicitUnit()
             }
         }
 
         override fun visitIfExpression(expression: KtIfExpression) {
             super.visitIfExpression(expression)
-            expression.then?.let(::reportIfExplicitUnit)
+            expression.then?.reportIfExplicitUnit()
             expression.`else`
-	                ?.takeUnless { branch -> branch is KtIfExpression }
-                ?.let(::reportIfExplicitUnit)
+                ?.takeUnless { branch -> branch is KtIfExpression }
+                ?.reportIfExplicitUnit()
         }
 
-        private fun reportIfExplicitUnit(expression: KtExpression) {
-            if (isExplicitUnitBranch(expression)) {
-                emit(expression.textOffset, "explicit Unit branch result is forbidden", false)
+        private fun KtExpression.reportIfExplicitUnit() {
+            if (isExplicitUnitBranch()) {
+                emit(textOffset, "explicit Unit branch result is forbidden", false)
             }
         }
 
-        private fun isExplicitUnitBranch(expression: KtExpression): Boolean =
-            when (expression) {
-                is KtParenthesizedExpression -> expression.expression?.let(::isExplicitUnitBranch) == true
-                is KtBlockExpression -> expression.statements.lastOrNull()?.let(::isExplicitUnitBranch) == true
-                is KtNameReferenceExpression -> expression.getReferencedName() == "Unit"
-                is KtDotQualifiedExpression -> when (val receiver = expression.receiverExpression) {
-                    is KtNameReferenceExpression -> when (val selector = expression.selectorExpression) {
-                        is KtNameReferenceExpression -> receiver.getReferencedName() == "kotlin" &&
-                            selector.getReferencedName() == "Unit"
-                        else -> false
-                    }
-                    else -> false
+        private fun KtExpression.isExplicitUnitBranch(): Boolean =
+            when (this) {
+                is KtParenthesizedExpression -> {
+                    expression?.isExplicitUnitBranch() == true
                 }
-                else -> false
+
+                is KtBlockExpression -> {
+                    statements.lastOrNull()?.isExplicitUnitBranch() == true
+                }
+
+                is KtNameReferenceExpression -> {
+                    getReferencedName() == "Unit"
+                }
+
+                is KtDotQualifiedExpression -> {
+                    when (val receiver = receiverExpression) {
+                        is KtNameReferenceExpression -> {
+                            when (val selector = selectorExpression) {
+                                is KtNameReferenceExpression -> {
+                                    receiver.getReferencedName() == "kotlin" &&
+                                        selector.getReferencedName() == "Unit"
+                                }
+
+                                else -> {
+                                    false
+                                }
+                            }
+                        }
+
+                        else -> {
+                            false
+                        }
+                    }
+                }
+
+                else -> {
+                    false
+                }
             }
     }
 }

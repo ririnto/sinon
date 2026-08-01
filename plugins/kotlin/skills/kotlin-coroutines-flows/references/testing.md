@@ -79,6 +79,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
@@ -89,6 +90,7 @@ fun cancellationRunsCleanup() {
     val job: Job = scope.launch {
         resource.use { r -> r.longOperation() }
     }
+    scope.runCurrent()
     job.cancel()
     scope.advanceUntilIdle()
     assertTrue(resource.wasClosed)

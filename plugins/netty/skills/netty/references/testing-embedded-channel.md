@@ -93,7 +93,7 @@ Only 2 bytes arrive instead of the required 4 - no frame is produced and no exce
 import io.netty.buffer.Unpooled;
 
 @Test
-void propagatesExceptionOnShortFrame() {
+void buffersShortFrameWithoutException() {
     EmbeddedChannel channel = new EmbeddedChannel(
         new LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4)
     );
@@ -107,7 +107,7 @@ void propagatesExceptionOnShortFrame() {
 ## Invariants
 
 - call `finishAndReleaseAll()` to release queued messages and buffers
-  - `finish()` only marks the channel as finished and returns whether anything remains to read; it does not release pending messages, so prefer `finishAndReleaseAll()` for cleanup
+  - `finish()` only marks the channel as finished and returns whether anything remains to read. It does not release pending messages, so prefer `finishAndReleaseAll()` for cleanup
 - assert both inbound and outbound sides explicitly when the handler transforms messages
 - use `assertThrowsExactly(...)` for exception paths - verify that malformed input either produces no output or triggers the expected error response through the pipeline
 - release outbound `ByteBuf` values read from `readOutbound()` after assertion

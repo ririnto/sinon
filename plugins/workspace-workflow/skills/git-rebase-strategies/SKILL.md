@@ -168,14 +168,14 @@ git status
 ```
 
 Edit each conflicted file to resolve the conflict.
-Markers appear as:
+In a rebase, `HEAD` is the rebased/upstream result, and `>>>>>>> commit-message` marks the commit being replayed (the rebase-specific ours/theirs sides are reversed):
 
 ```text
-[current branch: HEAD]
-your changes
-[incoming branch separator]
-incoming changes
-[incoming commit: commit-message]
+<<<<<<< HEAD
+upstream result
+=======
+commit being replayed
+>>>>>>> commit-message
 ```
 
 Remove the markers and keep the code you want.

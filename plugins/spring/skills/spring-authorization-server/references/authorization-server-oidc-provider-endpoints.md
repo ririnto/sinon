@@ -1,10 +1,14 @@
 # OIDC provider endpoints
 
-Open this reference when the provider must expose OIDC identity endpoints, UserInfo, logout handling, or ID-token behavior beyond the OAuth2-only baseline in [`SKILL.md`](../SKILL.md).
+Open this reference when the provider must expose OIDC identity endpoints, UserInfo, logout handling, or ID-token behavior beyond the OAuth2-only baseline.
 
 ## OIDC enablement rule
 
-Enable OIDC in the authorization server filter chain when clients need ID tokens, UserInfo, or OpenID provider metadata.
+Enable OIDC in the authorization server filter chain when clients need any of these separate identity surfaces:
+
+- OpenID Provider metadata at `/.well-known/openid-configuration`
+- UserInfo responses
+- ID tokens
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)

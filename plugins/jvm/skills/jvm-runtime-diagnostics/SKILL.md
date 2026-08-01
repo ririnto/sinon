@@ -79,7 +79,7 @@ Use when: you have only a vague "the JVM is slow" report or one incomplete stack
 Single thread dump with lock detail:
 
 ```sh
-jcmd <pid> Thread.print -l > thread-dump.txt
+jcmd <pid> Thread.print -l > /path/to/private-diagnostics/thread-dump.txt
 ```
 
 Use when: the issue looks like blocking, deadlock, starvation, or lock contention and you need the first snapshot.
@@ -152,7 +152,7 @@ Legacy `jmap` histogram and dump:
 
 ```sh
 jmap -histo <pid>
-jmap -dump:live,format=b,file=heap.hprof <pid>
+jmap -dump:live,format=b,file=/path/to/private-diagnostics/heap.hprof <pid>
 ```
 
 Use when: you specifically need the standalone `jmap` form instead of the newer `jcmd` command family.
@@ -165,8 +165,8 @@ Use when: you specifically need the standalone `jmap` form instead of the newer 
 Postmortem `jhsdb` core analysis:
 
 ```sh
-jhsdb jstack --exe "$JAVA_HOME/bin/java" --core /path/to/core
-jhsdb jmap --exe "$JAVA_HOME/bin/java" --core /path/to/core --heap
+jhsdb jstack --exe "$JAVA_HOME/bin/java" --core /path/to/private-diagnostics/core
+jhsdb jmap --exe "$JAVA_HOME/bin/java" --core /path/to/private-diagnostics/core --heap
 ```
 
 Use when: the JVM has already crashed or you need core-file inspection rather than routine live attach.

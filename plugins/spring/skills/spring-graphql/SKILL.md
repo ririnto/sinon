@@ -67,10 +67,11 @@ Use the Boot starter for application code and the GraphQL test module for focuse
 | --- | --- |
 | Ordinary GraphQL controllers, schema resources, and HTTP endpoint | `spring-boot-starter-graphql` |
 | GraphQL-focused test slices and tester support | `spring-graphql-test` |
+| HTTP transport | `spring-boot-starter-webmvc` or `spring-boot-starter-webflux` |
 | WebSocket transport (Servlet-based apps) | `spring-boot-starter-graphql` + `spring-boot-starter-websocket` |
 | WebSocket transport (WebFlux-based apps) | `spring-boot-starter-webflux` (no extra starter) |
-| SSE transport for subscriptions | `spring-boot-starter-graphql` (built into HTTP handler) |
-| RSocket transport | `spring-boot-starter-graphql` + `spring-boot-starter-rsocket` |
+| SSE transport for subscriptions | none (uses the HTTP handler) |
+| RSocket transport | `spring-boot-starter-rsocket` + Spring WebFlux on Reactor Netty |
 
 ## First safe configuration
 
@@ -194,6 +195,13 @@ type Book {
     id: ID!
     title: String!
     author: String!
+    viewerCanEdit: Boolean!
+    reviews: [Review!]!
+}
+
+type Review {
+    id: ID!
+    body: String!
 }
 
 input BookInput {
@@ -252,7 +260,7 @@ Keep direct `DataLoader` access for advanced loader registration or reuse across
 ### Error assertion baseline
 
 ```java
-graphQlTester.document("mutation { addBook(input: { title: \"\", author: \"A\" }) { id } }")
+graphQlTester.document("mutation { addBook(input: { title: null, author: \"A\" }) { id } }")
     .execute()
     .errors()
     .satisfy(errors -> assertFalse(errors.isEmpty()));

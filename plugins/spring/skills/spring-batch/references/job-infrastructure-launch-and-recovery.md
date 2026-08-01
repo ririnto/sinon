@@ -17,6 +17,9 @@ If `requestedAt` is identifying, every launch becomes a new instance and restart
 
 Use `JobLauncher` for application-driven starts and `JobOperator` for operational actions.
 
+Infrastructure coverage includes `JobRepository`, `JobLauncher`, `JobExplorer`, and `JobOperator`.
+Wire the launcher from the same repository-backed batch infrastructure used by the job.
+
 ```java
 JobExecution execution = jobLauncher.run(importJob, parameters);
 ```
@@ -31,14 +34,15 @@ Choose the operator action deliberately:
 
 - restart: same logical instance, next execution attempt
 - rerun: new logical instance with different identifying parameters
-- recover: mark a stuck `STARTED` execution as restartable on a Batch 6 path before a later restart attempt
+- recover: on Spring Batch 6 only, mark a stuck `STARTED` execution as restartable before a later restart attempt
 
     ```java
+    // Spring Batch 6 only.
     JobExecution recoveredExecution = jobOperator.recover(jobExplorer.getJobExecution(failedExecutionId));
     JobExecution restartedExecution = jobOperator.restart(recoveredExecution);
     ```
 
-Use recovery only when reader, writer, and execution-context state are compatible with continued processing.
+Use `recover(...)` only on Spring Batch 6 and only when reader, writer, and execution-context state are compatible with continued processing.
 Recovery does not resume work by itself.
 It makes the stuck execution restartable so a later `restart(...)` can continue the logical instance.
 On the Spring Boot 3.4.x and 3.5.x compatibility path with Spring Batch 5.2.x, prefer restart and rerun guidance unless the application has intentionally moved to a Batch 6 line that exposes recovery support.

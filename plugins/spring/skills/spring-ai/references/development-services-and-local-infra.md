@@ -1,6 +1,6 @@
 # Local model runtime
 
-Open this reference when the common-path Spring AI seam in [`SKILL.md`](../SKILL.md) is already clear and the blocker is Docker Model Runner, development-time services, or a local model runtime for development or offline testing.
+Open this reference when the common-path Spring AI seam is already clear and the blocker is Docker Model Runner, development-time services, or a local model runtime for development or offline testing.
 
 Use this file only when the remaining work is a local model runtime, not vector-store provisioning or full environment bootstrap.
 

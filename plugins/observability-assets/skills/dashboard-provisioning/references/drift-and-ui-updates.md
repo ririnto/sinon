@@ -160,7 +160,8 @@ For a dashboard file under `options.path`:
 4. Save the extracted dashboard object itself as the file content
 
 If you are calling an API that explicitly requires `folderUid`, `overwrite`, or `message`, keep `message` and response-only `meta` fields in the API boundary.
-Grafana classic wrapped files may use `dashboard`, `folderUid`, and `overwrite`; document that shape if you commit it under `options.path`.
+Grafana classic wrapped files may use `dashboard`, `folderUid`, and `overwrite`.
+Document that shape if you commit it under `options.path`.
 
 ### Common export gotcha: ID leakage
 

@@ -7,7 +7,7 @@ description: >-
 
 # MCP Integration
 
-Package MCP server definitions with a Claude Code plugin using current transport, authentication, path, and tool-naming contracts.
+Package MCP server definitions in a Claude Code plugin: choose a transport, configure auth, and use plugin-scoped tool names.
 
 ## Owned Surface
 
@@ -85,7 +85,8 @@ Stdio servers MUST exchange one JSON-RPC message per line on stdin and stdout.
 They MUST NOT use LSP `Content-Length` framing.
 
 Prefer HTTP for new remote integrations.
-Configure WebSocket in `.mcp.json` or through `claude mcp add-json`; `claude mcp add --transport` does not accept `ws`.
+Configure WebSocket in `.mcp.json` or through `claude mcp add-json`.
+`claude mcp add --transport` does not accept `ws`.
 WebSocket authentication is header-only and does not support the OAuth flow.
 
 Use HTTPS for HTTP and WSS for WebSocket, except explicit localhost development.
@@ -99,7 +100,8 @@ Choose one supported boundary:
 - Static token: reference an environment variable in `headers`.
 - Rotating or computed token: use `headersHelper` to produce headers at connection time.
 - stdio server: pass only the required environment variables in `env`.
-- WebSocket server: use `headers` or `headersHelper`; OAuth is unavailable.
+- WebSocket server: use `headers` or `headersHelper`.
+  OAuth is unavailable.
 
 ```json
 {

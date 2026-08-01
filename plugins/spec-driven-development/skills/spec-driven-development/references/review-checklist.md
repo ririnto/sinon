@@ -4,7 +4,7 @@
 
 # Review Checklist
 
-Open this guide when you need the full Spec Review or Implementation Review worksheet beyond the inline checklist in `../SKILL.md`.
+Use this guide for the full Spec Review or Implementation Review worksheet.
 Use it to record each applicable item as `pass`, `fail`, or `n/a` with rationale in reviewer or agent output.
 
 Review output MUST record the review type, the reviewed artifact scope, and each applicable item as `pass`, `fail`, or `n/a` with rationale.

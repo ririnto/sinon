@@ -1,6 +1,6 @@
 # Spring AI testing and evaluation harnesses
 
-Open this reference when the ordinary prompt-assembly and structured-output checks in `SKILL.md` are not enough and the task needs test harnesses, AI-specific mocking, or evaluation tooling.
+Open this reference when the ordinary prompt-assembly and structured-output checks are not enough and the task needs test harnesses, AI-specific mocking, or evaluation tooling.
 
 Keep test cases and evaluation harnesses versioned alongside the prompts and retrieval logic they exercise.
 

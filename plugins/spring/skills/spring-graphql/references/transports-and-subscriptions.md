@@ -1,6 +1,6 @@
 # Spring GraphQL transports and subscriptions
 
-Open this reference when the ordinary HTTP server path in `SKILL.md` is not enough and the task needs subscriptions, WebSocket, SSE, or RSocket transport wiring.
+Open this reference when the ordinary HTTP server path is not enough and the task needs subscriptions, WebSocket, SSE, or RSocket transport wiring.
 
 ## Transport decisions
 

@@ -12,16 +12,9 @@ Plugins live under `plugins/`.
 The Claude marketplace catalog lives at the repository root.
 Always-on repository rules are in `AGENTS.md`.
 
-## Purpose
-
-- Publish a curated Claude Code marketplace catalog from a Git repository.
-- Store installable plugin packages in a consistent directory layout.
-- Keep marketplace metadata and plugin manifests aligned.
-- Publish reusable agents and skills from their owning plugin roots.
-
 ## Repository Structure
 
-- `AGENTS.md`: stable repository invariants and completion gates.
+- `AGENTS.md`: repository invariants, build and check commands, and change discipline.
 - `CLAUDE.md`: Claude Code pointer that imports `AGENTS.md`.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
@@ -54,19 +47,18 @@ Plugin-specific details belong in each plugin's own `README.md`, not in this roo
 The following plugins are maintained in this repository and may be published to the Claude marketplace catalog.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
-- `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, and cross-platform Agent Skills.
-- `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including `SPEC.md` creation.
-- `plugins/harness`: Repository harness plugin for installing and evolving agent instructions, docs structure, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
-  The active host supplies agents and Harness requires capability-based delegation.
-- `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
-- `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
-- `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.
-- `plugins/netty`: Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.
-- `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
-- `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
-- `plugins/spec-driven-development`: Explicit end-to-end gated delivery: research unknowns, approve `SPEC.md`, implement, review drift, and verify completeness.
-- `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus the spring-architect agent for architecture and component design.
-- `plugins/workspace-workflow`: Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.
+- [agent-capability-kit](./plugins/agent-capability-kit/README.md)
+- [document-creator](./plugins/document-creator/README.md)
+- [harness](./plugins/harness/README.md)
+- [java](./plugins/java/README.md)
+- [jvm](./plugins/jvm/README.md)
+- [kotlin](./plugins/kotlin/README.md)
+- [netty](./plugins/netty/README.md)
+- [observability-assets](./plugins/observability-assets/README.md)
+- [reactor](./plugins/reactor/README.md)
+- [spec-driven-development](./plugins/spec-driven-development/README.md)
+- [spring](./plugins/spring/README.md)
+- [workspace-workflow](./plugins/workspace-workflow/README.md)
 
 ## Publishing Model
 
@@ -83,7 +75,7 @@ Claude Code supports registering marketplaces from GitHub repositories, generic 
 direct URLs to `marketplace.json`, and local paths.
 
 For this repository, use a GitHub repository, git URL, or local path.
-Sinon currently uses relative plugin sources such as `./plugins/java` inside
+Sinon uses relative plugin sources such as `./plugins/java` inside
 `.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe
 distribution path for this marketplace.
 

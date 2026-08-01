@@ -17,9 +17,6 @@ Open this when you need to justify `Flow`, choose between cold and hot streams, 
 
 ## Patterns
 
-The canonical cold `Flow`, `StateFlow`, and `SharedFlow` declaration patterns are in `SKILL.md` under "Cold `Flow` vs hot state or event streams".
-This reference covers only additive material.
-
 Buffering with a clear tradeoff:
 
 ```kotlin

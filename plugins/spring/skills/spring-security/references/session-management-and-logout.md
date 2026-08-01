@@ -1,10 +1,10 @@
 # Spring Security session management and logout
 
-Open this reference when the application depends on concurrent-session control, stateful session persistence rules beyond the ordinary path, or custom logout success handling.
+Open this reference when the application depends on concurrent-session control, stateful session persistence rules beyond the standard session baseline, or custom logout success handling.
 
 Use stateless session policy for bearer-token APIs and stateful session policy only for browser-login flows that actually need a server-side session.
 
-The ordinary path in [`SKILL.md`](../SKILL.md) already covers the session-creation policy matrix and the Spring Security 6/7 session behavior changes.
+The session-creation policy matrix and the Spring Security 6/7 session behavior changes define the ordinary session baseline.
 Open this reference only when the job goes beyond that baseline into concurrency control or custom logout handling.
 
 ## Concurrent-session control
@@ -43,7 +43,7 @@ LogoutSuccessHandler logoutSuccessHandler() {
 
 | Situation | Use |
 | --- | --- |
-| Pure bearer-token API | `SessionCreationPolicy.STATELESS` in the ordinary path |
+| Pure bearer-token API | `SessionCreationPolicy.STATELESS` |
 | Browser login with server-side session | stateful session policy |
 | One active session per user | concurrent-session control |
 | Logout must return `204 No Content` or clear browser state | custom logout success handler and `Clear-Site-Data` |

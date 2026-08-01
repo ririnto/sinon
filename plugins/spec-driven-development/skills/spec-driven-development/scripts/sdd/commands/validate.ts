@@ -2,7 +2,7 @@ import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { commandSpecPath } from "../args.js";
-import { fail, listByBasename, skillRoot } from "../infrastructure.js";
+import { fail, listByBasename } from "../infrastructure.js";
 import { resolveValidationRoots } from "../links.js";
 import type { ParsedArgs, ValidationResult } from "../shared.js";
 import { validateChangelogFile, validateDocument } from "../validation.js";
@@ -24,17 +24,6 @@ export const cmdValidate = (args: ParsedArgs): number => {
     return 1;
   }
   const [specRoot, scanRoot] = roots;
-  for (const schemaName of [
-    "spec-frontmatter.schema.json",
-    "research-frontmatter.schema.json",
-    "contract-frontmatter.schema.json"
-  ]) {
-    const schemaPath = path.join(skillRoot(), "assets", "schemas", schemaName);
-    if (!existsSync(schemaPath)) {
-      fail(`FAIL: Schema not found: ${schemaPath}`);
-      return 1;
-    }
-  }
   const specFiles = listByBasename(scanRoot, "SPEC.md");
   const researchFiles = listByBasename(scanRoot, "RESEARCH.md");
   const contractFiles = listByBasename(scanRoot, "CONTRACT.md");

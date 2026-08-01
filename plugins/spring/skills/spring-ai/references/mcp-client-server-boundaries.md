@@ -99,6 +99,7 @@ With the MCP server starter and annotation scanning enabled, Spring AI discovers
 | --- | --- | --- |
 | stdio | Local process, fast startup, containerized tools | Best for local or tightly coupled process boundaries |
 | Streamable HTTP | Remote servers, firewalls, request/response semantics | Preferred HTTP server protocol for Spring AI 2.0+ |
+| Stateless HTTP | Independent HTTP requests without session state | No server-side session continuity; keep conversation state in the application if needed |
 
 Choose the transport based on deployment topology, not library preference.
 
@@ -117,8 +118,8 @@ Treat them like any other tool boundary:
     class McpAuditService {
         private final Logger logger = LoggerFactory.getLogger(getClass());
 
-        void auditMcpCall(String toolName, String arguments) {
-            logger.atInfo().log(() -> "MCP tool invoked: tool=" + toolName + " args=" + arguments);
+        void auditMcpCall(String toolName, Map<String, ?> arguments) {
+            logger.atInfo().log(() -> "MCP tool invoked: tool=" + toolName + " argumentCount=" + arguments.size());
         }
     }
     ```

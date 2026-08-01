@@ -1,6 +1,6 @@
 # Routing workflow
 
-Open this reference when the ordinary tool path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is routing one request across bounded specialist seams.
+Open this reference when the ordinary tool path is not enough and the blocker is routing one request across bounded specialist seams.
 
 ## Use this file for one blocker family
 
@@ -13,6 +13,12 @@ Problem: one user request must be dispatched to different specialist flows inste
 Solution: keep routing explicit and let the router choose among bounded downstream seams.
 
 ```java
+enum Route {
+    WEATHER,
+    INVENTORY,
+    UNKNOWN
+}
+
 @Service
 class RoutingAgent {
     private final ChatClient router;
@@ -20,16 +26,17 @@ class RoutingAgent {
     private final ChatClient inventoryClient;
 
     RoutingAgent(ChatClient.Builder builder, @Qualifier("weatherChatClient") ChatClient weatherClient, @Qualifier("inventoryChatClient") ChatClient inventoryClient) {
-        this.router = builder.defaultSystem("Route the user's question to the appropriate specialist.").build();
+        this.router = builder.defaultSystem("Return exactly one route enum: WEATHER, INVENTORY, or UNKNOWN.").build();
         this.weatherClient = weatherClient;
         this.inventoryClient = inventoryClient;
     }
 
     String answer(String question) {
-        return switch (router.prompt().user("Route: " + question).call().content().trim().toLowerCase()) {
-            case "weather" -> weatherClient.prompt().user(question).call().content();
-            case "inventory" -> inventoryClient.prompt().user(question).call().content();
-            default -> "I could not determine which specialist can help.";
+        Route route = router.prompt().user("Route: " + question).call().entity(Route.class);
+        return switch (route) {
+            case WEATHER -> weatherClient.prompt().user(question).call().content();
+            case INVENTORY -> inventoryClient.prompt().user(question).call().content();
+            case UNKNOWN -> "I could not determine which specialist can help.";
         };
     }
 }

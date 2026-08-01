@@ -22,17 +22,36 @@ If restartability matters, keep cursor position, file offset, or aggregate state
 
 ```java
 class RestartableCustomerReader implements ItemStreamReader<CustomerInput> {
-    @Override
-    public void open(ExecutionContext executionContext) {
+    private final FlatFileItemReader<CustomerInput> delegate;
+
+    RestartableCustomerReader(FlatFileItemReader<CustomerInput> delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    public void update(ExecutionContext executionContext) {
+    public CustomerInput read() throws Exception {
+        return delegate.read();
+    }
+
+    @Override
+    public void open(ExecutionContext executionContext) throws Exception {
+        delegate.open(executionContext);
+    }
+
+    @Override
+    public void update(ExecutionContext executionContext) throws Exception {
+        delegate.update(executionContext);
+    }
+
+    @Override
+    public void close() throws Exception {
+        delegate.close();
     }
 }
 ```
 
 Use `ItemStream` whenever the component must reopen from saved state after failure.
+Use an existing framework reader or writer as the delegate when it already owns the concrete cursor, offset, or resource lifecycle.
 
 ## Delegate pattern blocker
 

@@ -159,7 +159,7 @@ spring:
         enabled: true
 ```
 
-Disable validation only when the embedded server does not publish its schema to the JNDI provider.
+Disable validation only when the embedded server does not publish a schema compatible with the test data.
 
 ### Production context source properties
 

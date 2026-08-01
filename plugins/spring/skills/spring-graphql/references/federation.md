@@ -1,6 +1,6 @@
 # Spring GraphQL federation
 
-Open this reference when the schema is intentionally part of a federated graph and the ordinary single-service schema path in `SKILL.md` is not enough.
+Open this reference when the schema is intentionally part of a federated graph and the ordinary single-service schema path is not enough.
 
 ## Federation boundary
 

@@ -2,7 +2,18 @@
 
 Open this reference when generated links are wrong behind a reverse proxy, gateway, ingress, or base-path rewrite.
 
-## Forwarded-header filter shape
+## WebFlux forwarded-header transformer
+
+```java
+@Bean
+ForwardedHeaderTransformer forwardedHeaderTransformer() {
+    return new ForwardedHeaderTransformer();
+}
+```
+
+Use `ForwardedHeaderTransformer` for WebFlux applications.
+
+## MVC forwarded-header filter
 
 ```java
 @Bean
@@ -11,6 +22,7 @@ ForwardedHeaderFilter forwardedHeaderFilter() {
 }
 ```
 
+Use `ForwardedHeaderFilter` for MVC applications.
 Use forwarded-header handling when the externally visible scheme, host, port, or base path differs from the local container request seen by the application.
 
 ## Symptoms

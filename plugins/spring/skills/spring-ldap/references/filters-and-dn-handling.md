@@ -35,7 +35,7 @@ Use manual escaping only when a raw filter string is unavoidable.
 
 ```java
 LdapName dn = LdapNameBuilder.newInstance("cn=admins,ou=groups,dc=example,dc=com").build();
-String commonName = dn.getRdn(0).getValue().toString();
+String commonName = dn.getRdn(dn.size() - 1).getValue().toString();
 ```
 
 ```java

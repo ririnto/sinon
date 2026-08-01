@@ -105,7 +105,7 @@ spring.ai.chat.client.tool-calling.enabled=false
 
 `ToolCallingAdvisor` manages conversation history internally across tool-call iterations by default.
 Memory advisors only store the final user/assistant exchange.
-Set `Advisor.DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER` explicitly if memory is needed inside the tool-call loop.
+If memory is needed inside the tool-call loop, set `Advisor.DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER` so the memory advisor runs above `ToolCallingAdvisor.DEFAULT_ORDER`, then call `.disableInternalConversationHistory()`.
 
 ### JDBC Chat Memory schema change
 

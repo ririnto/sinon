@@ -9,7 +9,7 @@ Open this when the project already uses Kotest and the remaining blocker is keep
 
 ## Rules
 
-- keep Kotest examples inside the suite's existing style; do not mix styles
+- keep Kotest examples inside the suite's existing style. Do not mix styles
 - use `assertSoftly` when several assertions describe one observable behavior
 - use `shouldThrowExactly<T>()` when the exact exception type matters
 - place lifecycle hooks at the spec level

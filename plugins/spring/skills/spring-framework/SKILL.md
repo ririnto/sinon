@@ -122,26 +122,33 @@ Start with explicit `@Bean` wiring before reaching for broader framework indirec
 Use `BeanRegistrar` when multiple beans must be registered conditionally from a single registration point, or when logic beyond a simple `@Bean` method is required:
 
 ```java
-class ServiceBeanRegistrar implements BeanRegistrar {
+@Configuration
+@Import(MyBeanRegistrar.class)
+class MyConfiguration {
+}
+
+class MyBeanRegistrar implements BeanRegistrar {
     @Override
-    void register(BeanRegistrationContext context) {
-        context.registerBean(InventoryService.class);
-        context.registerBean(ShippingService.class, config -> config.primary());
+    public void register(BeanRegistry registry, Environment env) {
+        registry.registerBean(InventoryService.class);
+        if (env.matchesProfiles("shipping")) {
+            registry.registerBean(ShippingService.class);
+        }
     }
 }
 ```
 
-Declare via `@Configuration` import or `ImportRegistrar`.
 Use this only when standard `@Bean` methods cannot express the needed registration logic.
 
 ### Proxy configuration
 
-Spring Framework 7.0 defaults all proxy processors (including `@Async`) to CGLIB proxies, matching Spring Boot behavior.
-Opt out for individual beans with `@Proxyable`:
+Core Spring uses interface-based JDK proxies when the target implements an interface and CGLIB proxies otherwise.
+Spring Boot may enable class-based proxies globally through its `spring.aop.proxy-target-class` configuration.
+Override the global choice for an individual bean with `@Proxyable`:
 
 ```java
 @Bean
-@Proxyable(ProxyMode.INTERFACES)
+@Proxyable(ProxyType.INTERFACES)
 PaymentService paymentService() {
     return new PaymentServiceImpl();
 }
@@ -388,27 +395,26 @@ class ResilienceConfig {
 ```java
 @Service
 class OrderClient {
-    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
+    @Retryable(maxRetries = 3, delay = 1000, multiplier = 2, maxDelay = 10000)
     Order fetchOrder(Long id) {
         return remoteService.getOrder(id);
     }
 }
 ```
 
-`@Retryable` automatically adapts to reactive return types (`Mono`, `Flux`), decorating the pipeline with Reactor's retry capabilities.
-Imperative methods use `RetryTemplate` under the hood.
+`@Retryable` supports imperative and reactive methods, with `maxRetries`, `delay`, `jitter`, `multiplier`, `maxDelay`, `includes`, `excludes`, and `predicate` available for retry policy configuration.
 
-### `RetryTemplate`
-
-For programmatic retry control:
+`RetryTemplate` is a separate programmatic API for callers that need to construct and invoke a retry policy directly:
 
 ```java
-RetryTemplate retry = RetryTemplate.builder()
-    .maxAttempts(3)
-    .retryOn(OrderServiceUnavailableException.class)
-    .exponentialBackoff(1000, 2, 10000)
+RetryPolicy policy = RetryPolicy.builder()
+    .maxRetries(3)
+    .delay(Duration.ofSeconds(1))
+    .multiplier(2)
+    .maxDelay(Duration.ofSeconds(10))
     .build();
-Order result = retry.execute(ctx -> remoteService.getOrder(id));
+RetryTemplate retry = new RetryTemplate(policy);
+Order result = retry.invoke(() -> remoteService.getOrder(id));
 ```
 
 ### `@ConcurrencyLimit`
@@ -439,7 +445,7 @@ class DataConfig {
     DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.hsqldb.jdbcDriver");
-        dataSource.setUrl("jdbc:hsqldb:hsql://localhost:");
+        dataSource.setUrl("jdbc:hsqldb:hsql://localhost/test");
         dataSource.setUsername("sa");
         dataSource.setPassword("");
         return dataSource;
@@ -501,7 +507,7 @@ Use `JdbcClient` (from Spring Framework 6.1+) for a fluent alternative that supp
 
 ```java
 List<Item> items = jdbcClient.sql("SELECT id, name, quantity FROM items")
-    .fetchSize(500)
+    .withFetchSize(500)
     .query()
     .list((rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")));
 ```
@@ -633,10 +639,13 @@ Use `@ExtendWith(SpringExtension.class)` to integrate the Spring `ApplicationCon
 ### Test context pausing
 
 Spring Framework 7.0 pauses unused application contexts in the test context cache to stop background processes.
-Configure via `spring.test.context.cache.pause` (`smart` default, `always`, or `never`):
+The default pause mode is `on_context_switch`.
+Configure `spring.test.context.cache.pause` with `always`, `on_context_switch`, or `never`.
 
 ```java
-@SpringBootTest(properties = "spring.test.context.cache.pause=never")
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = AppConfig.class)
+@TestPropertySource(properties = "spring.test.context.cache.pause=never")
 class OrderServiceTests {
 }
 ```
