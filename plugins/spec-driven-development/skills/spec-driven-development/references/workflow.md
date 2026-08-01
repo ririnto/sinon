@@ -7,7 +7,7 @@ description: >-
 
 ## Overview
 
-Open this guide only when you need the full lifecycle semantics beyond the ordinary path in `../SKILL.md`.
+Use this guide for full lifecycle semantics beyond the ordinary workflow.
 This workflow is iterative.
 Any review MAY return the work to an earlier stage.
 `SPEC.md` remains the source of truth for scope and intended behavior.
@@ -31,13 +31,13 @@ Any review MAY return the work to an earlier stage.
 
 ## Fast Path
 
-`../SKILL.md` owns the ordinary offline-capable path.
+The ordinary offline-capable path covers the default lifecycle.
 This section keeps only a compact lifecycle summary.
 
 1. Use Research only when external framework, library, or topic behavior is unclear.
 2. Create or revise `SPEC.md`, obtain Gate 1 approval, then link outbound `call` dependencies.
 3. Add optional contract artifacts only when they improve review clarity.
-4. Run Spec Review with the inline checklist in `../SKILL.md` and `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` when `bun` is available locally.
+4. Run Spec Review with the inline checklist and `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` when `bun` is available locally.
 5. Start implementation only after the approved artifact set is explicit.
 6. Finish with Implementation Review, final spec sync, and re-run `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` when `bun` is available locally.
    - Otherwise document the runtime blocker and complete the manual checklist fallback.
@@ -65,7 +65,7 @@ The agent MUST present a scope summary and request explicit approval before adva
 
 Passes when both of the following conditions are met:
 
-- Every applicable inline checklist item in `../SKILL.md` is recorded as `pass` or `n/a` (zero `fail` items remain).
+- Every applicable inline checklist item is recorded as `pass` or `n/a` (zero `fail` items remain).
 - `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` exits with status 0 when `bun` is available locally.
   - When `bun` is unavailable, the review record documents the runtime blocker and every applicable inline-checklist item is completed manually.
 
@@ -182,7 +182,7 @@ Optional contract artifacts exist only when the previous stage was used.
 
 Activities:
 
-1. The inline review checklist in `../SKILL.md` MUST be applied.
+1. The inline review checklist MUST be applied.
 2. Review evidence MUST follow the contract in [Review Evidence Contract](#review-evidence-contract).
 3. If subagent review is available, a separate review agent SHOULD be used.
 4. Frontmatter completeness and status transitions MUST be checked.
@@ -227,7 +227,7 @@ Implementation is complete and the current artifacts still describe the work.
 
 Activities:
 
-1. The inline review checklist in `../SKILL.md` MUST be applied.
+1. The inline review checklist MUST be applied.
 2. Review evidence MUST follow the contract in [Review Evidence Contract](#review-evidence-contract).
 3. If subagent review is available, a separate review agent SHOULD be used.
 4. Every Functional Requirement MUST map to implementation or to explicit justification in `SPEC.md`.
@@ -269,5 +269,5 @@ The review agent MUST receive:
 - The current `SPEC.md`.
 - Any relevant `RESEARCH.md`.
 - Any relevant `CONTRACT.md` or `openapi.yaml`.
-- The inline review checklist from `../SKILL.md`.
+- The inline review checklist.
 - The required review output format from [Review Evidence Contract](#review-evidence-contract).

@@ -8,7 +8,7 @@ description: >-
 
 ## Purpose
 
-Open this guide only when `../SKILL.md` is already clear and you need section-by-section `SPEC.md` authoring depth.
+Use this guide for section-by-section `SPEC.md` authoring depth.
 Each section SHOULD be written at the correct workflow timing so requirements remain testable.
 
 ## SPEC Placement and Naming

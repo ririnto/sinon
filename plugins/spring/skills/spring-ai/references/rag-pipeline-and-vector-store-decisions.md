@@ -2,7 +2,7 @@
 
 Open this reference when ETL pipeline design, ingestion pipeline design, chunking strategy, embedding model choice, vector store behavior, retrieval tuning, or RAG assembly must be decided.
 
-Keep the ordinary path in [`SKILL.md`](../SKILL.md).
+Keep the ordinary path.
 Use this file only when retrieval design itself becomes the blocker.
 
 ## ETL Pipeline and document ingestion blocker
@@ -12,7 +12,8 @@ Problem: Spring AI `Document` ingestion fails silently or produces poor retrieva
 Solution: Always control the reader, transformer, and writer chain explicitly.
 
 ```java
-PagePdfDocumentReader pdfReader = new PagePdfDocumentReader("classpath:/docs/reference.pdf");
+Resource pdf = new ClassPathResource("docs/reference.pdf");
+PagePdfDocumentReader pdfReader = new PagePdfDocumentReader(pdf);
 vectorStore.write(TokenTextSplitter.builder()
     .withChunkSize(800)
     .withMinChunkSizeChars(350)

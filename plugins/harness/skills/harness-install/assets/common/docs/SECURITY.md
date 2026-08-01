@@ -9,8 +9,8 @@ An agent loading this file should be able to refuse a request that would cross a
 ## Threat Model
 
 - Spoofing: stolen session cookie replays end-user identity.
-  - Use short session TTL: 15 minutes.
-  - Rotate refresh tokens with a 7-day lifetime.
+  - Use a short session TTL: `{{short session TTL}}`.
+  - Rotate refresh tokens with a `{{refresh token lifetime}}`.
   - Optionally bind sessions to IP and user-agent fingerprint.
 - Tampering: request body altered in transit.
   - Enforce TLS only.
@@ -33,11 +33,11 @@ An agent loading this file should be able to refuse a request that would cross a
 ## Secret Management
 
 - Database credentials live in the configured secret manager and are injected via environment variables at boot.
-  - Rotate every 90 days.
+  - Rotate on a regular cadence (for example every 90 days).
 - Third-party API keys live in the configured secret manager under per-service paths.
-  - Rotate every 90 days or immediately on compromise.
+  - Rotate on a regular cadence (for example every 90 days) or immediately on compromise.
 - Signing keys for outbound webhooks live in the configured secret manager/signing/.
-  - Rotate every 180 days with overlapping validity window.
+  - Rotate with an overlapping validity window (for example every 180 days).
 - Never write secrets into the repository.
   - Add a secret scanner or CI policy when the project needs mechanical secret-pattern enforcement.
 

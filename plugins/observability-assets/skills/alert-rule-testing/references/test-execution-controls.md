@@ -76,9 +76,10 @@ If the target repository runs an older `promtool`, verify support before relying
 
 ## Focused Execution
 
-`promtool test rules` runs every test group in the files you pass.
-It has no name-filter flag.
-To focus on a single group during iteration, split that group into its own file, or temporarily move the other groups out of the file.
+`promtool test rules` runs every test group in the files you pass by default.
+Use `--run <regex>` to run only test groups whose `name` matches the regular expression.
+The flag is repeatable.
+To focus on a single group during iteration, either pass `--run` with that group name or split the group into its own file.
 
 ```sh
 promtool test rules alerts/api-errors.test.yaml

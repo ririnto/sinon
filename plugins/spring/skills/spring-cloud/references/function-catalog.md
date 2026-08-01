@@ -1,6 +1,6 @@
 # Spring Cloud Function catalog
 
-Open this reference when the ordinary config-gateway-client path in `SKILL.md` is not enough and the task is specifically about Spring Cloud Function beans or function composition.
+Open this reference when the ordinary config-gateway-client path is not enough and the task is specifically about Spring Cloud Function beans or function composition.
 
 ```java
 @Bean
@@ -24,7 +24,7 @@ Consumer<String> sink() {
 spring:
   cloud:
     function:
-      definition: uppercase|reverse
+      definition: uppercase
 ```
 
 Use composition when the flow is still one logical function chain.

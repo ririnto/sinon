@@ -7,51 +7,9 @@ description: Decide whether skill material belongs in `SKILL.md`, references/, a
 
 Open this file when `SKILL.md` is getting crowded or when you are unsure whether material belongs in the entrypoint or a support file.
 
-## Core rule
-
-`SKILL.md` is the activation entrypoint.
-Keep every ordinary-path instruction there.
-Move only optional depth into support files.
-
-## Keep in `SKILL.md`
-
-- Activation-time purpose and scope.
-- Frontmatter rules and display-title placement when the skill authors skills.
-- First safe checks.
-- Main workflow and required decisions.
-- Required validation steps.
-- Default file layout.
-- Output shape.
-- Always-on guardrails.
-- Short representative examples.
-
-## Move to `references/`
-
-- Host-specific deviations.
-- Extended examples.
-- Troubleshooting after the ordinary workflow fails.
-- Compatibility details that do not apply to every run.
-- Decision material for a named blocker.
-
-Each reference must say when to open it and must not be required before `SKILL.md` can be used.
-
-## Move to `assets/`
-
-- Copyable templates.
-- Starter configuration files.
-- Schemas and fixtures.
-- Reusable checklists.
-- Example artifacts that should be copied rather than read as prose.
-
-## Move to `scripts/`
-
-- Deterministic validators.
-- File generators.
-- Static checks.
-- Mechanical transforms.
-- Report formatters.
-
-Do not move interactive workflows, web-required setup, or host-specific wrappers into scripts for the ordinary path.
+Keep ordinary workflow, required decisions, and output contracts in the entrypoint.
+Move additive depth to `references/`, `assets/`, or `scripts/`.
+This file holds only the split-check questions and split-shape examples.
 
 ## Split check
 

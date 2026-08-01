@@ -36,6 +36,9 @@ The ordinary Spring gRPC job is:
 | Project uses Boot-managed gRPC starters (4.1+) | Use the Boot-managed starters below |
 | Unary request-response is enough | Stay in `SKILL.md` |
 | Streaming RPCs or async stubs are required | Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) |
+| Channel customization, retries, keepalive, or client interceptors are required | Open [references/channel-customization.md](references/channel-customization.md) |
+| Reusable exception-to-status mapping is required | Open [references/exception-handling.md](references/exception-handling.md) |
+| Tests should use an in-process transport or injected local port | Open [references/in-process-testing.md](references/in-process-testing.md) |
 | TLS, mTLS, bearer tokens, or OAuth2 are the blocker | Open [references/security-tls-mtls.md](references/security-tls-mtls.md) |
 
 ## Starter and runtime decisions
@@ -463,7 +466,7 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 ## References
 
 - Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) when the ordinary blocking unary path is not enough and the task needs future-style stubs or streaming RPC patterns.
-- Open [references/channel-customization.md](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, compression, keepalive, retries, or per-channel tuning.
+- Open [references/channel-customization.md](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, keepalive, retries, or per-channel tuning.
 - Open [references/exception-handling.md](references/exception-handling.md) when exception-to-status mapping needs reusable handler beans, `@GrpcExceptionHandler`, or different behavior per service.
 - Open [references/in-process-testing.md](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcServerPort`, or explicit test-only channel wiring.
 - Open [references/security-tls-mtls.md](references/security-tls-mtls.md) when the deployment needs TLS or mTLS, Basic authentication, bearer tokens, or OAuth2 and server-authentication integration.

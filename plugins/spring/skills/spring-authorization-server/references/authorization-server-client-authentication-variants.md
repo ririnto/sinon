@@ -1,6 +1,6 @@
 # Client authentication variants
 
-Open this reference when the common-path public-client PKCE baseline in [`SKILL.md`](../SKILL.md) is not enough and the blocker is client type or token-endpoint authentication method selection.
+Open this reference when the common-path public-client PKCE baseline is not enough and the blocker is client type or token-endpoint authentication method selection.
 
 ## When to open
 
@@ -92,4 +92,4 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 
 - [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
 - [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
-- [Authorization code grant and PKCE](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
+- [Authorization code grant and PKCE](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-pkce.html)

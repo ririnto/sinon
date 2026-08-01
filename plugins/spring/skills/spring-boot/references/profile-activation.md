@@ -6,7 +6,7 @@ Open this reference when active-profile selection or profile-specific config loa
 spring.profiles.active=prod
 ```
 
-Put profile-specific values in `application-prod.yaml` using the canonical `spring.config.activate.on-profile` shape from `SKILL.md`.
+Put profile-specific values in `application-prod.yaml` using the canonical `spring.config.activate.on-profile` shape.
 Prefer explicit profile activation and profile-specific files over hidden conditional code.
 
 ## Validation rule

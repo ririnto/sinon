@@ -76,7 +76,7 @@ class PublicDeclarationDocComment :
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
             if (klass.parent !is KtBlockExpression &&
-                shouldCheck(klass, KtTokens.CLASS_KEYWORD) &&
+                klass.shouldCheck(KtTokens.CLASS_KEYWORD) &&
                 klass.docComment === null
             ) {
                 emit(
@@ -90,7 +90,7 @@ class PublicDeclarationDocComment :
         override fun visitNamedFunction(function: KtNamedFunction) {
             super.visitNamedFunction(function)
             if (!function.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
-                shouldCheck(function, KtTokens.FUN_KEYWORD) &&
+                function.shouldCheck(KtTokens.FUN_KEYWORD) &&
                 function.docComment === null
             ) {
                 emit(
@@ -104,7 +104,7 @@ class PublicDeclarationDocComment :
         override fun visitProperty(property: KtProperty) {
             super.visitProperty(property)
             if (!property.isLocal &&
-                shouldCheck(property, KtTokens.VAL_KEYWORD, KtTokens.VAR_KEYWORD) &&
+                property.shouldCheck(KtTokens.VAL_KEYWORD, KtTokens.VAR_KEYWORD) &&
                 property.docComment === null
             ) {
                 emit(
@@ -119,7 +119,7 @@ class PublicDeclarationDocComment :
             super.visitObjectDeclaration(declaration)
             if (declaration.name !== null &&
                 !declaration.isCompanion() &&
-                shouldCheck(declaration, KtTokens.OBJECT_KEYWORD) &&
+                declaration.shouldCheck(KtTokens.OBJECT_KEYWORD) &&
                 declaration.docComment === null
             ) {
                 emit(
@@ -130,23 +130,24 @@ class PublicDeclarationDocComment :
             }
         }
 
-        private fun shouldCheck(declaration: KtModifierListOwner, vararg declarationTokens: KtKeywordToken): Boolean {
-            val visibility = declaration.visibilityModifierType()
-            return !isEnclosedByNonPublic(declaration) &&
+        private fun KtModifierListOwner.shouldCheck(vararg declarationTokens: KtKeywordToken): Boolean {
+            val visibility = visibilityModifierType()
+            return !isEnclosedByNonPublic() &&
                 (visibility === null || visibility in setOf(KtTokens.PUBLIC_KEYWORD, KtTokens.PROTECTED_KEYWORD)) &&
-                declarationTokens.any { token -> declaration.node.findChildByType(token) !== null } &&
-                (declaration !is KtNamedFunction || declaration.parent !is KtBlockExpression)
+                declarationTokens.any { token -> node.findChildByType(token) !== null } &&
+                (this !is KtNamedFunction || parent !is KtBlockExpression)
         }
 
-        private fun isEnclosedByNonPublic(declaration: PsiElement): Boolean {
-            var parent = declaration.parent
+        private fun PsiElement.isEnclosedByNonPublic(): Boolean {
+            var parent = this.parent
             var enclosedByNonPublic = false
             while (parent !== null && !enclosedByNonPublic) {
-                enclosedByNonPublic = when (parent) {
-                    is KtClass -> parent.visibilityModifierType() in NON_PUBLIC_VISIBILITIES
-                    is KtObjectDeclaration -> parent.visibilityModifierType() in NON_PUBLIC_VISIBILITIES
-                    else -> false
-                }
+                enclosedByNonPublic =
+                    when (parent) {
+                        is KtClass -> parent.visibilityModifierType() in NON_PUBLIC_VISIBILITIES
+                        is KtObjectDeclaration -> parent.visibilityModifierType() in NON_PUBLIC_VISIBILITIES
+                        else -> false
+                    }
                 parent = parent.parent
             }
             return enclosedByNonPublic

@@ -49,7 +49,7 @@ The ordinary Spring Statemachine job is:
 | --- | --- |
 | One singleton machine with external transitions, guards, actions, listeners, and in-memory tests | Stay in `SKILL.md` |
 | Many machine instances, persisted state, regions, or persistence-aware tests | Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) |
-| Choice, junction, fork, join, or history semantics | Open [references/pseudo-states.md](references/pseudo-states.md) |
+| Choice, junction, fork, join, history, termination, or entry/exit-point semantics | Open [references/pseudo-states.md](references/pseudo-states.md) |
 | Reactive guards, actions, or event flows | Open [references/reactive-support.md](references/reactive-support.md) |
 
 ### Transition decisions
@@ -131,7 +131,7 @@ Add factories, persistence, pseudo states, or regions only when the workflow tru
 ## Coding procedure
 
 1. Keep state and event names business-meaningful and stable.
-2. Use external transitions for ordinary lifecycle movement and reserve pseudo states for genuinely branching workflows.
+2. Use external transitions for ordinary lifecycle movement and reserve pseudo states for genuinely branching or hierarchical lifecycle semantics.
 3. Put eligibility checks in guards instead of burying them in actions.
 4. Keep actions idempotent when retries or duplicate events are possible.
 5. Keep extended state small and explicit so guards and actions can reason about it safely.
@@ -177,9 +177,9 @@ stateMachine.startReactively().block();
 
 Three transition types are supported:
 
-- `withExternal()` - source and target differ; entry and exit actions run.
-- `withInternal()` - source and target are the same; no entry or exit actions run.
-- `withLocal()` - source and target are the same state hierarchy level; no exit or entry actions run for sub-states.
+- `withExternal()` - source and target differ, so entry and exit actions run.
+- `withInternal()` - source and target are the same, so no entry or exit actions run.
+- `withLocal()` - source and target are at the same state hierarchy level, so no exit or entry actions run for sub-states.
 
 ### State entry, exit, and do actions
 
@@ -257,7 +257,7 @@ transitions.withExternal()
 ## Edge cases
 
 - Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when branching semantics go beyond guarded external transitions.
+- Open [references/pseudo-states.md](references/pseudo-states.md) when lifecycle semantics go beyond guarded external transitions.
 - Open [references/reactive-support.md](references/reactive-support.md) when actions, guards, or event dispatch must stay reactive end to end.
 
 ## Implementation examples
@@ -408,5 +408,5 @@ Return:
 ## References
 
 - Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when the ordinary single-machine lifecycle is not enough and the task needs factories, persistence, regions, or deeper testing patterns.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when branching needs explicit choice, junction, fork, join, or history modeling.
+- Open [references/pseudo-states.md](references/pseudo-states.md) when the workflow needs explicit pseudo-state semantics.
 - Open [references/reactive-support.md](references/reactive-support.md) when the machine must stay reactive.

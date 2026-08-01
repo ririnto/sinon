@@ -244,10 +244,10 @@ On demand:
 jcmd <pid> GC.heap_dump /tmp/heap.hprof
 ```
 
-Analyze with Eclipse MAT or `jhsdb`:
+Analyze with Eclipse MAT, or capture from a live JVM with `jhsdb jmap`:
 
 ```sh
-jhsdb hat dump --heap-dump-file /tmp/heap.hprof
+jhsdb jmap --binaryheap --dumpfile /tmp/heap.hprof --pid <pid>
 ```
 
 ## Edge cases

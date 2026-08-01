@@ -1,6 +1,6 @@
 # Audio transcription and speech output
 
-Open this reference when the common-path text workflow in [`SKILL.md`](../SKILL.md) is not enough and the blocker is speech-to-text, text-to-speech, or audio-bearing model input.
+Open this reference when the common-path text workflow is not enough and the blocker is speech-to-text, text-to-speech, or audio-bearing model input.
 
 ## Use this file for one blocker family
 

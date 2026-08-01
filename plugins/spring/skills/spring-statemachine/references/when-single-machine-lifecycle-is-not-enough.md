@@ -1,6 +1,6 @@
 # Spring Statemachine when one machine lifecycle is not enough
 
-Open this reference when the ordinary single-machine lifecycle in `SKILL.md` is not enough and the task needs many machine instances, persisted state, regions, or more advanced testing.
+Open this reference when a single-machine lifecycle is not enough and the task needs many machine instances, persisted state, regions, or more advanced testing.
 
 ## Factory usage
 
@@ -202,7 +202,7 @@ Persisted-machine testing belongs here, not in the ordinary-path checklist, beca
 
 | Situation | Use |
 | --- | --- |
-| One singleton machine per application | Stay with `@EnableStateMachine` in `SKILL.md` |
+| One singleton machine per application | `@EnableStateMachine` |
 | Many runtime instances share one topology | `@EnableStateMachineFactory` |
 | A machine must survive restart or resume later | persistence support |
 | The workflow has parallel independent sub-lifecycles | regions |
@@ -216,5 +216,5 @@ Verify that the chosen factory or persistence path solves a real lifecycle requi
 
 ## Related blockers
 
-- Open [`pseudo-states.md`](pseudo-states.md) when the branching model depends on choice, junction, fork, join, or history semantics.
+- Open [`pseudo-states.md`](pseudo-states.md) when the lifecycle needs explicit pseudo-state semantics.
 - Open [`reactive-support.md`](reactive-support.md) when the machine's actions, guards, or event flow must stay reactive.

@@ -1,6 +1,6 @@
 # Spring Batch fault tolerance and transaction tuning
 
-Open this reference when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions beyond the common path in [`SKILL.md`](../SKILL.md).
+Open this reference when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions beyond the common path.
 
 ## Transaction and commit blocker
 

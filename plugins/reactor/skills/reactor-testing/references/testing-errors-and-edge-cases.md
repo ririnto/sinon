@@ -46,7 +46,7 @@ class ErrorPredicateTest {
 
 ### Error consumption with assertions
 
-Use `expectErrorSatisfies` when you need to assert multiple properties on the error object.
+Use `consumeErrorWith` when you need to assert multiple properties on the error object.
 
 ```java
 import org.junit.jupiter.api.Test;
@@ -157,7 +157,7 @@ class ExpectNoEventEdgeCase {
             Mono.just("value").delayElement(Duration.ofMillis(100))
         ))
             .expectSubscription()
-            .expectNoEvent(Duration.ofMillis(50))
+            .expectNoEvent(Duration.ofMillis(100))
             .expectNext("value")
             .verifyComplete();
     }

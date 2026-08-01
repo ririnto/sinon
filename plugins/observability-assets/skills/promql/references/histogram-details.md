@@ -64,12 +64,12 @@ It collapses all buckets into one, making quantiles meaningless.
 
 Assumes linear interpolation (uniform distribution of observations within the bucket).
 
-Given buckets `{le="1": 50, le="5": 70}` and asking for phi=0.5 (median):
+Given buckets `{le="1": 50, le="5": 70}` and asking for phi=0.86:
 
 - The quantile falls between 1 and 5.
 - 50 observations are at or below 1. 20 observations are between 1 and 5.
-- The median is the 35th observation (50% of 70).
-- Linear interpolation places it at: `1 + (5 - 1) * (35 - 50) / (70 - 50)` = `1 + 4 * (-15/20)` = `1 - 3` = `-2`.
+- The quantile rank is `0.86 * 70 = 60.2` observations, and Prometheus uses this continuous rank without rounding.
+- Linear interpolation places it at: `1 + (5 - 1) * (60.2 - 50) / (70 - 50)` = `1 + 4 * (10.2/20)` = `3.04`.
 
 This example shows why picking boundaries far from actual bucket edges produces unreliable results with classic histograms.
 
@@ -111,5 +111,4 @@ These intermediate results:
 - Cannot be stored as recording rule results (evaluation will fail).
 - Should only exist transiently within a query expression.
 
-Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md).
 Use this reference for histogram-specific interpolation, aggregation rules, and debugging guidance only.

@@ -5,7 +5,7 @@ description: >-
 
 # Type Shape Decisions
 
-Use this reference when the job is to choose the right Kotlin type shape for a model that is still unclear after reading `SKILL.md`.
+Use this reference when the job is to choose the right Kotlin type shape for an ambiguous model.
 This reference should be sufficient on its own to finish that modeling decision.
 
 Choose the narrowest construct that matches the domain meaning:
@@ -38,9 +38,6 @@ Use this file to finish one of these jobs:
 - choose between `data class`, regular `class`, and `object`
 - decide whether a variant set is truly closed enough for sealed modeling
 - make a Java-facing public model read clearly without Kotlin-only surprises
-
-The canonical type-shape examples (`value class`, `data class`, `object`, `enum class`, sealed types, regular class) and their decision criteria are in `SKILL.md` under "Choose the smallest type shape".
-This reference covers only additive material not present there.
 
 ## Operator Conventions
 
@@ -76,7 +73,7 @@ Never overload for side-effect-heavy or non-obvious meanings.
 ## Functional Interfaces (SAM)
 
 Use `fun interface` when you need a Kotlin-native single-abstract-method interface that allows lambda syntax at call sites.
-Unlike Java SAM conversion (covered in `SKILL.md`), `fun interface` is a Kotlin-first construct that works without a JVM runtime target.
+Unlike Java SAM conversion, `fun interface` is a Kotlin-first construct that works without a JVM runtime target.
 
 ```kotlin
 fun interface ClickHandler {

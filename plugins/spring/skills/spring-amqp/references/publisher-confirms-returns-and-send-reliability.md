@@ -1,6 +1,6 @@
 # Publisher confirms, returns, and send reliability
 
-Open this reference when the ordinary `RabbitTemplate` publish path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is broker acknowledgment, unroutable-message handling, or send-side delivery certainty.
+Open this reference when the ordinary `RabbitTemplate` publish path is not enough and the blocker is broker acknowledgment, unroutable-message handling, or send-side delivery certainty.
 
 ## Publisher confirm blocker
 
@@ -36,7 +36,11 @@ Problem: producer failures are being handled like consumer retry or DLQ failures
 
 Solution: keep send-side publish reliability separate from consumer-side retry and dead-letter behavior.
 
-- Producer confirms and returns answer 'was the message accepted and routed?'
+- A publisher confirm answers 'did the broker accept the publish to the exchange?'
+- It does not prove that the message was routed to a queue.
+- A publisher return answers 'did a mandatory message remain unroutable?'
+- It does not replace the broker-acceptance signal from a confirm.
+- A message can be returned as unroutable and still receive a positive publisher confirm because the broker accepted it at the exchange.
 - Consumer retry and DLQ answer 'what happened after a consumer received the message?'
 
 ## Decision points

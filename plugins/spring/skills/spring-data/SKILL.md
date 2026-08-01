@@ -61,7 +61,10 @@ Spring Data Commons 4.1 introduces type-safe property path references.
 Prefer method references over string-based property names when the property is known at compile time.
 
 ```java
-Sort.by(Person::getFirstName, Person::getLastName)
+Sort.by(
+    TypedPropertyPath.of(Person::getFirstName),
+    TypedPropertyPath.of(Person::getLastName)
+)
 ```
 
 Nested paths compose through chaining:
@@ -105,7 +108,9 @@ Use `Class<T>` projection parameter when callers choose the projection shape at 
 record CustomerSummary(String email) {
 }
 
-<T> List<T> findByEmail(String email, Class<T> projectionType);
+interface CustomerRepository extends ListCrudRepository<Customer, Long> {
+    <T> List<T> findByEmail(String email, Class<T> projectionType);
+}
 ```
 
 Callers pass the projection class:
@@ -256,11 +261,6 @@ findByAddressCity
 
 Use declared queries when derived query method names become unwieldy.
 The annotation name is shared across Spring Data modules, but the actual query language and advanced attributes stay store-specific.
-
-```java
-@Query("select c from Customer c where c.active = true")
-List<Customer> findActiveCustomers();
-```
 
 Keep common guidance at the level of 'declared query versus derived query'.
 Move JPQL, native SQL, SpEL, and store-specific `@Query` attributes to the store-specific path.

@@ -1,6 +1,6 @@
 # Spring Data REST exposure
 
-Open this reference when the ordinary repository-abstraction path in [`SKILL.md`](../SKILL.md) is not enough and the task is specifically about exposing repositories as HTTP resources.
+Open this reference when the ordinary repository-abstraction path is not enough and the task is specifically about exposing repositories as HTTP resources.
 
 Use Spring Data REST only when repository exposure is an intentional API choice.
 

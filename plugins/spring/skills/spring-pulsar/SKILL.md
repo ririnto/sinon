@@ -33,7 +33,7 @@ The ordinary Spring Pulsar job is:
 3. Choose the schema strategy before the first producer and listener are written.
 4. Publish through `PulsarTemplate` and consume through `@PulsarListener`.
 5. Decide concurrency, retry, and dead-letter behavior before production rollout.
-6. Add an integration test that proves the producer, listener, and topic configuration agree on payload shape and redelivery behavior.
+6. Add an integration test that proves the producer, listener, and topic configuration agree on payload shape and delivery behavior.
 
 ## Dependency baseline
 
@@ -85,7 +85,7 @@ Add tenant or namespace abstraction only when the deployment truly requires it.
 6. Use readers only when the use case is genuinely cursor-style replay or audit traversal rather than normal subscription consumption.
 7. Add producer or consumer customizers only when properties are not enough.
 8. Choose acknowledgment mode (BATCH, RECORD, MANUAL) based on whether the listener needs per-message or per-batch ack control.
-9. Use PulsarConsumerErrorHandler for Spring-native DLQ when the subscription type is not Shared.
+9. Use PulsarConsumerErrorHandler for Spring-native DLQ with non-Shared subscriptions, and it is also valid with Shared subscriptions when Spring-native recovery is preferred.
 10. Test both happy-path delivery and one representative failure path with the same schema and subscription settings used in production.
 
 ## Implementation examples
@@ -246,7 +246,7 @@ Change the image only when the test must prove compatibility with another suppor
 
 - Verify producer and consumer agree on topic name and payload shape.
 - Verify subscription behavior matches the intended processing model and concurrency setting.
-- Verify retry, redelivery, or DLQ behavior on one representative failure path.
+- When retry, redelivery, or DLQ is configured, verify it on one representative failure path.
 - Verify reader-style code is used only where replay semantics are required.
 - Verify namespace and topic resolution stay aligned with deployment configuration.
 - Verify schema, customizer, and property overrides match the deployment configuration used in tests.
@@ -263,7 +263,6 @@ Change the image only when the test must prove compatibility with another suppor
 
 ## References
 
-- Open [references/client-authentication-and-tls.md](references/client-authentication-and-tls.md) when the cluster requires authentication, TLS, or separate administration credentials.
 - Open [references/batch-consumption.md](references/batch-consumption.md) when the listener should consume batches instead of one message at a time.
 - Open [references/schema-mapping-and-compatibility.md](references/schema-mapping-and-compatibility.md) when schema type, schema evolution, or message conversion compatibility is unclear.
 - Open [references/producer-consumer-customizers-and-properties.md](references/producer-consumer-customizers-and-properties.md) when `spring.pulsar.*` properties are not enough or builder customizers are required.

@@ -1,6 +1,6 @@
 # Spring Data store-specific module selection
 
-Open this reference when the ordinary repository-abstraction path in [`SKILL.md`](../SKILL.md) is not enough and the task depends on one store's persistence semantics.
+Open this reference when the ordinary repository-abstraction path is not enough and the task depends on one store's persistence semantics.
 
 ## Store-specific module rule
 

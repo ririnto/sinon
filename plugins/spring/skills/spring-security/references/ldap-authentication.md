@@ -1,6 +1,6 @@
 # Spring Security LDAP authentication
 
-Open this reference when the task specifically depends on LDAP-backed authentication and the ordinary servlet path in `SKILL.md` is not enough.
+Open this reference when the task specifically depends on LDAP-backed authentication beyond the ordinary servlet security configuration.
 
 Keep LDAP lookup, password comparison, and authority mapping explicit and well-tested.
 

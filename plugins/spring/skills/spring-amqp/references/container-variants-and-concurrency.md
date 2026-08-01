@@ -1,6 +1,6 @@
 # Listener container variants and concurrency
 
-Open this reference when the default listener-container setup in [`SKILL.md`](../SKILL.md) is not enough and the blocker is container choice, dedicated factories, prefetch, concurrency, or ordering tradeoffs.
+Open this reference when the default listener-container setup is not enough and the blocker is container choice, dedicated factories, prefetch, concurrency, or ordering tradeoffs.
 
 ## Container choice blocker
 
@@ -75,12 +75,13 @@ This option bypasses `consecutiveIdleTrigger` and `stopConsumerMinInterval` for 
 Scale-up behavior is unaffected.
 Requires `maxConcurrentConsumers` to be configured.
 
-## Error handler fatal-stop option (4.1)
+## Error handler fatal behavior (4.1)
 
-Problem: fatal exceptions in a listener cause message rejection and requeue loops because the container keeps consuming from a broken state.
+Problem: fatal listener exceptions need an explicit rejection and container-stop policy.
 
-Solution: use `ConditionalRejectingErrorHandler` with `stopListenerOnFatal(true)`.
-Fatal exceptions throw `FatalListenerExecutionException` instead of `AmqpRejectAndDontRequeueException`, stopping the container and requeuing the message for other consumers.
+Solution: keep the default rejection behavior unless the current container must stop after a fatal failure.
+The default `ConditionalRejectingErrorHandler` throws `AmqpRejectAndDontRequeueException`, so the fatal message is rejected without requeue.
+With `stopListenerOnFatal(true)`, it throws `FatalListenerExecutionException`, stops the current container, and requeues the message so another active consumer may receive it.
 
 ```java
 ConditionalRejectingErrorHandler errorHandler = new ConditionalRejectingErrorHandler();

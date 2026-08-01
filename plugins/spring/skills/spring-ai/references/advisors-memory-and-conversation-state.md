@@ -1,8 +1,8 @@
 # Spring AI advisors, memory, and conversation state
 
-Open this reference when the common-path advisor and chat-memory guidance in [`SKILL.md`](../SKILL.md) is not enough and the blocker is advisor ordering, persistent memory design, token buffering, or conversation isolation.
+Open this reference when the common-path advisor and chat-memory guidance is not enough and the blocker is advisor ordering, persistent memory design, token buffering, or conversation isolation.
 
-Keep the ordinary path in [`SKILL.md`](../SKILL.md).
+Keep the ordinary path.
 Use this file only when one of those specific blockers appears.
 
 ## When to open this

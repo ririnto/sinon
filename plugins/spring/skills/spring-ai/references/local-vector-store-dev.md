@@ -1,6 +1,6 @@
 # Local vector store for development
 
-Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is a reproducible local vector store that matches the production retrieval path.
+Open this reference when the ordinary path is not enough and the blocker is a reproducible local vector store that matches the production retrieval path.
 
 ## Local vector-store blocker
 

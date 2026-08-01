@@ -6,7 +6,7 @@ Open this reference when the task requires `RegisteredClientRepository`, `OAuth2
 
 Open this reference when:
 
-- Authorization state must survive restarts in a Redis-backed session or cache topology
+- Registered clients, authorization state, or consent must survive restarts in a Redis-backed session or cache topology
 - Token issuance latency targets favor Redis over relational persistence
 - The platform already operates Redis as the primary state store
 - Horizontal scaling requires shared state without sticky sessions

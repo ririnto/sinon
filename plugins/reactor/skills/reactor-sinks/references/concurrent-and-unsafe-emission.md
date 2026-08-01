@@ -15,7 +15,11 @@ When multiple producers race, a safe sink returns `FAIL_NON_SERIALIZED` instead 
 import reactor.core.publisher.Sinks;
 final class SafeSinkContention {
     Sinks.EmitResult emit(Sinks.Many<String> sink, String value) {
-        return sink.tryEmitNext(value);
+        Sinks.EmitResult result = sink.tryEmitNext(value);
+        if (result.isFailure()) {
+            throw new IllegalStateException("Emission failed: " + result);
+        }
+        return result;
     }
 }
 ```
@@ -34,7 +38,7 @@ final class CoordinatedEmission {
     void safePublish(String value) {
         lock.lock();
         try {
-            sink.tryEmitNext(value);
+            sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
         } finally {
             lock.unlock();
         }

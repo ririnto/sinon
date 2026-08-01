@@ -1,6 +1,6 @@
 # Tool-set curation
 
-Open this reference when the ordinary tool path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is exposing only a curated tool set to the model.
+Open this reference when the ordinary tool path is not enough and the blocker is exposing only a curated tool set to the model.
 
 ## Multi-tool blocker
 

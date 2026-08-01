@@ -10,7 +10,8 @@ description: >-
 ## Boundaries
 
 Use this skill when the application is the token issuer: it authenticates users or clients, records consent, issues tokens, publishes provider metadata, and owns signing keys.
-Bearer-token validation in an API, delegated login against an external provider, and outbound OAuth2 client token management are relying-party concerns rather than token-issuance work.
+Bearer-token validation in an API and outbound OAuth2 client token management are relying-party concerns rather than token-issuance work.
+An authorization server that uses `oauth2Login()` in its non-authorization-server login chain to authenticate users through an external provider remains in scope because it still issues its own tokens.
 
 Spring Authorization Server 1.5.8 is the final standalone generation.
 Active authorization-server development continues in Spring Security 7, where `spring-security-oauth2-authorization-server` shares Spring Security's version and BOM line.
@@ -67,7 +68,8 @@ curl -fsS http://localhost:9000/oauth2/jwks
 - A login filter chain that authenticates the resource owner
 - A `RegisteredClientRepository`
 - A `JWKSource<SecurityContext>` and `JwtDecoder`
-- An explicit `AuthorizationServerSettings` issuer
+- An explicit `AuthorizationServerSettings` issuer for single-issuer deployments, or issuer-scoped settings and components for multi-issuer deployments
+- A shared external or custom `JWKSource<SecurityContext>` for clustered deployments
 - Durable client, authorization, and consent stores before clustered production deployment
 
 ## Filter chains and issuer
@@ -98,8 +100,11 @@ AuthorizationServerSettings authorizationServerSettings() {
 }
 ```
 
-Keep the issuer stable and equal to the externally visible URL behind proxies and TLS termination.
-Add `.oidc(Customizer.withDefaults())` to the authorization-server configurer only when the provider must publish OIDC identity endpoints and ID tokens.
+The explicit issuer above is a single-issuer example.
+For multiple issuers, do not configure a global `.issuer(...)`.
+Enable `multipleIssuersAllowed(true)` and delegate registered clients, authorizations, consent, signing keys, and related components by issuer as described in [references/authorization-server-multitenancy.md](references/authorization-server-multitenancy.md).
+Keep a single issuer stable and equal to the externally visible URL behind proxies and TLS termination.
+Add `.oidc(Customizer.withDefaults())` to the authorization-server configurer only when the provider must publish OIDC metadata, UserInfo, or ID-token surfaces.
 
 ## Development user and public client
 
@@ -195,8 +200,9 @@ metadata: /.well-known/oauth-authorization-server
 jwk set: /oauth2/jwks
 ```
 
-OIDC discovery, UserInfo, logout, device authorization, PAR, dynamic registration, introspection, and revocation are conditional surfaces.
-Do not publish them until the concrete client protocol requires them and their access policy is tested.
+OIDC provider metadata, UserInfo, and ID-token issuance are separate conditional surfaces, all enabled through the OIDC configuration path when required.
+Logout, device authorization, PAR, dynamic registration, introspection, and revocation are additional conditional surfaces.
+Do not publish any of them until the concrete client protocol requires them and their access policy is tested.
 
 ## Validation checklist
 
@@ -205,7 +211,7 @@ Do not publish them until the concrete client protocol requires them and their a
 - Verify the public client must present a valid PKCE verifier.
 - Verify issued tokens contain only approved scopes and claims.
 - Verify an unknown client, invalid scope, or invalid PKCE request is rejected.
-- Verify signing keys and authorization state survive restart before a clustered production rollout.
+- Verify signing keys, registered clients, authorization state, and consent survive restart before a clustered production rollout.
 
 ## Production guardrails
 
@@ -236,7 +242,7 @@ Return:
 - Open [references/authorization-server-dynamic-client-registration.md](references/authorization-server-dynamic-client-registration.md) when external clients need self-service registration.
 - Open [references/authorization-server-federated-identity-and-social-login.md](references/authorization-server-federated-identity-and-social-login.md) when user authentication is delegated to an external provider.
 - Open [references/authorization-server-extension-grants.md](references/authorization-server-extension-grants.md) when an extension grant or token exchange path is required.
-- Open [references/authorization-server-jpa-persistence.md](references/authorization-server-jpa-persistence.md) or [references/authorization-server-redis-persistence.md](references/authorization-server-redis-persistence.md) when authorization state must survive restart.
+- Open [references/authorization-server-jpa-persistence.md](references/authorization-server-jpa-persistence.md) or [references/authorization-server-redis-persistence.md](references/authorization-server-redis-persistence.md) when registered clients, authorization state, or consent must survive restart.
 - Open [references/authorization-server-multitenancy.md](references/authorization-server-multitenancy.md) when issuer, clients, or signing keys differ by tenant.
 - Open [references/authorization-server-endpoint-customization.md](references/authorization-server-endpoint-customization.md) when protocol endpoint request or response handling must change.
 - Open [references/authorization-server-deployment-and-operations.md](references/authorization-server-deployment-and-operations.md) when proxying, production hardening, or key operations are the blocker.

@@ -25,12 +25,14 @@ Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new applica
 ## Common path
 
 1. Verify the SCDF server, Skipper server, and target platform are reachable from the same operational context.
-2. Register stream or task applications with explicit coordinates, metadata, and version names.
-3. Create stream or task definitions only after platform accounts and runtime properties are known.
-4. Launch, schedule, update, or roll back definitions through SCDF runtime operations.
-5. Verify deployed application state with SCDF views and the target platform logs or metrics.
+2. Register stream or task applications with explicit coordinates and version names.
+3. Add metadata only when the registered app supplies or needs it for option or deployment-property discovery.
+4. Create stream or task definitions only after platform accounts and runtime properties are known.
+5. Launch, schedule, update, or roll back definitions through SCDF runtime operations.
+6. Verify deployed application state with SCDF views and the target platform logs or metrics.
 
 Register every app a topology needs before creating and deploying or launching its definition.
+Metadata is optional and is only needed when operators must inspect app options or deployment properties.
 The stream and task cycles share one command shape; only the definition DSL and deploy or launch verb change.
 
 ```text

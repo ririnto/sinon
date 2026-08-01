@@ -35,7 +35,8 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Non-Goals section is present, concrete, and useful for preventing scope creep.
 - [ ] Scope section has explicit In-Scope and Out-of-Scope subsections.
 - [ ] Users and Stakeholders section identifies primary actors and secondary stakeholders.
-- [ ] Validated Assumptions section is present; every assumption comes from user-provided context, authorized source material, or explicit approval.
+- [ ] When non-obvious context matters, the Validated Assumptions section is present.
+      Every assumption comes from user-provided context, authorized source material, or explicit approval.
 - [ ] Optional sections (Data Model, UI Behavior, Decision Log, Rollout, Risks, etc.) appear only when relevant and are not marked as `N/A` or `TBD`.
 - [ ] No `N/A`, `TBD`, `[PLACEHOLDER]`, `[TO BE DETERMINED]`, or unresolved bracketed text remains in final output.
 
@@ -69,8 +70,8 @@ If revision requires human judgment, record a focused open question instead of g
 
 ## Non-Functional Quality
 
-- [ ] Performance requirements are present and include metric + measurement point + verification method.
-- [ ] Security and privacy requirements are present and are NOT optional (they are MUST requirements).
+- [ ] When performance is relevant, performance requirements are present and include metric + measurement point + verification method.
+- [ ] When security or privacy is relevant, security and privacy requirements are present and are NOT optional (they are MUST requirements).
 - [ ] Reliability and availability requirements are present when the system has availability SLOs or recovery requirements.
 - [ ] Observability requirements (logging, status, monitoring) are present when operational visibility is expected.
 - [ ] Usability and accessibility requirements are present when user-facing and are specific (not "intuitive").
@@ -103,7 +104,7 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Success criteria are measurable or have an explicit verification method; they are not vague aspirations.
 - [ ] Success criteria include user, business, operational, or compliance outcomes.
 - [ ] Every acceptance criterion traces to a functional requirement (AC-001-A ties to FR-001, etc.).
-- [ ] Every functional requirement traces to at least one scenario, acceptance criterion, open question, or stated reason it cannot be scenario-tested.
+- [ ] Every functional requirement traces to at least one scenario or a stated reason it cannot be scenario-tested.
 - [ ] Every non-functional requirement traces to a success criterion or a stated verification method.
 - [ ] Source or evidence is captured for requirements when stakeholder input, external constraints, or existing behavior matters.
 - [ ] Verification method is explicit for each requirement or acceptance criterion when testability is not obvious.

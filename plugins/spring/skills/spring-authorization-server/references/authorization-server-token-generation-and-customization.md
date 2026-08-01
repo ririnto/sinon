@@ -1,6 +1,6 @@
 # Token generation and customization
 
-Open this reference when the minimal JWT customizer in [`SKILL.md`](../SKILL.md) is not enough and the blocker is token format, token-generator composition, or JWT or opaque-token claim customization.
+Open this reference when the minimal JWT customizer is not enough and the blocker is token format, token-generator composition, or JWT or opaque-token claim customization.
 
 ## When to open
 

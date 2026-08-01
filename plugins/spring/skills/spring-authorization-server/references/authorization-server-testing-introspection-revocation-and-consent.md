@@ -1,6 +1,6 @@
 # Testing introspection, revocation, and consent
 
-Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is not enough and the blocker is introspection, revocation, or consent verification.
+Open this reference when the minimal validation is not enough and the blocker is introspection, revocation, or consent verification.
 
 ```java
 @Test

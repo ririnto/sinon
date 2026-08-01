@@ -6,7 +6,7 @@ Open this reference when relaxed payload documentation is required.
 
 | Situation | Use |
 | --- | --- |
-| Every field in the payload is part of the contract | strict payload descriptors in `SKILL.md` |
+| Every field in the payload is part of the contract | strict payload descriptors |
 | Extra payload fields exist but are intentionally undocumented | `relaxedResponseFields(...)` |
 
 ```java

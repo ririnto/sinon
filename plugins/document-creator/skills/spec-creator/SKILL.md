@@ -134,7 +134,7 @@ Use stable identifiers that survive reordering:
 | `AC-001-A` | Acceptance criterion for requirement 001 |
 | `SC-001` | Measurable outcome |
 
-Do not reuse an identifier after deleting a requirement when traceability matters.
+Do not reuse an identifier after deleting a requirement.
 
 Write one observable behavior per requirement.
 Use one of these EARS shapes when it clarifies the trigger:

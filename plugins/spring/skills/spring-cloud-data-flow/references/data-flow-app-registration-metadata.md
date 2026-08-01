@@ -29,9 +29,10 @@ The current official `rabbitmq-maven-latest` catalog resolves these RabbitMQ str
 
 ## Metadata blocker
 
-Use metadata when operators need to inspect app options and deployment properties before wiring topologies.
+Metadata is optional, not a prerequisite for every registration.
+Use it when operators need to inspect app options and deployment properties before wiring topologies.
 
-- Verify the registered app exposes the expected options.
+- Verify the registered app exposes the expected options when metadata is supplied.
 - Keep metadata aligned with the actual app artifact version.
 
 ## Verification rule

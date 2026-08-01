@@ -1,6 +1,6 @@
 # Moderation and safety gates
 
-Open this reference when the common-path prompt and tool guidance in [`SKILL.md`](../SKILL.md) is not enough and the blocker is input screening, output screening, or provider-backed moderation policy checks.
+Open this reference when the common-path prompt and tool guidance is not enough and the blocker is input screening, output screening, or provider-backed moderation policy checks.
 
 ## Use this file for one blocker family
 

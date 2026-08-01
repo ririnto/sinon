@@ -7,7 +7,7 @@ Do not mix `HttpSession` terminology or servlet-only configuration into a `WebSe
 
 ## Reactive baseline
 
-Use the Boot-managed `spring-boot-starter-session-data-redis` dependency from `SKILL.md` in a WebFlux application.
+Use the Boot-managed `spring-boot-starter-session-data-redis` dependency in a WebFlux application.
 Boot selects the reactive repository from the application type and configures the managed Redis connection factory.
 
 Application properties:
@@ -23,10 +23,6 @@ spring:
     redis:
       host: localhost
       port: 6379
-server:
-  reactive:
-    session:
-      timeout: 30m
 ```
 
 ## Reactive session repository customization
@@ -65,9 +61,10 @@ Save the `WebSession` explicitly when the framework does not flush attribute mut
 
 ```java
 Mono<Void> handler(ServerWebExchange exchange) {
-    WebSession session = exchange.getSession().block();
-    session.getAttributes().put("key", "value");
-    return session.save();
+    return exchange.getSession().flatMap(session -> {
+        session.getAttributes().put("key", "value");
+        return session.save();
+    });
 }
 ```
 

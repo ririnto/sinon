@@ -49,19 +49,23 @@ class InMemorySessionRepository implements SessionRepository<Session>, FindByInd
 }
 ```
 
-Register the repository and filter:
+Register the repository, enable Spring Session's filter infrastructure, and register that filter with the servlet container:
 
 ```java
 @Configuration
-@EnableWebSecurity
+@EnableSpringHttpSession
 class CustomSessionConfig {
     @Bean
     InMemorySessionRepository sessionRepository() {
         return new InMemorySessionRepository();
     }
-    @Bean
-    FindByIndexNameSessionRepository<? extends Session> indexedSessionRepository() {
-        return sessionRepository();
+}
+
+public class Initializer extends AbstractHttpSessionApplicationInitializer {
+    public Initializer() {
+        super(CustomSessionConfig.class);
     }
 }
 ```
+
+`@EnableWebSecurity` configures Spring Security, not the Spring Session repository filter, and is not a substitute for this registration.

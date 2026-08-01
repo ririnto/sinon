@@ -17,9 +17,7 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
  * Flags nested data classes that are not placed at the bottom of their enclosing class.
@@ -58,60 +56,70 @@ class NestedDataClassLast :
                         emit(
                             declaration.textOffset,
                             "move the nested data class `${declaration.name ?: "data class"}` to the bottom of its enclosing class",
-                            !declarations.any(::containsMultilineRawString)
+                            with(LiteralTypeInference) {
+                                !declarations.any { declaration -> declaration.containsMultilineRawString() }
+                            }
                         ).ifAutocorrectAllowed {
-                            val rewrittenText = classOrObject.text.substring(
-                                0,
-                                ((when (classOrObject) {
-                                    is KtClass -> classOrObject.body
-                                    else -> (classOrObject as KtObjectDeclaration).body
-                                })?.node?.findChildByType(KtTokens.LBRACE)?.startOffset ?: classOrObject.node.startOffset) - classOrObject.node.startOffset + 1
-                            ) + "\n" +
-                                declarations.partition { candidate -> candidate !is KtClass || !candidate.isData() }
-                                    .let { (nonData, data) -> nonData + data }
-                                    .map(::blockText)
-                                    .joinToString("\n\n") + "\n}"
+                            val rewrittenText =
+                                classOrObject.text.substring(
+                                    0,
+                                    (
+                                        (
+                                            when (classOrObject) {
+                                                is KtClass -> classOrObject.body
+                                                else -> (classOrObject as KtObjectDeclaration).body
+                                            }
+                                        )?.node?.findChildByType(KtTokens.LBRACE)?.startOffset ?: classOrObject.node.startOffset
+                                    ) -
+                                        classOrObject.node.startOffset +
+                                        1
+                                ) + "\n" +
+                                    declarations
+                                        .partition { candidate -> candidate !is KtClass || !candidate.isData() }
+                                        .let { (nonData, data) -> nonData + data }
+                                        .map { declaration -> declaration.blockText() }
+                                        .joinToString("\n\n") + "\n}"
                             classOrObject.node.replaceWith(
-                                KtPsiFactory.contextual(classOrObject, false).let { factory ->
-                                    when (classOrObject) {
-                                        is KtClass -> factory.createClass(rewrittenText)
-                                        else -> factory.createObject(rewrittenText)
-                                    }
-                                }.node
+                                KtPsiFactory
+                                    .contextual(classOrObject, false)
+                                    .let { factory ->
+                                        when (classOrObject) {
+                                            is KtClass -> factory.createClass(rewrittenText)
+                                            else -> factory.createObject(rewrittenText)
+                                        }
+                                    }.node
                             )
                         }
                     }
             }
         }
 
-        private fun blockText(declaration: KtDeclaration): String =
-            (buildList {
-                var sibling: ASTNode? = declaration.node.treePrev
-                while (sibling !== null) {
-                    when (sibling.elementType) {
-                        KtTokens.EOL_COMMENT, KtTokens.BLOCK_COMMENT -> {
-                            add(sibling.text)
-                            sibling = sibling.treePrev
-                        }
-                        TokenType.WHITE_SPACE -> {
-                            val newlineCount = sibling.text.count { character -> character == '\n' }
-                            when {
-                                2 <= newlineCount -> break
-                                newlineCount == 0 -> break
-                                else -> sibling = sibling.treePrev
+        private fun KtDeclaration.blockText(): String =
+            (
+                buildList {
+                    var sibling: ASTNode? = this@blockText.node.treePrev
+                    while (sibling !== null) {
+                        when (sibling.elementType) {
+                            KtTokens.EOL_COMMENT, KtTokens.BLOCK_COMMENT -> {
+                                add(sibling.text)
+                                sibling = sibling.treePrev
+                            }
+
+                            TokenType.WHITE_SPACE -> {
+                                val newlineCount = sibling.text.count { character -> character == '\n' }
+                                when {
+                                    2 <= newlineCount -> break
+                                    newlineCount == 0 -> break
+                                    else -> sibling = sibling.treePrev
+                                }
+                            }
+
+                            else -> {
+                                break
                             }
                         }
-                        else -> {
-                            break
-                        }
                     }
-                }
-            }.asReversed() + declaration.text).joinToString("\n").prependIndent("    ")
-
-        private fun containsMultilineRawString(declaration: KtDeclaration): Boolean =
-            declaration.collectDescendantsOfType<KtStringTemplateExpression>().any { template ->
-                template.node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
-                    template.text.contains('\n')
-            }
+                }.asReversed() + text
+            ).joinToString("\n").prependIndent("    ")
     }
 }

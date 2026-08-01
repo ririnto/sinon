@@ -238,7 +238,8 @@ Key fields:
 | `intervalMs` / `maxDataPoints` | integer | Computed by Grafana per request and serialized into exports; not authored by hand |
 | `legendFormat` | string | Legend template such as `"{{job}}"` or a fixed label |
 
-Time-range overrides such as `timeFrom` and `timeShift` are panel-level fields, not per-target; see Time Picker Configuration.
+Time-range overrides such as `timeFrom` and `timeShift` are panel-level fields, not per-target.
+See Time Picker Configuration.
 For day-over-day comparison inside one panel, shift the second query in PromQL with `offset` (for example `rate(http_requests_total[5m] offset 1d)`) instead of a per-target time shift.
 
 ## Panel Type Decision Guide
@@ -430,7 +431,8 @@ Always sanitize textbox values in queries to prevent injection.
 ## Transformation Types (Common Path)
 
 Transformations reshape query results before rendering.
-Apply them in order; each transformation receives the output of the previous one.
+Apply them in order.
+Each transformation receives the output of the previous one.
 For the full catalog of 20+ transformation types, see [`./references/variables.md`](./references/variables.md).
 
 ### Organize Fields (Default)
@@ -588,7 +590,8 @@ Value mapping (most common): exact match on specific values.
 ```
 
 For range, regex, and special mapping types (null/NaN/boolean handling), see [`./references/field-config.md`](./references/field-config.md).
-Multiple mapping types can coexist in the same `mappings` array; they are evaluated in order and the first match wins.
+Multiple mapping types can coexist in the same `mappings` array.
+They are evaluated in order and the first match wins.
 
 ### Data Links
 
@@ -789,7 +792,8 @@ reviewed source of truth: grafana/dashboards/api-overview.json
 adjacent but separate concern: provisioning file that points at this dashboard
 ```
 
-Dashboard authoring belongs here; provisioning configuration and rollout concerns stay in the adjacent delivery domain.
+Dashboard authoring belongs here.
+Provisioning configuration and rollout concerns stay in the adjacent delivery domain.
 
 Direct dashboard asset layout -- keep the repository path explicit:
 

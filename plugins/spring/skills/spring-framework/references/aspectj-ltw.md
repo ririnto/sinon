@@ -112,7 +112,7 @@ Narrow the scope to avoid unnecessary weaving overhead.
 Inject Spring beans into domain objects not managed by the container:
 
 ```java
-@Configurable(autowire = Autowire.BY_TYPE)
+@Configurable
 class Order {
     @Autowired
     private OrderValidator validator;
@@ -130,6 +130,8 @@ Enable annotation-driven introduction:
 ```
 
 Or in Java configuration:
+
+`@EnableSpringConfigured` requires the `spring-aspects` dependency shown above.
 
 ```java
 @Configuration

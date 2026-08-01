@@ -1,6 +1,6 @@
 # Testing support and listener harnesses
 
-Open this reference when the minimal delivery test in [`SKILL.md`](../SKILL.md) is not enough and the blocker is listener-test harness depth, broker-backed integration verification, or repeatable contract checks.
+Open this reference when the minimal delivery test is not enough and the blocker is listener-test harness depth, broker-backed integration verification, or repeatable contract checks.
 
 ## Fast listener harness
 

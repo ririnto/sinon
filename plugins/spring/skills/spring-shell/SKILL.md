@@ -95,10 +95,19 @@ Add the test artifact whenever command behavior matters enough to lock with exec
 
 ### Non-Boot usage
 
-When not using Spring Boot, add `spring-shell-core` directly and enable command discovery with `@EnableCommand`:
+When not using Spring Boot, add `spring-shell-core` directly and enable command discovery with `@EnableCommand` on the configuration class, targeting the class that contains the `@Command` methods:
 
 ```java
-@EnableCommand(SpringShellApplication.class)
+@Component
+class ExampleCommands {
+    @Command(name = "example", description = "Print a greeting")
+    String example() {
+        return "Hello";
+    }
+}
+
+@Configuration
+@EnableCommand(ExampleCommands.class)
 public class SpringShellApplication {
     public static void main(String[] args) throws Exception {
         ApplicationContext context = new AnnotationConfigApplicationContext(SpringShellApplication.class);
@@ -168,7 +177,7 @@ This replaces the v3 `stacktrace` built-in command.
 
 | Property | Default | Effect |
 | --- | --- | --- |
-| `spring.shell.interactive.enabled` | `true` | Enable interactive REPL; set `false` for single-command execution |
+| `spring.shell.interactive.enabled` | `true` | Enable interactive REPL. Set `false` for single-command execution. |
 | `spring.shell.script.enabled` | `true` | Enable the `script` built-in command |
 | `spring.shell.debug.enabled` | `false` | Print stack traces on command errors |
 
@@ -471,7 +480,7 @@ Use `@ShellTest` when testing multiple commands in the same class.
 
 | Attribute | Purpose | Default |
 | --- | --- | --- |
-| `name` | Command name; supports subcommands as `{"command1", "sub1"}` or `"command1 sub1"` | method name |
+| `name` | Command name with subcommand support, including `{"command1", "sub1"}` or `"command1 sub1"` | method name |
 | `alias` | Alternative names | `{}` |
 | `value` | Shorthand for `description` | `""` |
 | `description` | One-line command description | `""` |
@@ -495,9 +504,11 @@ The v3 pattern of separate annotations (`@CommandAvailability`, `@OptionValues`)
 | `defaultValue` | Default when option is omitted | `""` |
 | `required` | Fail if option is missing | `false` |
 
-Each option can have a single short name or long name, not both aliases.
-Option labels and multi-alias options are removed in 4.x.
-Arity on `@Option` is removed; use `@Arguments` for multi-valued input.
+Each option can define one `shortName` and one `longName`.
+Either may be omitted.
+Option labels and additional aliases are removed in 4.x.
+Arity on `@Option` is removed.
+Use `@Arguments` for multi-valued input.
 
 ## `@Argument` and `@Arguments` annotation reference
 
@@ -582,8 +593,3 @@ added sku=SKU-1 quantity=1
 
 - Declarative annotation-based command registration is not supported for GraalVM native compilation in 4.0.x.
   - Use the programmatic `Command` bean approach for native images.
-
-## References
-
-- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided flows, confirmations, selectors, or richer terminal UI components beyond ordinary command registration.
-- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must surface environment or risk information.

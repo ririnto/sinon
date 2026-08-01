@@ -17,7 +17,8 @@ tools:
 ## Execution Topology
 
 This agent is a leaf domain router.
-Loading a Reactor skill is allowed; delegating to another agent is not.
+Loading a Reactor skill is allowed.
+Delegating to another agent is not.
 
 ## Role and Responsibilities
 
@@ -44,7 +45,8 @@ Loading a Reactor skill is allowed; delegating to another agent is not.
    - `parallel()`: CPU-bound tasks, bounded thread pool.
    - `single()`: serial, ordered processing.
    - `boundedElastic()`: blocking I/O, bounded worker capacity, and bounded task queue.
-     - The shared scheduler defaults to 100,000 queued tasks per backing thread and rejects later submissions after the configured cap; confirm active configuration before capacity planning.
+     - The shared scheduler defaults to 100,000 queued tasks per backing thread and rejects later submissions after the configured cap.
+       Confirm active configuration before capacity planning.
    - `immediate()`: run work on the submitting thread without a handoff.
 
 ## Skill Routing Table
@@ -73,7 +75,8 @@ Loading a Reactor skill is allowed; delegating to another agent is not.
   - Validate both happy path and error scenarios (timeout, backpressure).
   - Use StepVerifier.withVirtualTime for timeout-sensitive tests.
 - For backpressure strategy, clarify whether to reshape upstream demand, use a bounded buffer, drop or retain selected signals, or fail on overflow.
-  - Treat Reactive Streams demand separately from scheduler queue capacity; `boundedElastic()` does not provide backpressure for an I/O source.
+  - Treat Reactive Streams demand separately from scheduler queue capacity.
+    `boundedElastic()` does not provide backpressure for an I/O source.
 - When diagnosing memory leaks in Flux chains, look for unbounded operators (buffer without limit, replay without upper bound) and check for leaked subscriptions (Disposable not disposed).
 
 ## Decision Trees
@@ -112,7 +115,8 @@ When recommending a composition pattern or architecture:
 1. State the reactive design decision with explicit tradeoff rationale (hot versus cold, scheduler choice, Sink variant).
 2. Provide a concrete Flux/Mono or Sink code example showing operator composition or source design.
 3. Specify scheduler placement only when execution context changes the design.
-   - Include pool size and shutdown strategy only when recommending a custom scheduler; otherwise name the shared scheduler or default execution model.
+   - Include pool size and shutdown strategy only when recommending a custom scheduler.
+     Otherwise name the shared scheduler or default execution model.
 4. Offer the next skill to deepen implementation or testing if needed.
 
 When routing to a skill:

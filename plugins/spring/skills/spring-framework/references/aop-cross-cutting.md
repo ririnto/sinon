@@ -1,6 +1,6 @@
 # Spring Framework AOP cross-cutting
 
-Open this reference when the ordinary container-plus-transactions path in `SKILL.md` is not enough and the task specifically needs Spring AOP.
+Open this reference when the ordinary container-plus-transactions path is not enough and the task specifically needs Spring AOP.
 
 Use AOP when cross-cutting behavior must wrap many beans consistently.
 
@@ -17,7 +17,7 @@ class AppConfig {
 
 Spring Framework 7.0 defaults all proxy processors to CGLIB, matching Spring Boot behavior.
 When `@EnableAspectJAutoProxy` is used alongside other proxy-based features (`@Async`, `@Transactional`), all share the same CGLIB default.
-Use `@Proxyable(ProxyMode.INTERFACES)` on individual beans to opt out.
+Use `@Proxyable(ProxyType.INTERFACES)` on individual beans to opt out.
 
 ## Basic aspect shape
 

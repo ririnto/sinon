@@ -1,6 +1,6 @@
 # Spring gRPC channel customization
 
-Open this reference when the deployment needs richer client-channel construction than the ordinary static-address path in `SKILL.md`, including keepalive, compression, retries, global client interceptors, or per-channel tuning.
+Open this reference when the deployment needs richer client-channel construction than the ordinary static-address path, including keepalive, retries, global client interceptors, or per-channel tuning.
 
 ## Managed channel customization
 
@@ -61,14 +61,22 @@ Keep metadata and other cross-cutting client concerns at the channel or intercep
 | One upstream needs special tuning | named `GrpcChannelBuilderCustomizer` |
 | TLS, mTLS, Basic auth, or bearer tokens | open the security reference |
 
-## Transport tuning examples
+## Keepalive tuning
 
-Use channel customization when the deployment needs concerns such as:
+Configure keepalive on a channel when the deployment requires it.
 
-- compression
-- keepalive
-- retry tuning
-- interceptor scoping
+```yaml
+spring:
+  grpc:
+    client:
+      default-channel:
+        enable-keep-alive: true
+        keep-alive-time: 5m
+        keep-alive-timeout: 20s
+        keep-alive-without-calls: false
+```
+
+Short keepalive intervals increase server network load, and the client interval must respect the server's permitted keepalive time.
 
 ## Decision points
 

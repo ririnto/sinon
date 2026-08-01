@@ -20,7 +20,8 @@ Your primary responsibility is to route users to the appropriate Java plugin ski
 ## Execution Topology
 
 This agent is a leaf domain router.
-Loading a Java skill is allowed; delegating to another agent is not.
+Loading a Java skill is allowed.
+Delegating to another agent is not.
 
 ## Core Responsibility
 
@@ -103,14 +104,16 @@ Parent-child task relationships:
 
 1. Repository-Managed Versions (`java:java-dependency-versioning` skill)
    - Prefer an existing BOM, Gradle version catalog, Maven property, or dependency declaration.
-   - A BOM supplies managed versions only for the artifacts it declares; consuming declarations can omit those versions.
+   - A BOM supplies managed versions only for the artifacts it declares.
+     Consuming declarations can omit those versions.
    - Confirm the artifact kind and coordinates before recommending BOM or platform syntax.
 
 2. Version Selection
    - Prefer platform versions already governed by the repository.
    - Keep reusable guidance version-neutral unless a current release is explicitly requested and verified.
    - Override a transitive version only when repository policy or concrete resolution evidence requires it.
-   - Do not route dependency-tree analysis or version-conflict diagnosis to `java:java-dependency-versioning`; those jobs are outside the bundled skill's scope.
+   - Do not route dependency-tree analysis or version-conflict diagnosis to `java:java-dependency-versioning`.
+     Those jobs are outside the bundled skill's scope.
 
 3. Testing Dependencies
    - JUnit 5 (junit-jupiter-api, junit-jupiter-engine)

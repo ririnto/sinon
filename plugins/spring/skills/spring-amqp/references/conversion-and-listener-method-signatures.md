@@ -1,13 +1,13 @@
 # Conversion and listener method signatures
 
-Open this reference when the common-path JSON payload listener in [`SKILL.md`](../SKILL.md) is not enough and the blocker is payload conversion, method arguments, headers, validation, or custom listener signatures.
+Open this reference when the common-path JSON payload listener is not enough and the blocker is payload conversion, method arguments, headers, validation, or custom listener signatures.
 
 ## Conversion blocker
 
 Problem: the listener does not receive the expected payload type, or producers and consumers do not agree on message shape.
 
 Solution: keep one converter strategy per contract and make the listener signature match that contract directly.
-Use the trusted-package converter bean from `SKILL.md` as the canonical JSON baseline.
+Use the trusted-package converter bean as the canonical JSON baseline.
 
 The no-arg constructor trusts only `java.util` and `java.lang` by default.
 Provide the package of your application payload types as the trusted package argument.

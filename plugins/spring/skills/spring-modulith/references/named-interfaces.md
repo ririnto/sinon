@@ -2,7 +2,7 @@
 
 Open this reference when module exposure rules need explicit `allowedDependencies` or several named interface packages.
 
-The ordinary module dependency and package-level named-interface declarations stay in `SKILL.md`.
+The ordinary module dependency and package-level named-interface declarations belong to the module dependency baseline.
 Use the variants below when consuming another module, exposing several interfaces, or customizing detection.
 
 ## Consuming-module shape

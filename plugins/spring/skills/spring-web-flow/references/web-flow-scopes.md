@@ -1,6 +1,6 @@
 # Spring Web Flow scopes
 
-Open this reference when the ordinary wizard flow in `SKILL.md` is not enough and the task needs scope tradeoffs, scope searching, or longer-lived conversation state.
+Open this reference when the ordinary wizard flow is not enough and the task needs scope tradeoffs, scope searching, or longer-lived conversation state.
 
 ## Scope decisions
 

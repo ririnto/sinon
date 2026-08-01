@@ -11,7 +11,7 @@ Open this reference when the task depends on ConfigMap-backed Spring Cloud Kuber
 </dependency>
 ```
 
-Keep this branch separate from the ordinary Config Server path in `SKILL.md`.
+Keep this branch separate from the ordinary Config Server path.
 Use it only when Kubernetes itself is the configuration source of truth.
 
 ```yaml
@@ -25,14 +25,14 @@ spring:
   cloud:
     kubernetes:
       config:
-        sources:
+        import:
           - name: orders-config
 ```
 
 > [!IMPORTANT]
 >
-> `spring.cloud.kubernetes.config.*` and `spring.cloud.kubernetes.secret.*` property trees are deprecated in Spring Cloud Kubernetes 5.0.2.
-> Use the `spring.config.import: kubernetes:` mechanism and the properties under `spring.cloud.kubernetes.config.import.*` instead.
+> Use `spring.config.import: kubernetes:` together with the properties under `spring.cloud.kubernetes.config.import.*`.
+> Do not configure the older source-based import path.
 
 ## Reload shape
 

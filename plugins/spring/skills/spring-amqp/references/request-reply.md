@@ -1,6 +1,6 @@
 # Request-reply
 
-Open this reference when the ordinary event-style path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is synchronous broker-mediated reply semantics.
+Open this reference when the ordinary event-style path is not enough and the blocker is synchronous broker-mediated reply semantics.
 
 ## Request-reply blocker
 

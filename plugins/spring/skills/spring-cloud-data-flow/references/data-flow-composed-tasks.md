@@ -19,13 +19,15 @@ Keep the definition small enough that each subtask remains independently operabl
 
 ## Inspection blocker
 
-After launch, verify both the parent composed-task execution and the child task executions.
+After launch, identify the parent composed-task execution and every child task execution, then inspect their individual states.
 
 ```text
 dataflow:>task execution list
+dataflow:>task execution status --id <parent-execution-id>
+dataflow:>task execution status --id <child-execution-id>
 ```
 
-Check that failure or success states propagate the way operators expect.
+Check that child success, failure, or skipped states propagate to the parent exactly as the composition requires, and that the parent does not report completion while a required child remains unresolved.
 
 ## Limits versus one task app
 

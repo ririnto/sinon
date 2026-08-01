@@ -1,6 +1,6 @@
 # Spring Security delegated login and OAuth2 client
 
-Open this reference when the ordinary servlet path in `SKILL.md` is not enough and the task depends on delegated login through an external identity provider or outbound OAuth2 client token management.
+Open this reference when the ordinary servlet security configuration is not enough and the task depends on delegated login through an external identity provider or outbound OAuth2 client token management.
 
 Keep provider registration, redirect URIs, and granted scopes explicit.
 

@@ -14,9 +14,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
@@ -43,19 +43,19 @@ class LeadingUnderscore :
             super.visitNamedDeclaration(declaration)
             declaration.name?.let { name ->
                 if (
-                    isForbidden(name) &&
-                        !isOverrideOrInterfaceDeclaration(declaration)
+                    name.isForbidden() &&
+                    !declaration.isOverrideOrInterfaceDeclaration()
                 ) {
                     emit(
                         declaration.textOffset,
                         "remove the leading underscore from declaration `$name`",
                         (declaration as? KtParameter)?.let { parameter ->
                             PsiTreeUtil.getParentOfType(parameter, KtNamedFunction::class.java)?.let { function ->
-                                canAutocorrectWithoutSibling(parameter, function) &&
+                                parameter.canAutocorrectWithoutSibling(function) &&
                                     function.valueParameters.none { sibling ->
                                         sibling != parameter &&
-                                            isForbidden(sibling.name.orEmpty()) &&
-                                            canAutocorrectWithoutSibling(sibling, function)
+                                            sibling.name.orEmpty().isForbidden() &&
+                                            sibling.canAutocorrectWithoutSibling(function)
                                     }
                             }
                         } ?: false
@@ -66,43 +66,46 @@ class LeadingUnderscore :
             }
         }
 
-        private fun isOverrideOrInterfaceDeclaration(declaration: KtNamedDeclaration): Boolean =
-            declaration.modifierList?.let { modifiers ->
+        private fun KtNamedDeclaration.isOverrideOrInterfaceDeclaration(): Boolean =
+            modifierList?.let { modifiers ->
                 modifiers.hasModifier(KtTokens.OVERRIDE_KEYWORD) ||
                     modifiers.hasModifier(KtTokens.OPEN_KEYWORD) ||
                     modifiers.hasModifier(KtTokens.ABSTRACT_KEYWORD)
             } == true ||
-                PsiTreeUtil.getParentOfType(declaration, KtNamedFunction::class.java)?.let { function ->
+                PsiTreeUtil.getParentOfType(this, KtNamedFunction::class.java)?.let { function ->
                     function.modifierList?.let { modifiers ->
                         modifiers.hasModifier(KtTokens.OVERRIDE_KEYWORD) ||
                             modifiers.hasModifier(KtTokens.OPEN_KEYWORD) ||
                             modifiers.hasModifier(KtTokens.ABSTRACT_KEYWORD)
                     }
                 } == true ||
-                (PsiTreeUtil.getParentOfType(declaration, KtClassOrObject::class.java) as? KtClass)
+                (PsiTreeUtil.getParentOfType(this, KtClassOrObject::class.java) as? KtClass)
                     ?.isInterface() == true
 
-        private fun canAutocorrectWithoutSibling(parameter: KtParameter, function: KtNamedFunction): Boolean =
-            parameter.name?.let { name ->
+        private fun KtParameter.canAutocorrectWithoutSibling(function: KtNamedFunction): Boolean =
+            name?.let { name ->
                 val modifiers = function.modifierList
-                parameter.annotationEntries.isEmpty() &&
-                    !parameter.hasValOrVar() &&
+                annotationEntries.isEmpty() &&
+                    !hasValOrVar() &&
                     modifiers?.hasModifier(KtTokens.PRIVATE_KEYWORD) == true &&
                     !modifiers.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
                     !modifiers.hasModifier(KtTokens.OPEN_KEYWORD) &&
                     !modifiers.hasModifier(KtTokens.EXTERNAL_KEYWORD) &&
                     !modifiers.hasModifier(KtTokens.EXPECT_KEYWORD) &&
-                    PsiTreeUtil.findChildrenOfType(function, KtNameReferenceExpression::class.java)
+                    PsiTreeUtil
+                        .findChildrenOfType(function, KtNameReferenceExpression::class.java)
                         .none { reference -> reference.getReferencedName() == name } &&
-                    PsiTreeUtil.findChildrenOfType(parameter.containingFile, KtCallExpression::class.java)
+                    PsiTreeUtil
+                        .findChildrenOfType(containingFile, KtCallExpression::class.java)
                         .none { call ->
                             (call.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == function.name &&
                                 call.valueArguments.any { argument -> argument.getArgumentName()?.asName?.asString() == name }
                         } &&
-                    PsiTreeUtil.findChildrenOfType(function, KtNameReferenceExpression::class.java)
-                        .none { reference -> reference.getReferencedName() == parameter.name }
+                    PsiTreeUtil
+                        .findChildrenOfType(function, KtNameReferenceExpression::class.java)
+                        .none { reference -> reference.getReferencedName() == this.name }
             } == true
 
-        private fun isForbidden(name: String): Boolean = name.startsWith("_") && name != "_"
+        private fun String.isForbidden(): Boolean = startsWith("_") && this != "_"
     }
 }

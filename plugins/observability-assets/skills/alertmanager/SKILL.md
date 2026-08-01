@@ -10,7 +10,8 @@ description: >-
 ## Official Baseline
 
 - Use modern Alertmanager matcher syntax as the common path: prefer the `matchers:` array form for routes and inhibition rules.
-- Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes; write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.
+- Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes.
+  Write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.
 
 Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications.
 The common case is one root route, one small set of child routes, one deliberate receiver mapping, and one timing policy that batches related alerts without hiding urgent signal.
@@ -22,7 +23,8 @@ The common case is one root route, one small set of child routes, one deliberate
 3. Add child routes only where labels, severity, team ownership, or environment justify a branch.
 4. Tune `group_wait`, `group_interval`, and `repeat_interval` deliberately so related alerts batch together without hiding urgent changes.
 5. Keep receiver definitions explicit, and verify routing labels from Prometheus alerts match the route tree you wrote.
-6. Add inhibition or mute windows only when they remove known noise without suppressing the primary symptom; keep inhibition in top-level `inhibit_rules` and attach mute windows only to the routes they should affect.
+6. Add inhibition or mute windows only when they remove known noise without suppressing the primary symptom.
+   Keep inhibition in top-level `inhibit_rules` and attach mute windows only to the routes they should affect.
 
 ## Minimal Setup
 
@@ -346,7 +348,7 @@ Use full names or colon-separated ranges.
 
 #### DayOfMonthRange
 
-Integer range like `1`, `15`, `1:15`, or `-1:-3` (negative counts from month end).
+Integer range like `1`, `15`, `1:15`, or `-3:-1` (negative counts from month end).
 Range `-31` to `31`, excluding 0.
 
 #### MonthRange

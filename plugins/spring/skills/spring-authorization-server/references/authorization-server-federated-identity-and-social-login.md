@@ -1,7 +1,9 @@
 # Federated identity and social login
 
 Open this reference when the authorization server must authenticate users through an external identity provider instead of a local login form.
-This reference is about the provider side of federation, not about a consuming OAuth client.
+This reference is about the provider side of federation, not about an ordinary application that only consumes an external provider as an OAuth2 client.
+The outbound OAuth2 client-only login case is outside this skill.
+Federation remains in scope when the same application authenticates users externally and then issues its own authorization-server tokens.
 
 ## Federated identity boundary
 
@@ -13,7 +15,9 @@ Only the user-authentication source changes.
 
 ## Official federation posture
 
-The official Spring Authorization Server pattern is modest: replace the ordinary `formLogin()` path with `oauth2Login()` in the non-authorization-server filter chain, then bridge the external identity into the authorization-server flow.
+The official Spring Authorization Server pattern is modest: in the non-authorization-server login chain, use either `formLogin()` for local user authentication or `oauth2Login()` for external-provider authentication, then bridge the authenticated identity into the authorization-server flow.
+Do not replace or add either login mechanism in the authorization-server protocol chain itself.
+`oauth2Login()` here is the user-authentication boundary, not outbound OAuth2 client-only application behavior.
 
 ### Non-authorization-server login chain
 
