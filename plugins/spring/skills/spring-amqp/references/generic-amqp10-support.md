@@ -1,6 +1,6 @@
 # Generic AMQP 1.0 support
 
-Open this reference when the RabbitMQ-specific path in [`SKILL.md`](../SKILL.md) is not needed and the blocker is generic AMQP 1.0 protocol interaction.
+Open this reference when the RabbitMQ-specific path is not needed and the blocker is generic AMQP 1.0 protocol interaction.
 
 ## AMQP 1.0 blocker
 

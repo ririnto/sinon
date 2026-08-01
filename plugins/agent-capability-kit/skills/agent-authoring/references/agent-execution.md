@@ -13,7 +13,7 @@ Open this file when the normal `Responsibilities` + `Process` + `Output` structu
 - the role needs stronger stop conditions
 - the role needs a deliberate escalation rule for uncertainty
 - the role may need both read and mutation tools and the boundary is not obvious
-- the role needs a more specialized execution pattern than the ordinary path in `SKILL.md`
+- the role needs a more specialized execution pattern than the ordinary role structure
 
 ## Stronger autonomy pattern
 
@@ -51,7 +51,7 @@ Use this three-step test when the tool choice is not obvious from the role descr
 2. If the role must change files as part of its ordinary job, allow only the smallest mutation set needed.
 3. If the role only rarely edits, prefer a read-only agent and let the caller hand off edits to another agent.
 
-The broken-vs-correct examples in `SKILL.md` under Tool-boundary rule show concrete frontmatter for each case.
+The Tool-boundary examples show concrete frontmatter for each case.
 Use this reference's decision test when the role falls between the obvious categories.
 
 ## Orchestration boundary

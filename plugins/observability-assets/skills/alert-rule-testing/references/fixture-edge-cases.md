@@ -32,7 +32,8 @@ input_series:
 ```
 
 `rate()` and `increase()` interpolate across the gap.
-The gap does not cause the series to disappear from results; at sample 4, `rate(http_requests_total[2m])` sees roughly `(140 - 100) / 4m = 10/s`.
+The gap does not cause the series to disappear from results.
+At sample 4, `rate(http_requests_total[2m])` sees roughly `(140 - 100) / 4m = 10/s`.
 
 ### Stale Marker (`stale`)
 

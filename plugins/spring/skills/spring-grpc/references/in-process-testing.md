@@ -1,13 +1,13 @@
 # Spring gRPC in-process testing
 
-Open this reference when integration tests should avoid a real network port, inject the local gRPC port into a stub, or prove server and client wiring with Spring test support.
+Open this reference when integration tests should avoid a real network port, inject an allocated local gRPC port into a stub, or prove server and client wiring with Spring test support.
 
 ## Choose the test transport
 
 | Situation | Use |
 | --- | --- |
-| Full local server on an allocated port is acceptable | `@LocalGrpcServerPort` |
-| Test should avoid opening a real port | in-process transport |
+| Full local server on an allocated socket port is acceptable | `@LocalGrpcServerPort` |
+| Test should avoid opening a socket port | in-process transport |
 | Client bean should exist only for tests | test-scoped `@Bean` stub wiring |
 
 ## Inject the local port
@@ -27,12 +27,13 @@ class GrpcTestConfiguration {
 
 ```java
 @SpringBootTest
-@AutoConfigureTestGrpcTransport
+@AutoConfigureInProcessTransport
 class GreetingIntegrationTests {
 }
 ```
 
-`@AutoConfigureTestGrpcTransport` installs the in-process server and channel factory; no additional enablement property is required.
+`@AutoConfigureInProcessTransport` installs the in-process server and channel factory.
+No socket port is allocated.
 
 ## Guardrails
 

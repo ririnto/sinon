@@ -34,7 +34,7 @@ VERSION=$(curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.awai
 echo "Latest: $VERSION"
 ```
 
-Paginated search for all artifacts matching a group:
+First 20 artifacts matching a group:
 
 ```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.awaitility%22&rows=20&wt=json"

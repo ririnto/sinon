@@ -15,13 +15,13 @@ Use this reference when the blocker is configuring GC logging for the next deplo
 Standard production GC log (recommended starting point):
 
 ```sh
--Xlog:gc*:file=gc-%p-%t.log:uptime,level,tags:filecount=5,filesize=10M
+-Xlog:gc*:file=/path/to/private-diagnostics/gc-%p-%t.log:uptime,level,tags:filecount=5,filesize=10M
 ```
 
 Output fields explained:
 
 - `gc*` - wildcard matches all GC-related tag sets (`gc`, `gc+cpu`, `gc+heap`, etc.)
-- `file=gc-%p-%t.log` - output file with PID (`%p`) and timestamp (`%t`) substitution
+- `file=/path/to/private-diagnostics/gc-%p-%t.log` - restricted output file with PID (`%p`) and timestamp (`%t`) substitution
 - `uptime` - time since JVM start (alternatives: `uptime`, `timemillis`, `uptimemillis`)
 - `level` - include log level (info, debug, trace)
 - `tags` - include log tags for filtering
@@ -33,19 +33,19 @@ Output fields explained:
 Pause-focused (for latency-sensitive workloads):
 
 ```sh
--Xlog:gc+pause=debug:file=gc-pause.log:uptime,level:filecount=3,filesize=20M
+-Xlog:gc+phases=debug:file=/path/to/private-diagnostics/gc-pause-%p-%t.log:uptime,level:filecount=3,filesize=20M
 ```
 
 Heap-focused (for memory-pressure investigations):
 
 ```sh
--Xlog:gc+heap=debug,gc+ref=debug:file=gc-heap.log:uptime,level:filecount=3,filesize=20M
+-Xlog:gc+heap=debug,gc+ref=debug:file=/path/to/private-diagnostics/gc-heap-%p-%t.log:uptime,level:filecount=3,filesize=20M
 ```
 
 Full diagnostic (use temporarily, high volume):
 
 ```sh
--Xlog:gc*=debug:file=gc-debug.log:uptime,level,tags:filecount=5,filesize=50M
+-Xlog:gc*=debug:file=/path/to/private-diagnostics/gc-debug-%p-%t.log:uptime,level,tags:filecount=5,filesize=50M
 ```
 
 ### What Unified GC Logs Look Like
@@ -91,14 +91,14 @@ jcmd <pid> VM.log list
 Add a GC log output dynamically (JDK 9+):
 
 ```sh
-jcmd <pid> VM.log output=/path/to/gc-dynamic.log what="gc*=info"
+jcmd <pid> VM.log output=/path/to/private-diagnostics/gc-dynamic.log what="gc*=info"
 ```
 
 Sample `VM.log list` output:
 
 ```text
 #0: stdout  gc*  info
-#1: file=gc.log  gc*  info  filecount=5  filesize=10m  uptime
+#1: file=/path/to/private-diagnostics/gc.log  gc*  info  filecount=5  filesize=10m  uptime
 ```
 
 ## JDK 8 Legacy Logging
@@ -112,7 +112,7 @@ Standard JDK 8 GC logging flags:
 -XX:+PrintGCDetails
 -XX:+PrintGCTimeStamps
 -XX:+PrintGCDateStamps
--Xloggc:gc.log
+-Xloggc:/path/to/private-diagnostics/gc.log
 ```
 
 ### What Legacy GC Logs Look Like
@@ -144,7 +144,7 @@ Key fields to read from legacy output:
 | `-XX:+PrintGCDetails` | `-Xlog:gc*` (or `gc*=debug` for more detail) |
 | `-XX:+PrintGCTimeStamps` | `uptime` or `timemillis` in output decorator |
 | `-XX:+PrintGCDateStamps` | `time` in output decorator |
-| `-Xloggc:gc.log` | `file=gc.log` in output decorator |
+| `-Xloggc:/path/to/private-diagnostics/gc.log` | `file=/path/to/private-diagnostics/gc.log` in output decorator |
 | `-XX:+PrintGCApplicationConcurrentTime` | `-Xlog:safepoint` |
 | `-XX:+PrintGCApplicationStoppedTime` | `-Xlog:safepoint` |
 | `-XX:+PrintTenuringDistribution` | `-Xlog:gc+age=trace` |

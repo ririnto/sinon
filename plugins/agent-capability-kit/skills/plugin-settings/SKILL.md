@@ -7,7 +7,7 @@ description: >-
 
 # Plugin Settings
 
-Put each value on the configuration surface that owns its lifetime, then parse plugin-defined state with a real YAML parser and an explicit schema.
+Choose the right surface for each value (`settings.json`, `userConfig`, or `.local.md`), then parse plugin-defined state with a real YAML parser and an explicit schema.
 
 ## Choose the Surface
 

@@ -1,6 +1,6 @@
 # Spring Framework async executor registration
 
-Open this reference when the common path in `SKILL.md` is not enough and the blocker is async exception handling, completion coordination, or `TaskDecorator` for ThreadLocal propagation.
+Open this reference when the common path is not enough and the blocker is async exception handling, completion coordination, or `TaskDecorator` for ThreadLocal propagation.
 
 ## Async exception handling
 

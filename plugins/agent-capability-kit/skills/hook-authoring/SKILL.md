@@ -7,7 +7,7 @@ description: >-
 
 # Hook Authoring
 
-Create Claude Code hooks that react to lifecycle events without relying on undocumented reload, matcher, or output behavior.
+Create Claude Code hooks that react to lifecycle events using only documented reload, matcher, and output behavior.
 
 ## Owned Surface
 

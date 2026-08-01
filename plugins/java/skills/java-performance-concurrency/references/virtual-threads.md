@@ -24,16 +24,6 @@ Use official Java and OpenJDK materials for version-specific behavior and limita
 
 ## Concrete code examples
 
-Simplest virtual-thread execution model for blocking-task workloads:
-
-```java
-import java.util.concurrent.Executors;
-
-try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-    executor.submit(() -> service.handle(request));
-}
-```
-
 Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive. JEP 505 is the fifth preview):
 
 ```java

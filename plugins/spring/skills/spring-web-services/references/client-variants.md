@@ -4,7 +4,7 @@ Open this reference when the SOAP client must use specialized transports or alte
 
 ## Variant selector
 
-- Keep the ordinary path in `SKILL.md` when `WebServiceTemplateBuilder` plus the default message factory is enough.
+- Keep the standard client setup when `WebServiceTemplateBuilder` plus the default `SaajSoapMessageFactory` is enough.
 - Use a custom message factory when the integration needs SOAP 1.2, MTOM, or lower-level message-factory tuning.
 - Use a transport-specific sender when the integration contract requires custom HTTP timeouts, authentication, or a non-default transport stack.
 
@@ -12,7 +12,10 @@ Open this reference when the SOAP client must use specialized transports or alte
 
 When this branch adds a transport sender beyond the starter-managed ordinary path, add the transport dependency explicitly in the build file and keep it next to the SOAP client configuration it serves.
 
-SAAJ-specific message factory variant:
+SAAJ message factory configuration:
+
+The ordinary Spring WS client path uses `SaajSoapMessageFactory`.
+Configure `AxiomSoapMessageFactory` explicitly only when the optional Axiom alternative is required.
 
 ```java
 @Bean
@@ -61,7 +64,8 @@ WebServiceTemplate webServiceTemplate(Jaxb2Marshaller marshaller, SaajSoapMessag
 
 ## Message factory decision points
 
-- Stay with SAAJ when the client only needs standard SOAP envelopes and headers.
+- Stay with `SaajSoapMessageFactory` for the ordinary client path.
+- Use `AxiomSoapMessageFactory` as an optional alternative with explicit configuration when Axiom-specific behavior is required.
 - Change the message factory when SOAP version, attachment handling, or vendor interoperability requires it.
 - Keep the marshaller, message factory, and sender together in one configuration class so transport behavior is observable.
 

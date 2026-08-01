@@ -8,8 +8,9 @@ description: >-
 
 # Skill Authoring
 
-Write or refactor one Agent Skill so `SKILL.md` is the activation entrypoint, the ordinary
-path is self-sufficient, and support files remain optional additive depth.
+Write or refactor one Agent Skill.
+Keep `SKILL.md` self-sufficient for the ordinary path.
+Keep support files optional.
 
 ## Quickstart
 
@@ -127,9 +128,6 @@ Run an offline trigger test before keeping a description:
 2. Read only the `description`.
 3. Ask whether another engineer would load it for intended prompts and avoid it for nearby prompts.
 4. Tighten or widen the wording until both answers are yes.
-
-Use `assets/description-patterns.md` or `references/description-design.md` only when the
-description is still vague, too broad, or hard to trigger.
 
 ## YAML scalar style
 
@@ -252,8 +250,6 @@ Return:
 ## Optional support files
 
 - `assets/skill-template.md` - copy when creating a new skill from scratch.
-- `assets/description-patterns.md` - use when rewriting or comparing trigger descriptions.
 - `references/context-budget-and-scope.md` - open when the skill feels too broad, too long, or split at the wrong boundary.
-- `references/description-design.md` - open when trigger wording is weak or overly broad.
 - `references/progressive-disclosure.md` - open when moving additive material without breaking the ordinary path.
 - `references/scripts-guidance.md` - open when adding or reviewing helper scripts.

@@ -7,7 +7,8 @@ Open this reference when the deployment needs encrypted transport or authenticat
 | Situation | Use |
 | --- | --- |
 | Encrypt server traffic with existing Boot SSL material | `spring.grpc.server.ssl.bundle` |
-| Upstream requires client certificates | mTLS channel configuration |
+| Upstream requires client certificates | TLS channel configuration with a client keystore and truststore |
+| Upstream requires server-side encryption only | `useTransportSecurity()` |
 | Upstream expects Basic auth on each call | `BasicAuthenticationInterceptor` |
 | Upstream expects bearer tokens | `BearerTokenAuthenticationInterceptor` |
 | Server must authenticate incoming callers | Spring Security resource-server support |
@@ -35,18 +36,48 @@ GrpcChannelBuilderCustomizer<?> secureChannel() {
 }
 ```
 
-Use this shape for client-side TLS transport.
-When the deployment requires mutual TLS, pair the secure channel with the client-certificate and trust material already chosen by the application runtime instead of treating `useTransportSecurity()` alone as a complete mTLS setup.
+This enables TLS transport only. It does not configure mutual TLS client certificates.
+
+For mTLS, bind the channel to an SSL bundle that contains the client certificate, private key, and trusted server certificate.
+
+```yaml
+spring:
+  grpc:
+    client:
+      channels:
+        secure-greeter:
+          ssl:
+            bundle: grpc-client
+          negotiation-type: TLS
+  ssl:
+    bundle:
+      jks:
+        grpc-client:
+          keystore:
+            location: classpath:client.p12
+            password: ${GRPC_CLIENT_KEYSTORE_PASSWORD}
+            type: PKCS12
+          key:
+            password: ${GRPC_CLIENT_KEY_PASSWORD}
+          truststore:
+            location: classpath:truststore.p12
+            password: ${GRPC_CLIENT_TRUSTSTORE_PASSWORD}
+            type: PKCS12
+```
 
 ## Client Basic-auth shape
 
 ```java
 @Bean
 @GlobalClientInterceptor
-ClientInterceptor basicAuthInterceptor() {
-    return new BasicAuthenticationInterceptor("client", "secret");
+ClientInterceptor basicAuthInterceptor(@Value("${grpc.client.username}") String username,
+                                          @Value("${grpc.client.password}") String password) {
+    return new BasicAuthenticationInterceptor(username, password);
 }
 ```
+
+Bind credentials from external configuration or a secret store.
+Do not commit credential values.
 
 ## Client bearer-token shape
 

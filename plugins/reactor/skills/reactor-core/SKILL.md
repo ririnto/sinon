@@ -55,10 +55,11 @@ Do not activate for:
 | threading / schedulers | recognize the boundary only | `publishOn(...)`, `subscribeOn(...)`, scheduler choice, or execution tracing becomes the main problem |
 | blocking bridge | one blocking boundary with `Mono.fromCallable(...)` | multiple boundaries, fromRunnable/fromFuture nuances, terminal bridges, or virtual-thread considerations are needed |
 | `Context` | `contextWrite(...)`, `deferContextual(...)`, ordinary metadata flow | nested writes, library-facing composition, or precedence rules are the blocker |
+| assembly/thread tracing | recognize the boundary only | assembly tracing, global hooks, or thread-hop debugging becomes the main job |
 | hot/cold and multicast | recognize the boundary only | repeated work, replay, or shared subscriptions decide the design |
 | sink/manual hot-source APIs | recognize the boundary only | manual emission, sink flavor choice, or emit-failure behavior decides the design |
 | batching/grouping/windowing | recognize the boundary only | `groupBy`, `window`, or `buffer` shapes the pipeline |
-| sequence diagnostics | signal-level `checkpoint(...)`, `log(...)`, or `doOnEach(...)` as narrow tools | assembly tracing, global hooks, or thread-hop debugging becomes the main job |
+| sequence diagnostics | signal-level `checkpoint(...)`, `log(...)`, or `doOnEach(...)` as narrow tools | signal-level inspection becomes the main job |
 
 ## Operating rules
 
@@ -246,9 +247,9 @@ final class BoundedCall {
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 final class PollingService {
-    Flux<String> pollUntilCondition() {
+    Flux<String> pollThreeTimes() {
         return fetchStatus()
-            .repeat(3)
+            .repeat(2)
             .filter(status -> "DONE".equals(status))
             .take(1);
     }
@@ -259,7 +260,8 @@ final class PollingService {
 ```
 
 `repeat` re-subscribes on completion (not error).
-Combine with `take(n)` or `repeatWhen(...)` to avoid infinite loops.
+Combine with `take(n)` or `repeatUntil(...)`.
+When using `repeatWhen(...)`, its companion must include a terminating bound or predicate.
 
 ### `handle` for conditional multi-signal emission
 
@@ -305,8 +307,8 @@ Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted 
 | returning `Mono<List<T>>` for a streaming contract | hides streaming semantics and demand | use `Flux<T>` unless the collection itself is the single value |
 | placing blocking I/O inside `map(...)` | occupies the current worker thread invisibly | isolate it with `fromCallable(...)` |
 | using `retry()` without a bound or policy | can loop forever under outage | use bounded retry or a deliberate `Retry` policy |
-| using `repeat()` without a termination condition | re-subscribes forever on every completion | combine with `take(n)`, `repeatUntil(...)`, or `repeatWhen(...)` |
-| using `timeout(...)` without fallback | unbounded timeout produces raw `TimeoutException` downstream | provide a fallback publisher via `timeout(duration, fallback)` |
+| using `repeat()` without a termination condition | re-subscribes forever on every completion | combine with `take(n)`, `repeatUntil(...)`, or a terminating `repeatWhen(...)` companion |
+| using `timeout(...)` without fallback | the bounded timeout emits a raw `TimeoutException` downstream | handle that error or provide a fallback via `timeout(duration, fallback)` |
 | treating `Context` like mutable shared state | writes are immutable and per subscription | write a new `Context` and read it with `deferContextual(...)` |
 | choosing `merge(...)` when order matters | output order becomes unstable | use `concat(...)` or `concatMap(...)` |
 | using programmatic creation for ordinary values | makes the source harder to reason about | stay with factory methods until a blocker exists |
@@ -335,7 +337,8 @@ Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted 
 | shared subscriptions, replay, or hot/cold behavior changes the design | [Hot, Cold, and Multicasting](references/hot-cold-and-multicasting.md) |
 | `groupBy`, `window`, or `buffer` shapes the pipeline and the flow stalls or grows unexpectedly | [Batching, Grouping, and Windowing](references/batching-grouping-windowing.md) |
 | one blocking boundary is not enough and you need multiple boundaries, fromRunnable/fromFuture bridges, terminal edges, or virtual-thread considerations | [Advanced Blocking Bridges](references/blocking-bridges.md) |
-| signal-level inspection (per-signal Context, conditional value inspection, tap observer) is needed, or assembly/thread tracing is the real blocker | [Signal-Level Diagnostics](references/debugging-and-observability.md) |
+| signal-level inspection (per-signal Context, conditional value inspection, tap observer) is needed | [Signal-Level Diagnostics](references/debugging-and-observability.md) |
+| assembly tracing, global hooks, or thread-hop debugging is the real blocker | Open the `reactor-scheduling` skill. |
 
 ## Output contract
 

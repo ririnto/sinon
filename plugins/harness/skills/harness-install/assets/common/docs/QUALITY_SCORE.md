@@ -36,7 +36,7 @@ Replace the example rows below with entries for each architectural layer.
 | --- | --- | --- | --- | --- |
 | Service | A | none | none | project-owner |
 | Runtime | B | no chaos test suite | one chaos test green for each failure mode in RELIABILITY.md | project-owner |
-| UI | B | 70% axe-core coverage | 100% axe-core green on top-10 routes | project-owner |
+| UI | B | automated a11y coverage gaps | automated a11y checks green on top routes | project-owner |
 
 ## Gap Tracking
 

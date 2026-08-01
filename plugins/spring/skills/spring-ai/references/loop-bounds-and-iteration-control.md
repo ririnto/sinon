@@ -1,6 +1,6 @@
 # Loop bounds and iteration control
 
-Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is bounding an iterative workflow that may not converge by itself.
+Open this reference when the ordinary path is not enough and the blocker is bounding an iterative workflow that may not converge by itself.
 
 ## Loop-bound blocker
 
@@ -9,6 +9,11 @@ Problem: a multi-step agent loop can continue indefinitely without converging.
 Solution: keep agent state explicit and enforce an iteration bound in application code.
 
 ```java
+enum WorkflowState {
+    RUNNING,
+    COMPLETE
+}
+
 @Service
 class BoundedAssistant {
     private final ChatClient chatClient;
@@ -22,16 +27,18 @@ class BoundedAssistant {
 
     String answer(String question) {
         String lastResponse = "";
-        for (int i = 0; i < maxIterations; i++) {
+        WorkflowState state = WorkflowState.RUNNING;
+        for (int i = 0; i < maxIterations && state == WorkflowState.RUNNING; i++) {
             lastResponse = chatClient.prompt().user(question).tools(toolCallbacks).call().content();
-            if (!lastResponse.contains("[TOOL_CALL]")) {
-                break;
-            }
+            state = applicationWorkflowState();
         }
         return lastResponse;
     }
 }
 ```
+
+Let `ToolCallingAdvisor` manage tool-call iterations.
+Use application-owned workflow state for the outer workflow bound instead of inspecting model text for a tool-call marker.
 
 ## Decision points
 

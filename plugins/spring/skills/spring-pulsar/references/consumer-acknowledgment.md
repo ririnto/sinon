@@ -23,7 +23,7 @@ void handle(ShipmentEvent event) {
 
 ```java
 @PulsarListener(topics = "shipments", subscriptionName = "warehouse", ackMode = AckMode.MANUAL)
-void handle(ShipmentEvent event, Acknowledgement acknowledgement) {
+void handle(ShipmentEvent event, Acknowledgment acknowledgement) {
     service.handle(event);
     acknowledgement.acknowledge();
 }
@@ -33,7 +33,7 @@ void handle(ShipmentEvent event, Acknowledgement acknowledgement) {
 
 ```java
 @PulsarListener(topics = "shipments", subscriptionName = "warehouse", ackMode = AckMode.MANUAL)
-void handle(ShipmentEvent event, Acknowledgement acknowledgement) {
+void handle(ShipmentEvent event, Acknowledgment acknowledgement) {
     try {
         service.handle(event);
         acknowledgement.acknowledge();

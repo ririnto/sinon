@@ -1,10 +1,25 @@
 # Spring Cloud OpenFeign clients
 
-Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [`SKILL.md`](../SKILL.md) is not enough and the task is specifically about declarative OpenFeign clients.
+Open this reference when the ordinary ConfigData-discovery-loadbalancer path is not enough and the task is specifically about declarative OpenFeign clients.
 
 ## OpenFeign blocker
 
-Use OpenFeign when a declarative HTTP client is clearer than direct `RestClient` or `WebClient` code.
+Use OpenFeign when a declarative HTTP client is clearer than direct `RestClient` or `WebClient` code, especially when preserving an existing Feign estate or its shared configuration matters.
+For new Boot 4.x work, prefer a Spring Interface Client when its annotated HTTP interface model covers the need.
+Choose OpenFeign when the client requires Feign-specific configuration, fallback integrations, or existing `@FeignClient` conventions.
+
+## Starter shape
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+Keep the starter versionless under the Spring Cloud BOM.
+
+## Client shape
 
 ```java
 @EnableFeignClients

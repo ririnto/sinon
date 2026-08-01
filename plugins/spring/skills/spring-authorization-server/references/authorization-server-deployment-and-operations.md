@@ -13,12 +13,14 @@ Open this reference when the task involves:
 - Token expiration tuning and refresh strategy
 - Health endpoints and operational monitoring
 - TLS termination and secure cookie settings
-- Restart continuity or clustered deployment is blocked by persistence choices already modeled in [`authorization-server-jpa-persistence.md`](authorization-server-jpa-persistence.md) or [`authorization-server-redis-persistence.md`](authorization-server-redis-persistence.md)
+- Registered clients, authorization state, or consent must survive restarts or be shared across cluster nodes, and the persistence choice is modeled in [`authorization-server-jpa-persistence.md`](authorization-server-jpa-persistence.md) or [`authorization-server-redis-persistence.md`](authorization-server-redis-persistence.md)
 
 ## Issuer URL stability
 
-The issuer URL must be stable and externally consistent.
+The issuer URL must be stable and externally consistent for a single-issuer deployment.
 Clients resolve the authorization server by its issuer identifier.
+The explicit issuer examples in this section are single-issuer-only.
+For multiple issuers, do not configure an issuer globally and route requests and components through issuer-scoped configuration in [authorization-server-multitenancy.md](authorization-server-multitenancy.md).
 
 ### Issuer URL configuration
 
@@ -53,7 +55,8 @@ JWKSource<SecurityContext> jwkSource() {
 ```
 
 This works for single-instance deployments only.
-Multiple instances must share key material through an external store.
+Clustered deployments require every instance to use shared key material from an external store or a custom `JWKSource<SecurityContext>`.
+Per-node in-memory keys are not sufficient.
 
 ### Shared key source for multi-instance deployments
 
@@ -190,7 +193,7 @@ Verify that they are enabled only when needed and exercised in deployment tests.
 - [ ] HTTPS is required; no HTTP fallback in production
 - [ ] JWK key material is backed up and rotation is documented
 - [ ] Forwarded headers are configured on the proxy and enabled in the server
-- [ ] Authorization and consent state are persisted when restart continuity is required
+- [ ] Registered clients, authorization state, and consent are persisted when restart continuity or clustering requires it
 - [ ] Session cookies use `secure`, `http-only`, and `same-site` settings
 - [ ] Token expiration values match the expected client usage patterns
 - [ ] Health endpoint returns 200 when the server is ready
@@ -203,4 +206,4 @@ Verify that they are enabled only when needed and exercised in deployment tests.
 | Tokens signed with different key than JWKS shows | confirm key rotation did not remove the active signing key |
 | Redirect URLs use wrong host | check `X-Forwarded-Host` is sent by the proxy and forwarded-header handling is enabled, using `native` first and `framework` only when native support is insufficient |
 | Multiple instances produce different JWK sets | use a shared key store or custom shared `JWKSource` instead of per-node in-memory keys |
-| Authorization state lost after restart | see [authorization-server-jpa-persistence.md](authorization-server-jpa-persistence.md) or [authorization-server-redis-persistence.md](authorization-server-redis-persistence.md) |
+| Registered clients, authorization state, or consent lost after restart | see [authorization-server-jpa-persistence.md](authorization-server-jpa-persistence.md) or [authorization-server-redis-persistence.md](authorization-server-redis-persistence.md) |

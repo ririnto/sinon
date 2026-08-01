@@ -1,12 +1,12 @@
 # Spring Shell interactive flows and terminal UI
 
-Open this reference when the normal command-and-option path in `SKILL.md` is not enough and the blocker is guided multi-step input, bounded selection, destructive confirmation, or richer terminal UI behavior.
+Open this reference when the normal command-and-option path is not enough and the blocker is guided multi-step input, bounded selection, destructive confirmation, or richer terminal UI behavior.
 
 ## Decision points
 
 | Situation | Use |
 | --- | --- |
-| One command with explicit options is still easy to understand | stay in `SKILL.md` |
+| One command with explicit options is still easy to understand | use normal command options |
 | A command must ask follow-up questions based on earlier answers | guided flow |
 | A bounded choice set matters more than free-form typing | single-select or multi-select input |
 | Operators must browse or edit structured state interactively | richer terminal UI |

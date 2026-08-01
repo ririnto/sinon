@@ -1,6 +1,6 @@
 # Spring Batch 6 migration notes
 
-Open this reference when the blocker is Spring Batch 6-specific migration behavior rather than the ordinary batch job path in [`SKILL.md`](../SKILL.md).
+Open this reference when the blocker is Spring Batch 6-specific migration behavior rather than the ordinary batch job path.
 
 ## Batch 6 migration blocker
 

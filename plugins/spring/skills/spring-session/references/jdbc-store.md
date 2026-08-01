@@ -6,7 +6,7 @@ Choose JDBC-backed sessions when the application depends on a relational databas
 
 ## JDBC baseline
 
-Use the Boot-managed `spring-boot-starter-session-jdbc` dependency from `SKILL.md`, then add the JDBC-specific properties below.
+Use the Boot-managed `spring-boot-starter-session-jdbc` dependency, then add the JDBC-specific properties below.
 
 Application properties:
 
@@ -67,6 +67,7 @@ Use `@SpringSessionTransactionManager` and `@SpringSessionDataSource` qualifiers
 
 ```java
 @Bean("springSessionDataSource")
+@SpringSessionDataSource
 DataSource sessionDataSource() {
     return DataSourceBuilder.create()
         .url("jdbc:postgresql://localhost:5432/sessions")
@@ -76,6 +77,7 @@ DataSource sessionDataSource() {
 }
 
 @Bean("springSessionTransactionManager")
+@SpringSessionTransactionManager
 PlatformTransactionManager sessionTransactionManager(@Qualifier("springSessionDataSource") DataSource ds) {
     return new DataSourceTransactionManager(ds);
 }

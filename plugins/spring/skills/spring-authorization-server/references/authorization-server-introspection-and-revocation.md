@@ -1,6 +1,6 @@
 # Introspection and revocation
 
-Open this reference when the ordinary issuer, authorization, token, metadata, and JWK endpoint set in [`SKILL.md`](../SKILL.md) is not enough and the blocker is token liveness inspection or revocation.
+Open this reference when the ordinary issuer, authorization, token, metadata, and JWK endpoint set is not enough and the blocker is token liveness inspection or revocation.
 
 ## Introspection blocker
 

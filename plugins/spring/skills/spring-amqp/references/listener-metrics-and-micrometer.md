@@ -1,6 +1,6 @@
 # Listener metrics and Micrometer
 
-Open this reference when the ordinary producer and consumer path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is listener metrics or Micrometer wiring.
+Open this reference when the ordinary producer and consumer path is not enough and the blocker is listener metrics or Micrometer wiring.
 
 ## Metrics blocker
 

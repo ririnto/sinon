@@ -12,7 +12,7 @@ Open this reference when preprocessors must do more than the ordinary pretty-pri
 | Mask volatile query parameters | `removeParameters("timestamp")` |
 | Replace content matching a pattern | `replacePattern(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"), "YYYY-MM-DD")` |
 | Mask hypermedia link hrefs | `maskLinks()` |
-| Add or set headers | `modifyHeaders().header("X-Custom", "value")` |
+| Add or set headers | `modifyHeaders().add("X-Custom", "value")` or `modifyHeaders().set("X-Custom", "value")` |
 | Apply the same preprocessor to every test | configure `operationPreprocessors()` in the `@BeforeEach` setup |
 
 ## Per-test preprocessing

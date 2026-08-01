@@ -37,7 +37,7 @@ Class histogram to find top allocators:
 jcmd <pid> GC.class_histogram | head -50
 ```
 
-Live histogram; this stops the world briefly, so use it with care in production:
+Live histogram. This stops the world briefly, so use it with care in production:
 
 ```sh
 jcmd <pid> GC.class_histogram -all

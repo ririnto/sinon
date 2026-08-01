@@ -71,7 +71,8 @@ These examples list all label values, list values matching a filter, list metric
 Regex extraction from query results:
 
 When `regex` is set, Grafana applies it to each result row and uses capture groups to produce the option value.
-The first capture group becomes the value; if there are two groups, group 1 is value and group 2 is display text.
+The first capture group becomes the value.
+If there are two groups, group 1 is value and group 2 is display text.
 
 ```json
 {
@@ -284,7 +285,8 @@ rate(http_requests_total[${resolution}])
 
 ```
 
-Use `$__interval` for automatic rate/scrape alignment.
+Use `$__interval` for automatic query interval alignment.
+Use `$__rate_interval` for counter rates, especially with `rate()`.
 Use a named interval variable when operators need a manual override.
 
 ### 7. Ad Hoc Filters Variable (`type: "adhoc"`)
@@ -351,7 +353,7 @@ They are always available in every dashboard.
 | `$__dashboard.uid` | string | Current dashboard UID | `"api-overview"` |
 | `$__from` | number | Dashboard start time (epoch ms) | `1713556800000` |
 | `$__to` | number | Dashboard end time (epoch ms) | `1713558600000` |
-| `$__interval` | string | Auto-calculated scrape interval | `"5m"` |
+| `$__interval` | string | Auto-calculated query interval | `"5m"` |
 | `$__interval_ms` | number | Interval in milliseconds | `300000` |
 | `$__name` | string | Dashboard title | `"API Overview"` |
 | `$__org.id` | number | Organization ID | `1` |
@@ -373,11 +375,11 @@ https://external-api.example.com/metrics?start=${__from}&end=${__to}
 
 {owner="${__user.login}"}
 
-histogram_quantile(0.99, sum(rate(request_duration_seconds_bucket[$__range_s])) by (le))
+histogram_quantile(0.99, sum(rate(request_duration_seconds_bucket[$__rate_interval])) by (le))
 
 ```
 
-These examples show safe rate calculation with `$__rate_interval`, external API time bounds with `$__from` and `$__to`, per-user scoping with `$__user.login`, and adaptive window sizing with `$__range_s`.
+These examples show safe rate calculation with `$__rate_interval`, external API time bounds with `$__from` and `$__to`, and per-user scoping with `$__user.login`.
 
 ## Variable Syntax Formats
 
@@ -577,8 +579,8 @@ Pattern: hide intermediate cascade variables that operators should not change in
 ## Complete Transformation Catalog
 
 Transformations reshape query results before rendering.
-They execute in array order; each transformation receives the output of the previous one.
-The common transformations are covered in [`../SKILL.md`](../SKILL.md).
+They execute in array order.
+Each transformation receives the output of the previous one.
 This section covers the full catalog.
 
 ### Transformation Index

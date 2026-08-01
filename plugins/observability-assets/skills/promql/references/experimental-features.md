@@ -96,10 +96,12 @@ Constraints:
   - The current limitation (only `target_info`, fixed identifying labels `instance`+`job`) is acknowledged as partially defeating the purpose.
 - `parse_query` endpoint: Documented as experimental, intended for Prometheus web UI use only.
   - Endpoint name and format may change between versions.
-- `query_exemplars` endpoint: Experimental; format may change.
-- `targets/relabel_steps` endpoint: Experimental; intended for UI use only.
-- `targets/metadata` endpoint: Experimental; may change.
+- `query_exemplars` endpoint: Experimental.
+  Format may change.
+- `targets/relabel_steps` endpoint: Experimental.
+  Intended for UI use only.
+- `targets/metadata` endpoint: Experimental.
+  May change.
 - All experimental functions require their respective feature flags and may change behavior or be removed in future releases.
 
-Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md).
 Use this reference only when you need to determine whether a function is stable, which flag enables it, or what caveats apply to experimental features.

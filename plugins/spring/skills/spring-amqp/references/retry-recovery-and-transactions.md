@@ -1,6 +1,6 @@
 # Retry, recovery, and transactions
 
-Open this reference when the baseline retry and dead-letter path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is recoverer choice, transactional semantics, or deeper failure handling.
+Open this reference when the baseline retry and dead-letter path is not enough and the blocker is recoverer choice, transactional semantics, or deeper failure handling.
 
 ## Exhausted-message outcome
 
@@ -73,10 +73,7 @@ Those categories often need different retry and dead-letter outcomes.
 
 ## Fatal exception handling (4.1)
 
-Problem: fatal exceptions such as `MessageConversionException` or `MethodArgumentNotValidException` cause message rejection and requeue loops.
-
-Solution: configure `ConditionalRejectingErrorHandler` with `stopListenerOnFatal(true)` to stop the container on fatal errors and requeue the message for other consumers.
+Fatal exceptions such as `MessageConversionException` or `MethodArgumentNotValidException` have two distinct container policies.
+The default `ConditionalRejectingErrorHandler` throws `AmqpRejectAndDontRequeueException`, rejecting the message without requeue.
+With `stopListenerOnFatal(true)`, it throws `FatalListenerExecutionException`, stops the current container, and requeues the message so another active consumer may receive it.
 See [`container-variants-and-concurrency.md`](container-variants-and-concurrency.md) for the container-level configuration.
-
-The default `ConditionalRejectingErrorHandler` rejects messages with fatal exceptions without requeuing.
-With `stopListenerOnFatal(true)`, the container stops entirely, preventing the requeue loop while making the failure visible to operators.

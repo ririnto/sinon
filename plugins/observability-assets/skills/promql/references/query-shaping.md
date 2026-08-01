@@ -201,5 +201,4 @@ Use `group_left` or `group_right` only when one side carries the join key and th
 Before you copy this pattern, verify that the right-hand metric is a trusted info-style series with exactly one matching series for each join key in the query scope.
 In federated, multi-cluster, or duplicated-scrape setups, add the extra provenance labels needed to make that uniqueness true before you join.
 
-Function-family tradeoffs are covered in the common path of [`../SKILL.md`](../SKILL.md).
 Use this reference for matching escalation, label-set review, `group_left`/`group_right` justification, and worked input/output examples only.

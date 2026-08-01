@@ -1,6 +1,6 @@
 # Multi-broker variants
 
-Open this reference when the ordinary single-broker path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is isolating multiple broker connections, templates, or listener factories.
+Open this reference when the ordinary single-broker path is not enough and the blocker is isolating multiple broker connections, templates, or listener factories.
 
 ## Multi-broker blocker
 

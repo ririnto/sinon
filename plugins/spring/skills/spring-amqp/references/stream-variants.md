@@ -1,6 +1,6 @@
 # Stream variants
 
-Open this reference when the ordinary queue-based RabbitMQ path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is RabbitMQ stream semantics.
+Open this reference when the ordinary queue-based RabbitMQ path is not enough and the blocker is RabbitMQ stream semantics.
 
 ## Stream plugin blocker
 

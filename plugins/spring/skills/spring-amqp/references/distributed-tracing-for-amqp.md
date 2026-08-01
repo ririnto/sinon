@@ -1,6 +1,6 @@
 # Distributed tracing for AMQP
 
-Open this reference when the ordinary producer and consumer path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is correlating publish and consume traces.
+Open this reference when the ordinary producer and consumer path is not enough and the blocker is correlating publish and consume traces.
 
 ## Observation blocker
 

@@ -1,6 +1,6 @@
 # Sequential tool orchestration
 
-Open this reference when the ordinary tool-calling path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is one explicit tool step that must feed the next.
+Open this reference when the ordinary tool-calling path is not enough and the blocker is one explicit tool step that must feed the next.
 
 ## Use this file for one blocker family
 

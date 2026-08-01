@@ -94,13 +94,13 @@ Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies
 | Circuit-breaker boundary with Resilience4j | `spring-cloud-starter-circuitbreaker-resilience4j` |
 | Circuit-breaker boundary (Boot 4.x / Spring Framework 7 native) | `spring-cloud-starter-circuitbreaker-framework-retry` |
 | Edge routing | add the Gateway starter from [references/gateway-routing.md](references/gateway-routing.md) |
-| Declarative HTTP clients | add the OpenFeign starter from [references/openfeign-clients.md](references/openfeign-clients.md) |
+| Declarative HTTP clients | add the OpenFeign starter from [references/openfeign-clients.md](references/openfeign-clients.md) when OpenFeign is the chosen client style |
 | Broker-backed event transport | add the binder starter from [references/stream-binders.md](references/stream-binders.md) |
 | Vault-backed secrets import | add the Vault starter from [references/cloud-vault-config.md](references/cloud-vault-config.md) |
 | Kubernetes-native config or discovery | add the Kubernetes starter from [references/kubernetes-config.md](references/kubernetes-config.md) or [references/kubernetes-discovery.md](references/kubernetes-discovery.md) |
 | Distributed refresh propagation | add the Bus transport starter from [references/bus-refresh.md](references/bus-refresh.md) |
-| Contract testing (consumer-producer) | add the Contract starter from [references/contract-testing.md](references/contract-testing.md) |
-| Contract verification | add the contract plugin and test support from [references/contract-testing.md](references/contract-testing.md) |
+| Contract definition and provider verification | apply the verifier plugin from [references/contract-testing.md](references/contract-testing.md) |
+| Consumer-side executable stubs | add Stub Runner test support from [references/contract-testing.md](references/contract-testing.md) |
 
 ### Ordinary baseline
 
@@ -469,8 +469,9 @@ InventoryClient inventoryClient(RestClient.Builder builder) {
 }
 ```
 
-Prefer Interface Clients over OpenFeign for new Boot 4.x work.
-OpenFeign remains available for existing estates.
+Prefer Interface Clients for new Boot 4.x work when their annotated HTTP interface model fits.
+Keep OpenFeign for existing Feign estates and for cases that depend on Feign-specific client configuration or fallback integrations.
+Do not migrate solely to change client syntax.
 
 ### Data Flow output shapes
 

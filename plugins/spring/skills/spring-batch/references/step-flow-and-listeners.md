@@ -1,6 +1,6 @@
 # Spring Batch step flow and listeners
 
-Open this reference when the task involves tasklets, listeners, or flow branching beyond the linear baseline in [`SKILL.md`](../SKILL.md).
+Open this reference when the task involves tasklets, listeners, or flow branching beyond the linear baseline.
 
 ## Tasklet versus chunk blocker
 

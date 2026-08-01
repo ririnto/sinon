@@ -21,7 +21,8 @@ Use `spring-session` for session persistence, clustered session sharing, cookie 
 
 Spring Session 4.1.x targets Spring Boot 4.1.x.
 Spring Session 4.0.x targets Spring Boot 4.0.x.
-Spring Boot manages the Spring Session version; add the session starter and Boot resolves the correct artifact.
+Spring Boot manages the Spring Session version.
+Add the session starter and Boot resolves the correct artifact.
 
 Minimum requirements:
 
@@ -30,7 +31,8 @@ Minimum requirements:
 - Servlet 3.1+ when running in a servlet container
 - Redis 2.8+ when using `@EnableRedisHttpSession`
 
-Spring Boot 4.1 applications use the newer Framework 7, Servlet 6.1, and managed Redis client baselines supplied by that Boot line; do not present those platform choices as Spring Session's library minimums.
+Spring Boot 4.1 applications use the newer Framework 7, Servlet 6.1, and managed Redis client baselines supplied by that Boot line.
+Do not present those platform choices as Spring Session's library minimums.
 
 ## Common path
 
@@ -143,7 +145,8 @@ class SessionConfig {
 }
 ```
 
-The Redis session starter and `repository-type: indexed` select `RedisIndexedSessionRepository`; do not add an enable annotation to the Boot-managed common path.
+The Redis session starter and `repository-type: indexed` select `RedisIndexedSessionRepository`.
+Do not add an enable annotation to the Boot-managed common path.
 
 ### Header-based session id shape
 
@@ -198,14 +201,6 @@ SecurityFilterChain securityFilterChain(HttpSecurity http, SpringSessionBackedSe
 ```
 
 This branch requires the indexed Redis repository because `SpringSessionBackedSessionRegistry` depends on principal lookup through `FindByIndexNameSessionRepository`.
-
-## Edge cases
-
-- Open [references/jdbc-store.md](references/jdbc-store.md) when the database schema, cleanup cadence, transaction strategy, or JSON attribute storage needs explicit control.
-- Open [references/webflux-websession.md](references/webflux-websession.md) when the app is reactive and `WebSession` semantics replace servlet `HttpSession` semantics.
-- Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must close or invalidate alongside the backing HTTP session.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, session mapper, or JSON serialization must be customized.
-- Open [references/alternative-repositories.md](references/alternative-repositories.md) only when an existing platform standard already mandates Hazelcast, MongoDB, or a custom repository.
 
 ## Implementation examples
 
@@ -278,14 +273,7 @@ Return:
   - Store identifiers and lightweight state, not large object graphs.
 - Align cookie domain, `SameSite`, and secure flags with the actual deployment topology before release.
 - For Redis, confirm TTL behavior, namespace isolation, repository type, serializer compatibility, and failover latency under node loss.
-- For Redis Cluster with the indexed repository, note that events are subscribed from a single random node; some session indexes may not be cleaned up if the event occurs on a different node.
+- For Redis Cluster with the indexed repository, note that events are subscribed from a single random node.
+  Some session indexes may not be cleaned up if the event occurs on a different node.
 - Expose login, active session, and session expiration behavior through application metrics or audit events when operations need visibility.
 - Ensure secret rotation or node restarts do not silently invalidate every active session unless that behavior is intentional.
-
-## References
-
-- Open [references/jdbc-store.md](references/jdbc-store.md) when the store is relational.
-- Open [references/webflux-websession.md](references/webflux-websession.md) when the runtime is reactive.
-- Open [references/websocket-integration.md](references/websocket-integration.md) when messaging and session lifecycle must stay aligned.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis session behavior needs customization beyond the ordinary path.
-- Open [references/alternative-repositories.md](references/alternative-repositories.md) when the platform mandates a non-Redis, non-JDBC repository.

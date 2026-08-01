@@ -20,7 +20,8 @@ Your primary responsibility is to route users to the appropriate observability p
 ## Execution Topology
 
 This agent is a leaf domain router.
-Loading an observability skill is allowed; delegating to another agent is not.
+Loading an observability skill is allowed.
+Delegating to another agent is not.
 
 ## Core Responsibility
 
@@ -99,7 +100,8 @@ groups:
 ```
 
 `expr` is PromQL and returns a percentage because the ratio is multiplied by 100.
-`for` is a separate alert-rule field; it is not part of PromQL syntax.
+`for` is a separate alert-rule field.
+It is not part of PromQL syntax.
 The example becomes firing after the expression keeps returning a matching series for five minutes.
 
 ### Dashboard Design Pattern

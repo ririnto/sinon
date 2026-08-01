@@ -30,14 +30,14 @@ jcmd <pid> Thread.print -e
 Standard thread-dump shape:
 
 ```sh
-jcmd <pid> Thread.print -l > thread-dump.txt
+jcmd <pid> Thread.print -l > /path/to/private-diagnostics/thread-dump.txt
 ```
 
 ## Extended Heap and Object Inspection
 
 ```sh
 jcmd <pid> GC.class_histogram -all
-jcmd <pid> GC.heap_dump heap.hprof
+jcmd <pid> GC.heap_dump /path/to/private-diagnostics/heap.hprof
 ```
 
 > [!WARNING]

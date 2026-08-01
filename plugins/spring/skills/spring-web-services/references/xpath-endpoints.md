@@ -26,5 +26,6 @@ Default to marshalling and typed payloads first.
 ## Gotchas
 
 - Do not use XPath endpoints as a shortcut when a stable schema already maps cleanly to generated types.
-- Do not omit namespace declarations from the endpoint method; the XPath expression usually fails silently when prefixes are wrong.
+- Do not omit namespace declarations from the endpoint method.
+  The XPath expression usually fails silently when prefixes are wrong.
 - Do not parse large payload fragments repeatedly when one unmarshalled request object would be simpler and faster.

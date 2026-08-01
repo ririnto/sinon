@@ -23,15 +23,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import reactor.core.publisher.Flux;
 final class GeneratedIds {
     Flux<String> nextIds() {
-        AtomicInteger state = new AtomicInteger();
-        return Flux.generate(sink -> {
-            int current = state.getAndIncrement();
-            if (current == 5) {
-                sink.complete();
-                return;
+        return Flux.generate(
+            AtomicInteger::new,
+            (state, sink) -> {
+                int current = state.getAndIncrement();
+                if (current == 5) {
+                    sink.complete();
+                    return state;
+                }
+                sink.next("id-" + current);
+                return state;
             }
-            sink.next("id-" + current);
-        });
+        );
     }
 }
 ```

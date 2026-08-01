@@ -227,7 +227,7 @@ Template rules:
 - Templates execute once per alert instance (per labelset)
 - Template errors cause the entire annotation to render as the raw error string
 - Use `{{ $labels.name }}` syntax -- dot notation like `{{ $labels.name }}` works.
-  - Bracket notation `{{ $labels["name"] }}` handles special characters
+  - Bracket notation `{{ index $labels "name" }}` handles special characters
 - `$value` is always a string.
   - Compare numerically with helper functions where available
 - Do NOT put templates in `labels` values unless you have a specific reason -- labels should be stable and low-cardinality
@@ -425,9 +425,9 @@ groups:
     rules:
       - alert: DiskSpaceWarning
         expr: >-
-          80 < 100 * node_filesystem_avail_bytes{fstype!="tmpfs"}
+          100 * (1 - node_filesystem_avail_bytes{fstype!="tmpfs"}
             /
-          node_filesystem_size_bytes{fstype!="tmpfs"}
+          node_filesystem_size_bytes{fstype!="tmpfs"}) > 80
         for: 30m
         labels:
           severity: warning
@@ -439,9 +439,9 @@ groups:
 
       - alert: DiskSpaceCritical
         expr: >-
-          95 < 100 * node_filesystem_avail_bytes{fstype!="tmpfs"}
+          100 * (1 - node_filesystem_avail_bytes{fstype!="tmpfs"}
             /
-          node_filesystem_size_bytes{fstype!="tmpfs"}
+          node_filesystem_size_bytes{fstype!="tmpfs"}) > 95
         for: 10m
         labels:
           severity: critical

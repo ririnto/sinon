@@ -62,7 +62,8 @@ Use these bundled paths from `SKILL_ROOT`:
     - `generate-diagram [spec-root]` - generate Mermaid relationship diagrams from SPEC links
     - `list-tags [spec-path]` - aggregate tag inventory across the tree
 - `./assets/templates/` - scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`
-- `./assets/schemas/` - frontmatter schemas mirrored by the validator and checked against the shipped templates
+- `./assets/schemas/` - JSON Schema author references.
+- The runtime validator enforces only the documented, selected subset of fields and does not parse these files
 - `./references/examples/` - validator-clean examples for comparison
 
 ## Ordinary offline-capable workflow
@@ -148,12 +149,7 @@ Follow this path unless a named blocker sends you to an optional reference.
 
 ## Status lifecycle
 
-- `draft`: initial authoring has started.
-- `review`: the artifact is ready for formal review.
-- `approved`: scope is accepted and implementation may start.
-- `wip`: implementation is in progress.
-- `implemented`: implementation review and verification are complete.
-- `deprecated`, `superseded`, `removed`: retirement or replacement states.
+Status values and transitions live in `./references/workflow.md` under Status Lifecycle.
 
 ## Review gates
 

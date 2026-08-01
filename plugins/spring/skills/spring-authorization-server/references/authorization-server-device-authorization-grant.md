@@ -1,6 +1,6 @@
 # Device authorization grant
 
-Open this reference when the ordinary browser-based authorization-code flow in [`SKILL.md`](../SKILL.md) is not enough and the blocker is the OAuth 2.0 Device Authorization Grant.
+Open this reference when the ordinary browser-based authorization-code flow is not enough and the blocker is the OAuth 2.0 Device Authorization Grant.
 
 ## Device-flow blocker
 

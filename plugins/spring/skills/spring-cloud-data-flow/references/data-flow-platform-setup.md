@@ -1,6 +1,6 @@
 # Spring Cloud Data Flow platform setup
 
-Open this reference when the blocker is installing SCDF or choosing the local, Kubernetes, or Cloud Foundry runtime target before any app registration.
+Open this reference when the blocker is installing SCDF or choosing the local, Kubernetes, or Cloud Foundry runtime target before the register-create-deploy/launch path.
 
 ## Platform-target blocker
 
@@ -19,7 +19,7 @@ Do not register or deploy apps until the SCDF server, Skipper or task platform, 
 - Verify the SCDF server is reachable.
 - Verify the shell or UI can talk to the server.
 - Verify the target platform account exists before the first deploy or launch.
-- Verify one trivial app can be registered before curating larger catalogs.
+- Verify one trivial app can be registered, its definition created, and then deployed or launched before curating larger catalogs.
 
 ## Local install shape
 

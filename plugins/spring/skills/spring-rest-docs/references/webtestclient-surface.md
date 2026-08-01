@@ -6,7 +6,7 @@ Open this reference when the task needs WebTestClient instead of MockMvc.
 
 | Situation | Use |
 | --- | --- |
-| Servlet MVC tests already exist | stay in `SKILL.md` with MockMvc |
+| Servlet MVC tests already exist | use MockMvc |
 | Reactive handlers are already tested with WebTestClient | WebTestClient |
 
 ## Configuration

@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import kotlin.reflect.KFunction1
 
 /**
  * Flags forbidden unstructured logging calls.
@@ -28,12 +27,12 @@ class UnstructuredLogging :
     ),
     RuleAutocorrectApproveHandler {
     private companion object {
-        val PRINTLN: KFunction1<Any?, Unit> = ::println
-        val PRINTLN_PATHS: Set<String> = setOf(
-            PRINTLN.name,
-            "kotlin.${PRINTLN.name}",
-            "kotlin.io.${PRINTLN.name}"
-        )
+        val PRINTLN_PATHS: Set<String> =
+            setOf(
+                "println",
+                "kotlin.println",
+                "kotlin.io.println"
+            )
     }
 
     override fun beforeVisitChildNodes(
@@ -48,12 +47,13 @@ class UnstructuredLogging :
     ) : KtTreeVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
             super.visitCallExpression(expression)
-            calleeName(expression)?.let { callName ->
+            expression.calleeName()?.let { callName ->
                 val qualifiedCall =
                     (expression.parent as? KtDotQualifiedExpression)
                         ?.takeIf { qualified -> qualified.selectorExpression == expression }
                         ?.let { qualified ->
-                            expressionParts(qualified.receiverExpression)
+                            qualified.receiverExpression
+                                .expressionParts()
                                 .takeIf { parts -> parts.isNotEmpty() }
                                 ?.plus(callName)
                                 ?.joinToString(".")
@@ -70,24 +70,24 @@ class UnstructuredLogging :
             }
         }
 
-        private fun calleeName(expression: KtCallExpression): String? =
-            (expression.calleeExpression as? KtNameReferenceExpression)
+        private fun KtCallExpression.calleeName(): String? =
+            (calleeExpression as? KtNameReferenceExpression)
                 ?.takeIf { name -> name.node.findChildByType(KtTokens.IDENTIFIER) !== null }
                 ?.getReferencedName()
 
-        private fun expressionParts(expression: KtExpression): List<String> =
-            when (expression) {
+        private fun KtExpression.expressionParts(): List<String> =
+            when (this) {
                 is KtNameReferenceExpression -> {
-                    listOf(expression.getReferencedName())
+                    listOf(getReferencedName())
                 }
 
                 is KtDotQualifiedExpression -> {
-                    expressionParts(expression.receiverExpression) +
-                        expression.selectorExpression?.let(::expressionParts).orEmpty()
+                    receiverExpression.expressionParts() +
+                        selectorExpression?.expressionParts().orEmpty()
                 }
 
                 is KtCallExpression -> {
-                    listOfNotNull(calleeName(expression))
+                    listOfNotNull(calleeName())
                 }
 
                 else -> {

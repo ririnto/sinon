@@ -233,6 +233,8 @@ time_intervals:
           - -2:-1
         times:
           - start_time: "22:00"
+            end_time: "24:00"
+          - start_time: "00:00"
             end_time: "04:00"
 
 ```
@@ -254,7 +256,9 @@ time_intervals:
 
 Combined complex example (business hours during specific months):
 
-This example models fiscal-year business hours in `America/Chicago`, with a July-through-June month range, Monday-through-Friday coverage, and an `08:00` to `17:00` window.
+This example models fiscal-year business hours in `America/Chicago`, with a July-through-June fiscal year split across two range entries, Monday-through-Friday coverage, and an `08:00` to `17:00` window.
+
+A year-wrapping range needs two `months` entries because the start month MUST NOT exceed the end month.
 
 ```yaml
 time_intervals:
@@ -262,7 +266,8 @@ time_intervals:
     time_intervals:
       - location: America/Chicago
         months:
-          - july:june
+          - july:december
+          - january:june
         weekdays:
           - monday:friday
         times:

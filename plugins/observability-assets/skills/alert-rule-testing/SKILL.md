@@ -148,7 +148,8 @@ The second becomes stale after its first three samples.
 Staleness semantics in tests mirror Prometheus production behavior:
 
 - `_` produces a missing sample at that timestamp (the series has no value).
-- `stale` marks the series as stale; subsequent evaluations treat it as if it does not exist until a new non-stale sample appears.
+- `stale` marks the series as stale.
+  Subsequent evaluations treat it as if it does not exist until a new non-stale sample appears.
 - A stale series is excluded from range vector calculations and does not appear in instant query results.
 
 Use when: testing scrape gaps, target downtime, or staleness-dependent expressions such as `absent()` or `up == 0`.

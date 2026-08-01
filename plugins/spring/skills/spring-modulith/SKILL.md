@@ -32,7 +32,7 @@ The ordinary Spring Modulith job is:
 | Cross-module reaction should happen after work completes | application event |
 | Boundary drift must fail fast in CI | `ApplicationModules.verify()` |
 | One module interaction needs isolated integration coverage | `@ApplicationModuleTest` |
-| Module arrangement needs runtime metadata or startup verification | `@Modulithic` |
+| Module arrangement needs runtime metadata or startup verification | `@Modulithic` with `spring-modulith-runtime` |
 | Events must survive listener failures | event publication registry |
 | Events must be reliably forwarded to external systems | event outbox |
 | Domain reacts to calendar boundaries | Moments |
@@ -69,6 +69,11 @@ It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
     </dependency>
     <dependency>
         <groupId>org.springframework.modulith</groupId>
+        <artifactId>spring-modulith-runtime</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.modulith</groupId>
         <artifactId>spring-modulith-starter-test</artifactId>
         <scope>test</scope>
     </dependency>
@@ -84,6 +89,7 @@ dependencyManagement {
 
 dependencies {
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    runtimeOnly 'org.springframework.modulith:spring-modulith-runtime'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
 }
 ```
@@ -103,13 +109,19 @@ dependencies {
 ### Application class shape
 
 ```java
-@Modulithic
+@org.springframework.modulith.Modulithic
 @SpringBootApplication
 class Application {
 }
 ```
 
-Use `@Modulithic` to enable runtime metadata, startup verification, and `ApplicationModuleInitializer` ordering.
+Use `@org.springframework.modulith.Modulithic` to define the application module arrangement.
+Runtime metadata, startup verification, and dependency-ordered `ApplicationModuleInitializer` execution additionally require `spring-modulith-runtime` and:
+
+```properties
+spring.modulith.runtime.verification-enabled=true
+```
+
 Set `systemName` for human-readable documentation names.
 
 ### Boundary verification shape
@@ -289,6 +301,16 @@ package example.orders;
 ```
 
 ### Documentation generation shape
+
+The `Documenter` test requires `spring-modulith-docs` in test scope:
+
+```xml
+<dependency>
+    <groupId>org.springframework.modulith</groupId>
+    <artifactId>spring-modulith-docs</artifactId>
+    <scope>test</scope>
+</dependency>
+```
 
 ```java
 class DocumentationTests {

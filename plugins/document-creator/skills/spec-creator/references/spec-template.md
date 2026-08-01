@@ -2,7 +2,7 @@
 
 Open this reference when authoring a system-scale `SPEC.md`.
 System-scale applies to services, daemons, protocol implementations, agent runtimes, multi-component pipelines, or anything requiring a state machine, reference algorithms, or a conformance matrix.
-For feature-scale specifications, use the mini template inside `SKILL.md`.
+For feature-scale specifications, use the feature-scale mini template.
 
 Copy the skeleton below, replace bracketed placeholders, and delete sections that do not apply.
 Keep sections in the numbered order shown; this order matches the Symphony specification structure and is optimized for reader understanding.

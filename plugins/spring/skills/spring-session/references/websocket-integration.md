@@ -32,8 +32,10 @@ Key changes from the standard `WebSocketMessageBrokerConfigurer`:
 What `AbstractSessionWebSocketMessageBrokerConfigurer` does behind the scenes:
 
 - Adds `WebSocketConnectHandlerDecoratorFactory` as a `WebSocketHandlerDecoratorFactory` so a custom `SessionConnectEvent` fires with the `WebSocketSession`.
-- Adds `SessionRepositoryMessageInterceptor` as a `HandshakeInterceptor` so the session is available in WebSocket properties and the last accessed time updates on handshake.
-- Adds `SessionRepositoryMessageInterceptor` as a `ChannelInterceptor` on inbound channels so every received message updates the session's last accessed time.
+- Adds `SessionRepositoryMessageInterceptor` as a `HandshakeInterceptor` so the session is available in WebSocket properties for access-time tracking.
+- The open handshake is not an inbound message.
+- Adds `SessionRepositoryMessageInterceptor` as a `ChannelInterceptor` on inbound channels so every client-to-server message updates the session's `lastAccessedTime`.
+- Does not update `lastAccessedTime` for server-to-client outbound messages.
 - Registers `WebSocketRegistryListener` to maintain a mapping of session ids to WebSocket connections so they can be closed when the session expires.
 
 Session timeout configuration for testing:
@@ -49,8 +51,8 @@ Wait at most two minutes before verifying WebSocket closure.
 Spring Session expires after the configured timeout, but the Redis notification is not guaranteed within that window.
 A background task runs every minute that forcibly cleans up expired sessions.
 
-Only messages sent from a user keep the session alive.
-Received messages do not renew session expiration.
+Client-to-server inbound messages keep the session alive by updating `lastAccessedTime`.
+Server-to-client outbound messages do not renew session expiration.
 
 ## Decision points
 

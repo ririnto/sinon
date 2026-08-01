@@ -46,10 +46,10 @@ Use it for polling, retryable idempotent operations, or any completion-loop patt
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-final class FixedRepeat {
+final class ThreePollRepeat {
     Flux<String> pollThreeTimes() {
         return fetchStatus()
-            .repeat(3);
+            .repeat(2);
     }
     private Mono<String> fetchStatus() {
         return Mono.just("PENDING");
@@ -100,7 +100,7 @@ final class RepeatedWithBackoff {
 | error signal | `retry*` | `onError` |
 | complete signal | `repeat*` | `onComplete` |
 
-Always combine `repeat*` with a termination guard (`take(n)`, `repeatUntil(...)`, `repeatWhen(...)`) to prevent unbounded loops.
+Always pair `repeat*` with a terminating condition: use `take(n)` or `repeatUntil(...)`, or configure `repeatWhen(...)` with a terminating companion, bound, or predicate.
 
 ## Guardrails
 

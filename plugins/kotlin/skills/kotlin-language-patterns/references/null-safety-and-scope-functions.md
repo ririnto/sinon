@@ -53,9 +53,6 @@ val request = HttpRequest().apply {
 ## Platform Types
 
 Types coming from Java without explicit nullability (`String!`) are platform types.
-The pinning pattern and code examples are in `SKILL.md` under "Null safety first".
-This section covers only additive material.
-
 Rule: never let platform types propagate inward.
 Pin the nullability at the interop boundary and never let a raw `T!` escape into application logic.
 

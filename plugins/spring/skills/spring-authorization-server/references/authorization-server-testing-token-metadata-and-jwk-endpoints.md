@@ -1,6 +1,6 @@
 # Testing token, metadata, and JWK endpoints
 
-Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is not enough and the blocker is token, metadata, or JWK endpoint verification.
+Open this reference when the minimal validation is not enough and the blocker is token, metadata, or JWK endpoint verification.
 
 ```java
 @Test

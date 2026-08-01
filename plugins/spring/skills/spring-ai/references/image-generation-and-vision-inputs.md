@@ -1,6 +1,6 @@
 # Vision input handling
 
-Open this reference when the common-path text workflow in [`SKILL.md`](../SKILL.md) is not enough and the blocker is single-image, vision-style user input.
+Open this reference when the common-path text workflow is not enough and the blocker is single-image, vision-style user input.
 
 ## Use this file for one blocker family
 

@@ -1,6 +1,6 @@
 # Spring GraphQL security context and errors
 
-Open this reference when the common path in `SKILL.md` is not enough and the task needs interceptor-based context propagation, authorization handling, or more explicit GraphQL error shaping.
+Open this reference when the common path is not enough and the task needs interceptor-based context propagation, authorization handling, or more explicit GraphQL error shaping.
 
 ## Security context propagation
 

@@ -1,6 +1,6 @@
 # Spring Boot auto-configuration diagnostics
 
-Open this reference when the ordinary starter-and-properties path in `SKILL.md` is not enough and the task is specifically about why Boot did or did not wire a bean.
+Open this reference when the ordinary starter-and-properties path is not enough and the task is specifically about why Boot did or did not wire a bean.
 
 Use this branch for condition-evaluation debugging, Boot wiring tests, and configuration diagnosis, not for ordinary feature work.
 

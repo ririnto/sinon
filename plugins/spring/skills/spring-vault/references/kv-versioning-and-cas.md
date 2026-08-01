@@ -27,7 +27,7 @@ operations.put("app/prod/database", Map.of("username", "app"), Versioned.Version
 
 | Situation | Use |
 | --- | --- |
-| One writer reads the latest value only | ordinary KV v2 access in `SKILL.md` |
+| One writer reads the latest value only | ordinary KV v2 access |
 | The application needs a specific historical version | versioned read |
 | Multiple writers must avoid silent overwrite | CAS write |
 

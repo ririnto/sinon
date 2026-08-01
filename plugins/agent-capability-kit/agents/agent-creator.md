@@ -81,7 +81,8 @@ tools:
   - Use explicit list only for bounded surfaces.
 - Plugin agents also support `disallowedTools`, `effort`, `maxTurns`, `skills`, `memory`, `background`, `isolation: worktree`, and `initialPrompt` when those fields change required runtime behavior.
 - `initialPrompt` applies only when the agent runs as the main session agent through `--agent` or the `agent` setting.
-- Plugin agents do not support `hooks`, `mcpServers`, or `permissionMode`; Claude Code ignores those fields on agents loaded from a plugin.
+- Plugin agents do not support `hooks`, `mcpServers`, or `permissionMode`.
+  Claude Code ignores those fields on agents loaded from a plugin.
 - `Examples` is not a supported frontmatter field; keep examples in the Markdown body.
 
 ### Write system prompt
@@ -105,14 +106,12 @@ Create the agent body (Markdown, under the frontmatter) as a self-sufficient sys
 - State output shape explicitly (JSON structure, Markdown format, etc.).
 - Include at least one concrete example template inline (not in references).
 - Do not reference external documentation.
-  - All necessary guidance belongs in the agent body.
 
 ### Respect Sinon Rules
 
 #### Plugin Manifest Rules
 
 - Do NOT create `.claude-plugin/plugin.json` or modify it.
-  - Agent files are separate from the manifest.
 - Agent files go in `agents/` directory at plugin root.
 - Ensure agent `name` field in frontmatter matches file basename.
 
@@ -147,9 +146,9 @@ When the user creates an agent for their own plugin:
 
 Deliver one complete agent `.md` file with:
 
-1. Frontmatter (YAML block) with name, description, color, and optional tools.
+1. Frontmatter (YAML block) with name, description, model, effort, optional color, and optional tools.
 2. Markdown body as system prompt (100-200 lines typical).
-3. Concrete workflow example inline (optional but recommended).
+3. Concrete workflow example inline (required).
 4. Clear output shape specification.
 5. Complete content ready to save to `agents/<identifier>.md` in the target plugin root.
 

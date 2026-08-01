@@ -19,7 +19,6 @@ Open this reference when Pulsar integration tests need Testcontainers or admin-b
 @SpringBootTest
 class ShipmentFlowTest {
     static CountDownLatch deliveries = new CountDownLatch(1);
-    static CountDownLatch deadLetterDeliveries = new CountDownLatch(1);
     static AtomicReference<ShipmentEvent> received = new AtomicReference<>();
 
     @Container
@@ -48,10 +47,6 @@ class ShipmentFlowTest {
             deliveries.countDown();
         }
 
-        @PulsarListener(topics = "shipments-dlt", subscriptionName = "warehouse-dlt-test", schemaType = SchemaType.JSON)
-        void handleDeadLetter(ShipmentEvent event) {
-            deadLetterDeliveries.countDown();
-        }
     }
 }
 ```
@@ -60,7 +55,7 @@ class ShipmentFlowTest {
 
 - Test the same topic, schema, subscription type, and retry or DLQ settings used in production.
 - Use admin-backed verification when the assertion depends on topic provisioning or partition count.
-- Keep one failure-path test that proves the listener reaches the intended redelivery or dead-letter behavior.
+- Add a failure-path test only when retry or DLQ recovery is configured, and assert the intended redelivery or dead-letter behavior.
 - Keep the broker image aligned with one of the supported Pulsar client lines.
   - Spring Boot 4.1 manages Spring Pulsar 2.0.6 with Pulsar client 4.2.2.
   - Pin a specific image version only when the test must prove compatibility with a chosen Pulsar line.
@@ -75,15 +70,5 @@ PulsarAdministration administration;
 void verifiesPartitionCount() throws Exception {
     int partitions = administration.createAdminClient().topics().getPartitionedTopicMetadata("persistent://public/default/shipments").partitions;
     assertThat(partitions).isEqualTo(3);
-}
-```
-
-## Failure-path shape
-
-```java
-@Test
-void verifiesDeadLetterRouting() throws Exception {
-    pulsarTemplate.send("shipments", new ShipmentEvent("poison"));
-    assertThat(deadLetterDeliveries.await(10, TimeUnit.SECONDS)).isTrue();
 }
 ```

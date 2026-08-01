@@ -22,7 +22,8 @@ Official references:
 
 ## Representative JUnit 5 patterns
 
-Prefer `assertThrowsExactly` when the exact exception type is part of the contract; it requires JUnit Jupiter 5.8 or later.
+Prefer `assertThrowsExactly` when the exact exception type is part of the contract.
+It requires JUnit Jupiter 5.8 or later.
 
 When the exception message is part of the contract, capture the returned exception and verify `getMessage()` with `assertEquals`:
 
@@ -149,41 +150,6 @@ Default approach:
 2. Stub only behavior that matters for the scenario.
 3. Verify observable collaboration after execution, not before.
 4. Avoid over-specifying call counts unless they are part of the behavior under test.
-
-Representative Mockito shape with `@ExtendWith`:
-
-```java
-import java.io.IOException;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-@ExtendWith(MockitoExtension.class)
-class ClientServiceTest {
-    @Mock
-    private RemoteClient client;
-
-    @InjectMocks
-    private ClientService service;
-
-    @Test
-    void retriesAfterTransientFailure() throws IOException {
-        when(client.call())
-                .thenThrow(new IOException("temporary"))
-                .thenReturn("ok");
-        assertEquals("ok", service.run());
-        verify(client, times(2)).call();
-    }
-}
-```
 
 Spy for partial mocking of real objects:
 

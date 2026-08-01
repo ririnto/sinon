@@ -2,6 +2,19 @@
 
 Open this reference when the task depends on Kubernetes-backed service discovery.
 
+## Starter shape
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-discovery</artifactId>
+</dependency>
+```
+
+Keep the starter versionless under the Spring Cloud BOM.
+
+## Discovery shape
+
 ```java
 @SpringBootApplication
 @EnableDiscoveryClient

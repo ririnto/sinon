@@ -7,6 +7,10 @@ description: Decide whether an Agent Skill is too broad, too narrow, or carrying
 
 Open this file when a skill feels too broad, `SKILL.md` keeps growing, or you are unsure whether one skill should be split into several coherent units.
 
+Keep ordinary workflow, required decisions, and output contracts in the entrypoint.
+Move additive depth to support files.
+This file holds only the broad/narrow scope signals and the scope-repair prompts.
+
 ## Core rule
 
 One skill should cover one job that can be described in one sentence and executed from one ordinary-path `SKILL.md`.
@@ -41,23 +45,6 @@ Write or refactor one deployment-oriented skill for offline use.
 ```
 
 Move additive depth out of `SKILL.md`, but keep the common path in the entrypoint.
-
-## What to move out
-
-- Extended examples.
-- Compatibility branches.
-- Large templates.
-- Troubleshooting after the ordinary path fails.
-- Optional host-specific variants.
-
-## What must stay in
-
-- Scope and intended outcome.
-- Main procedure.
-- Required decisions.
-- Always-on guardrails.
-- Output contract.
-- Any source or version baseline required for ordinary use.
 
 ## Merge siblings when the job is still one unit
 

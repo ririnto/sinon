@@ -1,6 +1,6 @@
 # Spring Web Flow flow execution testing
 
-Open this reference when state transitions themselves are the behavior under test and the ordinary happy-path assertions in `SKILL.md` are not enough.
+Open this reference when state transitions themselves are the behavior under test and ordinary happy-path assertions are not enough.
 
 Use flow execution tests when backtracking, invalid input, exception paths, or subflow exits are part of the contract.
 

@@ -1,6 +1,6 @@
 # Spring Cloud Stream binders
 
-Open this reference when the ordinary config-gateway-client path in `SKILL.md` is not enough and the task is specifically about Spring Cloud Stream binder wiring.
+Open this reference when the ordinary config-gateway-client path is not enough and the task is specifically about Spring Cloud Stream binder wiring.
 
 ```xml
 <dependency>

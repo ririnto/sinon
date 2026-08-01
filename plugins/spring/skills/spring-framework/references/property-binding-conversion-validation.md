@@ -1,6 +1,6 @@
 # Spring Framework Data Binding, Conversion, and Validation
 
-Open this reference when the common path in `SKILL.md` is not enough and the task needs advanced data-binding rules, formatter registration, custom converters, or validation groups.
+Open this reference when the common path is not enough and the task needs advanced data-binding rules, formatter registration, custom converters, or validation groups.
 
 ## `DataBinder` with allowed fields
 
@@ -108,11 +108,12 @@ interface CreateOrder {
 }
 ```
 
-Apply to a method parameter:
+Apply to the method or class that declares the validation group, while retaining `@Valid` and the bean constraints on the validated object:
 
 ```java
 @Transactional
-void placeOrder(@Validated(CreateOrder.class) Order order) {
+@Validated(CreateOrder.class)
+void placeOrder(@Valid Order order) {
 }
 ```
 

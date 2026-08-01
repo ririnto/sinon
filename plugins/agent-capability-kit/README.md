@@ -44,7 +44,6 @@ Four runtime agents with explicit model and effort routing.
 All installable agents are leaves.
 The substantive agents use Claude Sonnet with medium effort.
 The inventory scanner uses Claude Haiku with low effort as its declared route.
-The user-facing top-level session owns orchestration and is not packaged as an agent.
 
 ## Runtime Model
 
@@ -65,17 +64,6 @@ Explicitly excluded:
 - routing skills that only choose between sibling skills
 - any skill that depends on another skill in this package
 - SDK-specific workflows that replace portable Markdown, JSON, or YAML assets
-
-## Defaults used in this kit
-
-`https://agentskills.io/llms.txt` is the default basis for how this kit structures `SKILL.md`, `references/`, and `assets/`.
-
-1. Each skill owns one domain and does not refer the reader to another skill in this package.
-2. Always-needed guidance belongs in `SKILL.md`.
-3. `references/` contains additive depth only and each file states when to open it.
-4. Skill directory names and `name` values use lowercase letters, numbers, and single hyphens only, with a maximum length of 64 characters.
-5. `description` explains both what the skill does and when to use it.
-6. Each skill keeps a flat layout under `SKILL.md`, `references/`, and `assets/`.
 
 ## Installation
 

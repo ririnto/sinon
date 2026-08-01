@@ -201,7 +201,9 @@ class HolidayEndpoint {
 `@PayloadRoot` is the primary routing annotation.
 Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
 
-Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages and can be configured for SOAP 1.2. Use SAAJ when SAAJ-specific behavior is required.
+Spring WS supports both SOAP 1.1 and SOAP 1.2.
+`SaajSoapMessageFactory` is the default for SOAP 1.1.
+Configure `AxiomSoapMessageFactory` explicitly when the Axiom alternative is required.
 See [references/client-variants.md](references/client-variants.md) for message factory details.
 
 ### SOAP server configuration
@@ -209,20 +211,7 @@ See [references/client-variants.md](references/client-variants.md) for message f
 ```java
 @Configuration
 @EnableWs
-class WsConfig implements WsConfigurer {
-    @Override
-    public void addInterceptors(List<EndpointInterceptor> interceptors) {
-        interceptors.add(securityInterceptor());
-    }
-
-    @Bean
-    Wss4jSecurityInterceptor securityInterceptor() {
-        Wss4jSecurityInterceptor interceptor = new Wss4jSecurityInterceptor();
-        interceptor.setValidationActions("UsernameToken");
-        interceptor.setValidationCallbackHandler(callbackHandler());
-        return interceptor;
-    }
-
+class WsConfig {
     @Bean
     ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext context) {
         MessageDispatcherServlet servlet = new MessageDispatcherServlet();
@@ -243,7 +232,8 @@ class WsConfig implements WsConfigurer {
 }
 ```
 
-Use `implements WsConfigurer` and override `addInterceptors` for interceptor registration.
+Use `WsConfigurer` only when optional endpoint interceptors such as WS-Security are required.
+See [references/ws-security.md](references/ws-security.md) for that branch's dependency and test expectations.
 Do not extend `WsConfigurerAdapter` -- it was removed in Spring WS 5.0.
 
 ### `WebServiceTemplate` client call
@@ -328,8 +318,9 @@ class HolidayClientTests {
 
 ### Default message factory
 
-Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages.
-Configure the selected message factory for SOAP 1.2; use SAAJ when SAAJ features are required.
+`SaajSoapMessageFactory` is the default for SOAP 1.1.
+Configure `AxiomSoapMessageFactory` explicitly when the Axiom alternative is required, including for SOAP 1.2.
+Use SAAJ-specific settings when needed.
 See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
 
 ### Endpoint URI shape

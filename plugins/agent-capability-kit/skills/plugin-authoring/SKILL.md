@@ -7,7 +7,8 @@ description: >-
 
 # Plugin Authoring
 
-Build a minimal Claude Code plugin whose manifest, filesystem, and documentation describe the same published runtime.
+Build a minimal Claude Code plugin.
+Its manifest, files, and README describe the same runtime.
 
 ## Owned Surface
 

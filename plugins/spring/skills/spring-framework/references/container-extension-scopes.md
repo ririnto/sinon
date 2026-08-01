@@ -1,6 +1,6 @@
 # Spring Framework container extension points and scopes
 
-Open this reference when the ordinary bean-wiring path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is container extension points, custom scope registration, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
+Open this reference when the ordinary bean-wiring path is not enough and the blocker is container extension points, custom scope registration, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
 
 ## BeanFactoryPostProcessor blocker
 
@@ -38,7 +38,7 @@ Keep post-processors explicit because they can change behavior for many beans at
 Use a custom scope only when singleton and prototype are both wrong and the lifecycle boundary is application-specific.
 
 ```java
-beanFactory.registerScope("tenant", new SimpleThreadScope());
+beanFactory.registerScope("thread", new SimpleThreadScope());
 ```
 
 Register the scope first, then use it deliberately on the beans that truly depend on that lifecycle.

@@ -1,6 +1,6 @@
 # Spring Framework plain JDBC wiring
 
-Open this reference when the common path in `SKILL.md` is not enough and the blocker is transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
+Open this reference when the common path is not enough and the blocker is transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 
 ## Transaction-scoped connections
 

@@ -19,7 +19,8 @@ class RegistrationValidator {
 ```
 
 Name validation methods after the state whose model is being committed.
-Put reusable domain invariants on the model or service boundary; keep flow validators focused on step-specific completeness.
+Put reusable domain invariants on the model or service boundary.
+Keep flow validators focused on step-specific completeness.
 
 ## Local action recovery
 
@@ -35,7 +36,7 @@ Handle a known application exception at the action that can raise it instead of 
 </action-state>
 ```
 
-Reserve the global recovery state in `SKILL.md` for unexpected failures that cannot be represented as a normal validation or business event.
+Reserve the global recovery state for unexpected failures that cannot be represented as a normal validation or business event.
 
 ## Gotchas
 

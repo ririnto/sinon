@@ -1,6 +1,6 @@
 # Spring Cloud Gateway routing
 
-Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [`SKILL.md`](../SKILL.md) is not enough and the task is specifically about gateway routing or choosing a gateway boundary instead of direct downstream calls.
+Open this reference when the ordinary ConfigData-discovery-loadbalancer path is not enough and the task is specifically about gateway routing or choosing a gateway boundary instead of direct downstream calls.
 
 ## Artifact rename (2025.0.x+)
 

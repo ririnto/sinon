@@ -3,7 +3,6 @@
 > [!IMPORTANT]
 >
 > Prefer `WebMvcLinkBuilder.linkTo()` / `WebFluxLinkBuilder.linkTo()` with method references.
-> Use this reference only when maintaining existing code that already depends on `@ExposesResourceFor` or `EntityLinks`.
 
 Open this reference when links should derive from aggregate types, the application needs `EntityLinks`, or explicit `@EnableHypermediaSupport` activation is required instead of relying on the ordinary Boot starter path.
 
@@ -57,17 +56,11 @@ Use entity links when links should be derived from the exposed aggregate type in
 
 | Situation | Use |
 | --- | --- |
-| One representation owns its own local link rules | assembler in `SKILL.md` |
+| One representation owns its own local link rules | assembler |
 | Many places need the same aggregate-derived canonical link | `EntityLinks` |
 | Hypermedia configuration is not already activated by Boot | `@EnableHypermediaSupport` |
 
 ## Decision points
-
-| Situation | Use |
-| --- | --- |
-| Boot starter already gives the required HAL setup | ordinary path in `SKILL.md` |
-| Explicit hypermedia activation is required | `@EnableHypermediaSupport` |
-| Links should derive from an exposed aggregate type | `EntityLinks` |
 
 ## Validation rule
 

@@ -19,7 +19,7 @@ description: >-
 - Reverse-direction points (backlinks / "called by" lists) MUST NOT be used.
 - Inbound relationships MUST be derived from frontmatter `call` via scripts and diagram generation.
 
-Open this guide only when you need detailed link-editing or inbound-query procedures beyond the ordinary path in `../SKILL.md`.
+Use this guide for detailed link-editing and inbound-query procedures.
 
 ## Table of Contents
 

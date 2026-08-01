@@ -1,6 +1,6 @@
 # Spring WebClient and reactive depth
 
-Open this reference when the common path in `SKILL.md` is not enough and the blocker is client filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
+Open this reference when the common client path is not enough and the blocker is client filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
 
 ## ExchangeFilterFunction for cross-cutting concerns
 

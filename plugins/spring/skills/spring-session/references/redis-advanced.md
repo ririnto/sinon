@@ -40,9 +40,10 @@ spring:
 
 ### RedisIndexedSessionRepository with Spring Security
 
-Use the `SpringSessionBackedSessionRegistry` common-path configuration in `SKILL.md` so clustered concurrent-session control reads the same indexed repository as Spring Session.
+Use the `SpringSessionBackedSessionRegistry` configuration from the ordinary Spring Security session setup so clustered concurrent-session control reads the same indexed repository as Spring Session.
 
-`SpringSessionBackedSessionRegistry` does not implement `getAllPrincipals()` because Spring Session cannot enumerate every principal; Spring Security's concurrent-session control does not require that method.
+`SpringSessionBackedSessionRegistry` does not implement `getAllPrincipals()` because Spring Session cannot enumerate every principal.
+Spring Security's concurrent-session control does not require that method.
 
 ## JSON serialization
 
@@ -93,13 +94,19 @@ SessionEventHttpSessionListenerAdapter sessionEventAdapter() {
 
 ## Customizing the session mapper
 
-`RedisSessionMapper` controls how session attributes map to Redis hash fields.
-Provide a custom bean to change the attribute-to-field strategy:
+`RedisSessionMapper` controls how Redis hash fields map to sessions.
+Attach the required `BiFunction` to the repository through `SessionRepositoryCustomizer`:
 
 ```java
 @Bean
-RedisSessionMapper redisSessionMapper() {
-    return new RedisSessionMapper(customDeltaUpdateStrategy());
+BiFunction<String, Map<String, Object>, MapSession> redisSessionMapper() {
+    return new RedisSessionMapper();
+}
+
+@Bean
+SessionRepositoryCustomizer<RedisSessionRepository> redisSessionRepositoryCustomizer(
+        BiFunction<String, Map<String, Object>, MapSession> mapper) {
+    return repository -> repository.setRedisSessionMapper(mapper);
 }
 ```
 
@@ -110,8 +117,11 @@ Provide a custom bean to change expiration behavior:
 
 ```java
 @Bean
-RedisSessionExpirationStore redisSessionExpirationStore(RedisIndexedSessionRepository repository) {
-    return new SortedSetRedisSessionExpirationStore(repository);
+RedisSessionExpirationStore redisSessionExpirationStore(
+        RedisOperations<String, Object> redisOperations) {
+    return new SortedSetRedisSessionExpirationStore(
+        redisOperations,
+        RedisIndexedSessionRepository.DEFAULT_NAMESPACE);
 }
 ```
 

@@ -82,8 +82,7 @@ final class RetryBudget {
 }
 ```
 
-Use when: a record still fits if the invariant is construction-time only.
-Stay with a regular class once the type owns evolving state or identity-bearing behavior.
+Use when: the type owns evolving state or identity-bearing behavior that makes a record unsuitable.
 
 Sealed hierarchy: the compiler can enforce the closed set of permitted implementations.
 

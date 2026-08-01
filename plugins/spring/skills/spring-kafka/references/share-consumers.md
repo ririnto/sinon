@@ -1,6 +1,6 @@
 # Spring Kafka share consumers (KIP-932)
 
-Open this reference when building share consumer listeners that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
+Open this reference when building share consumer listeners that need manual acknowledgment, error recovery, concurrency configuration, or container integration.
 
 ## Share consumer boundary
 

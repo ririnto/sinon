@@ -1,6 +1,6 @@
 # Delayed exchange and broker events
 
-Open this reference when the common-path topology in [`SKILL.md`](../SKILL.md) is not enough and the blocker is delayed delivery semantics or broker-side operational events.
+Open this reference when the common-path topology is not enough and the blocker is delayed delivery semantics or broker-side operational events.
 
 ## Delayed exchange blocker
 
@@ -32,7 +32,7 @@ void handleDeclarationException(DeclarationExceptionEvent event) {
 
 | Situation | First choice |
 | --- | --- |
-| delivery just needs retry or dead-letter after failure | stay on retry/DLX path in `SKILL.md` |
+| delivery just needs retry or dead-letter after failure | stay on retry/DLX path |
 | routing itself must be delayed before first delivery | delayed exchange |
 | operators must observe broker declaration or availability signals | broker events |
 

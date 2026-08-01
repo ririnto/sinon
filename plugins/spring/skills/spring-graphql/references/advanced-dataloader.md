@@ -1,15 +1,21 @@
 # Spring GraphQL advanced DataLoader patterns
 
-Open this reference when the blocker is DataLoader registration, `DataLoaderOptions`, shared batching lifecycle, or batch-loader context beyond the ordinary `@BatchMapping` path in [`SKILL.md`](../SKILL.md).
+Open this reference when the blocker is DataLoader registration, `DataLoaderOptions`, shared batching lifecycle, or batch-loader context beyond the ordinary `@BatchMapping` path.
 
 ## DataLoader registration blocker
 
 Use explicit registration when batching must be shared across several resolvers or keyed differently from one schema field.
+Inject Spring GraphQL's framework-managed `BatchLoaderRegistry` instead of creating a disconnected registry.
 
 ```java
-BatchLoaderRegistry registry = new DefaultBatchLoaderRegistry();
-registry.forName("reviews")
-    .registerMappedBatchLoader((ids, env) -> Mono.just(reviewService.findByBookIds(ids)));
+@Configuration
+class GraphQlDataLoaderConfig {
+    GraphQlDataLoaderConfig(BatchLoaderRegistry registry) {
+        registry.forName("reviews")
+            .withOptions(options -> options.setCachingEnabled(false))
+            .registerMappedBatchLoader((ids, env) -> Mono.just(reviewService.findByBookIds(ids)));
+    }
+}
 ```
 
 Keep loader names and key types explicit so resolver wiring stays predictable.
@@ -18,9 +24,7 @@ Keep loader names and key types explicit so resolver wiring stays predictable.
 
 Use `DataLoaderOptions` when batching, caching, or dispatch behavior must differ from the defaults.
 
-```java
-DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
-```
+Apply options to the registration that consumes them.
 
 Change options only when the loader lifecycle or cache behavior is part of the real problem.
 

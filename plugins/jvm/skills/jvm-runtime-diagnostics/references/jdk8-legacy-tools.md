@@ -35,8 +35,8 @@ Typical shapes:
 ```sh
 jmap -histo <pid>
 jmap -histo:live <pid>
-jmap -dump:live,format=b,file=heap.hprof <pid>
-jmap -dump:format=b,file=heap.hprof <pid>
+jmap -dump:live,format=b,file=/path/to/private-diagnostics/heap.hprof <pid>
+jmap -dump:format=b,file=/path/to/private-diagnostics/heap.hprof <pid>
 jmap -clstats <pid>
 jmap -finalizerinfo <pid>
 ```
@@ -46,7 +46,7 @@ Legacy/older-doc shapes:
 ```sh
 jmap -heap <pid>
 jmap -F -histo <pid>
-jmap -F -dump:format=b,file=heap.hprof <pid>
+jmap -F -dump:format=b,file=/path/to/private-diagnostics/heap.hprof <pid>
 ```
 
 - current JDK docs mark `jstack` and `jmap` as experimental or unsupported
@@ -107,7 +107,7 @@ java -XX:+UnlockCommercialFeatures -XX:+FlightRecorder ...
 JDK 8 uses legacy GC logging flags, not unified logging:
 
 ```sh
-java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCTenuringDistribution -Xloggc:gc.log ...
+java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCTenuringDistribution -Xloggc:/path/to/private-diagnostics/gc.log ...
 ```
 
 - `-XX:+PrintGCDateStamps` adds ISO datestamps to each line

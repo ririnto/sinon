@@ -7,7 +7,7 @@ description: >-
 
 ## Purpose
 
-Open this guide only when `../SKILL.md` is already clear and you need section-by-section `RESEARCH.md` authoring depth.
+Use this guide for section-by-section `RESEARCH.md` authoring depth.
 RESEARCH documents MUST capture investigation findings about an external framework, library, or topic, not implementation commitments.
 Authors MAY start by copying `../assets/templates/RESEARCH.md` into the canonical research path.
 
@@ -132,7 +132,8 @@ RESEARCH documents SHOULD include:
 
 Before using research in SPEC decisions:
 
-- Frontmatter MUST be valid against `assets/schemas/research-frontmatter.schema.json`.
+- Frontmatter MUST match `assets/schemas/research-frontmatter.schema.json` as an author reference.
+- The validator hand-checks these fields at runtime.
 - TODO markers MUST NOT remain.
 - Unresolved placeholders MUST NOT remain.
 - `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run when `bun` is available locally, and failures MUST be resolved.

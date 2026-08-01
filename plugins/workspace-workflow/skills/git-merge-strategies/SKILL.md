@@ -230,19 +230,13 @@ Example (conflict markers):
 
 ```text
 function greet(name) {
-[current branch: HEAD]
+<<<<<<< HEAD
   return "Hello, " + name;
-[incoming branch separator]
+=======
   return "Hi, " + name + "!";
-[incoming branch: feature-branch]
+>>>>>>> feature-branch
 }
 ```
-
-Markers:
-
-- `[current branch: HEAD]` marks the start of the base branch content.
-- `[incoming branch separator]` marks the separator.
-- `[incoming branch: {{branch}}]` marks the end of feature branch content.
 
 ### Step 3: Resolve conflict manually
 
@@ -337,14 +331,10 @@ File: `src/old_module.js`
 Status: Base branch deleted the file.
 Feature branch modified it.
 
-Conflict marker:
+Git reports a path-level modify/delete conflict and keeps the modified file in the working tree:
 
 ```text
-[current branch: HEAD]
-(deleted file)
-[incoming branch separator]
-(modified content)
-[incoming branch: feature-branch]
+CONFLICT (modify/delete): src/old_module.js deleted in HEAD and modified in feature-branch. Version feature-branch of src/old_module.js left in tree.
 ```
 
 Resolution: Decide:

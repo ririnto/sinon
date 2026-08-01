@@ -1,6 +1,6 @@
 # Image generation
 
-Open this reference when the ordinary vision path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is producing a generated image artifact instead of text.
+Open this reference when the ordinary vision path is not enough and the blocker is producing a generated image artifact instead of text.
 
 ## Image generation blocker
 

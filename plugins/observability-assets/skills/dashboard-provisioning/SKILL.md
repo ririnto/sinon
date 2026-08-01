@@ -384,7 +384,8 @@ UI export workflows for moving a dashboard into provisioning:
 | API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response and save that raw object as the source file |
 
 UI export methods already produce raw dashboard JSON.
-API responses add extra envelope fields such as `dashboard` and `meta`; import requests may add `folderUid`, `overwrite`, or `message`.
+API responses add extra envelope fields such as `dashboard` and `meta`.
+Import requests may add `folderUid`, `overwrite`, or `message`.
 Extract the dashboard object for the ordinary raw-file path, or deliberately store Grafana's classic wrapper shape and document that choice.
 The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.
 
@@ -426,7 +427,8 @@ Return:
 
 ## Invariants
 
-- A provider MUST specify exactly one of `folder` or `options.foldersFromFilesStructure`, not both.
+- `folder` and `options.foldersFromFilesStructure` are mutually exclusive.
+- Omitting both uses the default folder.
 - A provider using `foldersFromFilesStructure: true` MUST NOT set `folder` or `folderUid` at the provider level.
 - Provider-path source files MUST use one documented shape: raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource.
 - Dashboard `id` SHOULD be removed or set to `null` before a source file is reused across Grafana instances.

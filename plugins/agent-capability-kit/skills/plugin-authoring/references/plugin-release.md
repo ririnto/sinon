@@ -21,7 +21,7 @@ ${CLAUDE_PLUGIN_ROOT}/hooks/check.ts        # shipped with the plugin (read-only
 ${CLAUDE_PLUGIN_DATA}/cache/index.json      # generated at runtime (writable)
 ```
 
-The invariant is stated in `SKILL.md` under Data boundary guidance.
+The package's data boundary guidance defines this invariant.
 Use this split as a concrete reference when reviewing whether a starter file or script respects the boundary.
 
 ## Release review

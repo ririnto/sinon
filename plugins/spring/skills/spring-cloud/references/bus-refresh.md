@@ -1,6 +1,6 @@
 # Spring Cloud Bus refresh
 
-Open this reference when the ordinary config-gateway-client path in `SKILL.md` is not enough and the platform actually needs distributed refresh or event propagation.
+Open this reference when the ordinary config-gateway-client path is not enough and the platform actually needs distributed refresh or event propagation.
 
 ## Transport dependency shapes
 

@@ -1,6 +1,6 @@
 # Spring Cloud Data Flow schedules
 
-Open this reference when the ordinary register-create-launch path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is recurring SCDF-managed task execution.
+Open this reference when the ordinary register-create-deploy/launch path is not enough and the blocker is recurring SCDF-managed task execution.
 
 Keep schedule definitions explicit and reviewable because they become production automation.
 
@@ -10,8 +10,19 @@ Schedules apply to tasks, not to long-running streams.
 
 Use a schedule only when the workload is naturally launchable as a task and must run repeatedly under SCDF control.
 
-SCDF does not provide out-of-the-box task scheduling for the local platform.
-Use schedules only on a platform that exposes scheduler support.
+SCDF schedules only task definitions, and the selected task platform must expose scheduler support.
+Local does not support task scheduling.
+Kubernetes and Cloud Foundry support it when their corresponding scheduler and deployer are configured.
+
+## Supported task/platform combinations
+
+Confirm the selected platform with `task platform-list` before scheduling:
+
+| Task platform | Scheduling |
+| --- | --- |
+| Local | Not supported |
+| Kubernetes | Supported when the Kubernetes scheduler and deployer are configured |
+| Cloud Foundry | Supported when the Cloud Foundry scheduler and deployer are configured |
 
 ## Schedule lifecycle
 

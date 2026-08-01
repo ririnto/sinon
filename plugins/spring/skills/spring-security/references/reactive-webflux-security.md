@@ -1,6 +1,6 @@
 # Spring Security reactive WebFlux security
 
-Open this reference when the task is for a reactive WebFlux application that uses `SecurityWebFilterChain` and the servlet path in `SKILL.md` no longer applies.
+Open this reference when the task is for a reactive WebFlux application that uses `SecurityWebFilterChain` and the servlet security configuration no longer applies.
 
 Use reactive security only when the application is actually reactive end to end.
 

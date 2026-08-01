@@ -185,8 +185,10 @@ When a receiver does not specify a field locally, the global default is used.
 The inheritance works as follows at config-load time:
 
 - For scalar values (`string`, `bool`, `duration`): the global value is copied into the receiver's resolved config.
-- For pointer values (`*bool`, `*tls_config`): nil means "inherit from global"; non-nil means "override".
-- For struct values (`http_config`): the global config is used as baseline; receiver-level `http_config` replaces it entirely (not merged).
+- For pointer values (`*bool`, `*tls_config`): nil means "inherit from global".
+  Non-nil means "override".
+- For struct values (`http_config`): the global config is used as baseline.
+  Receiver-level `http_config` replaces it entirely (not merged).
 - For secret values: the resolved secret string from global is used.
 
 This means setting `http_config` in a receiver completely replaces the global `http_config` for that receiver -- it is not a partial merge.

@@ -94,7 +94,8 @@ java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.ja
 ```
 
 Use this shared path when the whole application should run bounded-elastic tasks on virtual threads.
-Keep the normal `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` bridge shape; only the scheduler backing changes.
+Keep the normal `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` bridge shape.
+Only the scheduler backing changes.
 
 ## Lifecycle and disposal
 

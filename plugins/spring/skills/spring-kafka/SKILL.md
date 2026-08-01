@@ -45,7 +45,8 @@ Keep the default path small: one producer, one listener, one serialization strat
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
 The current stable Spring Kafka line is `4.1.x`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x.
-Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`.
+Spring Boot `4.0.x` manages Spring Kafka `4.0.x`.
+Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`.
 Applications on Boot 3.4.x or earlier must stay on the `3.3.x` line and should be treated as a separate compatibility branch.
 
 ```xml
@@ -315,7 +316,7 @@ billing
 - Open [references/transactions.md](references/transactions.md) when the application needs atomic consume-produce workflows.
 - Open [references/exactly-once-semantics.md](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
 - Open [references/batch-listeners.md](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
-- Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
+- Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or container integration.
 - Open [references/deserialization-failures.md](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
 - Open [references/listener-replay.md](references/listener-replay.md) when the consumer must seek or replay records deliberately.
 - Open [references/tombstones.md](references/tombstones.md) when the topic uses compacted-record delete semantics.

@@ -4,7 +4,7 @@ Harness contains agent-readable composition guidance and packaged target resourc
 
 ## Bundle Boundary
 
-`skills/harness-install/SKILL.md` owns composition and configuration guidance.
+The harness package owns composition and configuration guidance.
 `skills/harness-install/assets/` contains flat common, tool, and environment bundles.
 
 - `common/` contains only resources copied to every target.

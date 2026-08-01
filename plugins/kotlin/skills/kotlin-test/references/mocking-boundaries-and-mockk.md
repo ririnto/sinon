@@ -103,11 +103,13 @@ class ArgumentMatchingTest {
 ```
 
 ```kotlin
+import io.mockk.Runs
 import io.mockk.any
-import kotlin.test.Test
-import io.mockk.mockk
 import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.Test
 
 class CacheInvalidationTest {
     private val cache: Cache = mockk()
@@ -150,9 +152,11 @@ class SpyRepositoryTest {
 ## Object and static mocking
 
 ```kotlin
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import io.mockk.every
 import io.mockk.verify
 import kotlin.test.Test
 

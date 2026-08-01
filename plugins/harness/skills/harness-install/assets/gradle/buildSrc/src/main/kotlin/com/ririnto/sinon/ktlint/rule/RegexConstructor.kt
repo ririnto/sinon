@@ -57,14 +57,16 @@ class RegexConstructor :
             val canonicalNode =
                 qualifiedParent
                     ?.takeIf { qualified -> qualified.selectorExpression == expression }
-                    ?.takeIf(::isKotlinTextReceiver)
+                    ?.takeIf { qualified -> qualified.isKotlinTextReceiver() }
                     ?.node
             val replacementNode =
                 when {
                     canonicalNode !== null -> canonicalNode
+
                     qualifiedParent?.selectorExpression != expression &&
                         file !== null &&
-                        hasNoConflictingRegexName(file) -> expression.node
+                        file.hasNoConflictingRegexName() -> expression.node
+
                     else -> null
                 }
             if (callee !== null &&
@@ -84,7 +86,8 @@ class RegexConstructor :
                 ).ifAutocorrectAllowed {
                     (pattern as? KtStringTemplateExpression)?.let { template ->
                         replacementNode.replaceWith(
-                            KtPsiFactory.contextual(expression, false)
+                            KtPsiFactory
+                                .contextual(expression, false)
                                 .createExpression("${template.text}.toRegex()")
                                 .node
                         )
@@ -93,18 +96,18 @@ class RegexConstructor :
             }
         }
 
-        private fun hasNoConflictingRegexName(file: KtFile): Boolean =
-            file.importDirectives.none { directive ->
+        private fun KtFile.hasNoConflictingRegexName(): Boolean =
+            importDirectives.none { directive ->
                 val importedPath = directive.importPath?.pathStr
                 (directive.aliasName ?: importedPath?.substringAfterLast('.')) == REGEX_NAME &&
                     importedPath != KOTLIN_REGEX
             } &&
                 PsiTreeUtil
-                    .findChildrenOfType(file, KtNamedDeclaration::class.java)
+                    .findChildrenOfType(this, KtNamedDeclaration::class.java)
                     .none { declaration -> declaration.name == REGEX_NAME }
 
-        private fun isKotlinTextReceiver(qualified: KtDotQualifiedExpression): Boolean =
-            when (val receiver = qualified.receiverExpression) {
+        private fun KtDotQualifiedExpression.isKotlinTextReceiver(): Boolean =
+            when (val receiver = receiverExpression) {
                 is KtDotQualifiedExpression -> {
                     val packageRoot = receiver.receiverExpression
                     val packageSegment = receiver.selectorExpression
@@ -113,7 +116,10 @@ class RegexConstructor :
                         packageRoot.getReferencedName() == KOTLIN_PACKAGE &&
                         packageSegment.getReferencedName() == TEXT_SEGMENT
                 }
-                else -> false
+
+                else -> {
+                    false
+                }
             }
     }
 }

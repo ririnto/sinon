@@ -33,22 +33,22 @@ class TerminalBranchWhen :
     ) : KtTreeVisitorVoid() {
         override fun visitIfExpression(expression: KtIfExpression) {
             super.visitIfExpression(expression)
-            if (!isElseIfBranch(expression, expression.parent) && hasFinalElseBranch(expression.`else`)) {
+            if (!expression.isElseIfBranch(expression.parent) && expression.`else`.hasFinalElseBranch()) {
                 emit(expression.textOffset, "if/else chain; use when instead", false)
             }
         }
 
-        private tailrec fun isElseIfBranch(expression: KtIfExpression, ancestor: PsiElement?): Boolean =
+        private tailrec fun KtIfExpression.isElseIfBranch(ancestor: PsiElement?): Boolean =
             when (ancestor) {
                 null, is KtFile -> false
-                is KtIfExpression -> ancestor.`else` == expression
-                else -> isElseIfBranch(expression, ancestor.parent)
+                is KtIfExpression -> ancestor.`else` == this
+                else -> this.isElseIfBranch(ancestor.parent)
             }
 
-        private tailrec fun hasFinalElseBranch(expression: KtExpression?): Boolean =
-            when (expression) {
+        private tailrec fun KtExpression?.hasFinalElseBranch(): Boolean =
+            when (this) {
                 null -> false
-                is KtIfExpression -> hasFinalElseBranch(expression.`else`)
+                is KtIfExpression -> this.`else`.hasFinalElseBranch()
                 else -> true
             }
     }

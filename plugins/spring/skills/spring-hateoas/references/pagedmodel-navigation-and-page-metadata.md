@@ -12,6 +12,7 @@ PagedModel<OrderModel> all(Pageable pageable) {
 }
 ```
 
+Add `spring-data-commons` when using `PagedResourcesAssembler<Order>`.
 Inject `PagedResourcesAssembler<Order>` into the controller path that already returns a `Page<Order>`.
 Use the paged assembler when the API should expose both item representations and top-level page navigation.
 Keep item link generation inside the ordinary assembler so paged navigation and item links stay aligned.

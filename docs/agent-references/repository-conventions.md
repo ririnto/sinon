@@ -1,7 +1,6 @@
 # Repository Conventions
 
 Open this reference when editing source, scripts, documentation, or configuration.
-It supplies durable rules that do not belong in the concise project instructions.
 
 ## Shell
 

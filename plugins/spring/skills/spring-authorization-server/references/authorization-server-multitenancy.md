@@ -16,7 +16,8 @@ AuthorizationServerSettings settings = AuthorizationServerSettings.builder()
 ```
 
 Do not call `.issuer(...)` in this mode.
-An explicit issuer forces single-tenant behavior.
+An explicit global issuer forces single-tenant behavior.
+Route registered clients, authorization state, consent, and signing keys through issuer-scoped components instead.
 
 ## Issuer-based component delegation
 

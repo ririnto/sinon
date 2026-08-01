@@ -45,12 +45,13 @@ If the flag is not present, Shenandoah is not available in that build.
   - It was deprecated in JDK 9 (JEP 291) and removed in JDK 14 (JEP 363), so any CMS advice applies only to JDK 8-era runtimes.
 - Parallel is the default for server-class JVMs.
   - Serial for client-class.
-- No unified logging: use `-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`.
+- No unified logging: use `-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:/path/to/private-diagnostics/gc.log`.
 - JFR requires Oracle JDK commercial features license verification.
 
 ### JDK 11
 
-- G1 is the default collector (since JDK 9; JDK 11 is the first LTS on this line).
+- G1 is the default collector (since JDK 9).
+  JDK 11 is the first LTS on this line.
 - ZGC exists but requires `-XX:+UnlockExperimentalVMOptions -XX:+UseZGC`.
 - Unified logging (`-Xlog`) replaces all legacy GC log flags.
 - JFR is available without commercial-feature unlock on OpenJDK 11.

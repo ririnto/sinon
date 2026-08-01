@@ -1,6 +1,6 @@
 # Spring Batch scaling, partitioning, and remote execution
 
-Open this reference when the common-path scaling ladder in [`SKILL.md`](../SKILL.md) is not enough and the task requires a concrete scaling model such as multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
+Open this reference when the common-path scaling ladder is not enough and the task requires a concrete scaling model such as multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
 
 ## Multithreaded step blocker
 
@@ -15,7 +15,8 @@ new StepBuilder("importStep", repository)
     .build();
 ```
 
-Use this only when the reader, processor, and writer are thread-safe or partition-isolated.
+Use this only when the reader, processor, and writer are thread-safe for concurrent access, or each worker has its own partition-isolated instance and state.
+Shared mutable readers, writers, execution contexts, and non-thread-safe delegates can corrupt data or restart state.
 
 ## Parallel flow blocker
 

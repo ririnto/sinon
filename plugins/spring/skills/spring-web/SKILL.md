@@ -25,7 +25,8 @@ This line requires JDK 17+, Jakarta EE 11 for servlet applications, and Netty 4.
 5. Register one shared HTTP client with its base URL, headers, codecs, and error policy.
 6. Add a narrow `MockMvc` or `WebTestClient` test that proves status, headers, and body shape.
 
-Do not combine MVC and WebFlux in one application merely to use `WebClient`; a servlet application can use `WebClient` as an outbound client without adopting a reactive server stack.
+Do not combine MVC and WebFlux in one application merely to use `WebClient`.
+A servlet application can use `WebClient` as an outbound client without adopting a reactive server stack.
 
 ## Dependency baseline
 
@@ -341,7 +342,8 @@ Return:
 - Centralize client base URLs, headers, codecs, and error policy.
 - Set client timeouts at the actual transport boundary.
 - Treat API versions, media types, error bodies, and HTTP headers as compatibility surfaces.
-- Use `HttpHeaders` methods directly; it no longer extends `MultiValueMap` in Spring Framework 7.
+- Use `HttpHeaders` methods directly.
+  It no longer extends `MultiValueMap` in Spring Framework 7.
 - Verify proxy and forwarded-header behavior before generating external links or redirects.
 
 ## References

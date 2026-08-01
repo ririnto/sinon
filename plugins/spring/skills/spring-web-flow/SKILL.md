@@ -108,7 +108,8 @@ Review view:
 </form>
 ```
 
-Do not post a flow form to the bare start URL after execution begins; doing so starts a new conversation instead of resuming the existing one.
+Do not post a flow form to the bare start URL after execution begins.
+Doing so starts a new conversation instead of resuming the existing one.
 
 ## Registry, executor, and MVC mapping
 

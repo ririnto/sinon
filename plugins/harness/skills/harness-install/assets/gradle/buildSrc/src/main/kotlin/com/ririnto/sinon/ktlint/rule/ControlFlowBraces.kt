@@ -49,11 +49,11 @@ class ControlFlowBraces :
                     if (emit(
                             elseBranch.textOffset,
                             "wrap the `else` branch in `{ ... }`",
-                            !containsMultilineRawString(elseBranch)
+                            !elseBranch.containsMultilineRawString()
                         ) ==
                         AutocorrectDecision.ALLOW_AUTOCORRECT
                     ) {
-                        elseBranch.node.replaceWith(blockNode(elseBranch))
+                        elseBranch.node.replaceWith(elseBranch.blockNode())
                     }
                 }
             expression.then
@@ -62,11 +62,11 @@ class ControlFlowBraces :
                     if (emit(
                             thenBranch.textOffset,
                             "wrap the `if` branch in `{ ... }`",
-                            !containsMultilineRawString(thenBranch)
+                            !thenBranch.containsMultilineRawString()
                         ) ==
                         AutocorrectDecision.ALLOW_AUTOCORRECT
                     ) {
-                        thenBranch.node.replaceWith(blockNode(thenBranch))
+                        thenBranch.node.replaceWith(thenBranch.blockNode())
                     }
                 }
         }
@@ -74,15 +74,20 @@ class ControlFlowBraces :
         override fun visitForExpression(expression: KtForExpression) {
             super.visitForExpression(expression)
             when (val body = expression.body) {
-                null -> emit(expression.textOffset, "wrap the `for` body in `{ ... }`", false)
-                else -> if (body !is KtBlockExpression && emit(
-                        body.textOffset,
-                        "wrap the `for` body in `{ ... }`",
-                        !containsMultilineRawString(body)
-                    ) ==
-                    AutocorrectDecision.ALLOW_AUTOCORRECT
-                ) {
-                    body.node.replaceWith(blockNode(body))
+                null -> {
+                    emit(expression.textOffset, "wrap the `for` body in `{ ... }`", false)
+                }
+
+                else -> {
+                    if (body !is KtBlockExpression && emit(
+                            body.textOffset,
+                            "wrap the `for` body in `{ ... }`",
+                            !body.containsMultilineRawString()
+                        ) ==
+                        AutocorrectDecision.ALLOW_AUTOCORRECT
+                    ) {
+                        body.node.replaceWith(body.blockNode())
+                    }
                 }
             }
         }
@@ -90,15 +95,20 @@ class ControlFlowBraces :
         override fun visitWhileExpression(expression: KtWhileExpression) {
             super.visitWhileExpression(expression)
             when (val body = expression.body) {
-                null -> emit(expression.textOffset, "wrap the `while` body in `{ ... }`", false)
-                else -> if (body !is KtBlockExpression && emit(
-                        body.textOffset,
-                        "wrap the `while` body in `{ ... }`",
-                        !containsMultilineRawString(body)
-                    ) ==
-                    AutocorrectDecision.ALLOW_AUTOCORRECT
-                ) {
-                    body.node.replaceWith(blockNode(body))
+                null -> {
+                    emit(expression.textOffset, "wrap the `while` body in `{ ... }`", false)
+                }
+
+                else -> {
+                    if (body !is KtBlockExpression && emit(
+                            body.textOffset,
+                            "wrap the `while` body in `{ ... }`",
+                            !body.containsMultilineRawString()
+                        ) ==
+                        AutocorrectDecision.ALLOW_AUTOCORRECT
+                    ) {
+                        body.node.replaceWith(body.blockNode())
+                    }
                 }
             }
         }
@@ -106,45 +116,51 @@ class ControlFlowBraces :
         override fun visitDoWhileExpression(expression: KtDoWhileExpression) {
             super.visitDoWhileExpression(expression)
             when (val body = expression.body) {
-                null -> emit(expression.textOffset, "wrap the `do-while` body in `{ ... }`", false)
-                else -> if (body !is KtBlockExpression && emit(
-                        body.textOffset,
-                        "wrap the `do-while` body in `{ ... }`",
-                        !containsMultilineRawString(body)
-                    ) ==
-                    AutocorrectDecision.ALLOW_AUTOCORRECT
-                ) {
-                    body.node.replaceWith(blockNode(body))
+                null -> {
+                    emit(expression.textOffset, "wrap the `do-while` body in `{ ... }`", false)
+                }
+
+                else -> {
+                    if (body !is KtBlockExpression && emit(
+                            body.textOffset,
+                            "wrap the `do-while` body in `{ ... }`",
+                            !body.containsMultilineRawString()
+                        ) ==
+                        AutocorrectDecision.ALLOW_AUTOCORRECT
+                    ) {
+                        body.node.replaceWith(body.blockNode())
+                    }
                 }
             }
         }
 
-        private fun blockNode(expression: KtExpression): ASTNode {
+        private fun KtExpression.blockNode(): ASTNode {
             val lineIndentation =
-                expression.containingFile.text
+                containingFile.text
                     .substring(
-                        expression.containingFile.text.lastIndexOf('\n', expression.textOffset - 1) + 1,
-                        expression.textOffset
-                    )
-                    .takeWhile { character -> character == ' ' || character == '\t' }
-            return KtPsiFactory.contextual(expression, false).let { factory ->
-                factory.createBlock(
-                    expression.text.lines().joinToString("\n") { line -> "$lineIndentation    $line" }
-                ).node.also { node ->
-                    node.addChild(
-                        factory.createWhiteSpace(lineIndentation).node,
-                        checkNotNull(node.findChildByType(KtTokens.RBRACE))
-                    )
-                }
+                        containingFile.text.lastIndexOf('\n', textOffset - 1) + 1,
+                        textOffset
+                    ).takeWhile { character -> character == ' ' || character == '\t' }
+            return KtPsiFactory.contextual(this, false).let { factory ->
+                factory
+                    .createBlock(
+                        text.lines().joinToString("\n") { line -> "$lineIndentation    $line" }
+                    ).node
+                    .also { node ->
+                        node.addChild(
+                            factory.createWhiteSpace(lineIndentation).node,
+                            checkNotNull(node.findChildByType(KtTokens.RBRACE))
+                        )
+                    }
             }
         }
 
-        private fun containsMultilineRawString(expression: KtExpression): Boolean =
-            (listOfNotNull(expression as? KtStringTemplateExpression) +
-                expression.collectDescendantsOfType<KtStringTemplateExpression>())
-                .any { template ->
-                    template.node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
-                        template.text.contains('\n')
-                }
+        private fun KtExpression.containsMultilineRawString(): Boolean =
+            with(LiteralTypeInference) {
+                (
+                    listOfNotNull(this@containsMultilineRawString as? KtStringTemplateExpression) +
+                        collectDescendantsOfType<KtStringTemplateExpression>()
+                ).any { template -> template.isMultilineRawString() }
+            }
     }
 }

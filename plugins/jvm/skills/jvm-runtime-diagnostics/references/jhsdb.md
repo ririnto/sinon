@@ -31,7 +31,7 @@ jhsdb <subcommand> --pid <pid>
 Core file:
 
 ```sh
-jhsdb <subcommand> --exe "$JAVA_HOME/bin/java" --core /path/to/core
+jhsdb <subcommand> --exe "$JAVA_HOME/bin/java" --core /path/to/private-diagnostics/core
 ```
 
 Remote SA debug server:
@@ -54,7 +54,7 @@ Typical shapes:
 jhsdb jstack --pid <pid>
 jhsdb jstack --pid <pid> --locks
 jhsdb jstack --pid <pid> --mixed
-jhsdb jstack --exe "$JAVA_HOME/bin/java" --core /path/to/core
+jhsdb jstack --exe "$JAVA_HOME/bin/java" --core /path/to/private-diagnostics/core
 ```
 
 Use:
@@ -72,7 +72,7 @@ jhsdb jmap --pid <pid> --heap
 jhsdb jmap --pid <pid> --histo
 jhsdb jmap --pid <pid> --clstats
 jhsdb jmap --pid <pid> --finalizerinfo
-jhsdb jmap --pid <pid> --binaryheap --dumpfile heap.hprof
+jhsdb jmap --pid <pid> --binaryheap --dumpfile /path/to/private-diagnostics/heap.hprof
 ```
 
 Use:

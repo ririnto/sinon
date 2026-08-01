@@ -1,6 +1,6 @@
 # Containerized development environment
 
-Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is Docker Compose, Testcontainers, or a repeatable local environment spanning model runtime and retrieval infrastructure.
+Open this reference when the ordinary path is not enough and the blocker is Docker Compose, Testcontainers, or a repeatable local environment spanning model runtime and retrieval infrastructure.
 
 ## Containerized dev-services blocker
 

@@ -17,7 +17,9 @@ java -Djarmode=tools -jar app.jar list-layers
 java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 ```
 
-## Dockerfile with layered jars
+## Canonical Dockerfile with layered jars
+
+Use this as the single layered-jar Dockerfile example for the skill.
 
 ```dockerfile
 FROM eclipse-temurin:21-jdk AS builder

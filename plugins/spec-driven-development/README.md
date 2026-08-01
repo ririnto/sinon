@@ -19,8 +19,9 @@ Provide reusable spec-driven development guidance that remains portable across C
 
 - `spec-driven-development`: spec-first research, authoring, review, implementation, and completeness decisions.
 
-The agent is a sequential substantive leaf using Claude Sonnet with medium effort.
-It does not create nested subagents; work that needs parallel decomposition returns to the user-facing top-level session.
+The agent is a sequential leaf.
+It does not spawn subagents.
+Parallel work returns to the top-level session.
 
 ## How the Skill Branches
 
@@ -71,14 +72,13 @@ plugins/spec-driven-development/
 - `skills/spec-driven-development/scripts/sdd.ts` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
 - The entrypoint delegates runtime work to modular source under `skills/spec-driven-development/scripts/sdd/`, including command modules.
 - `assets/templates/` contains scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `CHANGELOG.md`, and openapi.yaml.
-- `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
+- `assets/schemas/` contains JSON Schema author references.
+- The runtime validator enforces only the documented, selected subset of fields and does not parse these files.
 
 ## Design Principles
 
-- Prefer one coherent user job per skill.
 - Keep the common path self-sufficient inside `SKILL.md` and move only additive depth into `references/`.
 - Derive spec content from requirements, not from implementation.
-- Keep manifests aligned with the actual shipped runtime surface.
 
 ## Offline-Capable Runtime
 

@@ -1,6 +1,6 @@
 # Spring Cloud Data Flow runtime operations
 
-Open this reference when the ordinary register-create-deploy path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is deeper runtime inspection, update, undeploy, destroy, or post-change operational verification.
+Open this reference when the ordinary register-create-deploy/launch path is not enough and the blocker is deeper runtime inspection, update, undeploy, destroy, or post-change operational verification.
 
 ## Post-change verification flow
 

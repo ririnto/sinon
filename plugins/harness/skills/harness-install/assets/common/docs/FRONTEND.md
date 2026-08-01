@@ -33,7 +33,7 @@ Replace placeholders with real entry points, package names, and source paths.
 ## Surface Legibility
 
 - Mark stable interactive and test-indexable UI elements with `data-testid` attributes.
-  - Headless drivers such as Chrome DevTools MCP, Playwright, and agent frameworks can then locate state without fragile selectors.
+  - Headless drivers and agent frameworks can then locate state without fragile selectors.
 - Use canonical state markers on UI containers so agents detect state transitions deterministically.
   - Examples: `data-state="loading"`, `data-state="error"`, and `data-state="empty"`.
 - Mirror structured log lines for surface-level events into the dev console and central log stream.

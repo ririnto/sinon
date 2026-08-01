@@ -5,7 +5,7 @@ description: >-
 
 # Advanced Java Syntax Recipes
 
-Open this reference when `SKILL.md` handles the common case but you still need one of these deeper jobs:
+Open this reference when you need one of these version-sensitive syntax jobs:
 
 - confirm exact syntax availability on a Java LTS boundary
 - compare upgrade or downgrade implications across Java 8, 11, 17, 21, and 25

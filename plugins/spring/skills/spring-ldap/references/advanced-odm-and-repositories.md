@@ -1,6 +1,6 @@
 # Spring LDAP advanced ODM and repositories
 
-Open this reference when the schema needs multi-valued ODM fields, raw `@Query`, or repository behavior beyond the simple derived-query path in `SKILL.md`.
+Open this reference when the schema needs multi-valued ODM fields, raw `@Query`, or repository behavior beyond the simple derived-query path.
 
 ## Advanced ODM mapping
 

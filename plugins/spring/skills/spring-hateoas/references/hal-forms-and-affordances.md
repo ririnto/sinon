@@ -22,18 +22,19 @@ Move to HAL-FORMS only when the client must also consume form templates and acti
 ## Building affordances
 
 ```java
-import org.springframework.hateoas.Affordances;
+import org.springframework.hateoas.mediatype.Affordances;
+import org.springframework.http.HttpMethod;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
 Link update = Affordances.of(self)
-    .afford(methodOn(OrderController.class).update(order.id(), null))
+    .afford(HttpMethod.PUT)
     .toLink();
 model.add(update);
 ```
 
 `Affordances.of(link)` is the entry point.
-Call `.afford(...)` with a controller method reference to derive HTTP method, request body type, and URI from the method signature.
+Call `.afford(HttpMethod.PUT)` to build an affordance for the existing link.
 Call `.toLink()` to produce a `Link` carrying the affordance metadata.
 
 ## HAL-FORMS response expectation

@@ -1,6 +1,6 @@
 # Spring REST Docs HTTP headers
 
-Open this reference when the contract depends on request or response headers beyond the simple inline shape in `SKILL.md`.
+Use this reference when the contract depends on request or response headers beyond simple inline documentation.
 
 ## Decision points
 

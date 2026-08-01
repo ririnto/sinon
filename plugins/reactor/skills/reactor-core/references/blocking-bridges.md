@@ -7,7 +7,7 @@ description: >-
 
 Open this when a single `Mono.fromCallable(...)` + `subscribeOn(boundedElastic())` bridge is no longer sufficient and the pipeline requires multi-boundary blocking integration, future-based handoff patterns, or terminal bridge semantics.
 
-For one ordinary blocking boundary, keep the default `Mono.fromCallable(...)` plus `subscribeOn(Schedulers.boundedElastic())` pattern from `SKILL.md`.
+For one ordinary blocking boundary, use `Mono.fromCallable(...)` plus `subscribeOn(Schedulers.boundedElastic())`.
 This reference covers deeper bridge variants only.
 
 ## Multiple blocking boundaries

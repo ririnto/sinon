@@ -2,7 +2,7 @@
 
 Open this reference when the task involves token accounting, metrics, tracing, or production debugging for a Spring AI application.
 
-Keep the ordinary path in [`SKILL.md`](../SKILL.md).
+Keep the ordinary path.
 Use this file only when telemetry or incident diagnosis becomes the blocker.
 
 Make AI behavior observable before scaling concurrency or changing prompt and retrieval strategy in production.
@@ -19,7 +19,8 @@ Open this reference when the task involves:
 
 ## Minimum observability rule
 
-Log model name, latency, token usage, retrieval count, and tool-call identity without leaking secrets or personal user content.
+Log model name, latency, token usage, retrieval count, and tool-call identity without logging raw prompts, queries, secrets, or personal user content.
+Use redaction, hashing, or an explicit allowlist of non-sensitive metadata when a payload-derived diagnostic is necessary.
 
 ## Usage handling blocker
 
@@ -87,9 +88,9 @@ class InventoryTools {
 
     @Tool(description = "Find the available inventory quantity for a SKU")
     int quantity(String sku) {
-        log.atInfo().log(() -> "tool=quantity sku=" + sku);
+        log.atInfo().log(() -> "tool=quantity skuLength=" + sku.length());
         int qty = inventory.availableQuantity(sku);
-        log.atInfo().log(() -> "tool=quantity sku=" + sku + " result=" + qty);
+        log.atInfo().log(() -> "tool=quantity skuLength=" + sku.length() + " result=" + qty);
         return qty;
     }
 }
@@ -132,18 +133,19 @@ When Micrometer tracing is active, `ChatClient` calls are automatically traced i
 - Latency bucketed in milliseconds
 - Token counts from `Usage`
 - Retrieval count and similarity threshold used
-- Tool name, arguments, and return value for non-sensitive tools
+- Tool name plus redacted, hashed, or explicitly allowlisted argument metadata and non-sensitive result metadata
 - Error type and message without stack traces that expose internal paths
 
 ## Debugging unexpected retrieval drift
 
 When the model retrieves documents that appear unrelated to the query:
 
-1. Log the `SearchRequest` query text and `topK` value.
-2. Log the returned document IDs and similarity scores when available.
-3. Verify the embedding model used at query time matches the one used at ingestion time.
-4. Check whether the similarity threshold has been relaxed without a corresponding retrieval test.
-5. Confirm the vector index is current and new documents have been ingested.
+1. Log a one-way query fingerprint and the `topK` value.
+2. Never log the raw query text.
+3. Log the returned document IDs and similarity scores when available.
+4. Verify the embedding model used at query time matches the one used at ingestion time.
+5. Check whether the similarity threshold has been relaxed without a corresponding retrieval test.
+6. Confirm the vector index is current and new documents have been ingested.
 
 ## Decision points
 
@@ -152,7 +154,7 @@ When the model retrieves documents that appear unrelated to the query:
 | Latency spike without error | check `ai.call.duration` histogram and provider-side rate limits |
 | Token cost is unclear | inspect `Usage` and record prompt, completion, and total tokens |
 | Retrieval drift | verify embedding model alignment and similarity threshold |
-| Tool never called | log the model prompt and confirm tool descriptions are present |
+| Tool never called | log model name, request metadata, tool-definition count, and call outcome without logging the prompt |
 | Trace correlation broken | verify Micrometer tracer is wired to the HTTP client |
 
 ## Operational checks

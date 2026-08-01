@@ -1,6 +1,6 @@
 # Spring CredHub auth variants
 
-Open this reference when the ordinary mutual-TLS password-read path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
+Open this reference when the ordinary mutual-TLS password-read path is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
 
 The current stable Spring CredHub line is 4.0.x, and the official reference documents both mutual TLS and OAuth2 client-auth paths.
 
@@ -18,12 +18,14 @@ The CredHub starter exposes no `spring.credhub.tls.*` namespace.
 It binds only `spring.credhub.url`, `spring.credhub.oauth2.registration-id`, and the `ClientOptions` fields (`connection-timeout`, `read-timeout`, `ca-cert-files`).
 
 For CA trust (validating the CredHub server certificate), use the `ca-cert-files` property.
-Add `org.apache.httpcomponents.client5:httpclient5` when the application relies on this property; the starter does not include it, and the JDK request-factory fallback does not install custom CA trust.
+Add `org.apache.httpcomponents.client5:httpclient5` when the application relies on this property.
+The starter does not include it, and the JDK request-factory fallback does not install custom CA trust.
 
-The ordinary URL and CA-file property shape stays in `SKILL.md`; this reference covers the request-factory and authentication variants around it.
+The ordinary URL and CA-file property shape provides the baseline for the request-factory and authentication variants covered here.
 
 For client-certificate mutual TLS, the starter has no property and `ClientOptions` carries no key material.
-Supply a custom `CredHubOperations` bean; the auto-configured bean backs off with `@ConditionalOnMissingBean`.
+Supply a custom `CredHubOperations` bean.
+The auto-configured bean backs off with `@ConditionalOnMissingBean`.
 Build it from a `CredHubTemplate(CredHubProperties, ClientHttpRequestFactory)` whose request factory carries the client key material.
 
 ```java
@@ -43,11 +45,12 @@ class CredHubMutualTlsConfiguration {
 }
 ```
 
-Obtain the mutual-TLS `ClientHttpRequestFactory` from the surrounding platform's SSL configuration; the CredHub library provides no client-certificate helper.
+Obtain the mutual-TLS `ClientHttpRequestFactory` from the surrounding platform's SSL configuration.
+The CredHub library provides no client-certificate helper.
 
 ## OAuth2 configuration shape
 
-Use the `spring.credhub.oauth2.registration-id` shape from `SKILL.md` and keep the OAuth2 client registration outside the skill-specific service layer so token acquisition stays a platform concern.
+Use the `spring.credhub.oauth2.registration-id` property shape and keep the OAuth2 client registration outside the skill-specific service layer so token acquisition stays a platform concern.
 
 ## OAuth2 manager caveat
 
@@ -78,6 +81,5 @@ Use this path only when the default request-bound OAuth2 client flow cannot supp
 
 ## Related blockers
 
-- Return to [`SKILL.md`](../SKILL.md) when the blocker is the ordinary service-boundary read or write path.
 - Open [`credhub-reactive-access.md`](credhub-reactive-access.md) when the actual blocker is a fully reactive client boundary.
 - Open [`credhub-advanced-credential-patterns.md`](credhub-advanced-credential-patterns.md) when the actual blocker is interpolation, certificate generation, or non-default credential families.

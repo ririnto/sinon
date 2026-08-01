@@ -7,7 +7,8 @@ description: >-
 
 Open this reference when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
 
-For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly tracing or thread debugging, keep the work in [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md); this reference covers execution-tracing tools only.
+For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly tracing or thread debugging, keep the work in the `reactor-core` skill.
+This reference covers execution-tracing tools only.
 
 ## Start with the narrowest advanced tool
 
@@ -28,8 +29,10 @@ For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly t
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 final class OperatorDebugExample {
-    Flux<Integer> values() {
+    static {
         Hooks.onOperatorDebug();
+    }
+    Flux<Integer> values() {
         return Flux.range(1, 3)
             .map(value -> value * 2)
             .checkpoint("after-map");
@@ -94,6 +97,6 @@ Requires `io.projectreactor:reactor-tools` as a dependency.
 
 ## When this reference is the wrong tool
 
-- If you need signal-level inspection (what values flow through which operator), use [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md) before applying execution-tracing tools.
+- If you need signal-level inspection (what values flow through which operator), use the `reactor-core` skill before applying execution-tracing tools.
 - If the chain is correct but `ThreadLocal`-backed data disappears, open [ThreadLocal Context Bridging](threadlocal-context-bridging.md).
 - If the main need is virtual time or scheduler replacement inside tests, keep the work in test determinism rather than runtime execution tracing.

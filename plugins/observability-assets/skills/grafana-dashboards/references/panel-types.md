@@ -6,7 +6,6 @@ description: >-
 # Complete Panel Type Reference
 
 Use this reference when you need the complete JSON structure for any Grafana panel type, including options fields unique to each type.
-The common panel types (timeseries, stat, gauge, barchart, table, heatmap, statetimeline, logs, piechart, histogram) are summarized in [`../SKILL.md`](../SKILL.md).
 This file covers ALL 23+ panel types with their complete option schemas.
 
 ## Panel Type Index
@@ -545,7 +544,8 @@ Commonly used for financial data but applicable to any min/max/current/previous 
 ```
 
 Data requirements: queries must return open, high, low, close fields per time period.
-This is not a standard Prometheus output shape; typically requires transformations or a datasource that natively produces OHLC data.
+This is not a standard Prometheus output shape.
+It typically requires transformations or a datasource that natively produces OHLC data.
 
 ## Trend (`trend`)
 

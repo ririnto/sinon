@@ -1,6 +1,6 @@
 # Spring Cloud Contract testing
 
-Open this reference when the ordinary config-gateway-client path in `SKILL.md` is not enough and the task is specifically about consumer-producer verification or generated stubs.
+Open this reference when the ordinary config-gateway-client path is not enough and the task is specifically about consumer-producer verification or generated stubs.
 
 This is a testing and compatibility surface, not ordinary remote-call wiring.
 
@@ -36,7 +36,10 @@ response:
     status: CREATED
 ```
 
-## Maven plugin shape
+## Provider verifier plugin
+
+Use the Spring Cloud Contract Maven plugin to generate provider verification tests.
+It is a build plugin, not a generic application starter.
 
 ```xml
 <plugin>
@@ -58,6 +61,17 @@ response:
 
 ## Stub Runner shape
 
+Add Stub Runner as test support for consumers that need executable stubs.
+Provider verification belongs in the build plugin rather than an application dependency.
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
 ```java
 @AutoConfigureStubRunner(ids = "com.example:orders-service:+:stubs:8081", stubsMode = StubRunnerProperties.StubsMode.LOCAL)
 class ConsumerTests {
@@ -68,6 +82,6 @@ class ConsumerTests {
 
 | Situation | Use |
 | --- | --- |
-| Provider verifies HTTP or messaging contract | generated provider tests |
-| Consumer wants executable stubs | Stub Runner |
+| Provider verifies HTTP or messaging contract | verifier plugin and generated provider tests |
+| Consumer wants executable stubs | Stub Runner test dependency and support |
 | Reactive provider endpoint | WebTestClient mode |

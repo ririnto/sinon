@@ -112,7 +112,8 @@ Add it only when the application loads Vault-backed property sources at startup,
 
 ## First safe configuration
 
-The `spring.cloud.vault.*` examples in this section require Spring Cloud Vault (`spring-cloud-starter-vault-config`); `spring-vault-core` alone does not bind these properties.
+The `spring.cloud.vault.*` examples in this section require Spring Cloud Vault (`spring-cloud-starter-vault-config`).
+`spring-vault-core` alone does not bind these properties.
 
 ### Token-authenticated local setup
 
@@ -318,7 +319,7 @@ Register a `VaultClientCustomizer` bean to customize the instance.
 @Configuration
 class MyConfiguration {
     @Bean
-    ManagedSecret databaseCredentials(DataSource dataSource) {
+    ManagedSecret databaseCredentials(HikariDataSource dataSource) {
         return ManagedSecret.rotating("mysql/creds/my-role", secrets -> secrets.as(UsernamePassword::from)
                 .applyTo((username, password) -> {
                     dataSource.setUsername(username);
@@ -350,7 +351,8 @@ Spring CredHub 4.0.x provides the client library.
 ```
 
 The starter does not bring Apache HttpClient 5 transitively.
-Keep it in the dependency baseline when `ca-cert-files` must configure custom trust; the JDK request-factory fallback does not install that trust material.
+Keep it in the dependency baseline when `ca-cert-files` must configure custom trust.
+The JDK request-factory fallback does not install that trust material.
 
 ### CredHub first safe configuration
 
@@ -378,7 +380,8 @@ spring:
       registration-id: credhub-client
 ```
 
-Keep OAuth2 client registration outside the skill-specific scope; service token acquisition stays a platform concern.
+Keep OAuth2 client registration outside the skill-specific scope.
+Service token acquisition stays a platform concern.
 Prefer mutual TLS first, OAuth2 only when certificates are not available.
 Keep one auth mode active per application profile.
 
@@ -511,7 +514,8 @@ void passwordReturnsValueFromCredHub() {
 - Never log credential values, generated passwords, private keys, or certificate payloads.
 - Keep CredHub path conventions stable across environments.
 - Validate client certificate renewal or OAuth2 token renewal before production rollout.
-- Keep CredHub HTTP wire logging disabled; tokens and credential payloads can leak.
+- Keep CredHub HTTP wire logging disabled.
+  Tokens and credential payloads can leak.
 - Bound network timeouts and surface CredHub availability failures through application health signals.
 
 ## Output contract
@@ -585,7 +589,8 @@ CredHub credential unreadable: /app/prod/db-password
 - Bound Vault client timeouts and surface Vault availability through health or startup failure signals.
 - Bound CredHub client timeouts and surface CredHub availability through application health signals.
 - Use the narrowest policy needed for the application's read, write, or transit operations.
-- Keep CredHub HTTP wire logging disabled; tokens and credential payloads can leak.
+- Keep CredHub HTTP wire logging disabled.
+  Tokens and credential payloads can leak.
 
 ## References
 

@@ -32,7 +32,7 @@ The ordinary Spring HATEOAS job is:
 | Plain HAL item and collection responses | one controller returns `EntityModel` or `CollectionModel` | stay in `SKILL.md` |
 | Page navigation and page metadata | clients depend on `prev`/`next`/`first`/`last` or strict page metadata semantics | open [references/pagedmodel-navigation-and-page-metadata.md](references/pagedmodel-navigation-and-page-metadata.md) |
 | HAL-FORMS or affordances | clients need action metadata or `_templates` | open [references/hal-forms-and-affordances.md](references/hal-forms-and-affordances.md) |
-| Aggregate-type link derivation | explicit hypermedia activation or `EntityLinks` is the blocker | open [references/entity-links-and-hypermedia-support.md](references/entity-links-and-hypermedia-support.md) |
+| Aggregate-type links or explicit hypermedia activation | `EntityLinks`, `@ExposesResourceFor`, or `@EnableHypermediaSupport` is the blocker | open [references/entity-links-and-hypermedia-support.md](references/entity-links-and-hypermedia-support.md) |
 | Cross-cutting link enrichment | one shared rule must enrich many models after assembly | open [references/representation-processors.md](references/representation-processors.md) |
 | Reverse-proxy link correctness | generated host, scheme, or base path is wrong | open [references/forwarded-headers-and-proxy-configuration.md](references/forwarded-headers-and-proxy-configuration.md) |
 | Problem Details error payloads | the error path needs `application/problem+json` | open [references/problem-details-error-representations.md](references/problem-details-error-representations.md) |
@@ -71,6 +71,7 @@ Open the entity-links reference only when the application needs explicit `@Enabl
 | HAL item, collection, and paged responses | `spring-boot-starter-hateoas` |
 | HAL-FORMS and affordances | `spring-boot-starter-hateoas` |
 | EntityLinks and explicit hypermedia activation | `spring-boot-starter-hateoas` |
+| `PagedResourcesAssembler` | `spring-data-commons` |
 
 ## First safe configuration
 
@@ -136,10 +137,10 @@ Link link = Link.of("/orders/{id}", IanaLinkRelations.SELF).expand(order.id());
 ### Templated links
 
 ```java
-Link templated = Link.of("/orders{?page,size}", "search").withTemplated();
+Link templated = Link.of("/orders{?page,size}", "search");
 ```
 
-Use `Link.of(...)` with `withTemplated()` when the client should fill in query parameters rather than receiving a fixed href.
+`Link.of(...)` recognizes the URI template, so clients can fill in the query parameters.
 
 ### Link relations
 
@@ -182,8 +183,17 @@ class OrderModel extends RepresentationModel<OrderModel> {
         this.id = id;
         this.status = status;
     }
+
+    public long getId() {
+        return id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
 }
 
+@Component
 class OrderModelAssembler implements RepresentationModelAssembler<Order, OrderModel> {
     @Override
     public OrderModel toModel(Order order) {
@@ -237,11 +247,12 @@ PagedModel<OrderModel> model = pagedResourcesAssembler.toModel(page, assembler);
 
 ```java
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-import org.springframework.hateoas.Affordances;
+import org.springframework.hateoas.mediatype.Affordances;
+import org.springframework.http.HttpMethod;
 
 Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
 Link update = Affordances.of(self)
-    .afford(methodOn(OrderController.class).update(order.id(), null))
+    .afford(HttpMethod.PUT)
     .toLink();
 ```
 
@@ -265,19 +276,27 @@ Use `HalModelBuilder` when the representation needs HAL `_embedded` entries with
 ### WebFlux links
 
 ```java
+import reactor.core.publisher.Mono;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.reactive.WebFluxLinkBuilder;
 
-Link self = WebFluxLinkBuilder.linkTo(methodOn(OrderController.class).one(order.id()))
-    .withSelfRel();
+Mono<Link> self = WebFluxLinkBuilder
+    .linkTo(WebFluxLinkBuilder.methodOn(OrderController.class).one(order.id()))
+    .withSelfRel()
+    .toMono();
 ```
 
-Use `WebFluxLinkBuilder` in reactive applications instead of `WebMvcLinkBuilder`.
+Use `WebFluxLinkBuilder.methodOn(...)` and keep the result as `Mono<Link>` in reactive applications.
 
 ### Hypermedia test shape
 
 ```java
 @WebMvcTest(OrderController.class)
+@Import(OrderModelAssembler.class)
 class OrderRepresentationTests {
+    @MockitoBean
+    OrderService service;
+
     @Autowired
     MockMvc mvc;
 

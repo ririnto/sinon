@@ -1,6 +1,6 @@
 # Planning and stepwise execution
 
-Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is that the task is too large for one safe pass.
+Open this reference when the ordinary path is not enough and the blocker is that the task is too large for one safe pass.
 
 ## Planning blocker
 

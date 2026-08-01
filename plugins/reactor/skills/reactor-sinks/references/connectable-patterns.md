@@ -7,7 +7,7 @@ description: >-
 
 Open this when a cold source already exists and the blocker is how multiple subscribers share, trigger, or replay it.
 
-For the cold versus hot distinction and when sharing is the right design move, start with [Hot, Cold, and Multicasting](../../reactor-core/references/hot-cold-and-multicasting.md).
+For the cold versus hot distinction and when sharing is the right design move, start with the `reactor-core` reference, Hot, Cold, and Multicasting.
 This reference covers the concrete patterns after that conceptual decision is made.
 
 ## Choose the sharing pattern

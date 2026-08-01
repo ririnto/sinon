@@ -475,19 +475,5 @@ Return:
 - Make 401 versus 403 behavior explicit when API clients depend on a stable error contract.
 - Treat security tests as part of the application's compatibility and safety surface.
 - Do not expose broad `/actuator` paths unless explicitly intended.
-  - Permitting `/actuator/health` alone does not imply actuator endpoints are publicly accessible; secure any additional actuator endpoints explicitly.
-
-## References
-
-### Resource server and application security
-
-- Open [references/reactive-webflux-security.md](references/reactive-webflux-security.md) when the task is specifically about `SecurityWebFilterChain` and reactive security behavior.
-- Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the task needs delegated OAuth2 login or outbound OAuth2 client support.
-- Open [references/ldap-authentication.md](references/ldap-authentication.md) when the task specifically depends on LDAP-backed authentication.
-- Open [references/saml2-login.md](references/saml2-login.md) when the task specifically depends on SAML2.
-- Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when path-specific chains or custom filters are required.
-- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default JWT conversion is not sufficient or nested/multi-location authority extraction is needed.
-- Open [references/security-exception-handling.md](references/security-exception-handling.md) when custom 401 or 403 responses are required.
-- Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when concurrent-session control or advanced logout behavior is required.
-- Open [references/security-headers.md](references/security-headers.md) when the application needs custom security-header behavior.
-- Open [references/servlet-opaque-token-resource-server.md](references/servlet-opaque-token-resource-server.md) only when opaque-token introspection is the required validation path and JWT resource server does not apply.
+  - Permitting `/actuator/health` alone does not imply actuator endpoints are publicly accessible.
+  - Secure any additional actuator endpoints explicitly.

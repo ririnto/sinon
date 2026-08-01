@@ -78,9 +78,10 @@ Keep the batch runtime vocabulary explicit:
 | `JobInstance` | one logical run identity defined by the identifying job parameters |
 | `JobExecution` | one concrete execution attempt of a job instance |
 | `JobParameters` | launch parameters that define identity or operational knobs |
+| `JobLauncher` | application-driven job start surface |
 | `ExecutionContext` | restart state persisted across step or job execution |
 | `JobRepository` | metadata store for instances, executions, and step state |
-| `JobOperator` | operational control surface for launch, stop, restart, and recovery |
+| `JobOperator` | operational control surface for launch, stop, restart, and Batch 6-only recovery |
 
 ## Minimal job model
 
@@ -151,7 +152,7 @@ spring:
 ```
 
 Change repository strategy only when operations, scale, or platform constraints require it.
-Open the infrastructure reference before adopting Batch 6-specific migration behavior beyond these annotations.
+Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) directly for Batch 6-specific migration behavior beyond these annotations.
 
 ### Chunk job baseline
 
@@ -166,11 +167,10 @@ class ImportJobConfiguration {
     }
 
     @Bean
-    Step importStep(JobRepository repository, PlatformTransactionManager tx, ItemReader<CustomerInput> reader, ItemProcessor<CustomerInput, Customer> processor, ItemWriter<Customer> writer) {
+    Step importStep(JobRepository repository, PlatformTransactionManager tx, ItemReader<Customer> reader, ItemWriter<Customer> writer) {
         return new StepBuilder("importStep", repository)
-            .<CustomerInput, Customer>chunk(100, tx)
+            .<Customer, Customer>chunk(100, tx)
             .reader(reader)
-            .processor(processor)
             .writer(writer)
             .build();
     }
@@ -184,7 +184,8 @@ The ordinary item-oriented path is reader + optional processor + writer.
 - Keep the reader deterministic for the same job parameters.
 - Treat the processor as optional; omit it when the writer can safely consume the reader output directly.
 - Keep the writer idempotent or restart-safe when restartability matters.
-- Open the reader and writer reference when processing logic itself becomes the blocker and needs a dedicated `ItemProcessor` seam.
+- Add an `ItemProcessor` only when processing logic is a concrete requirement.
+- Open the reader and writer reference for reader, writer, and `ItemStream` implementation details.
 
 Use late binding only when runtime parameters or execution context must resolve at step creation time.
 
@@ -271,7 +272,7 @@ class ImportJobTests {
 
 ## References
 
-- Open [references/job-infrastructure-launch-and-recovery.md](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
+- Open [references/job-infrastructure-launch-and-recovery.md](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobLauncher`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
 - Open [references/step-flow-and-listeners.md](references/step-flow-and-listeners.md) when the task involves tasklets, listeners, or flow branching.
 - Open [references/fault-tolerance-and-transaction-tuning.md](references/fault-tolerance-and-transaction-tuning.md) when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions.
 - Open [references/readers-writers-and-item-streams.md](references/readers-writers-and-item-streams.md) when the blocker is choosing or implementing a reader, writer, delegate, `ItemStream`, or restart-safe file, database, JSON, XML, or messaging pipeline.
@@ -279,4 +280,4 @@ class ImportJobTests {
 - Open [references/testing-batch-jobs-and-step-scope.md](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
 - Open [references/integration-driven-launch.md](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
 - Open [references/observability-and-monitoring.md](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
-- Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.
+- Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) directly when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.

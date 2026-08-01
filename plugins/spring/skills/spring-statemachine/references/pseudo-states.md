@@ -1,11 +1,11 @@
 # Spring Statemachine pseudo states
 
-Open this reference when guarded external transitions are no longer enough and the workflow needs explicit choice, junction, fork, join, or history semantics.
+Open this reference when guarded external transitions are no longer enough and the workflow needs explicit branching, history, termination, or entry/exit-point semantics.
 
 Keep pseudo states rare and intentional.
 Most workflows do not need more than external transitions and one or two guarded branches.
 
-If one external transition plus a guard keeps the topology readable, stay in `SKILL.md` and do not add pseudo states.
+If one external transition plus a guard keeps the topology readable, use that approach and do not add pseudo states.
 
 ## Choice and junction
 

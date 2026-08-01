@@ -1,6 +1,6 @@
 # Tool failure and fallback
 
-Open this reference when the ordinary tool path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is explicit fallback behavior after a tool failure.
+Open this reference when the ordinary tool path is not enough and the blocker is explicit fallback behavior after a tool failure.
 
 ## Tool-failure blocker
 
