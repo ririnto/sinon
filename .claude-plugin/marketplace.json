@@ -32,6 +32,16 @@
         "name": "ririnto"
       },
       "category": "development",
+      "description": "Portable engineering guidance for delegation, instruction authoring, code conventions, linter adapters, workflow tools, and observability validation.",
+      "license": "Apache-2.0",
+      "name": "astrolabe",
+      "source": "./plugins/astrolabe"
+    },
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
       "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
       "license": "MIT",
       "name": "java",
