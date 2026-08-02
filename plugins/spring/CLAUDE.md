@@ -1,3 +1,3 @@
-# CLAUDE.md
+# Repository Guidelines
 
 @AGENTS.md

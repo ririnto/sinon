@@ -1,3 +1,3 @@
-# Bun Oxlint Plugin Guidelines
+# Bun Oxlint Plugins
 
 @AGENTS.md
