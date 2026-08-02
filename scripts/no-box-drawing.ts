@@ -1,1 +1,0 @@
-../plugins/harness/skills/harness-install/assets/common/rules/no-box-drawing.ts
