@@ -19,7 +19,6 @@
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
-    "check:authoring-hooks": "bun test scripts/tests/authoring/hooks.test.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:sdd-dispatch": "bun test scripts/tests/sdd/dispatch.test.ts",
     "check:sdd-validation": "bun test scripts/tests/sdd/validation.test.ts",
