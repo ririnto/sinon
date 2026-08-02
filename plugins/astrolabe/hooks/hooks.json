@@ -1,0 +1,29 @@
+{
+  "description": "Inject canonical role skill bodies at Claude startup and subagent activation.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/astrolabe-hook.mjs\" main",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/astrolabe-hook.mjs\" subagent",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
