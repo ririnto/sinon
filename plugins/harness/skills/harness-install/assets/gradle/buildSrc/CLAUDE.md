@@ -1,3 +1,3 @@
-# Custom Ktlint Module
+# Custom Ktlint Rules
 
 @AGENTS.md
