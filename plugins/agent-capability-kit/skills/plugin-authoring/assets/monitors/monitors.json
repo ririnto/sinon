@@ -1,7 +1,0 @@
-[
-  {
-    "name": "example-monitor",
-    "command": "bun \"${CLAUDE_PLUGIN_ROOT}/monitors/watch.ts\"",
-    "description": "Example plugin activity updates"
-  }
-]

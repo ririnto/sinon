@@ -20,7 +20,6 @@ Always-on repository rules are in `AGENTS.md`.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
-- `plugins/agent-capability-kit/{skills,agents}/`: published authoring skills and bounded agents.
 - `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
@@ -47,7 +46,6 @@ Plugin-specific details belong in each plugin's own `README.md`, not in this roo
 The following plugins are maintained in this repository and may be published to the Claude marketplace catalog.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
-- [agent-capability-kit](./plugins/agent-capability-kit/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
@@ -112,7 +110,6 @@ claude plugin install <plugin>@sinon
 Examples:
 
 ```sh
-claude plugin install agent-capability-kit@sinon
 claude plugin install document-creator@sinon
 claude plugin install harness@sinon
 claude plugin install java@sinon
