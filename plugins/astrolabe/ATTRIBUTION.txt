@@ -1,2 +1,0 @@
-The original instruction content in this package is user-authored.
-This implementation is independent and does not copy code or instruction text from Superpowers or Ponytail.
