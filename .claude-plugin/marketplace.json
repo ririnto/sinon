@@ -32,10 +32,10 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Portable engineering guidance for delegation, instruction authoring, code conventions, linter adapters, workflow tools, and observability validation.",
-      "license": "Apache-2.0",
-      "name": "astrolabe",
-      "source": "./plugins/astrolabe"
+      "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
+      "license": "MIT",
+      "name": "workgraph",
+      "source": "./plugins/workgraph"
     },
     {
       "author": {

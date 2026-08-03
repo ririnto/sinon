@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "author": {
+    "name": "ririnto"
+  },
+  "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/workgraph",
+  "keywords": [
+    "claude-code",
+    "engineering",
+    "instructions",
+    "skills",
+    "orchestration"
+  ],
+  "license": "MIT",
+  "name": "workgraph",
+  "repository": "https://github.com/ririnto/sinon"
+}

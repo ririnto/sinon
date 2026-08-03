@@ -48,7 +48,7 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
-- [astrolabe](./plugins/astrolabe/README.md)
+- [workgraph](./plugins/workgraph/README.md)
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
 - [kotlin](./plugins/kotlin/README.md)
@@ -113,7 +113,7 @@ Examples:
 ```sh
 claude plugin install document-creator@sinon
 claude plugin install harness@sinon
-claude plugin install astrolabe@sinon
+claude plugin install workgraph@sinon
 claude plugin install java@sinon
 claude plugin install jvm@sinon
 claude plugin install kotlin@sinon
@@ -193,4 +193,3 @@ The following plugins use their local canonical Apache-2.0 license:
 - [harness](./plugins/harness/LICENSE), with attribution notes in [THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md)
 - [spec-driven-development](./plugins/spec-driven-development/LICENSE)
 - [workspace-workflow](./plugins/workspace-workflow/LICENSE)
-- [astrolabe](./plugins/astrolabe/LICENSE)
