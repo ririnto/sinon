@@ -1,0 +1,13 @@
+{
+  "name": "workgraph",
+  "version": "0.1.1",
+  "private": true,
+  "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

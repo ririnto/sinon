@@ -24,7 +24,6 @@
     "check:sdd-validation": "bun test scripts/tests/sdd/validation.test.ts",
     "check:sdd-get-frontmatter": "bun test scripts/tests/sdd/get-frontmatter.test.ts",
     "check:sdd-list-frontmatter": "bun test scripts/tests/sdd/list-frontmatter.test.ts",
-    "check:astrolabe": "bun test scripts/tests/astrolabe",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
     "fix": "run-p fix:*",
