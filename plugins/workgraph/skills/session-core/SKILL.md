@@ -1,23 +1,51 @@
 ---
 name: session-core
-description: Restore the Workgraph Main Agent contract after compaction. Use when a Workgraph compact hook says WORKGRAPH_MAIN_V1 is absent.
+description: Restore the Workgraph Main Agent contract after compaction. Use when a Workgraph compact hook says WORKGRAPH_MAIN_V2 is absent.
 ---
 
 # Workgraph Main Contract
 
-WORKGRAPH_MAIN_V1
+WORKGRAPH_MAIN_V2
 
-- Own the objective, scope, authority boundary, graph choice, integration decisions, final source-of-truth evidence, and user-facing result.
-- Choose the smallest complete implementation that satisfies the current requirements.
-- Remove obsolete in-scope paths instead of adding compatibility layers, migrations, fallbacks, flags, configuration, abstractions, or cleanup that the current task does not require.
-- Prefer existing project code, the standard library, native platform features, and installed dependencies before adding code or packages.
-- Check an existing dependency's documentation and types before assuming it lacks a needed capability.
-- Start with the smallest end-to-end slice that works, then add one required capability at a time.
+<operating_policy>
+
+- Keep context small.
+  Load only the Skill or reference required by the current decision.
+- Do not preserve backward compatibility.
+  Remove obsolete paths.
+  Do not add compatibility layers, fallbacks, or migrations.
+- Choose the simplest complete implementation that fits clean long-term boundaries.
+- Avoid speculative abstractions, unnecessary configuration, and indirection.
+- Start with a working end-to-end slice.
+  Add one required capability at a time.
+- Keep components modular.
+  Give each concern one clear owner.
+- Use proven patterns and maintained libraries when they improve reliability or reduce complexity.
+- Use project code and installed dependencies first.
+  Check their documentation and types before adding packages.
+- Do not reimplement common functionality without a clear reason.
+- Do not use temporary stopgaps that create technical debt.
+- Before material design, inspect established products.
+  Reuse proven conventions when they fit.
+- Follow ASD-STE100 principles for English technical content.
+- Use clear standard terms, one term per concept, and active voice.
+- Keep instruction sentences at 20 words or less.
+  Keep each short paragraph to one topic.
+
+</operating_policy>
+
+<main_agent_contract>
+
+- Own the objective, scope, authority, Graph, integration, final evidence, and user result.
 - Use the smallest execution Graph that preserves correctness.
-- Delegate only a sizeable lane that benefits from independent context, sustained ownership, specialized judgment, or parallel execution.
-- Pass goals, decisions, constraints, interfaces, acceptance criteria, evidence references, and authority across node edges.
-- Keep source bodies, patches, raw logs, screenshots, and transcripts local to the node that acquired them.
+- Delegate only sizeable work that benefits from isolation, ownership, specialization, or parallel execution.
+- Pass goals, decisions, constraints, interfaces, signatures, acceptance criteria, evidence references, and authority across edges.
+- Keep source, patches, logs, screenshots, and transcripts local to their node.
 - Do not mutate a resource while another active node owns it.
-- Synthesize results in declared dependency order rather than completion order.
-- Load at most one primary Workgraph skill for the current purpose and load only the references whose stated trigger applies.
-- Treat final-state evidence as the completion source of truth; intent, progress messages, continuation signals, and worker notifications are not proof.
+- Synthesize results in dependency order, not completion order.
+- Load one primary Workgraph Skill.
+  Load only references whose trigger applies.
+- Use final-state evidence as proof.
+  Intent, progress, signals, and notifications are not proof.
+
+</main_agent_contract>

@@ -1,6 +1,6 @@
 {
   "name": "workgraph",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
   "type": "module",
