@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import test from "node:test";
 
-import { pluginRoot, readJson } from "./helpers.mjs";
+import { pluginRoot, readJson, readText } from "./helpers.mjs";
 
 const hookPath = path.resolve(pluginRoot, "hooks", "inject-context.mjs");
 
@@ -29,13 +29,31 @@ const contextFrom = (output, eventName) => {
   return output.hookSpecificOutput.additionalContext;
 };
 
+const taggedSection = (context, tagName) => {
+  const match = context.match(
+    new RegExp(`<${tagName}>\\n([\\s\\S]*?)\\n<\\/${tagName}>`, "u")
+  );
+  assert.ok(match, `missing <${tagName}> section`);
+  return match[1];
+};
+
+const stripFrontmatter = (markdown) =>
+  markdown.replace(/^---\\r?\\n[\\s\\S]*?\\r?\\n---\\r?\\n/u, "").trim();
+
+const sentenceWordCount = (sentence) =>
+  sentence.match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/gu)?.length ?? 0;
+
 test("startup injects the Main Agent contract only", () => {
   const context = contextFrom(
     invokeHook({ hook_event_name: "SessionStart", source: "startup" }),
     "SessionStart"
   );
-  assert.match(context, /WORKGRAPH_MAIN_V1/u);
-  assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V1|WORKGRAPH_SUBAGENT_V1/u);
+  assert.match(context, /WORKGRAPH_MAIN_V2/u);
+  assert.match(context, /<operating_policy>/u);
+  assert.match(context, /<main_agent_contract>/u);
+  assert.match(context, /Do not preserve backward compatibility/u);
+  assert.match(context, /ASD-STE100/u);
+  assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V2|WORKGRAPH_SUBAGENT_V2/u);
   assert.doesNotMatch(context, /^---$/mu);
 });
 
@@ -44,8 +62,10 @@ test("clear injects the Main Agent contract only", () => {
     invokeHook({ hook_event_name: "SessionStart", source: "clear" }),
     "SessionStart"
   );
-  assert.match(context, /WORKGRAPH_MAIN_V1/u);
-  assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V1|WORKGRAPH_SUBAGENT_V1/u);
+  assert.match(context, /WORKGRAPH_MAIN_V2/u);
+  assert.match(context, /<operating_policy>/u);
+  assert.match(context, /<main_agent_contract>/u);
+  assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V2|WORKGRAPH_SUBAGENT_V2/u);
 });
 
 test("compact injects conditional recovery only", () => {
@@ -53,12 +73,12 @@ test("compact injects conditional recovery only", () => {
     invokeHook({ hook_event_name: "SessionStart", source: "compact" }),
     "SessionStart"
   );
-  assert.match(context, /WORKGRAPH_COMPACT_V1/u);
-  assert.match(context, /WORKGRAPH_MAIN_V1/u);
+  assert.match(context, /WORKGRAPH_COMPACT_V2/u);
+  assert.match(context, /WORKGRAPH_MAIN_V2/u);
   assert.match(context, /session-core/u);
   assert.doesNotMatch(
     context,
-    /WORKGRAPH_SUBAGENT_V1|smallest complete implementation/iu
+    /WORKGRAPH_SUBAGENT_V2|backward compatibility/iu
   );
 });
 
@@ -78,9 +98,51 @@ test("SubagentStart injects the bounded-worker contract only", () => {
     }),
     "SubagentStart"
   );
-  assert.match(context, /WORKGRAPH_SUBAGENT_V1/u);
-  assert.doesNotMatch(context, /WORKGRAPH_MAIN_V1|WORKGRAPH_COMPACT_V1/u);
+  assert.match(context, /WORKGRAPH_SUBAGENT_V2/u);
+  assert.match(context, /<operating_policy>/u);
+  assert.match(context, /Do not preserve backward compatibility/u);
+  assert.match(context, /ASD-STE100/u);
+  assert.doesNotMatch(
+    context,
+    /WORKGRAPH_MAIN_V2|WORKGRAPH_COMPACT_V2|<main_agent_contract>/u
+  );
   assert.match(context, /Status: COMPLETED \| BLOCKED \| FAILED \| UNKNOWN/u);
+});
+
+test("the shared policy has one source and uses short instruction sentences", async () => {
+  const [sessionCore, subagentSource] = await Promise.all([
+    readText("skills/session-core/SKILL.md"),
+    readText("hooks/subagent-context.md")
+  ]);
+  const subagentContext = contextFrom(
+    invokeHook({ hook_event_name: "SubagentStart" }),
+    "SubagentStart"
+  );
+  const policy = taggedSection(subagentContext, "operating_policy");
+  const sourcePolicy = taggedSection(
+    stripFrontmatter(sessionCore),
+    "operating_policy"
+  );
+  assert.match(sessionCore, /<operating_policy>/u);
+  assert.equal(policy, sourcePolicy);
+  assert.equal((sessionCore.match(/<operating_policy>/gu) ?? []).length, 1);
+  assert.equal((sessionCore.match(/<\/operating_policy>/gu) ?? []).length, 1);
+  assert.doesNotMatch(
+    subagentSource,
+    /backward compatibility|ASD-STE100|temporary stopgaps/iu
+  );
+  assert.doesNotMatch(subagentSource, /<operating_policy>/u);
+  assert.match(policy, /Keep context small/u);
+  for (const line of policy.split(/\r?\n/u)) {
+    const text = line.replace(/^\s*-\s+/u, "").trim();
+    if (text === "") {
+      continue;
+    }
+    for (const sentence of text.split(/(?<=[.!?])\s+/u)) {
+      const count = sentenceWordCount(sentence);
+      assert.ok(count <= 20, `${count} words: ${sentence}`);
+    }
+  }
 });
 
 test("hook registration separates full, compact, and subagent injection", async () => {

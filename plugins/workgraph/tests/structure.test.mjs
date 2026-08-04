@@ -80,6 +80,16 @@ test("Giver principles are integrated through the payload contract and source no
     payloadContracts,
     /code bodies? must not appear in any result field/iu
   );
+  assert.match(
+    payloadContracts,
+    /Use LaTeX for graph relations and mathematical definitions/iu
+  );
+  assert.match(payloadContracts, /X=\(N,E\)/u);
+  assert.match(payloadContracts, /\\operatorname\{context\}/u);
+  assert.match(payloadContracts, /\\operatorname\{edge\}/u);
+  assert.match(payloadContracts, /\\xrightarrow\{T_0\}/u);
+  assert.match(payloadContracts, /\\mathrm\{Breaking\}\^\{\*\}_k/u);
+  assert.match(payloadContracts, /O\\!\\left/u);
   assert.match(notices, /sng2c\/giver-architecture/u);
   assert.match(notices, /89a92ce4d20496968da5e74fa5f05ce0e57b34f6/u);
   assert.match(notices, /giver-principles\.md/u);

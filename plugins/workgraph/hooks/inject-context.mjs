@@ -7,9 +7,10 @@ import path from "node:path";
 const hookDir = import.meta.dirname;
 const pluginRoot = path.resolve(hookDir, "..");
 
-const compactContext = `WORKGRAPH_COMPACT_V1
+const compactContext = `WORKGRAPH_COMPACT_V2
 
-If WORKGRAPH_MAIN_V1 is absent from the compacted context, load the \`session-core\` skill before continuing. If it is present, continue without loading it again.`;
+If WORKGRAPH_MAIN_V2 is absent from the compacted context, load the \`session-core\` Skill before continuing.
+If it is present, continue without loading it again.`;
 
 const readStdin = async () => {
   let input = "";
@@ -33,6 +34,15 @@ const parseInput = (input) => {
 const stripFrontmatter = (markdown) =>
   markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/u, "").trim();
 
+const extractTaggedSection = (markdown, tagName) => {
+  const pattern = new RegExp(`<${tagName}>[\\s\\S]*?</${tagName}>`, "u");
+  const match = markdown.match(pattern);
+  if (!match) {
+    throw new Error(`missing <${tagName}> section`);
+  }
+  return match[0].trim();
+};
+
 const loadContext = async (payload) => {
   const eventName = payload.hook_event_name ?? payload.hookEventName;
   if (eventName === "SessionStart") {
@@ -49,11 +59,18 @@ const loadContext = async (payload) => {
     return null;
   }
   if (eventName === "SubagentStart") {
-    const markdown = await readFile(
-      path.resolve(hookDir, "subagent-context.md"),
-      "utf-8"
+    const [coreMarkdown, nodeMarkdown] = await Promise.all([
+      readFile(
+        path.resolve(pluginRoot, "skills", "session-core", "SKILL.md"),
+        "utf-8"
+      ),
+      readFile(path.resolve(hookDir, "subagent-context.md"), "utf-8")
+    ]);
+    const policy = extractTaggedSection(
+      stripFrontmatter(coreMarkdown),
+      "operating_policy"
     );
-    return { context: markdown.trim(), eventName };
+    return { context: `${policy}\n\n${nodeMarkdown.trim()}`, eventName };
   }
   return null;
 };
