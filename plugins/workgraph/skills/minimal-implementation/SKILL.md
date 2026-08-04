@@ -1,38 +1,38 @@
 ---
 name: minimal-implementation
-description: Select and implement the smallest complete code change. Use when solution shape, dependency choice, compatibility, migration, validation, or abstraction is materially undecided.
+description: Select a complete implementation route. Use when reuse, dependency choice, module boundaries, or solution shape is materially undecided.
 ---
 
-# Minimal Implementation
+# Implementation Route Selection
 
 ## Outcome
 
-Deliver the current requirement end to end with the least new behavior and structure that remains correct and maintainable.
+Select a complete implementation route when the solution shape is materially undecided.
 
-## Decision Ladder
+## Selection Sequence
 
-Trace the code path the change touches before choosing a solution.
+1. Trace the affected flow and its current responsibility boundaries.
+2. Inspect established product patterns that solve the same problem.
+3. Inspect the repository's current patterns and available project code.
+4. Read relevant dependency documentation and type definitions.
+5. Select the first complete route from the ordered list below.
+   - Delete obsolete behavior or remove the need for new behavior.
+   - Reuse an existing project function, component, pattern, or data flow.
+   - Use the standard library or a native platform feature.
+   - Use an installed dependency.
+   - Adopt a maintained library when it lowers total complexity.
+   - Write a focused local implementation.
 
-Stop at the first rung that fully satisfies the acceptance criteria:
+## Boundary Decision
 
-1. Remove the need for new behavior or delete an obsolete path.
-2. Reuse an existing project function, component, pattern, or data flow.
-3. Use the standard library.
-4. Use a native platform or framework capability.
-5. Use an already-installed dependency after checking its documentation and types.
-6. Write the smallest local implementation that completes the requirement.
+- Create a module only when the changed responsibility needs a separate owner.
+  Keep the implementation local when a new boundary adds no ownership value.
 
-## Constraints
+## Evidence
 
-- Treat current acceptance criteria as the only reason to add compatibility behavior, migrations, fallbacks, feature flags, configuration, extensibility, or indirection.
-- Replace obsolete in-scope paths instead of preserving them behind wrappers or parallel implementations.
-- Fix a bug at the shared root cause when the affected callers use the same faulty behavior.
-- Keep concerns separate, but create a new module only when it gives the changed responsibility a real boundary.
-- Begin with one working end-to-end slice and add each remaining capability on top of a state that already works.
-- Validate at trust boundaries and real failure boundaries rather than defending internal states that the system guarantees cannot occur.
-- Add a focused check only when existing checks do not prove the changed behavior.
-- Record a deliberate simplification only when its known ceiling changes a future engineering decision.
+- Use existing checks when they prove the changed behavior.
+  Add a focused check only when current evidence has a real gap.
 
 ## Stop Condition
 
-Stop when the requested behavior works, obsolete in-scope code is removed, and current evidence proves the final state.
+Stop when one route satisfies every acceptance criterion and preserves clear ownership.

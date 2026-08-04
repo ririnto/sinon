@@ -1,6 +1,6 @@
 ---
 name: instruction-authoring
-description: Write lean prompts, hooks, skills, agent instructions, and authorized durable memory. Use when creating or revising behavior contracts for Claude Code, Codex, or another agent runtime.
+description: Write lean prompts, hooks, skills, agent instructions, and authorized durable memory. Use when creating or revising behavior contracts for Claude Code or another agent runtime.
 ---
 
 # Instruction Authoring

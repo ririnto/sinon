@@ -7,6 +7,8 @@ import { pluginRoot } from "./helpers.mjs";
 
 const hookPath = path.resolve(pluginRoot, "hooks", "inject-context.mjs");
 
+const toCrlf = (text) => text.replaceAll(/\r?\n/gu, "\r\n");
+
 const injectedContext = (payload) => {
   const result = spawnSync(process.execPath, [hookPath], {
     cwd: pluginRoot,
@@ -39,5 +41,29 @@ test("injected contracts stay within their context budgets", () => {
   assert.ok(
     subagent.length <= 2400,
     `Sub Agent contract is ${subagent.length} characters`
+  );
+});
+
+test("injected contracts stay within budget under CRLF line endings", () => {
+  const main = toCrlf(
+    injectedContext({ hook_event_name: "SessionStart", source: "startup" })
+  );
+  const compact = toCrlf(
+    injectedContext({ hook_event_name: "SessionStart", source: "compact" })
+  );
+  const subagent = toCrlf(
+    injectedContext({ hook_event_name: "SubagentStart" })
+  );
+  assert.ok(
+    main.length <= 2200,
+    `Main Agent contract is ${main.length} characters under CRLF`
+  );
+  assert.ok(
+    compact.length <= 600,
+    `compact recovery is ${compact.length} characters under CRLF`
+  );
+  assert.ok(
+    subagent.length <= 2400,
+    `Sub Agent contract is ${subagent.length} characters under CRLF`
   );
 });
