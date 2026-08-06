@@ -57,13 +57,13 @@ The runtime has no third-party package dependencies.
 
 Validate the plugin:
 
-```bash
+```sh
 claude plugin validate /absolute/path/to/workgraph --strict
 ```
 
 Load it for one session during development:
 
-```bash
+```sh
 claude --plugin-dir /absolute/path/to/workgraph
 ```
 
@@ -75,8 +75,8 @@ Restart Claude Code or run `/reload-plugins` after changing hooks or manifests.
 
 Run the complete test suite:
 
-```bash
-npm test
+```sh
+node --test tests/*.test.mjs
 ```
 
 The tests cover lifecycle routing, policy composition, LaTeX notation, prompt budgets, the manifest, Agent Skills frontmatter, one-level references, prohibited Skill and reference chains, and repeated long instruction lines.
