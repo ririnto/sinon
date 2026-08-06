@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
@@ -17,6 +17,8 @@ const expectedSkills = [
   "orchestration",
   "session-core"
 ];
+
+const repositoryRoot = path.resolve(pluginRoot, "../..");
 
 const expectedReferences = {
   "instruction-authoring": ["agent-skills-format.md"],
@@ -49,15 +51,23 @@ const readReferenceListing = async (skillName) => {
   }
 };
 
-test("plugin manifest and package identity are aligned", async () => {
+test("plugin manifest omits version and marketplace entry pins workgraph version", async () => {
   const manifest = await readJson(".claude-plugin/plugin.json");
-  const packageJson = await readJson("package.json");
+  const marketplace = JSON.parse(
+    await readFile(
+      path.resolve(repositoryRoot, ".claude-plugin/marketplace.json"),
+      "utf-8"
+    )
+  );
+  const workgraphEntries = marketplace.plugins.filter(
+    ({ name }) => name === "workgraph"
+  );
   assert.equal(manifest.name, "workgraph");
   assert.equal(typeof manifest.description, "string");
   assert.ok(manifest.description.length > 20);
-  assert.equal(manifest.version, packageJson.version);
-  assert.equal(packageJson.name, "workgraph");
-  assert.equal(typeof packageJson.description, "string");
+  assert.equal("version" in manifest, false);
+  assert.equal(workgraphEntries.length, 1);
+  assert.equal(workgraphEntries[0].version, "2026.08.07");
 });
 
 test("Giver principles are integrated through the payload contract and source notice", async () => {

@@ -35,7 +35,8 @@
       "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
       "license": "MIT",
       "name": "workgraph",
-      "source": "./plugins/workgraph"
+      "source": "./plugins/workgraph",
+      "version": "2026.08.07"
     },
     {
       "author": {
