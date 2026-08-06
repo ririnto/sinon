@@ -34,10 +34,10 @@ The policy supplies the default implementation and English technical authoring c
 
 ## Skills
 
-- `minimal-implementation`: Use when reuse, dependency choice, module boundaries, or solution shape is materially undecided.
-- `workgraph-orchestration`: Use when work needs delegation, parallel lanes, recovery, ownership transfer, or multi-node synthesis.
-- `instruction-authoring`: Use when creating or revising prompts, hooks, skills, agent contracts, or explicitly authorized durable memory.
 - `artifact-authoring`: Use when Markdown, YAML, configuration, documentation, metadata, portability, or rendered quality matters.
+- `instruction-authoring`: Use when creating or revising prompts, hooks, skills, agent contracts, or explicitly authorized durable memory.
+- `minimal-implementation`: Use when reuse, dependency choice, module boundaries, or solution shape is materially undecided.
+- `orchestration`: Use when work needs delegation, parallel lanes, recovery, ownership transfer, or multi-node synthesis.
 - `session-core`: Load only when the compact recovery hook reports that `WORKGRAPH_MAIN_V2` is absent.
 
 Each workflow is self-contained at the Skill level.
@@ -96,8 +96,8 @@ workgraph/
 |   +-- artifact-authoring/
 |   +-- instruction-authoring/
 |   +-- minimal-implementation/
+|   +-- orchestration/
 |   +-- session-core/
-|   +-- workgraph-orchestration/
 +-- tests/
 ```
 

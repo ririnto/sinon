@@ -14,5 +14,6 @@
   ],
   "license": "MIT",
   "name": "workgraph",
+  "version": "0.1.2",
   "repository": "https://github.com/ririnto/sinon"
 }
