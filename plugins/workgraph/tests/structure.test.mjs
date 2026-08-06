@@ -14,13 +14,13 @@ const expectedSkills = [
   "artifact-authoring",
   "instruction-authoring",
   "minimal-implementation",
-  "session-core",
-  "workgraph-orchestration"
+  "orchestration",
+  "session-core"
 ];
 
 const expectedReferences = {
   "instruction-authoring": ["agent-skills-format.md"],
-  "workgraph-orchestration": [
+  orchestration: [
     "completion.md",
     "delegation-selection.md",
     "payload-contracts.md",
@@ -55,14 +55,14 @@ test("plugin manifest and package identity are aligned", async () => {
   assert.equal(manifest.name, "workgraph");
   assert.equal(typeof manifest.description, "string");
   assert.ok(manifest.description.length > 20);
-  assert.equal(manifest.version, undefined);
+  assert.equal(manifest.version, packageJson.version);
   assert.equal(packageJson.name, "workgraph");
   assert.equal(typeof packageJson.description, "string");
 });
 
 test("Giver principles are integrated through the payload contract and source notice", async () => {
   const payloadContracts = await readText(
-    "skills/workgraph-orchestration/references/payload-contracts.md"
+    "skills/orchestration/references/payload-contracts.md"
   );
   const notices = await readText("THIRD_PARTY_NOTICES.md");
   const readme = await readText("README.md");
@@ -125,6 +125,7 @@ test("skill catalog is exact and Agent Skills frontmatter is valid", async () =>
     const skillName = skills[index];
     const { fields, body } = parseFrontmatter(markdown);
     assert.equal(fields.name, skillName);
+    assert.doesNotMatch(fields.name, /^workgraph-/u);
     assert.match(fields.name, /^(?!-)(?!.*--)[a-z0-9-]{1,64}(?<!-)$/u);
     assert.equal(typeof fields.description, "string");
     assert.ok(fields.description.length > 20);
