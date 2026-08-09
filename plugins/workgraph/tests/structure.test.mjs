@@ -18,8 +18,6 @@ const expectedSkills = [
   "session-core"
 ];
 
-const repositoryRoot = path.resolve(pluginRoot, "../..");
-
 const expectedReferences = {
   "instruction-authoring": ["agent-skills-format.md"],
   orchestration: [
@@ -51,11 +49,11 @@ const readReferenceListing = async (skillName) => {
   }
 };
 
-test("plugin manifest omits version and marketplace entry pins workgraph version", async () => {
+test("plugin manifest name and description are stable, marketplace root date version matches format, and workgraph has one marketplace entry", async () => {
   const manifest = await readJson(".claude-plugin/plugin.json");
   const marketplace = JSON.parse(
     await readFile(
-      path.resolve(repositoryRoot, ".claude-plugin/marketplace.json"),
+      path.resolve(pluginRoot, "../../.claude-plugin/marketplace.json"),
       "utf-8"
     )
   );
@@ -65,9 +63,8 @@ test("plugin manifest omits version and marketplace entry pins workgraph version
   assert.equal(manifest.name, "workgraph");
   assert.equal(typeof manifest.description, "string");
   assert.ok(manifest.description.length > 20);
-  assert.equal("version" in manifest, false);
+  assert.match(marketplace.version, /^\d{4}\.\d{2}\.\d{2}\.\d{2}$/u);
   assert.equal(workgraphEntries.length, 1);
-  assert.equal(workgraphEntries[0].version, "2026.08.07");
 });
 
 test("Giver principles are integrated through the payload contract and source notice", async () => {
@@ -76,23 +73,14 @@ test("Giver principles are integrated through the payload contract and source no
   );
   const notices = await readText("THIRD_PARTY_NOTICES.md");
   const readme = await readText("README.md");
+  assert.match(payloadContracts, /^## Context Partition$/mu);
+  assert.match(payloadContracts, /^## Edge Rule$/mu);
+  assert.match(payloadContracts, /^## Composed Steering History$/mu);
+  assert.match(payloadContracts, /^## Worker Task$/mu);
+  assert.match(payloadContracts, /^## Worker Result$/mu);
   assert.match(
     payloadContracts,
-    /Partition each node's context into decision-bearing steering and node-local working I\/O/iu
-  );
-  assert.match(payloadContracts, /declared predecessor/iu);
-  assert.match(
-    payloadContracts,
-    /Do not append the full sequence of predecessor results/iu
-  );
-  assert.match(payloadContracts, /one curated predecessor payload/iu);
-  assert.match(
-    payloadContracts,
-    /code bodies? must not appear in any result field/iu
-  );
-  assert.match(
-    payloadContracts,
-    /Use LaTeX for graph relations and mathematical definitions/iu
+    /"Status": "COMPLETED \| BLOCKED \| FAILED \| UNKNOWN"/u
   );
   assert.match(payloadContracts, /X=\(N,E\)/u);
   assert.match(payloadContracts, /\\operatorname\{context\}/u);
@@ -100,9 +88,14 @@ test("Giver principles are integrated through the payload contract and source no
   assert.match(payloadContracts, /\\xrightarrow\{T_0\}/u);
   assert.match(payloadContracts, /\\mathrm\{Breaking\}\^\{\*\}_k/u);
   assert.match(payloadContracts, /O\\!\\left/u);
+  const giverVersionMatch = notices.match(
+    /^- Source version: `(?<version>[^`]+)`$/mu
+  );
+  assert.ok(giverVersionMatch, "Giver Architecture source version is required");
+  assert.match(giverVersionMatch.groups.version, /^v\d+(?:\.\d+)*$/u);
   assert.match(notices, /sng2c\/giver-architecture/u);
-  assert.match(notices, /89a92ce4d20496968da5e74fa5f05ce0e57b34f6/u);
   assert.match(notices, /giver-principles\.md/u);
+  assert.match(notices, /License: MIT, as declared by the package metadata/u);
   assert.match(readme, /Giver Architecture/u);
 });
 

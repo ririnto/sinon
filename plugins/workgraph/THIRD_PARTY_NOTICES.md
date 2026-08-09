@@ -27,7 +27,7 @@ The project informed the shared Claude Code hook layout and minimal-implementati
 ## Giver Architecture
 
 - Project: `sng2c/giver-architecture`
-- Source revision: `89a92ce4d20496968da5e74fa5f05ce0e57b34f6`
+- Source version: `v0.1.1`
 - Reference file: `giver-principles.md`
 - License: MIT, as declared by the package metadata
 - Author: sng2c
