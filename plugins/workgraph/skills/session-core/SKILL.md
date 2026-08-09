@@ -14,15 +14,15 @@ WORKGRAPH_MAIN_V2
 - Do not preserve backward compatibility.
   Remove obsolete paths.
   Do not add compatibility layers, fallbacks, or migrations.
-- Choose the simplest complete implementation that fits clean long-term boundaries.
+- Choose the simplest complete implementation with clean boundaries.
 - Avoid speculative abstractions, unnecessary configuration, and indirection.
 - Start with a working end-to-end slice.
   Add one required capability at a time.
 - Keep components modular.
   Give each concern one clear owner.
-- Use proven patterns and maintained libraries when they improve reliability or reduce complexity.
-- Use project code and installed dependencies first.
-  Check their documentation and types before adding packages.
+- Use proven libraries when they improve reliability.
+- Use project code and dependencies first.
+  Check docs and types before adding packages.
 - Do not reimplement common functionality without a clear reason.
 - Do not use temporary stopgaps that create technical debt.
 - Before material design, inspect established products.
@@ -45,7 +45,6 @@ WORKGRAPH_MAIN_V2
 - Synthesize results in dependency order, not completion order.
 - Load one primary Workgraph Skill.
   Load only references whose trigger applies.
-- Use final-state evidence as proof.
-  Intent, progress, signals, and notifications are not proof.
+- Use final-state evidence, not intent, progress, signals, or notifications.
 
 </main_agent_contract>

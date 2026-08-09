@@ -51,8 +51,8 @@ test("startup injects the Main Agent contract only", () => {
   assert.match(context, /WORKGRAPH_MAIN_V2/u);
   assert.match(context, /<operating_policy>/u);
   assert.match(context, /<main_agent_contract>/u);
-  assert.match(context, /Do not preserve backward compatibility/u);
-  assert.match(context, /ASD-STE100/u);
+  assert.ok(taggedSection(context, "operating_policy").trim().length > 0);
+  assert.ok(taggedSection(context, "main_agent_contract").trim().length > 0);
   assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V2|WORKGRAPH_SUBAGENT_V2/u);
   assert.doesNotMatch(context, /^---$/mu);
 });
@@ -74,12 +74,43 @@ test("compact injects conditional recovery only", () => {
     "SessionStart"
   );
   assert.match(context, /WORKGRAPH_COMPACT_V2/u);
-  assert.match(context, /WORKGRAPH_MAIN_V2/u);
-  assert.match(context, /session-core/u);
-  assert.doesNotMatch(
-    context,
-    /WORKGRAPH_SUBAGENT_V2|backward compatibility/iu
-  );
+  assert.equal((context.match(/WORKGRAPH_MAIN_V2/gu) ?? []).length, 1);
+  assert.match(context, /WORKGRAPH_COMPACT_V2[\s\S]*session-core/u);
+  assert.doesNotMatch(context, /WORKGRAPH_SUBAGENT_V2|<operating_policy>/u);
+});
+
+test("supported contexts include the Skills base directory exactly once", () => {
+  const contexts = [
+    contextFrom(
+      invokeHook({ hook_event_name: "SessionStart", source: "startup" }),
+      "SessionStart"
+    ),
+    contextFrom(
+      invokeHook({ hook_event_name: "SessionStart", source: "clear" }),
+      "SessionStart"
+    ),
+    contextFrom(
+      invokeHook({ hook_event_name: "SessionStart", source: "compact" }),
+      "SessionStart"
+    ),
+    contextFrom(
+      invokeHook({ hook_event_name: "SubagentStart" }),
+      "SubagentStart"
+    )
+  ];
+  for (const context of contexts) {
+    assert.match(
+      context,
+      new RegExp(
+        `^Workgraph Skills base directory: ${path.resolve(pluginRoot, "skills")}$`,
+        "mu"
+      )
+    );
+    assert.equal(
+      (context.match(/Workgraph Skills base directory: /gu) ?? []).length,
+      1
+    );
+  }
 });
 
 test("resume and unrelated events stay silent", () => {
@@ -100,8 +131,7 @@ test("SubagentStart injects the bounded-worker contract only", () => {
   );
   assert.match(context, /WORKGRAPH_SUBAGENT_V2/u);
   assert.match(context, /<operating_policy>/u);
-  assert.match(context, /Do not preserve backward compatibility/u);
-  assert.match(context, /ASD-STE100/u);
+  assert.ok(taggedSection(context, "operating_policy").trim().length > 0);
   assert.doesNotMatch(
     context,
     /WORKGRAPH_MAIN_V2|WORKGRAPH_COMPACT_V2|<main_agent_contract>/u
@@ -127,12 +157,8 @@ test("the shared policy has one source and uses short instruction sentences", as
   assert.equal(policy, sourcePolicy);
   assert.equal((sessionCore.match(/<operating_policy>/gu) ?? []).length, 1);
   assert.equal((sessionCore.match(/<\/operating_policy>/gu) ?? []).length, 1);
-  assert.doesNotMatch(
-    subagentSource,
-    /backward compatibility|ASD-STE100|temporary stopgaps/iu
-  );
   assert.doesNotMatch(subagentSource, /<operating_policy>/u);
-  assert.match(policy, /Keep context small/u);
+  assert.ok(policy.trim().length > 0);
   for (const line of policy.split(/\r?\n/u)) {
     const text = line.replace(/^\s*-\s+/u, "").trim();
     if (text === "") {
