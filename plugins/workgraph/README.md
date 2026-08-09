@@ -105,4 +105,4 @@ workgraph/
 
 The implementation is an original synthesis informed by Superpowers, Ponytail, Giver Architecture's `giver-principles.md`, the Agent Skills specification, the supplied local operating instructions, and current Claude Code plugin and prompting documentation.
 
-Pinned upstream revisions are recorded in `THIRD_PARTY_NOTICES.md`.
+Pinned upstream versions are recorded in `THIRD_PARTY_NOTICES.md`.

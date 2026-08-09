@@ -7,10 +7,7 @@ import path from "node:path";
 const hookDir = import.meta.dirname;
 const pluginRoot = path.resolve(hookDir, "..");
 
-const compactContext = `WORKGRAPH_COMPACT_V2
-
-If WORKGRAPH_MAIN_V2 is absent from the compacted context, load the \`session-core\` Skill before continuing.
-If it is present, continue without loading it again.`;
+const skillsBaseContext = `Workgraph Skills base directory: ${path.resolve(pluginRoot, "skills")}`;
 
 const readStdin = async () => {
   let input = "";
@@ -35,8 +32,9 @@ const stripFrontmatter = (markdown) =>
   markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/u, "").trim();
 
 const extractTaggedSection = (markdown, tagName) => {
-  const pattern = new RegExp(`<${tagName}>[\\s\\S]*?</${tagName}>`, "u");
-  const match = markdown.match(pattern);
+  const match = markdown.match(
+    new RegExp(`<${tagName}>[\\s\\S]*?</${tagName}>`, "u")
+  );
   if (!match) {
     throw new Error(`missing <${tagName}> section`);
   }
@@ -47,36 +45,48 @@ const loadContext = async (payload) => {
   const eventName = payload.hook_event_name ?? payload.hookEventName;
   if (eventName === "SessionStart") {
     if (payload.source === "startup" || payload.source === "clear") {
-      const markdown = await readFile(
-        path.resolve(pluginRoot, "skills", "session-core", "SKILL.md"),
-        "utf-8"
-      );
-      return { context: stripFrontmatter(markdown), eventName };
+      return {
+        context: `${stripFrontmatter(
+          await readFile(
+            path.resolve(pluginRoot, "skills", "session-core", "SKILL.md"),
+            "utf-8"
+          )
+        )}\n\n${skillsBaseContext}`,
+        eventName: "SessionStart"
+      };
     }
     if (payload.source === "compact") {
-      return { context: compactContext, eventName };
+      return {
+        context: `WORKGRAPH_COMPACT_V2
+
+If WORKGRAPH_MAIN_V2 is absent from the compacted context, load the \`session-core\` Skill before continuing.
+If it is present, continue without loading it again.
+
+${skillsBaseContext}`,
+        eventName: "SessionStart"
+      };
     }
-    return null;
   }
   if (eventName === "SubagentStart") {
-    const [coreMarkdown, nodeMarkdown] = await Promise.all([
-      readFile(
-        path.resolve(pluginRoot, "skills", "session-core", "SKILL.md"),
-        "utf-8"
-      ),
-      readFile(path.resolve(hookDir, "subagent-context.md"), "utf-8")
-    ]);
-    const policy = extractTaggedSection(
-      stripFrontmatter(coreMarkdown),
-      "operating_policy"
-    );
-    return { context: `${policy}\n\n${nodeMarkdown.trim()}`, eventName };
+    return {
+      context: `${extractTaggedSection(
+        stripFrontmatter(
+          await readFile(
+            path.resolve(pluginRoot, "skills", "session-core", "SKILL.md"),
+            "utf-8"
+          )
+        ),
+        "operating_policy"
+      )}\n\n${String(
+        await readFile(path.resolve(hookDir, "subagent-context.md"), "utf-8")
+      ).trim()}\n\n${skillsBaseContext}`,
+      eventName: "SubagentStart"
+    };
   }
   return null;
 };
 
-const payload = parseInput(await readStdin());
-const result = await loadContext(payload);
+const result = await loadContext(parseInput(await readStdin()));
 
 if (result) {
   process.stdout.write(
