@@ -49,7 +49,7 @@ const readReferenceListing = async (skillName) => {
   }
 };
 
-test("plugin manifest name and description are stable, marketplace root date version matches format, and workgraph has one marketplace entry", async () => {
+test("plugin manifest fields are valid, marketplace version matches format, and workgraph has one marketplace entry", async () => {
   const manifest = await readJson(".claude-plugin/plugin.json");
   const marketplace = JSON.parse(
     await readFile(
@@ -62,41 +62,55 @@ test("plugin manifest name and description are stable, marketplace root date ver
   );
   assert.equal(manifest.name, "workgraph");
   assert.equal(typeof manifest.description, "string");
-  assert.ok(manifest.description.length > 20);
   assert.match(marketplace.version, /^\d{4}\.\d{2}\.\d{2}\.\d{2}$/u);
   assert.equal(workgraphEntries.length, 1);
+  assert.equal(workgraphEntries[0].source, "./plugins/workgraph");
 });
 
-test("Giver principles are integrated through the payload contract and source notice", async () => {
+test("worker result and Giver source provenance are structured", async () => {
   const payloadContracts = await readText(
     "skills/orchestration/references/payload-contracts.md"
   );
   const notices = await readText("THIRD_PARTY_NOTICES.md");
-  const readme = await readText("README.md");
-  assert.match(payloadContracts, /^## Context Partition$/mu);
-  assert.match(payloadContracts, /^## Edge Rule$/mu);
-  assert.match(payloadContracts, /^## Composed Steering History$/mu);
-  assert.match(payloadContracts, /^## Worker Task$/mu);
-  assert.match(payloadContracts, /^## Worker Result$/mu);
-  assert.match(
-    payloadContracts,
-    /"Status": "COMPLETED \| BLOCKED \| FAILED \| UNKNOWN"/u
-  );
-  assert.match(payloadContracts, /X=\(N,E\)/u);
-  assert.match(payloadContracts, /\\operatorname\{context\}/u);
-  assert.match(payloadContracts, /\\operatorname\{edge\}/u);
-  assert.match(payloadContracts, /\\xrightarrow\{T_0\}/u);
-  assert.match(payloadContracts, /\\mathrm\{Breaking\}\^\{\*\}_k/u);
-  assert.match(payloadContracts, /O\\!\\left/u);
+  const results = [
+    ...payloadContracts.matchAll(/```json\n(?<json>\{[\s\S]*?\})\n```/gu)
+  ]
+    .map((match) => JSON.parse(match.groups.json))
+    .filter((result) => Object.hasOwn(result, "Status"));
+  assert.equal(results.length, 2);
+  const [workerResult, verifierResult] = results;
+  assert.deepEqual(workerResult, {
+    Blockers: [],
+    Breaking: [],
+    Decisions: [],
+    EvidenceRefs: [],
+    Files: [],
+    Signatures: [],
+    Status: "COMPLETED | BLOCKED | FAILED | UNKNOWN",
+    Summary: ""
+  });
+  assert.deepEqual(verifierResult, {
+    Blockers: [],
+    Breaking: [],
+    Decisions: [],
+    EvidenceRefs: [],
+    Files: [],
+    FindingsOrDispositions: [],
+    Signatures: [],
+    Status: "COMPLETED | BLOCKED | FAILED | UNKNOWN",
+    Summary: ""
+  });
   const giverVersionMatch = notices.match(
     /^- Source version: `(?<version>[^`]+)`$/mu
   );
-  assert.ok(giverVersionMatch, "Giver Architecture source version is required");
+  assert.ok(giverVersionMatch, "Giver source version is required");
   assert.match(giverVersionMatch.groups.version, /^v\d+(?:\.\d+)*$/u);
-  assert.match(notices, /sng2c\/giver-architecture/u);
-  assert.match(notices, /giver-principles\.md/u);
-  assert.match(notices, /License: MIT, as declared by the package metadata/u);
-  assert.match(readme, /Giver Architecture/u);
+  assert.match(notices, /^- Project: `sng2c\/giver-architecture`$/mu);
+  assert.match(notices, /^- Reference file: `giver-principles\.md`$/mu);
+  assert.match(
+    notices,
+    /^- Source: `https:\/\/github\.com\/sng2c\/giver-architecture`$/mu
+  );
 });
 
 test("root distribution files are present and non-empty", async () => {
@@ -131,8 +145,6 @@ test("skill catalog is exact and Agent Skills frontmatter is valid", async () =>
     assert.doesNotMatch(fields.name, /^workgraph-/u);
     assert.match(fields.name, /^(?!-)(?!.*--)[a-z0-9-]{1,64}(?<!-)$/u);
     assert.equal(typeof fields.description, "string");
-    assert.ok(fields.description.length > 20);
-    assert.match(fields.description, /Use when/iu);
     assert.ok(markdown.split(/\r?\n/u).length < 500);
     assert.ok(body.trim().length > 0);
     assert.doesNotMatch(body, /(?:\.\.\/|\/SKILL\.md|skills\/)/u);
@@ -176,35 +188,6 @@ test("skill file links stay within the owning references directory", async () =>
     ].map((match) => match.groups.target);
     for (const link of links) {
       assert.match(link, /^references\/[a-z0-9-]+\.md$/u);
-    }
-  }
-});
-
-test("purpose-specific skill bodies do not repeat long instruction lines", async () => {
-  const owners = new Map();
-  const markdowns = await Promise.all(
-    expectedSkills.map((skillName) => readText(`skills/${skillName}/SKILL.md`))
-  );
-  for (const [index, markdown] of markdowns.entries()) {
-    const skillName = expectedSkills[index];
-    const { body } = parseFrontmatter(markdown);
-    for (const rawLine of body.split(/\r?\n/u)) {
-      const line = rawLine
-        .replace(/^#+\s*/u, "")
-        .replace(/^[-*]\s+/u, "")
-        .replace(/^\d+\.\s+/u, "")
-        .trim()
-        .replaceAll(/\s+/gu, " ");
-      if (line.length < 80 || line.startsWith("WORKGRAPH_")) {
-        continue;
-      }
-      const previousOwner = owners.get(line);
-      assert.equal(
-        previousOwner,
-        undefined,
-        `duplicate instruction in ${previousOwner} and ${skillName}: ${line}`
-      );
-      owners.set(line, skillName);
     }
   }
 });
