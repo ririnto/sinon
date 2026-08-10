@@ -22,7 +22,7 @@ The project informed the SessionStart bootstrap pattern, progressive Skill loadi
 - Copyright: 2026 DietrichGebert
 - Source: `https://github.com/DietrichGebert/ponytail`
 
-The project informed the shared Claude Code hook layout and minimal-implementation emphasis.
+The project informed the shared Claude Code hook layout and implementation discipline.
 
 ## Giver Architecture
 

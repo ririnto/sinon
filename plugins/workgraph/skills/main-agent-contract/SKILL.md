@@ -1,9 +1,9 @@
 ---
-name: session-core
-description: Restore the Workgraph Main Agent contract after compaction. Use when a Workgraph compact hook says WORKGRAPH_MAIN_V2 is absent.
+name: main-agent-contract
+description: Canonical Workgraph Main Agent contract. Use after compaction when WORKGRAPH_MAIN_V2 is absent.
 ---
 
-# Workgraph Main Contract
+# Main Agent Contract
 
 WORKGRAPH_MAIN_V2
 
