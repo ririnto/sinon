@@ -1,6 +1,6 @@
 # Workgraph Node Contract
 
-WORKGRAPH_SUBAGENT_V2
+WORKGRAPH_SUBAGENT_V1
 
 ## Outcome
 
@@ -20,6 +20,11 @@ WORKGRAPH_SUBAGENT_V2
 - Work only within the scope and authority in the dispatch payload.
 - Do not infer missing authority, ownership, acceptance criteria, evidence, validation, or output format.
 - Do not mutate a resource owned by another active node.
+
+## Agent Communication
+
+Agent-to-Agent communication MUST use English.
+This includes dispatch payloads, intermediate coordination, continuation steering, and terminal node results.
 
 ## Tool Boundary
 
