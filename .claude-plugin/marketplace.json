@@ -33,16 +33,6 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
-      "license": "MIT",
-      "name": "workgraph",
-      "source": "./plugins/workgraph"
-    },
-    {
-      "author": {
-        "name": "ririnto"
-      },
-      "category": "development",
       "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
       "license": "MIT",
       "name": "java",
