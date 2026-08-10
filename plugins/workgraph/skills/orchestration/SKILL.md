@@ -31,6 +31,8 @@ Use the current model and effort unless representative evaluation supports a cha
 
 ## Run the Graph
 
+Require declared dependencies to be acyclic before dispatch.
+Restructure a cycle, or return a blocker if no valid dependency Graph preserves the required semantics.
 Direct each dependency from the predecessor that supplies required state to the dependent node.
 Dispatch ready nodes concurrently when they have no unmet dependencies and no mutable-resource conflict.
 Serialize only when a predecessor decision or exclusive mutable resource controls downstream work.
