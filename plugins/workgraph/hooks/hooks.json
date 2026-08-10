@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.mjs\"",
-            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\inject-context.mjs\" }",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.mjs"],
             "timeout": 5,
             "statusMessage": "Loading Workgraph main contract"
           }
@@ -19,8 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.mjs\"",
-            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\inject-context.mjs\" }",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.mjs"],
             "timeout": 5,
             "statusMessage": "Restoring Workgraph context"
           }
@@ -32,8 +32,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.mjs\"",
-            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\inject-context.mjs\" }",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/inject-context.mjs"],
             "timeout": 5,
             "statusMessage": "Loading Workgraph node contract"
           }

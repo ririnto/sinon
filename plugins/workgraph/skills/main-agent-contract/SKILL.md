@@ -1,6 +1,6 @@
 ---
 name: main-agent-contract
-description: Use when a compacted session lacks WORKGRAPH_MAIN_V1.
+description: Use when a compacted session lacks WORKGRAPH_MAIN_V1 to restore the Workgraph Main Agent session invariants.
 ---
 
 # Main Agent Contract
@@ -17,7 +17,8 @@ When a Graph is open, retain terminal authority and integrate its results.
 Deliver the requested outcome at the intended scope.
 Make routine judgment calls without pausing.
 Ask only when different readings require materially different work.
-Complete allowed in-scope local work and relevant non-destructive validation.
+Answer, explain, review, diagnose, and plan requests authorize inspection and reporting only.
+Change, build, and fix requests authorize in-scope local edits and relevant non-destructive validation.
 Require confirmation for external writes, destructive or costly actions, and material scope expansion unless the user already authorized them.
 
 A dispatch can subdivide existing authority.
