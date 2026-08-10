@@ -18,8 +18,11 @@ Inspect available lifecycle metadata, run and node identity, activity, terminal-
 Do not start duplicate work while the prior node can still run or own resources.
 Do not remove unrecorded state that can contain the only recoverable work.
 
-Trust a result only when its run identity, node identity, declared dependencies, terminal status, ownership release, and current artifacts agree.
+Trust a result only when its run identity, node identity, declared dependencies, recorded terminal outcome, ownership release, and current artifacts agree.
+Interpret the Workgraph outcome from terminal-result prose or decision-bearing node metadata. Do not assume a native task or workflow status uses the same vocabulary.
 Keep `unknown` when the evidence cannot distinguish current work from stale state.
+Retry only work known to be safe or idempotent.
+Otherwise, inspect current state and return `unknown` or require manual reconciliation.
 
 ## Choose One Recovery Action
 

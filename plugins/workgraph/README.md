@@ -13,7 +13,20 @@ It keeps common session behavior small and loads Graph mechanics only when a tas
 | `SessionStart: resume` | No additional context |
 | `SubagentStart` | Full `WORKGRAPH_SUBAGENT_V1` bounded-node contract from `hooks/subagent-context.md` |
 
-The Main Agent contract owns the user outcome, scope, authority, progress cadence, evidence bar, stop condition, and terminal response.
+The Main Agent is the orchestrator and terminal reporter.
+It forms, routes, dispatches, coordinates, integrates, resolves conflicts, validates the control plane,
+and performs source-control integration only when authorized.
+It does not implement changes. Nodes own every implementation and task-side mutation, including small changes.
+Before the first dispatch, it materializes the smallest inspectable execution Graph. The Graph makes topology,
+ownership, predecessor dependencies, resource conflicts, branch identity, join readiness, and loop exit conditions explicit.
+The Main Agent validates cycles and resource ownership, updates the Graph before each ready-set calculation,
+and dispatches only nodes ready in the current Graph. Nodes receive only their local Graph slice and decision-bearing predecessor state.
+Every required branch contributes a terminal outcome before a join, unless defined compensation satisfies that input.
+Broad or uncertain discovery goes first to haiku scout nodes. Model aliases steer dispatch:
+haiku for exploration, research, simple bounded implementation, or bounded review;
+sonnet for complex or multi-file implementation, substantial lane planning, or comprehensive review;
+opus for architecture and other high-intelligence decisions, never implementation; fable only when the user or dispatch explicitly requests it.
+The Main Agent keeps exact-known narrow reads and required repository-wide integration gates.
 The node contract enforces the authority and completion boundary of each dispatched node.
 The injected Main and node contracts require English for all Agent-to-Agent communication.
 `compact-context.md` only tells the Main Agent to load `main-agent-contract` when `WORKGRAPH_MAIN_V1` is absent.
@@ -21,14 +34,18 @@ The injected Main and node contracts require English for all Agent-to-Agent comm
 ## Skills
 
 - `main-agent-contract`: Use when a compacted session lacks `WORKGRAPH_MAIN_V1` to restore the Workgraph Main Agent session invariants.
-- `orchestration`: Use when sizeable work needs isolated node ownership, specialized capability, real parallel execution, dependency coordination, or multi-node result synthesis.
+- `orchestration`: Use for every Workgraph node dispatch and for dependency, ownership, concurrency, join, or terminal result synthesis decisions.
 - `recovery`: Use when a Workgraph node has interrupted or ambiguous identity, activity, ownership, or terminal state.
 
 Each Skill is self-contained.
 A Skill does not load another Skill.
 
-The orchestration Skill owns Graph selection, dependencies, concurrency, resource ownership, edge state, integration, and Graph completion.
-The recovery Skill owns lifecycle inspection and resume, curate, or replace decisions.
+The orchestration Skill owns Graph construction, dependency and join readiness, concurrency,
+resource ownership, edge state, integration, and Graph completion.
+The recovery Skill owns lifecycle inspection, terminal-outcome interpretation, retry decisions,
+and resume, curate, or replace decisions.
+Hooks inject context. They do not enforce ownership, prevent duplicate spawns, provide durable replay,
+or guarantee exactly-once behavior.
 The orchestration Skill has one direct reference:
 
 - `payload-contracts.md`: Load before dispatching a node or accepting its terminal result.

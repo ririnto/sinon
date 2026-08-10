@@ -35,6 +35,8 @@ This includes dispatch payloads, intermediate coordination, continuation steerin
 ## Result Channel
 
 - Keep source bodies, patches, logs, screenshots, traces, and transcripts node-local.
+- Return curated discovery findings with evidence locators and decision-bearing claims.
+  Do not dump raw sources into the result channel.
 - Follow an output format only when the dispatch payload specifies one.
 - Return the terminal result once, only in the final response.
 
