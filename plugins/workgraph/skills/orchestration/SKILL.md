@@ -1,34 +1,49 @@
 ---
 name: orchestration
-description: Plan and run a bounded execution Graph with isolated node context and deterministic synthesis. Use when work needs delegation, parallel lanes, recovery, or multi-node result integration.
+description: Use when sizeable work needs isolated node ownership, specialized capability, real parallel execution, dependency coordination, or multi-node result synthesis.
 ---
 
 # Orchestration
 
 ## Outcome
 
-Use the smallest directed execution Graph that preserves correctness, authority, ownership, evidence, and recoverable state.
+Build the smallest directed execution Graph that preserves authority, ownership, decision-bearing state, and terminal evidence.
 
-## Workflow
+## Select the Graph
 
-1. Define the objective, scope, non-goals, acceptance criteria, required evidence, and authority boundary.
-2. When the host runtime exposes the Workflow Tool, use it as the execution mechanism for Graph-based work delegation.
-3. Keep the work in the Main Agent when current evidence and a narrow tool sequence are sufficient.
-4. Add a scout for broad or uncertain discovery, a worker for a sizeable owned lane, a planner for a real design dependency, or a verifier only when independent judgment changes confidence.
-5. Define each node by an independently testable outcome, declared dependencies, mutable-resource ownership, and terminal evidence.
-6. Dispatch dependency-independent nodes concurrently and serialize only design, interface, semantic, or non-isolatable state dependencies.
-7. Keep working I/O local to the node and pass curated steering across every edge.
-8. Synthesize results in declared lane or dependency-topological order rather than arrival order.
-9. Resolve disagreement through acceptance criteria or the named synthesis owner and return a blocker when neither decides it.
-10. Integrate only after worker ownership ends and verify claims against the current source of truth.
+Keep small tasks and narrow tool sequences in the Main Agent.
+Use parallel tool calls there when independent reads are needed together.
+Parallel calls alone do not justify nodes.
 
-## Load Detailed Material Only at Its Trigger
+Open a Graph only when at least one sizeable lane benefits from:
 
-- Before choosing Graph shape, concurrency, model capability, or effort, read [delegation selection](references/delegation-selection.md).
-- Before dispatching or accepting a node result, read [payload contracts](references/payload-contracts.md).
-- When a stream, notification, worker, or continuation state is interrupted or ambiguous, read [recovery](references/recovery.md).
-- Before declaring completion or disposing discovered issues, read [completion](references/completion.md).
+- independent ownership;
+- isolated context;
+- specialized capability;
+- real parallel execution.
 
-## Stop Condition
+Use one node when one isolated lane is enough.
+Assign validation to the owner of each changed input.
+Create another node only when it owns distinct evidence or an independent acceptance decision.
 
-Stop when all required terminal results have been reconciled, mutable ownership has returned to the integration owner, final evidence matches the current artifacts, and residual blockers are explicit.
+Give each node an independently testable outcome and one bounded ownership lane.
+Use the current model and effort unless representative evaluation supports a change for that task type.
+
+## Run the Graph
+
+Direct each dependency from the predecessor that supplies required state to the dependent node.
+Dispatch ready nodes concurrently when they have no unmet dependencies and no mutable-resource conflict.
+Serialize only when a predecessor decision or exclusive mutable resource controls downstream work.
+Assign each physical mutable resource to one active node at a time.
+Do not integrate that resource until its owner returns a terminal result and releases it.
+
+Synthesize terminal results in dependency order.
+Resolve conflicts with the named acceptance criteria or synthesis owner.
+Return a blocker when neither resolves the conflict.
+
+Check node claims against the current source of truth before integration.
+Close the Graph only when every required node has a terminal outcome, every result is reconciled, all mutable resources are released, and stale or missing evidence is explicit.
+
+## Load References at Their Triggers
+
+Before dispatching a node or accepting its terminal result, read [payload contracts](references/payload-contracts.md).

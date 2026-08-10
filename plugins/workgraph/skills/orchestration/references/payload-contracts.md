@@ -1,198 +1,48 @@
 # Payload Contracts
 
-## Formal Graph Model
-
-Use LaTeX for graph relations and mathematical definitions.
-
-Let the execution Graph be:
-
-$$
-X=(N,E),
-\qquad
-N=\{G,S,P,W_1,\ldots,W_n,Q_1,\ldots,Q_m\}.
-$$
-
-$E$ is the set of declared dependency edges.
-
-The relation $E$ is a DAG.
-
-A worker or verifier result returns to the Main Agent through a separate result channel, not through $E$.
-
-$G$ is the Main Agent.
-$S$ is a scout.
-$P$ is a planner.
-$W_k$ is a worker.
-$Q_j$ is a verifier or curator.
-
-For every node $A$:
-
-$$
-\operatorname{context}(A)
-=
-\operatorname{steer}(A)\sqcup\operatorname{io}(A),
-\qquad
-\mathcal{S}\cap\mathcal{I}=\varnothing.
-$$
-
-Every dependency edge carries curated steering:
-
-$$
-\operatorname{edge}(A,B)
-=
-\operatorname{curate}_{A\to B}\!\left(\operatorname{steer}(A)\right)
-\in\mathcal{S}.
-$$
-
-The principal planned flow is:
-
-$$
-G\xrightarrow{T_0}P\xrightarrow{T_k}W_k,
-\qquad
-W_i\xrightarrow{\operatorname{curate}_{i\to k}(R_i)}W_k.
-$$
-
-Each terminal result $R_k$ returns to $G$ through the result channel.
-
-The principal node functions are:
-
-$$
-\begin{aligned}
-G &: \mathcal{C}\to T_0, \\
-S &: \mathcal{D}_{\mathrm{dirs}}\to\mathcal{D}_{\mathrm{recon}}, \\
-P &: T_0\to\{T_1,\ldots,T_n\}, \\
-W_k &: T_k\times R_{\operatorname{pred}(k)}^{*}\to R_k, \\
-Q_j &: T_j^Q\times R_{\operatorname{pred}_Q(j)}^{*}\to R_j^Q.
-\end{aligned}
-$$
-
-$\operatorname{Pred}(k)$ ranges over the dependency-edge predecessors of $W_k$.
-
-Breaking changes propagate across every declared dependency edge:
-
-$$
-\mathrm{Breaking}^{*}_k
-=
-\Delta\mathrm{Breaking}_k
-\cup
-\bigcup_{i\in\operatorname{Pred}(k)}\mathrm{Breaking}^{*}_i.
-$$
-
-Inherited cross-node context stays bounded:
-
-$$
-\left|\operatorname{in}(W_k)\right|
-=
-O\!\left(\left|T_k\right|+\left|R_{\operatorname{pred}(k)}^{*}\right|\right).
-$$
-
 ## Context Partition
 
-Partition each node's context into decision-bearing steering and node-local working I/O.
+Separate decision-bearing steering from node-local working material.
 
-Steering contains goals, decisions, constraints, paths, interfaces, signatures, compact dependency relations, acceptance criteria, evidence references, blockers, and authority.
+Steering can include the outcome, scope, dependencies, decisions, constraints, resource ownership, authority, acceptance criteria, required evidence, stop condition, interfaces, and exact excerpts needed for a decision.
 
-Working I/O contains source bodies, patches, raw logs, raw test streams, screenshots, traces, and transcripts.
+Working material includes source bodies, patches, logs, screenshots, traces, transcripts, and exploratory notes.
+Keep working material node-local.
 
-Keep the two sets disjoint.
+## Dispatch Payload
 
-## Edge Rule
+Give each node one self-contained payload.
+State the independently testable outcome, owned scope, allowed actions and side effects, acceptance criteria, required evidence, and stop condition.
 
-Every delegated edge carries a curated subset of steering and excludes working I/O.
+Add predecessor dependencies, decision-bearing predecessor state, task-specific constraints, owned mutable resources, integration interfaces, exact excerpts, and non-goals only when they apply.
+Do not add empty sections or unstated session context.
 
-- The Main Agent receives node results rather than node-local working I/O.
-  Code bodies must not appear in any result field.
-- Within its authority, a downstream node may read source or evidence.
-  That material then becomes local working I/O.
+## Edge State
 
-## Composed Steering History
-
-A downstream task receives only the curated steering of its declared predecessors.
-
-Do not append the full sequence of predecessor results or reconstruct parent, sibling, or worker transcripts to simulate history.
-
-Compose the steering still needed downstream into one curated predecessor payload.
-
-Preserve cumulative `Breaking` entries losslessly across every declared dependency edge.
-
-Compress or omit other predecessor steering when no downstream decision depends on it.
-
+A node receives only the steering needed from its declared predecessors.
 An independent node receives no predecessor result.
+Compose needed predecessor state into one payload.
+Do not append or replay result history.
+Carry every discovered breaking change cumulatively through terminal results, dependent payloads, and final synthesis.
+Preserve decision-bearing state exactly when a downstream decision depends on it.
+Send a minimal exact excerpt only when paraphrase would lose that state.
 
-## Worker Task
+## Terminal Result
 
-Use every field and provide an explicit empty value when it does not apply.
+Return one terminal result through the result channel.
+A terminal node outcome is completed, blocked, failed, or unknown.
 
-```json
-{
-  "Goal": "",
-  "Background": "",
-  "PastFailures": [],
-  "Scope": [],
-  "NonGoals": [],
-  "Constraints": [],
-  "TargetPaths": [],
-  "Interfaces": [],
-  "AcceptanceCriteria": [],
-  "RequiredEvidence": [],
-  "AuthorityBoundary": ""
-}
-```
+Use completed only when all acceptance criteria pass.
+Use blocked when further in-scope work needs missing information or authority.
+Use failed when required work or validation fails.
+Use unknown when available evidence cannot prove another outcome.
 
-The task must be self-contained and must not depend on unstated parent, sibling, or session context.
+Give the achieved outcome and required evidence when available.
+Identify changed resources, downstream decisions, released resources, and blockers only when they apply.
+Do not include raw working material.
+Preserve exact decision-bearing values that downstream integration needs.
 
-## Verifier or Curator Task
+## Task-Specific Interfaces
 
-```json
-{
-  "ObjectiveOrClaim": "",
-  "Scope": [],
-  "AcceptanceCriteria": [],
-  "EvidenceRefs": [],
-  "RequiredChecks": [],
-  "AuthorityBoundary": ""
-}
-```
-
-## Worker Result
-
-```json
-{
-  "Status": "COMPLETED | BLOCKED | FAILED | UNKNOWN",
-  "Files": [],
-  "Signatures": [],
-  "Breaking": [],
-  "Decisions": [],
-  "Summary": "",
-  "EvidenceRefs": [],
-  "Blockers": []
-}
-```
-
-`Breaking` represents $\mathrm{Breaking}^{*}_k$.
-
-It must preserve prior entries without renaming or compression loss.
-
-## Verifier or Curator Result
-
-```json
-{
-  "Status": "COMPLETED | BLOCKED | FAILED | UNKNOWN",
-  "Files": [],
-  "Signatures": [],
-  "Breaking": [],
-  "FindingsOrDispositions": [],
-  "Decisions": [],
-  "Summary": "",
-  "EvidenceRefs": [],
-  "Blockers": []
-}
-```
-
-## Ownership
-
-- One node owns each physical mutable resource at a time.
-  A terminal result releases every mutable resource owned by that node.
-  Continuation or replacement requires an explicit ownership reassignment.
-- Delegation divides existing authority.
-  It never creates new authority.
-  It cannot authorize destructive actions, material costs, external writes, third-party communication, or scope expansion.
+Define an exact payload or result shape only when its field structure materially improves dispatch, acceptance, deterministic synthesis, or recovery.
+Otherwise, state the information requirements in prose.
