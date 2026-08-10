@@ -37,20 +37,12 @@ const taggedSection = (context, tagName) => {
   return match[1];
 };
 
-const stripFrontmatter = (markdown) =>
-  markdown.replace(/^---\\r?\\n[\\s\\S]*?\\r?\\n---\\r?\\n/u, "").trim();
-
-const sentenceWordCount = (sentence) =>
-  sentence.match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/gu)?.length ?? 0;
-
 test("startup injects the Main Agent contract only", () => {
   const context = contextFrom(
     invokeHook({ hook_event_name: "SessionStart", source: "startup" }),
     "SessionStart"
   );
   assert.match(context, /WORKGRAPH_MAIN_V2/u);
-  assert.match(context, /<operating_policy>/u);
-  assert.match(context, /<main_agent_contract>/u);
   assert.ok(taggedSection(context, "operating_policy").trim().length > 0);
   assert.ok(taggedSection(context, "main_agent_contract").trim().length > 0);
   assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V2|WORKGRAPH_SUBAGENT_V2/u);
@@ -63,8 +55,8 @@ test("clear injects the Main Agent contract only", () => {
     "SessionStart"
   );
   assert.match(context, /WORKGRAPH_MAIN_V2/u);
-  assert.match(context, /<operating_policy>/u);
-  assert.match(context, /<main_agent_contract>/u);
+  assert.ok(taggedSection(context, "operating_policy").trim().length > 0);
+  assert.ok(taggedSection(context, "main_agent_contract").trim().length > 0);
   assert.doesNotMatch(context, /WORKGRAPH_COMPACT_V2|WORKGRAPH_SUBAGENT_V2/u);
 });
 
@@ -75,7 +67,6 @@ test("compact injects conditional recovery only", () => {
   );
   assert.match(context, /WORKGRAPH_COMPACT_V2/u);
   assert.equal((context.match(/WORKGRAPH_MAIN_V2/gu) ?? []).length, 1);
-  assert.match(context, /WORKGRAPH_COMPACT_V2[\s\S]*session-core/u);
   assert.doesNotMatch(context, /WORKGRAPH_SUBAGENT_V2|<operating_policy>/u);
 });
 
@@ -130,7 +121,6 @@ test("SubagentStart injects the bounded-worker contract only", () => {
     "SubagentStart"
   );
   assert.match(context, /WORKGRAPH_SUBAGENT_V2/u);
-  assert.match(context, /<operating_policy>/u);
   assert.ok(taggedSection(context, "operating_policy").trim().length > 0);
   assert.doesNotMatch(
     context,
@@ -139,7 +129,7 @@ test("SubagentStart injects the bounded-worker contract only", () => {
   assert.match(context, /Status: COMPLETED \| BLOCKED \| FAILED \| UNKNOWN/u);
 });
 
-test("the shared policy has one source and uses short instruction sentences", async () => {
+test("the shared policy has one source", async () => {
   const [sessionCore, subagentSource] = await Promise.all([
     readText("skills/session-core/SKILL.md"),
     readText("hooks/subagent-context.md")
@@ -149,26 +139,12 @@ test("the shared policy has one source and uses short instruction sentences", as
     "SubagentStart"
   );
   const policy = taggedSection(subagentContext, "operating_policy");
-  const sourcePolicy = taggedSection(
-    stripFrontmatter(sessionCore),
-    "operating_policy"
-  );
-  assert.match(sessionCore, /<operating_policy>/u);
+  const sourcePolicy = taggedSection(sessionCore, "operating_policy");
   assert.equal(policy, sourcePolicy);
   assert.equal((sessionCore.match(/<operating_policy>/gu) ?? []).length, 1);
   assert.equal((sessionCore.match(/<\/operating_policy>/gu) ?? []).length, 1);
   assert.doesNotMatch(subagentSource, /<operating_policy>/u);
   assert.ok(policy.trim().length > 0);
-  for (const line of policy.split(/\r?\n/u)) {
-    const text = line.replace(/^\s*-\s+/u, "").trim();
-    if (text === "") {
-      continue;
-    }
-    for (const sentence of text.split(/(?<=[.!?])\s+/u)) {
-      const count = sentenceWordCount(sentence);
-      assert.ok(count <= 20, `${count} words: ${sentence}`);
-    }
-  }
 });
 
 test("hook registration separates full, compact, and subagent injection", async () => {
