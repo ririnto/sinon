@@ -22,7 +22,7 @@ The project informed the SessionStart bootstrap pattern, progressive Skill loadi
 - Copyright: 2026 DietrichGebert
 - Source: `https://github.com/DietrichGebert/ponytail`
 
-The project informed the shared Claude Code hook layout and implementation discipline.
+The project informed implementation discipline.
 
 ## Giver Architecture
 
@@ -33,4 +33,4 @@ The project informed the shared Claude Code hook layout and implementation disci
 - Author: sng2c
 - Source: `https://github.com/sng2c/giver-architecture`
 
-The reference informed the explicit steering and working-I/O partition, steering-only edge payloads, composed downstream history, code-free result payloads, and cumulative breaking-change propagation.
+The reference informed the explicit steering and working-I/O partition, steering-only edge payloads, composed downstream history, result payloads without code bodies or test output, and cumulative breaking-change propagation.
