@@ -48,7 +48,6 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
-- [workgraph](./plugins/workgraph/README.md)
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
 - [kotlin](./plugins/kotlin/README.md)
@@ -113,7 +112,6 @@ Examples:
 ```sh
 claude plugin install document-creator@sinon
 claude plugin install harness@sinon
-claude plugin install workgraph@sinon
 claude plugin install java@sinon
 claude plugin install jvm@sinon
 claude plugin install kotlin@sinon
