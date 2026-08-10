@@ -20,7 +20,7 @@ The injected Main and node contracts require English for all Agent-to-Agent comm
 
 ## Skills
 
-- `main-agent-contract`: Use when a compacted session lacks `WORKGRAPH_MAIN_V1`.
+- `main-agent-contract`: Use when a compacted session lacks `WORKGRAPH_MAIN_V1` to restore the Workgraph Main Agent session invariants.
 - `orchestration`: Use when sizeable work needs isolated node ownership, specialized capability, real parallel execution, dependency coordination, or multi-node result synthesis.
 - `recovery`: Use when a Workgraph node has interrupted or ambiguous identity, activity, ownership, or terminal state.
 
