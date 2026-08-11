@@ -113,6 +113,20 @@
         "name": "ririnto"
       },
       "category": "development",
+      "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
+      "license": "MIT",
+      "name": "workgraph",
+      "source": {
+        "source": "github",
+        "repo": "ririnto/workgraph",
+        "ref": "main"
+      }
+    },
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
       "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
       "license": "Apache-2.0",
       "name": "workspace-workflow",
