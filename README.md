@@ -6,9 +6,10 @@ description: >-
 # Sinon
 
 Sinon is a Claude Code plugin marketplace repository.
-It publishes curated plugins from a single source tree.
+It publishes curated local plugins and selected external plugins.
 
-Plugins live under `plugins/`.
+Sinon-maintained plugins live under `plugins/`.
+Selected external plugins are registered in the Claude marketplace catalog and remain maintained in their upstream repositories.
 The Claude marketplace catalog lives at the repository root.
 Always-on repository rules are in `AGENTS.md`.
 
@@ -24,7 +25,7 @@ Always-on repository rules are in `AGENTS.md`.
 
 ## Plugin Layout
 
-Each plugin directory may expose a Claude Code manifest from the same plugin root:
+Each Sinon-maintained plugin directory may expose a Claude Code manifest from the same plugin root:
 
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 
@@ -39,7 +40,7 @@ Common plugin assets include:
 - `settings.json`.
 - Executable `bin/`.
 
-Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
+Sinon-maintained plugin details belong in each plugin's own `README.md`, not in this root document.
 
 ## Current Plugins
 
@@ -58,14 +59,21 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [spring](./plugins/spring/README.md)
 - [workspace-workflow](./plugins/workspace-workflow/README.md)
 
+## External Plugins
+
+Sinon selects external plugins through its marketplace catalog.
+
+- [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
+  The upstream repository owns the runtime, Skills, and version.
+
 ## Publishing Model
 
 The repository maintains one marketplace catalog:
 
 - `.claude-plugin/marketplace.json` for Claude Code.
 
-Individual plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets.
-The marketplace catalog lists plugin roots that ship the Claude manifest.
+Sinon-maintained plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets.
+The marketplace catalog lists local plugin roots and selected external plugin registrations.
 
 ## Registering This Marketplace in Claude Code
 
@@ -112,6 +120,7 @@ Examples:
 ```sh
 claude plugin install document-creator@sinon
 claude plugin install harness@sinon
+claude plugin install workgraph@sinon
 claude plugin install java@sinon
 claude plugin install jvm@sinon
 claude plugin install kotlin@sinon

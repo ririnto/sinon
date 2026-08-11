@@ -10,7 +10,7 @@ Sinon publishes Claude Code plugins and portable Agent Skills.
 ## Project Structure
 
 - `plugins/` contains publishable packages.
-- `.claude-plugin/marketplace.json` lists package roots.
+- `.claude-plugin/marketplace.json` lists local package roots and external catalog registrations.
 - `scripts/` contains repository validation checks.
 - Preserve existing named top-level components.
 - Each top-level component MUST have one documented responsibility.
