@@ -117,8 +117,8 @@
       "license": "MIT",
       "name": "workgraph",
       "source": {
-        "source": "github",
-        "repo": "ririnto/workgraph",
+        "source": "url",
+        "url": "https://github.com/ririnto/workgraph.git",
         "ref": "main"
       }
     },
