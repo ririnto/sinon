@@ -113,7 +113,7 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Session-scoped implementation and execution-graph discipline for Claude Code.",
+      "description": "A dependency-free Claude Code plugin that injects advisory Main Agent and bounded node context contracts.",
       "license": "MIT",
       "name": "workgraph",
       "source": {
