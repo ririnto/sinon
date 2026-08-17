@@ -35,13 +35,13 @@ This skill does not cover:
 
 These invariants govern safe rebase practice:
 
-- **Working tree MUST be clean** before starting a rebase.
+- Working tree MUST be clean before starting a rebase.
   - Commit or stash all changes.
-- **Shared branches SHOULD NOT be rebased** unless the entire team agrees and understands force-push implications.
+- Shared branches SHOULD NOT be rebased unless the entire team agrees and understands force-push implications.
   - Rebasing shared history and then force-pushing will erase commits from teammates' local branches.
-- **Force-push MUST only be used with `--force-with-lease`** to prevent overwriting remote changes you have not seen.
+- Force-push MUST only be used with `--force-with-lease` to prevent overwriting remote changes you have not seen.
   - Bare `--force` is unsafe on branches others might push to simultaneously.
-- **Commit references (SHAs) change on rebase**.
+- Commit references (SHAs) change on rebase.
   - Update any references to old commits in tickets, PRs, or scripts.
 
 ## Rebase and Merge Decision
