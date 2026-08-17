@@ -27,33 +27,33 @@ This skill does not cover:
 
 ## Operating Rules
 
-- **Clean working tree MUST be verified before merge**: Run `git status` before merging.
+- Clean working tree MUST be verified before merge: Run `git status` before merging.
   - The working tree MUST show "nothing to commit, working tree clean".
-- **Fetch latest before merge MUST occur**: Run `git fetch` before merging to ensure you have the latest upstream state.
-- **Pushed branches MUST NOT be force-pushed after merge**: Once a branch is merged and pushed, do not use `git push --force`.
+- Fetch latest before merge MUST occur: Run `git fetch` before merging to ensure you have the latest upstream state.
+- Pushed branches MUST NOT be force-pushed after merge: Once a branch is merged and pushed, do not use `git push --force`.
   - Use `git revert` instead.
-- **Merge commits SHOULD have clear intent**: Add `-m` message to merge commits (beyond the default).
+- Merge commits SHOULD have clear intent: Add `-m` message to merge commits (beyond the default).
   - State the feature and branch name.
-- **Conflicting files MUST be fully resolved**: MUST NOT commit a merge with `<<<<<<<` or `>>>>>>>` markers remaining.
+- Conflicting files MUST be fully resolved: MUST NOT commit a merge with `<<<<<<<` or `>>>>>>>` markers remaining.
 
 ## Decision: Which Merge Strategy?
 
 | Strategy | Command | History shape | Use when | Avoid when |
 | --- | --- | --- | --- | --- |
-| **fast-forward** | `git merge {{branch}}` | Linear; no merge commit | Branch is a clean extension of the base; feature is small and clean | Want to preserve feature branch as a named commit; feature has long history |
-| **--no-ff** | `git merge --no-ff {{branch}}` | Tree; explicit merge commit | Want to preserve branch identity; feature is significant; need bisect anchors | Linear history preferred; single-commit features |
-| **--squash** | `git merge --squash {{branch}}` | Linear; combined into one commit | Many small feature commits; want clean history; feature work is experimental | Need to preserve individual commit attribution; long feedback history is valuable |
-| **octopus** | `git merge -s octopus branch1 branch2 ...` | Multi-parent; all branches merged at once | Integrating 3+ parallel features at once; all are complete and non-conflicting | Any conflicts exist; need to debug individual merges; most merges (use for special cases) |
+| fast-forward | `git merge {{branch}}` | Linear; no merge commit | Branch is a clean extension of the base; feature is small and clean | Want to preserve feature branch as a named commit; feature has long history |
+| --no-ff | `git merge --no-ff {{branch}}` | Tree; explicit merge commit | Want to preserve branch identity; feature is significant; need bisect anchors | Linear history preferred; single-commit features |
+| --squash | `git merge --squash {{branch}}` | Linear; combined into one commit | Many small feature commits; want clean history; feature work is experimental | Need to preserve individual commit attribution; long feedback history is valuable |
+| octopus | `git merge -s octopus branch1 branch2 ...` | Multi-parent; all branches merged at once | Integrating 3+ parallel features at once; all are complete and non-conflicting | Any conflicts exist; need to debug individual merges; most merges (use for special cases) |
 
 ### Quick decision rules
 
-1. **Default**: Use `--no-ff` unless your project standard specifies otherwise.
+1. Default: Use `--no-ff` unless your project standard specifies otherwise.
    - It preserves feature branch identity without cluttering history.
-2. **Small hotfix or trivial rebase**: Use fast-forward (`git merge {{branch}}`).
+2. Small hotfix or trivial rebase: Use fast-forward (`git merge {{branch}}`).
    - The feature is a clean linear extension.
-3. **Experimental or temporary branch**: Use `--squash`.
+3. Experimental or temporary branch: Use `--squash`.
    - Collapse feature work into a single logical commit.
-4. **Multiple features at once**: Use octopus *only* if all feature branches are complete, tested, and non-conflicting.
+4. Multiple features at once: Use octopus *only* if all feature branches are complete, tested, and non-conflicting.
 
 ## Procedure: Pre-Merge Verification
 
@@ -508,13 +508,13 @@ Each directory represents one recorded conflict.
 
 ## Pitfalls
 
-- **Aborting mid-merge**: Use `git merge --abort` to cancel a merge cleanly.
+- Aborting mid-merge: Use `git merge --abort` to cancel a merge cleanly.
   - MUST NOT use `git reset --merge` unless you understand the difference (reset is destructive and can lose work).
-- **Committing with conflict markers**: Always verify conflict markers are removed before committing.
+- Committing with conflict markers: Always verify conflict markers are removed before committing.
   - Search for `<<<<<<<` and `=======` in all files.
-- **Force-pushing after merge**: Never use `git push --force` after merging into a published branch.
+- Force-pushing after merge: Never use `git push --force` after merging into a published branch.
   - Use `git revert` to undo bad merges instead.
-- **Stale branch after merge**: After a successful merge, the feature branch still exists locally and remotely.
+- Stale branch after merge: After a successful merge, the feature branch still exists locally and remotely.
   - Delete it explicitly:
 
     ```sh
@@ -522,7 +522,7 @@ Each directory represents one recorded conflict.
     git push origin --delete <feature-branch>
     ```
 
-- **Missing rerere auto-apply**: If rerere is enabled but a cached resolution was not applied, manually check the conflict and apply it, or disable rerere temporarily and resolve again.
+- Missing rerere auto-apply: If rerere is enabled but a cached resolution was not applied, manually check the conflict and apply it, or disable rerere temporarily and resolve again.
 
 ## First Safe Commands
 

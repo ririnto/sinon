@@ -78,13 +78,13 @@ When a user is preparing work for publication or integration, follow this sequen
 
 When a user needs to work on multiple features simultaneously:
 
-1. **Inspect current worktrees**: Record existing paths, branches, and local changes before adding another worktree.
+1. Inspect current worktrees: Record existing paths, branches, and local changes before adding another worktree.
    - A dirty unrelated worktree does not inherently prevent `git worktree add`; preserve its changes and avoid its checked-out branch.
-2. **Create worktrees**: Use `workspace-workflow:git-worktree-management` to create isolated worktrees for each feature.
+2. Create worktrees: Use `workspace-workflow:git-worktree-management` to create isolated worktrees for each feature.
    - Each worktree is independent.
    - Changes in one don't affect others.
-3. **Manage commits independently**: Within each worktree, apply the repository's actual commit convention.
-4. **Coordinate integration**: When ready to integrate multiple features, decide per-feature whether to merge or rebase (see "Workflow Sequencing" above), but do so in a consistent order to avoid complex multi-merge conflicts.
+3. Manage commits independently: Within each worktree, apply the repository's actual commit convention.
+4. Coordinate integration: When ready to integrate multiple features, decide per-feature whether to merge or rebase (see "Workflow Sequencing" above), but do so in a consistent order to avoid complex multi-merge conflicts.
 
 ### Merge and Rebase Decision Framework
 

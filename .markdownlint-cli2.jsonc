@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.23.0/schema/markdownlint-cli2-config-schema.json",
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.23.2/schema/markdownlint-cli2-config-schema.json",
   "config": {
     "line-length": false,
     "no-inline-html": {
@@ -18,7 +18,7 @@
     "no-emphasis-as-heading": true,
     "docs/no-box-drawing": true
   },
-  "customRules": ["./scripts/no-box-drawing.ts"],
+  "customRules": ["./rules/no-box-drawing.ts"],
   "gitignore": ".gitignore",
   "globs": ["**/*.md"]
 }

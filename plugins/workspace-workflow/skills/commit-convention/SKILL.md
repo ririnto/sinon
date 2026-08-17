@@ -149,25 +149,25 @@ Reverting to stable version pending investigation.
 
 Ask these questions in order:
 
-1. **Does the code behavior change?**
+1. Does the code behavior change?
    - If no: `docs`, `style`, `refactor`, `test`, `build`, `ci`, or `chore`.
    - If yes: `feat`, `fix`, or `perf`.
 
-2. **If behavior changed, is it an improvement or a correction?**
+2. If behavior changed, is it an improvement or a correction?
    - Improvement (new capability): `feat`.
    - Correction (removes error): `fix`.
-   - Speed/memory (no new capability): `perf`.
+   - Speed or memory (no new capability): `perf`.
 
-3. **If no behavior change, what kind of change is it?**
+3. If no behavior change, what kind of change is it?
    - Documentation only: `docs`.
    - Formatting or style (spaces, quotes, indentation): `style`.
    - Restructuring code without changing behavior: `refactor`.
-   - Adding/modifying tests only: `test`.
-   - Dependencies, build config: `build`.
-   - CI/CD, automation: `ci`.
-   - Cleanup, version bumps, other maintenance: `chore`.
+   - Adding or modifying tests only: `test`.
+   - Dependencies or build config: `build`.
+   - CI/CD or automation: `ci`.
+   - Cleanup, version bumps, or other maintenance: `chore`.
 
-4. **Is this reverting a previous commit?**
+4. Is this reverting a previous commit?
    - Use `revert`.
 
 ## Choosing a Scope
@@ -193,7 +193,7 @@ All tests pass.
 
 ## When to Split a Commit
 
-Split a change into multiple commits when the staged changes contain **more than one independent concern**.
+Split a change into multiple commits when the staged changes contain more than one independent concern.
 Independent concerns are changes that:
 
 - Fix different bugs.
@@ -206,8 +206,7 @@ Independent concerns are changes that:
 - Commit message reads "and" (e.g., "add user login and fix sidebar layout").
 - `git diff --staged` shows changes in unrelated modules or files.
 - Changes serve different purposes (feature + cosmetic cleanup + test refactor).
-- One concern is critical.
-  - Another is optional for release.
+- One concern is required for release, while another is optional.
 
 Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`.
 These SHOULD be split into two commits.
@@ -322,13 +321,13 @@ git commit -m "type(scope): message for file2"
 
 A commit message MUST be:
 
-- **Valid Conventional Commit format**: type, optional scope, subject.
-- **Imperative mood**: verbs are commands ("add", "fix", "remove"), not past tense.
-- **Concise subject**: 50 chars or fewer preferred, max 72.
-- **No trailing period** on subject.
-- **Blank line** between subject and body (if body exists).
-- **Wrapped body** at 72 characters for readability.
-- **Single logical unit**: one feature, fix, refactor, or doc update per commit.
-- **Language consistent**: English by default.
+- Valid Conventional Commit format: type, optional scope, subject.
+- Imperative mood: verbs are commands ("add", "fix", "remove"), not past tense.
+- Concise subject: 50 chars or fewer preferred, max 72.
+- No trailing period on subject.
+- Blank line between subject and body (if body exists).
+- Wrapped body at 72 characters for readability.
+- Single logical unit: one feature, fix, refactor, or doc update per commit.
+- Consistent language: English by default.
   - If translated, entire message MUST be consistent.
   - Code identifiers retain original form.

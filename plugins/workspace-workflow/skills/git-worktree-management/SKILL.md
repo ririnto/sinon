@@ -26,16 +26,16 @@ A worktree is not a clone: the `.git` of a linked worktree is a file that points
 
 The following invariants govern safe worktree use:
 
-- **One worktree per branch**: The same branch MUST NOT be checked out in two worktrees or in the base repository simultaneously.
+- One worktree per branch: The same branch MUST NOT be checked out in two worktrees or in the base repository simultaneously.
   - Violation results in HEAD pointer conflicts and data loss risk.
-- **Base repo independence**: The base repository (where you ran `git worktree add`) MUST remain a valid working tree.
+- Base repo independence: The base repository (where you ran `git worktree add`) MUST remain a valid working tree.
   - It MUST NOT be converted or reserved for listing only.
-- **Shared object store and refs**: All worktrees of one repository MUST share the same object database (`.git/objects/`) and the same ref store.
+- Shared object store and refs: All worktrees of one repository MUST share the same object database (`.git/objects/`) and the same ref store.
   - Deleting a worktree MUST NOT delete commits or branch refs.
-- **Per-worktree isolation**: Each worktree has its own working tree, index, and HEAD.
+- Per-worktree isolation: Each worktree has its own working tree, index, and HEAD.
   - Uncommitted working-tree and staged changes MUST NOT appear in another worktree.
   - Commits, by contrast, are shared immediately: once committed in one worktree, the new objects and any branch update are visible in every other worktree of the same repository without a fetch.
-- **No nested worktrees**: Worktrees MUST NOT be nested inside each other or inside the base repository directory.
+- No nested worktrees: Worktrees MUST NOT be nested inside each other or inside the base repository directory.
 
 ## Procedure: Create an Isolated Worktree
 
@@ -160,7 +160,7 @@ Columns:
 
 - Deletes the worktree directory from the filesystem.
 - Clears the internal worktree reference.
-- Does **not** delete the branch itself or any commits.
+- Does not delete the branch itself or any commits.
 
 ### Restoring the branch after worktree removal
 
@@ -281,17 +281,17 @@ git worktree remove worktrees/spike-new-api
 
 ## Pitfalls
 
-- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "fatal: '{{branch}}' is already used by worktree at '{{path}}'".
+- Same branch in two worktrees: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "fatal: '{{branch}}' is already used by worktree at '{{path}}'".
   - Use `git worktree list` before adding.
-- **Forgetting to exit the worktree before removing**: If you try to remove a worktree while inside it, removal fails.
+- Forgetting to exit the worktree before removing: If you try to remove a worktree while inside it, removal fails.
   - Always `cd` out first.
-- **Stale worktree metadata**: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains.
+- Stale worktree metadata: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains.
   - Use `git worktree prune` to clean up.
-- **Nested worktrees**: Do not create a worktree inside another worktree's directory.
+- Nested worktrees: Do not create a worktree inside another worktree's directory.
   - Keep worktrees as siblings in a flat structure (e.g., `worktrees/branch-a`, `worktrees/branch-b`).
-- **Base repository as a second-class worktree**: The base repository is a full worktree and can be used for development.
+- Base repository as a second-class worktree: The base repository is a full worktree and can be used for development.
   - Do not treat it as "reserved for listing only".
-- **Assuming commits stay local to a worktree**: Uncommitted working-tree and staged changes are isolated to that worktree, but once you commit, the new commit and any branch update are shared across all worktrees of the same repository immediately.
+- Assuming commits stay local to a worktree: Uncommitted working-tree and staged changes are isolated to that worktree, but once you commit, the new commit and any branch update are shared across all worktrees of the same repository immediately.
   - `git push` and `git fetch` move objects and refs between different repositories (local and remote), not between worktrees of one repository.
 
 ## First Safe Commands

@@ -26,15 +26,15 @@ This skill covers the inspection, classification, and remediation steps that occ
 
 The following invariants ensure safe, reproducible working trees:
 
-- **Clean start**: Before starting a task in a working tree, you MUST verify `git status` shows "nothing to commit, working tree clean" or an acceptable baseline state (e.g., intentional untracked build artifacts in `.gitignore`).
-- **Staged/unstaged separation**: You MUST know the difference between staged changes (ready to commit) and unstaged changes (not yet decided).
+- Clean start: Before starting a task in a working tree, you MUST verify `git status` shows "nothing to commit, working tree clean" or an acceptable baseline state (e.g., intentional untracked build artifacts in `.gitignore`).
+- Staged/unstaged separation: You MUST know the difference between staged changes (ready to commit) and unstaged changes (not yet decided).
   - You MUST NOT mix unrelated changes in a single commit.
-- **Branch sync**: Before pushing, you MUST verify the branch is even with or ahead of its upstream.
+- Branch sync: Before pushing, you MUST verify the branch is even with or ahead of its upstream.
   - A branch that is behind its upstream before you push will fail or cause unexpected merge commits.
-- **Untracked discipline**: Untracked files are ignored by Git but can clutter the tree.
+- Untracked discipline: Untracked files are ignored by Git but can clutter the tree.
   - You SHOULD consciously decide whether to commit, add to `.gitignore`, or delete each untracked file.
-- **Stash as isolation tool**: You SHOULD use stashing to temporarily set aside work without committing it, allowing you to switch contexts or verify a clean state.
-- **No partial publication**: You MUST NOT push a branch that is not clean at the tip (all work committed, nothing staged, no blocking untracked files).
+- Stash as isolation tool: You SHOULD use stashing to temporarily set aside work without committing it, allowing you to switch contexts or verify a clean state.
+- No partial publication: You MUST NOT push a branch that is not clean at the tip (all work committed, nothing staged, no blocking untracked files).
 
 ## Procedure: Inspect Working Tree Status
 
@@ -245,13 +245,13 @@ Output (untracked files start with `??`):
 
 For each untracked file:
 
-1. **Commit** if it is part of the source tree and should be tracked by everyone:
+1. Commit if it is part of the source tree and should be tracked by everyone:
 
     ```sh
     git add <file>
     ```
 
-1. **Ignore** if it is a build artifact or local file that should never be tracked:
+1. Ignore if it is a build artifact or local file that should never be tracked:
 
     ```sh
     echo "<pattern>" >> .gitignore
@@ -268,7 +268,7 @@ For each untracked file:
     node_modules/
     ```
 
-1. **Delete** if it is temporary and not needed:
+1. Delete if it is temporary and not needed:
 
     ```sh
     rm <file>
@@ -441,19 +441,19 @@ Before creating a pull request or merge request:
 
 ## Pitfalls
 
-- **Mixed-purpose commits**: Staging both feature work and unrelated cleanup in one commit makes the history harder to bisect.
+- Mixed-purpose commits: Staging both feature work and unrelated cleanup in one commit makes the history harder to bisect.
   - Keep commits focused on one logical unit.
-- **Forgetting to pull before pushing**: If your branch is behind the upstream, your push may fail or require a force-push.
+- Forgetting to pull before pushing: If your branch is behind the upstream, your push may fail or require a force-push.
   - Always check `git status -s -b` before pushing.
-- **Stashing and forgetting**: Stashed changes are not automatically restored.
+- Stashing and forgetting: Stashed changes are not automatically restored.
   - If you stash and switch contexts, remember to apply the stash when you return.
   - List stashes occasionally to avoid orphans.
-- **Untracked files cluttering the tree**: If you leave untracked build artifacts or temporary files, they can interfere with branch switching and make the tree look dirtier than it is.
+- Untracked files cluttering the tree: If you leave untracked build artifacts or temporary files, they can interfere with branch switching and make the tree look dirtier than it is.
   - Decide consciously: commit, ignore, or delete.
-- **Partial commits**: Never commit half a feature.
+- Partial commits: Never commit half a feature.
   - If you stage only part of a file's changes, the commit may be logically incomplete.
   - Review staged changes with `git diff --cached` before committing.
-- **Not verifying the branch name before work**: If you accidentally work on the wrong branch, you may publish to the wrong place.
+- Not verifying the branch name before work: If you accidentally work on the wrong branch, you may publish to the wrong place.
   - Always confirm `git status` shows the intended branch name at the start.
 
 ## First Safe Commands
@@ -535,9 +535,9 @@ Same format as `--cached` but shows unstaged (working directory) changes instead
 `<XY>` is a two-letter status code followed by a space and the path.
 The two letters have three classes:
 
-- **Normal (no merge, or merge succeeded)**: `X` is the status in the index (staged), `Y` is the status in the working tree (unstaged).
-- **Unmerged (merge conflict not yet resolved)**: `X` and `Y` show the state each side introduced relative to the common ancestor (for example `UU` both modified, `AA` both added, `DD` both deleted, `AU` added by us, `UA` added by them, `DU` deleted by us, `UD` deleted by them).
-- **Untracked and ignored**: `X` and `Y` use the same letter (`??` untracked; `!!` ignored with `--ignored`).
+- Normal (no merge, or merge succeeded): `X` is the status in the index (staged), `Y` is the status in the working tree (unstaged).
+- Unmerged (merge conflict not yet resolved): `X` and `Y` show the state each side introduced relative to the common ancestor (for example `UU` both modified, `AA` both added, `DD` both deleted, `AU` added by us, `UA` added by them, `DU` deleted by us, `UD` deleted by them).
+- Untracked and ignored: `X` and `Y` use the same letter (`??` untracked; `!!` ignored with `--ignored`).
 
 Normal-case codes in full:
 

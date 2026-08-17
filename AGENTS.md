@@ -12,6 +12,7 @@ Sinon publishes Claude Code plugins and portable Agent Skills.
 - `plugins/` contains publishable packages.
 - `.claude-plugin/marketplace.json` lists local package roots and external catalog registrations.
 - `scripts/` contains repository validation checks.
+- `rules/` contains repository Markdown custom lint rules.
 - Preserve existing named top-level components.
 - Each top-level component MUST have one documented responsibility.
 - Adding, removing, or moving a top-level component MUST update architecture, dependencies, consumers, and relevant documentation.
