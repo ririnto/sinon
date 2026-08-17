@@ -210,11 +210,11 @@ global:
 
 ## Suppression Scope: Config versus Runtime
 
-Alertmanager has three mechanisms that stop notifications, and they live in different places:
+Alertmanager stops notifications through three mechanisms:
 
-- **Inhibition** (config): top-level `inhibit_rules` mute a target alert while a matching source alert fires.
-- **Mute and active time intervals** (config): `mute_time_intervals` and `active_time_intervals` on routes suppress by schedule.
-- **Silences** (runtime): created through the Alertmanager API (`POST /api/v2/silences`) or `amtool silence add`, matched by label matchers with a start and end time, and stored in Alertmanager state that is replicated across the HA cluster.
+- Inhibition (config): top-level `inhibit_rules` mute a target alert while a matching source alert fires.
+- Mute and active time intervals (config): `mute_time_intervals` and `active_time_intervals` on routes suppress by schedule.
+- Silences (runtime): created through the Alertmanager API (`POST /api/v2/silences`) or `amtool silence add`, matched by label matchers with a start and end time, and stored in Alertmanager state that is replicated across the HA cluster.
 
 This skill owns the two config-time mechanisms.
 Runtime silences are operational state outside config authoring: create, list, and expire them through the API or `amtool`, never by editing the config file.
