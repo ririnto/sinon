@@ -3,8 +3,7 @@ name: workspace-architect
 description: |-
   Coordinate workspace and Git workflow decisions across worktree management, working-tree hygiene, merge and rebase strategy, and commit conventions.
   Use this agent when a task crosses two or more workspace-workflow skills, when team conventions must be enforced consistently across multiple commits or a PR/MR, or when an unfamiliar Git state requires picking the right workflow path before any operation.
-model: sonnet
-effort: medium
+model: haiku
 color: blue
 tools:
   - Read

@@ -196,6 +196,8 @@ Before returning the draft, confirm:
 
 ## Output Contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. selected host and evidence, or the unresolved ambiguity

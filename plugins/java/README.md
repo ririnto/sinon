@@ -34,7 +34,7 @@ They should not stop at pointing toward other repositories or documentation when
 - `java-architect`: coordinates Java language, testing, dependency, performance, and API design
   decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
 
-`java-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
+`java-architect` is a read-only leaf domain router for cross-skill Java decisions.
 It may load Java skills but does not delegate to other agents.
 
 ## Skill Selection
@@ -84,7 +84,6 @@ plugins/java/
 +-- scripts/
 |   +-- has-lombok.sh
 |   +-- jdtls-wrapper.sh
-|   +-- test-jdtls-wrapper.sh
 +-- skills/
     +-- java-dependency-versioning/
     +-- java-language-design/
@@ -97,7 +96,7 @@ plugins/java/
 
 - The plugin ships five reusable Java skills under `skills/`.
 - `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
-- `scripts/has-lombok.sh` supports Lombok source selection for the wrapper, and `scripts/test-jdtls-wrapper.sh` verifies wrapper behavior.
+- `scripts/has-lombok.sh` supports Lombok source selection for the wrapper.
 - The plugin ships one plugin-root agent: `java-architect` for Java language, testing, dependency, performance, and API design decisions.
 
 ## Design Principles

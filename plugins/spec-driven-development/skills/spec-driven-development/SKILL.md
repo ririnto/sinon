@@ -244,6 +244,8 @@ Use this plugin guidance when maintaining the packaged runtime and documentation
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The spec artifacts created, revised, or reviewed, with relative paths under `spec/`

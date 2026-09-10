@@ -372,6 +372,8 @@ bookById.title
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The chosen schema and controller mapping shape for the operation

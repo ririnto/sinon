@@ -35,7 +35,7 @@ These skills compose into the everyday loop: prepare a clean working tree (optio
 - commit-message-architect: drafts Conventional Commit messages from staged changes and evaluates commit cohesion and readiness.
 - pr-body-architect: drafts pull request or merge request bodies that preserve repository templates and describe real change intent.
 
-All three agents are substantive read-only leaves using Claude Sonnet with medium effort.
+All three agents are read-only leaves for workspace decisions.
 They may load workspace skills but do not delegate, mutate Git state, or publish.
 
 ## Runtime Model
