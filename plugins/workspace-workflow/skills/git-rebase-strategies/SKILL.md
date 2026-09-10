@@ -35,8 +35,10 @@ This skill does not cover:
 
 These invariants govern safe rebase practice:
 
-- Working tree MUST be clean before starting a rebase.
-  - Commit or stash all changes.
+- Preserve uncommitted work before starting a rebase: the working tree MUST be clean.
+  - A rebase is a destructive ref transition: commit the work first, isolate it (stash or worktree), or name an explicit preserve path.
+  - Never discard or overwrite uncommitted work to start a rebase.
+  - A purely local rebase with no upstream may skip the fetch.
 - Shared branches SHOULD NOT be rebased unless the entire team agrees and understands force-push implications.
   - Rebasing shared history and then force-pushing will erase commits from teammates' local branches.
 - Force-push MUST only be used with `--force-with-lease` to prevent overwriting remote changes you have not seen.
@@ -365,6 +367,8 @@ git reset --hard HEAD@{5}
 This returns to the state 5 positions back in your reflog.
 
 ## Output Contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

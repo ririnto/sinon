@@ -267,6 +267,8 @@ Check these pass/fail conditions before you stop:
 
 ## Output Contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The chosen async shape and why it matches the contract

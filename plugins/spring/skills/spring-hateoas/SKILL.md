@@ -371,6 +371,8 @@ orders
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The chosen representation type and why it fits the endpoint contract

@@ -10,8 +10,11 @@ description: >-
 ## Official Baseline
 
 - Use the official Reactor Netty 1.3.x reference guide for this skill.
-  - This review checked `reactor-netty-core` 1.3.6 and `reactor-netty-http` 1.3.6.
-- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+  - This review checked `reactor-netty-core` 1.3.7 and `reactor-netty-http` 1.3.7 on 2026-09-11.
+  - The stable `v1.3.7` release is part of the 2025.0.7 Release Train.
+- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
+  - Confirmed `reactor-bom` 2025.0.7 in Maven Central on 2026-09-11.
+- Confirm the target project's resolved Reactor Netty version before using version-sensitive APIs.
 - Keep HTTP, TCP, UDP, and QUIC aligned with the Reactor Netty reference guide chapters for the same release line.
 
 Build one Reactor Netty application path end to end: pick the transport, configure the builder, compose inbound and outbound flow, and shut resources down cleanly without dropping into low-level Netty internals.
@@ -348,6 +351,8 @@ Open these only when the common path is no longer enough:
 | WebSocket client or server flow | [websocket.md](./references/websocket.md) |
 
 ## Output contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

@@ -32,6 +32,8 @@ The common case is writing the smallest failing JUnit 5 test, making the smalles
 - The root declaration is a type, not a top-level method or field.
 - Use `@Nested` when one behavior splits cleanly by scenario context.
 - Use `@Timeout` for declarative per-test time limits and `assertTimeoutPreemptively` only when preemptive interruption is actually required.
+- Compare full serialized output after parsing structured formats into exact fields or elements.
+  - Use containment only when membership itself is the observable contract.
 
 ## Procedure
 
@@ -326,6 +328,8 @@ tasks.test {
 - If using `assertTimeoutPreemptively`, warn that it runs work on a separate thread and may break `ThreadLocal`-sensitive code such as transaction-bound framework tests.
 
 ## Output contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

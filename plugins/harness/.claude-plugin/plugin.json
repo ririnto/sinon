@@ -3,17 +3,15 @@
   "author": {
     "name": "ririnto"
   },
-  "description": "Install and evolve project harness assets for agent instructions, docs, templates, project skills, stack validators, CI snippets, and opt-in Git hook templates. The active host supplies agents and Harness requires capability-based delegation.",
+  "description": "Shared implementation and review guidance for agent-driven engineering work, with portable skills for implementing and reviewing changes.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
   "keywords": [
     "harness",
     "claude-code",
-    "automation",
     "skills",
-    "ci",
-    "validation",
-    "docs",
-    "repository-harness"
+    "implementation",
+    "review",
+    "engineering-rules"
   ],
   "license": "Apache-2.0",
   "name": "harness",

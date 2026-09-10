@@ -24,9 +24,9 @@ It does not cover:
 
 ## Operating Rules
 
-- Every commit MUST contain exactly one logical change.
-  - A logical change is a single feature, bug fix, documentation update, or refactor - not a mix of independent concerns.
-- The first line (subject) MUST be concise, imperative mood, no trailing period.
+- Keep each commit to one logical change when the task and repository workflow support that split.
+  - A logical change is a single feature, bug fix, documentation update, or refactor rather than a mix of independent concerns.
+- Keep the first line concise, imperative, and free of a trailing period.
   - SHOULD be 50 characters or fewer.
     - MUST NOT exceed 72 characters.
 - If a commit has a body, it MUST begin with a blank line after the subject.
@@ -318,7 +318,9 @@ git commit -m "type(scope): message for file2"
 
 ## Output Contract
 
-A commit message MUST be:
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
+A commit message typically includes:
 
 - Valid Conventional Commit format: type, optional scope, subject.
 - Imperative mood: verbs are commands ("add", "fix", "remove"), not past tense.
@@ -326,7 +328,7 @@ A commit message MUST be:
 - No trailing period on subject.
 - Blank line between subject and body (if body exists).
 - Wrapped body at 72 characters for readability.
-- Single logical unit: one feature, fix, refactor, or doc update per commit.
+- One logical unit per commit.
 - Consistent language: English by default.
-  - If translated, entire message MUST be consistent.
-  - Code identifiers retain original form.
+  - If translated, keep the entire message consistent.
+  - Keep code identifiers in their original form.

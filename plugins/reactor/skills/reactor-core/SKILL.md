@@ -13,7 +13,8 @@ description: >-
 
 - Use the official Project Reactor 3.8.x reference guide for this skill.
   - This review checked `reactor-core` 3.8.6.
-- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
+  - Confirmed `reactor-bom` 2025.0.7 in Maven Central on 2026-09-11.
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
 
@@ -341,6 +342,8 @@ Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted 
 | assembly tracing, global hooks, or thread-hop debugging is the real blocker | Open the `reactor-scheduling` skill. |
 
 ## Output contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

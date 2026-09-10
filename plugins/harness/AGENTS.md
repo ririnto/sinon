@@ -1,30 +1,22 @@
 # Repository Guidelines
 
-Harness contains agent-readable composition guidance and packaged target resource bundles.
+Harness contains the shared implementation and review skills and their canonical rules document.
 
-## Bundle Boundary
+## Component Boundary
 
-The harness package owns composition and configuration guidance.
-`skills/harness-install/assets/` contains flat common, tool, and environment bundles.
-
-- `common/` contains only resources copied to every target.
-- `common/` MUST NOT contain root `AGENTS.md` or `CLAUDE.md`.
-- Each tool bundle owns its root `AGENTS.md`, root `CLAUDE.md`, and native configuration.
-- `github/` owns `.github/` resources.
-- `gitlab/` owns `.gitlab/` resources.
-
-Chosen bundles are copied as complete trees.
-Do not add file-level selection, generated command layers, or parallel setup surfaces.
+- `skills/implement/SKILL.md` and `skills/review/SKILL.md` are the only skills; the plugin ships no agents, settings adapters, hooks, or asset bundles.
+- `docs/rules.md` owns every implementation, design, frontend, language, and test-quality rule.
+- Each skill owns only its procedure and references `docs/rules.md` for the rules; a rule appears in exactly one file.
+- Changing a rule updates `docs/rules.md` and both skill consumers in the same change.
+- Skill bodies stay host-neutral: they discover the target repository's actual root instruction file per active host and never prescribe a universal filename.
 
 ## Change Discipline
 
-Keep packaged target content reproducible and package-local.
-Do not mirror target-owned files into the marketplace root.
-Adding, removing, or moving a resource must update its bundle ownership and consuming guidance.
-Preserve existing target content unless replacement is explicitly approved.
+Make the smallest change that satisfies the acceptance criteria and preserve unrelated work.
+Plans belong to GitHub or GitLab issues; execution handoffs stay in agent context.
+Do not add legacy compatibility surfaces, scratch plan files, or bundled target templates.
 
-## Asset Safety
+## Validation
 
-Review copied hooks, settings, CI resources, commands, and configuration for filesystem, network, credential, and publication risks.
-Do not add generated caches, vendored dependencies, or local build output to a bundle.
-Run repository checks, plugin validation, and representative whole-bundle copy smoke checks after bundle changes.
+Run `claude plugin validate plugins/harness` after changing this package.
+Keep skill frontmatter valid and machine-consumable for the host skill loader.
