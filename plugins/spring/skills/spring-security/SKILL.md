@@ -447,6 +447,8 @@ SCOPE_invoices:write
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The chosen servlet security shape and authentication style

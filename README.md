@@ -33,8 +33,8 @@ Optional assets live beside the manifest at the plugin root.
 Common plugin assets include:
 
 - `README.md`.
-- `agents/`.
 - `skills/`.
+- `agents/`.
 - `hooks/`.
 - `.mcp.json`.
 - `settings.json`.
@@ -197,6 +197,6 @@ The repository root and plugins whose manifests declare `MIT` use the [MIT Licen
 
 The following plugins use their local canonical Apache-2.0 license:
 
-- [harness](./plugins/harness/LICENSE), with attribution notes in [THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md)
+- [harness](./plugins/harness/LICENSE)
 - [spec-driven-development](./plugins/spec-driven-development/LICENSE)
 - [workspace-workflow](./plugins/workspace-workflow/LICENSE)

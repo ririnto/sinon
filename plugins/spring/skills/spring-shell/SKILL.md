@@ -524,6 +524,8 @@ Use `@Arguments` for multi-valued input.
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The registered command shape, including names, groups, help text, options, defaults, and availability behavior

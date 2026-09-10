@@ -262,6 +262,8 @@ jhsdb jmap --binaryheap --dumpfile /tmp/heap.hprof --pid <pid>
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The classified bottleneck type (CPU, I/O, contention, or allocation).

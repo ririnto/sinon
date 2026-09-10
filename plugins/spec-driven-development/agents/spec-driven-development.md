@@ -3,8 +3,7 @@ name: spec-driven-development
 description: >-
   Drive an explicitly requested end-to-end specification-driven lifecycle through research, spec approval, implementation, and verification gates.
   Use this agent when the user asks to run or resume the full gated workflow against `SPEC.md`; do not use it for standalone specification authoring or review.
-model: sonnet
-effort: medium
+model: haiku
 color: purple
 tools:
   - Read

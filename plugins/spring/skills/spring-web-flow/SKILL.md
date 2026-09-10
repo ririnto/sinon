@@ -216,6 +216,8 @@ Add separate tests for validation retention, backtracking, recovery, and subflow
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The flow XML, flow id, start URL, and event names

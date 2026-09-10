@@ -3,8 +3,7 @@ name: java-architect
 description: |-
   Design and architect Java applications using modern language features and best practices.
   Use this agent when choosing Java language patterns, planning testing strategies, optimizing performance and concurrency, selecting dependencies, or designing API surfaces.
-model: sonnet
-effort: medium
+model: haiku
 color: green
 tools:
   - Read

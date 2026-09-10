@@ -158,6 +158,8 @@ curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The resolved `groupId:artifactId` coordinate and either the verified version or an explicit placeholder/version-reference note.
