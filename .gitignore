@@ -186,11 +186,6 @@ bin/
 hs_err_pid*
 replay_pid*
 
-# Harness local generated scratch paths
-**/docs/generated/.tmp/
-**/scripts/harness/.tmp/
-plugins/harness/skills/harness-install/assets/**/bin/
-
 # Packaged artifacts
 *.tgz
 

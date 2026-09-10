@@ -490,6 +490,8 @@ For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of con
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The chosen LDAP access surface and why it fits the task

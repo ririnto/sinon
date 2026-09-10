@@ -15,11 +15,13 @@ Observability Assets is a shared, skill-first plugin for Prometheus and Grafana 
 
 ## Verified Upstream Baseline
 
-This review checked these upstream versions on 2026-06-21:
+This review checked these upstream versions on 2026-09-11:
 
-- Prometheus 3.12.0, released on 2026-05-28.
-- Alertmanager 0.33.0, released on 2026-06-12.
-- Grafana 13.0.2, released on 2026-06-02.
+- Prometheus 3.14.0, released on 2026-08-17 and published on GitHub on 2026-08-18.
+- Alertmanager 0.34.0, released and published on GitHub on 2026-08-16.
+- Grafana 13.2.1, published on GitHub on 2026-09-02.
+
+The release date is used when upstream states one; otherwise, the GitHub publication date is reported.
 
 Treat these as documentation review baselines, not dependency pins.
 Target deployments may stay on an older supported line, but version-sensitive features need a local version check before use.
@@ -37,7 +39,7 @@ Target deployments may stay on an older supported line, but version-sensitive fe
 
 - `observability-architect`: alerting, dashboard, SLO, and metrics architecture decisions.
 
-`observability-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
+`observability-architect` is a read-only leaf domain router for cross-skill observability decisions.
 It may load observability skills but does not delegate to other agents.
 
 ## When to Use Which Skill

@@ -353,6 +353,8 @@ Declare these beans to customize the auto-configured defaults without replacing 
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The queue, exchange, binding, and routing-key contract

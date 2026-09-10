@@ -46,7 +46,7 @@ Spring is a development plugin with practical skills for Spring Boot, Web, Data,
 
 - `spring-architect`: Spring architecture decisions, component boundaries, and cross-skill design routing.
 
-`spring-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
+`spring-architect` is a read-only leaf domain router for cross-skill Spring decisions.
 It may load Spring skills but does not delegate to other agents.
 
 ## When to Use Which Skill

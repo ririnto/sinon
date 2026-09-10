@@ -3,8 +3,7 @@ name: pr-body-architect
 description: |-
   Draft pull request or merge request bodies that fit repository templates and describe the real change intent.
   Use this agent when you need to write a PR description, fill a pull request body, compose a merge request body, or adapt an existing repository template to your actual changes.
-model: sonnet
-effort: medium
+model: haiku
 color: cyan
 tools:
   - Read
@@ -89,58 +88,12 @@ git diff <base>...HEAD
 - Separate the target branch from the repository default branch.
 - Report stale remote-tracking refs and inaccessible host-managed templates.
 
-## Fallback Body
-
-```markdown
-## Summary
-
-- <evidence-backed change>
-
-## Why
-
-- <problem, requirement, or unconfirmed author rationale>
-
-## Changes
-
-- <grouped implementation fact>
-
-## Validation
-
-- <command or manual action and actual result>
-
-## Risks
-
-- <specific risk or None>
-
-## Unverified Items
-
-- <pending item or None>
-```
-
-Follow the user's language and repository title convention.
-Do not invent motivation, validation, labels, reviewers, or milestone values.
-
-## Stop Conditions
-
-Stop and return a focused blocker when:
-
-- multiple publication hosts remain plausible
-- target branch evidence conflicts
-- multiple templates apply without a selection rule
-- the diff contains unrelated review units
-- required validation evidence is unavailable
-- publication is requested without top-level authority
-
 ## Output
 
-Return:
+Load `workspace-workflow:pr-mr-convention` for the publication workflow, fallback body, validation evidence, and response guidance.
+Return the draft and any publication blocker to the user-facing session.
 
-1. host evidence or unresolved ambiguity
-2. target and default branches
-3. template source
-4. title
-5. complete body
-6. draft or ready recommendation
-7. confirmed metadata suggestions
-8. validation, risks, and unverified items
-9. publication blocker or next authorized command
+## Scope Boundary
+
+This agent routes PR/MR drafting and host selection.
+The `workspace-workflow:pr-mr-convention` skill owns the body template and normative publication rules.

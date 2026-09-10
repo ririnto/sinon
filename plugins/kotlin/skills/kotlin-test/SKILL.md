@@ -32,6 +32,8 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 - MUST use `runTest` when coroutine semantics actually matter.
 - SHOULD keep Flow assertions bounded with `first()`, `single()`, or `take(n).toList()`.
 - SHOULD use `assertFailsWith<T>()` when exception type is part of the contract.
+- MUST compare serialized output with full equality after parsing structured formats into exact fields or elements.
+  - Use containment only when membership itself is the observable contract.
 - MUST avoid real sleeps when deterministic scheduler control can prove the same behavior.
 - SHOULD keep mocks at collaboration boundaries and keep simple values real.
 
@@ -214,6 +216,8 @@ Check these pass/fail conditions before you stop:
 | using `assertEquals` on lists when element order is unstable | structural comparison fails on reorderings | use `assertContains` or sort before `assertEquals` |
 
 ## Output Contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

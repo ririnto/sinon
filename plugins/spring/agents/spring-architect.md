@@ -3,8 +3,7 @@ name: spring-architect
 description: |-
   Design and architect Spring Boot microservices and applications.
   Use this agent when choosing between Spring Boot web stacks, designing data access or security strategies, integrating external services (messaging, cloud, tracing), or planning application structure and module selection.
-model: sonnet
-effort: medium
+model: haiku
 color: green
 tools:
   - Read

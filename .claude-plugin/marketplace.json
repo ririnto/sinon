@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "description": "Claude catalog view for the Sinon marketplace.",
   "name": "sinon",
-  "version": "2026.08.17.00",
+  "version": "2026.09.11.00",
   "owner": {
     "email": "ririnto@kakao.com",
     "name": "ririnto"
@@ -23,7 +23,7 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Install and evolve project harness assets for agent instructions, docs, templates, project skills, stack validators, CI snippets, and opt-in Git hook templates. The active host supplies agents and Harness requires capability-based delegation.",
+      "description": "Shared implementation and review guidance for agent-driven engineering work, with portable skills for implementing and reviewing changes.",
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness"

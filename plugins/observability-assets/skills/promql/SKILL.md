@@ -193,7 +193,7 @@ Runs an instant query over a range at a given resolution, producing a range vect
 ```
 
 `<range_expr>`, `<resolution_expr>`, and `<offset_expr>` accept numeric or duration literals such as `3600` and `1h`.
-On the repository's Prometheus 3.12.0 review baseline, duration arithmetic such as `5m * 2`, and the `step()` and `range()` duration expressions, require `--enable-feature=promql-duration-expr`.
+On the repository's Prometheus 3.14.0 review baseline, duration arithmetic such as `5m * 2`, and the `step()` and `range()` duration expressions, require `--enable-feature=promql-duration-expr`.
 Duration expressions used with `offset` must be parenthesized, such as `offset (step() * 2)`.
 Resolution defaults to the global evaluation interval if omitted.
 
@@ -766,6 +766,8 @@ Validate the common case with these checks:
 - the final expression is readable enough that another operator can review it quickly
 
 ## Output contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 
