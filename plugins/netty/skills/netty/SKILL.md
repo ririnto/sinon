@@ -10,9 +10,9 @@ description: >-
 ## Official Baseline
 
 - Use the official Netty 4.2.x.Final line for new work.
-  - This review checked `io.netty:netty-bom` 4.2.16.Final and GitHub release `netty-4.2.16.Final`.
+  - This review checked `io.netty:netty-bom` 4.2.18.Final in Maven Central and GitHub release `netty-4.2.18.Final` on 2026-09-11.
 - Treat Netty 4.1.x.Final as the stable maintenance line for existing deployments.
-  - This review checked `netty-4.1.136.Final`.
+  - This review checked `io.netty:netty-bom` 4.1.138.Final in Maven Central and GitHub release `netty-4.1.138.Final` on 2026-09-11.
 - Treat Netty 5 as a development line until the official Netty project marks it stable.
 
 Build one Netty 4.x application path end to end: choose transport, configure bootstrap, assemble the pipeline, handle lifecycle events, and keep buffer ownership correct.
@@ -413,6 +413,8 @@ Open these only when the common path is no longer enough:
 | heartbeat, timeout, or stale connection handling | [idle-handling.md](./references/idle-handling.md) |
 
 ## Output contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

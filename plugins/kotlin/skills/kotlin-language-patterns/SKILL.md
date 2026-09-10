@@ -26,10 +26,14 @@ Keep the common path focused on null safety, type modeling, extensions, collecti
 - MUST pin platform-type nullability at the Java interop boundary.
   - Never let `T!` propagate inward.
 - SHOULD prefer `val` by default.
+  - `val` prevents reassignment but does not make the referenced object or collection immutable.
   - Use `var` only for backing fields, JavaBean compatibility, or circular construction dependencies.
+- SHOULD preserve evaluation order, evaluation count, exception timing, mutable snapshots, and closure capture when changing a binding to `val`.
 - SHOULD choose the smallest type shape that matches the domain.
 - SHOULD expose read-only collection interfaces from public APIs rather than mutable variants.
 - SHOULD prefer direct string helpers before introducing `Regex`.
+- SHOULD pass an existing function reference instead of wrapping it in a lambda when no adaptation is needed.
+- SHOULD prefer `tailrec` over a loop when the recursive call is in real tail position and semantics and readability hold.
 - SHOULD keep collection pipelines eager by default and move to `Sequence` only when laziness materially helps.
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
@@ -328,7 +332,10 @@ class AuditedSet<E>(private val delegate: MutableSet<E> = mutableSetOf()) :
 Start with `trim`, `substringBefore`, `substringAfter`, `startsWith`, `split`, or `lineSequence`.
 Use `Regex` only when pattern matching is the real requirement.
 
-Raw strings (`"""..."""`) preserve formatting and avoid escaping backslashes, which makes regex patterns and multi-line text readable:
+Raw strings (`"""..."""`) preserve formatting and avoid escaping backslashes, which makes regex patterns and multi-line text readable.
+Use them for fixed JSON or regex expectations when exact string semantics matter.
+Raw strings still interpolate `${}` expressions; write `${'$'}` when the content needs a literal dollar sign.
+A trailing newline before the closing delimiter remains part of a multi-line value, so account for it in exact comparisons.
 
 ```kotlin
 private val issuePattern = Regex("""([A-Z]+)-(\d+)""")
@@ -555,6 +562,8 @@ Check these pass/fail conditions before you stop:
 | relying on smart cast across lambda captures of `var` | compiler cannot prove the variable did not change between capture and use | capture the value in a local `val` before the lambda |
 
 ## Output Contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

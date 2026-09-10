@@ -27,9 +27,11 @@ This skill does not cover:
 
 ## Operating Rules
 
-- Clean working tree MUST be verified before merge: Run `git status` before merging.
-  - The working tree MUST show "nothing to commit, working tree clean".
-- Fetch latest before merge MUST occur: Run `git fetch` before merging to ensure you have the latest upstream state.
+- Preserve uncommitted work before merging: run `git status` before merging.
+  - A merge is a ref transition: commit the work first, isolate it (stash or worktree), or name an explicit preserve path.
+  - Never discard or overwrite uncommitted work to start a merge.
+- Fetch current upstream state before merging when a remote exists: run `git fetch` before merging.
+  - A merge with no applicable upstream may skip the fetch.
 - Pushed branches MUST NOT be force-pushed after merge: Once a branch is merged and pushed, do not use `git push --force`.
   - Use `git revert` instead.
 - Merge commits SHOULD have clear intent: Add `-m` message to merge commits (beyond the default).
@@ -555,34 +557,36 @@ git merge --abort
 
 ## Output Contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 ### Successful merge (no conflicts)
 
-Report:
+A useful report typically includes:
 
-1. Merge command used and output (e.g., "Fast-forward" or "Merge made by the 'ort' strategy").
-2. Commit hash of the merge (or most recent commit if fast-forward).
-3. Files changed (from `git diff --stat {{base-branch}}^..{{branch}}`).
-4. Verification: `git log --oneline -n 3` showing merge in history.
+1. Merge command used and output (for example, "Fast-forward" or "Merge made by the 'ort' strategy").
+2. Commit hash of the merge, or the most recent commit when fast-forwarded.
+3. Files changed, using `git diff --stat {{base-branch}}^..{{branch}}` when applicable.
+4. Verification from `git log --oneline -n 3`.
 
 ### Merge with conflicts
 
-Report:
+A useful report typically includes:
 
-1. Conflicted files (from `git status`).
-2. Resolution strategy (which changes were kept, combined, or deleted).
-3. Verification: `git status` showing clean tree and `git log --oneline -n 3`.
-4. Any manual edits or mergetool usage.
+1. Conflicted files from `git status`.
+2. Resolution strategy, including changes kept, combined, or deleted.
+3. Verification from `git status` and `git log --oneline -n 3`.
+4. Manual edits or mergetool usage, when applicable.
 
 ### Cleanup after merge
 
-Report:
+When cleanup is part of the task, report:
 
 1. Merge commit hash.
-2. Branch deletion (local and remote):
+2. Branch deletion commands, if authorized:
 
     ```sh
     git branch -d <feature-branch>
     git push origin --delete <feature-branch>
     ```
 
-3. Final state: `git log --graph --oneline -n 10` showing merged history.
+3. Final state from `git log --graph --oneline -n 10`.

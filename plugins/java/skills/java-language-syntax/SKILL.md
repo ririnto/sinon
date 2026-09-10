@@ -450,6 +450,8 @@ switch (status) {
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The target Java LTS baseline used for the recommendation.

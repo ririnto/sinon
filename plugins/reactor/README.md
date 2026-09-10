@@ -30,7 +30,7 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 
 - `reactor-architect`: Flux/Mono composition, scheduler, hot-source, and testing workflow decisions.
 
-`reactor-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
+`reactor-architect` is a read-only leaf domain router for cross-skill Reactor decisions.
 It may load Reactor skills but does not delegate to other agents.
 
 ## Skill Selection Tree

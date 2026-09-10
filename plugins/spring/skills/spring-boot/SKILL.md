@@ -391,6 +391,8 @@ Open [references/application-context-runner.md](references/application-context-r
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The concrete configuration, code shape, or command for the stated Spring Boot feature.

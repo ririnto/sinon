@@ -3,8 +3,7 @@ name: reactor-architect
 description: |-
   Architect Project Reactor Flux/Mono composition, scheduler strategies, and testing workflows.
   Use this agent when designing hot and cold source semantics, choosing schedulers (parallel, single, boundedElastic, immediate), implementing Sinks and ConnectableFlux for multicast patterns, or building repeatable async tests with virtual time and StepVerifier.
-model: sonnet
-effort: medium
+model: haiku
 color: green
 tools:
   - Read
