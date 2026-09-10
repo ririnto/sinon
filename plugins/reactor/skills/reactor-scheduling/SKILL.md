@@ -11,7 +11,8 @@ description: >-
 
 - Use the official Project Reactor 3.8.x scheduler reference for this skill.
   - This review checked `reactor-core` 3.8.6.
-- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
+  - Confirmed `reactor-bom` 2025.0.7 in Maven Central on 2026-09-11.
 
 Choose execution context deliberately in Reactor.
 
@@ -204,6 +205,8 @@ final class ContextAcrossThreads {
 | local `log(...)` and `checkpoint(...)` are not enough and you need global debugging hooks or assembly tracing | [Debugging and Hooks](references/debugging-and-hooks.md) |
 
 ## Output contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 Return:
 

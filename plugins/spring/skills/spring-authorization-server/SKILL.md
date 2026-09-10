@@ -223,6 +223,8 @@ Do not publish any of them until the concrete client protocol requires them and 
 
 ## Output contract
 
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+
 Return:
 
 1. The issuer, client, grant, scope, and endpoint contract

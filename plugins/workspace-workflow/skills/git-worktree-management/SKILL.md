@@ -26,16 +26,15 @@ A worktree is not a clone: the `.git` of a linked worktree is a file that points
 
 The following invariants govern safe worktree use:
 
-- One worktree per branch: The same branch MUST NOT be checked out in two worktrees or in the base repository simultaneously.
-  - Violation results in HEAD pointer conflicts and data loss risk.
-- Base repo independence: The base repository (where you ran `git worktree add`) MUST remain a valid working tree.
-  - It MUST NOT be converted or reserved for listing only.
-- Shared object store and refs: All worktrees of one repository MUST share the same object database (`.git/objects/`) and the same ref store.
-  - Deleting a worktree MUST NOT delete commits or branch refs.
-- Per-worktree isolation: Each worktree has its own working tree, index, and HEAD.
-  - Uncommitted working-tree and staged changes MUST NOT appear in another worktree.
-  - Commits, by contrast, are shared immediately: once committed in one worktree, the new objects and any branch update are visible in every other worktree of the same repository without a fetch.
-- No nested worktrees: Worktrees MUST NOT be nested inside each other or inside the base repository directory.
+- Keep one worktree per branch: do not check out the same branch in two worktrees or in the base repository at once.
+  - This avoids HEAD pointer conflicts and data loss.
+- Keep the base repository valid: the repository where `git worktree add` ran remains a normal working tree.
+- Share objects and refs: worktrees in one repository share the object database and ref store.
+  - Removing a worktree does not remove its commits or branch refs.
+- Preserve per-worktree isolation: each worktree has its own working tree, index, and HEAD.
+  - Uncommitted and staged changes stay local to that worktree.
+  - Commits become visible to other worktrees immediately.
+- Keep worktrees as siblings rather than nesting them in another worktree or the base repository.
 
 ## Procedure: Create an Isolated Worktree
 
@@ -316,6 +315,8 @@ git worktree remove worktrees/<branch-name>
 ```
 
 ## Output Contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 ### `git worktree list` output shape
 

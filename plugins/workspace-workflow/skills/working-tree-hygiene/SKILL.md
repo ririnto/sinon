@@ -26,15 +26,17 @@ This skill covers the inspection, classification, and remediation steps that occ
 
 The following invariants ensure safe, reproducible working trees:
 
-- Clean start: Before starting a task in a working tree, you MUST verify `git status` shows "nothing to commit, working tree clean" or an acceptable baseline state (e.g., intentional untracked build artifacts in `.gitignore`).
-- Staged/unstaged separation: You MUST know the difference between staged changes (ready to commit) and unstaged changes (not yet decided).
-  - You MUST NOT mix unrelated changes in a single commit.
-- Branch sync: Before pushing, you MUST verify the branch is even with or ahead of its upstream.
-  - A branch that is behind its upstream before you push will fail or cause unexpected merge commits.
-- Untracked discipline: Untracked files are ignored by Git but can clutter the tree.
-  - You SHOULD consciously decide whether to commit, add to `.gitignore`, or delete each untracked file.
-- Stash as isolation tool: You SHOULD use stashing to temporarily set aside work without committing it, allowing you to switch contexts or verify a clean state.
-- No partial integration handoff: You MUST NOT push a branch that is not clean at the tip (all work committed, nothing staged, no blocking untracked files).
+- Establish a known starting state: inspect `git status` and accept a clean tree or an intentional baseline.
+  - A read-only task may run without a clean tree.
+  - A risky ref transition (merge, rebase, checkout, reset, branch switch) requires a clean tree, isolation (stash or worktree), or an explicitly preserved change path; never discard work.
+- Keep staged and unstaged changes distinct when deciding what belongs in a commit.
+  - Separate unrelated changes when the repository workflow calls for focused commits.
+- Check branch sync before pushing when an upstream exists.
+  - Fetch current upstream state before integration work when a remote exists.
+  - Resolve behind or diverged state before integrateing.
+- Classify untracked files and decide whether to commit, ignore, or remove each one.
+- Use stashing when temporary isolation helps without creating a commit; isolation, not mandatory stashing of unrelated work, solves a dirty tree.
+- integrate only the intended committed state: never integrate from a tree with uncommitted or blocking untracked changes.
 
 ## Procedure: Inspect Working Tree Status
 
@@ -480,6 +482,8 @@ git stash list
 ```
 
 ## Output Contract
+
+Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
 
 ### `git status` clean state
 

@@ -1,2 +1,0 @@
-bun run check
-bun test --pass-with-no-tests

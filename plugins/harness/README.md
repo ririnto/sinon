@@ -1,73 +1,32 @@
 ---
 description: >-
-  Overview of the Harness plugin for composing repository resource bundles.
+  Overview of the Harness plugin for shared implementation and review guidance.
 ---
 
 # Harness
 
-Harness provides agent-readable guidance and packaged resource bundles for repository setup.
-It does not ship or run a setup program.
-
-## Setup
-
-Register the marketplace and install Harness:
-
-```sh
-claude plugin marketplace add /path/to/sinon
-claude plugin install harness@sinon
-```
-
-Ask an agent to use `harness-install` with one tool and zero or more repository environments.
-The skill composes complete resource bundles into the target repository.
-
-## Bundle Model
-
-Every composition starts with the complete `common/` bundle.
-Choose exactly one tool bundle:
-
-- `bun`
-- `gradle`
-- `maven`
-- `shell`
-- `uv`
-- `go`
-- `rust`
-
-Choose `github`, `gitlab`, both environments, or neither.
-For example, Gradle with GitHub places every child resource from `common/`, `gradle/`, and `github/`.
-Chosen bundles are copied as complete trees without file-level selection.
-
-`common/` contains only resources shared by every target.
-It does not contain root `AGENTS.md` or `CLAUDE.md`; the selected tool bundle owns those target instructions.
-
-Environment bundles keep CI definitions inert until the agent configures the selected tool:
-
-- `github/.github/ci/<tool>.yaml`
-- `gitlab/.gitlab/ci/<tool>.gitlab-ci.yml`
+Harness provides two portable skills — `implement` and `review` — that give agents concrete engineering rules for implementation, design, language, testing, and review work.
+Both skills reference one canonical rules document, `docs/rules.md`, which owns every rule; the skills own their procedures.
 
 ## Skills
 
 | Skill | Use |
 | --- | --- |
-| `harness-install` | Compose common, tool, and environment bundles into a target. |
-| `harness-evolve` | Assess changes to an installed target or future bundle defaults. |
+| `implement` | Implement a feature, bugfix, refactor, or design change. |
+| `review` | Review a diff or completed change for correctness, drift, and rule compliance. |
+
+The skills are host-neutral: they never prescribe a universal instruction filename and instead read the root instruction file the active host actually loads.
+Plans belong to GitHub or GitLab issues; execution state stays in agent context.
 
 ## Package Inventory
 
 - `.claude-plugin/plugin.json`: plugin metadata.
-- `skills/harness-install/SKILL.md`: bundle composition and configuration procedure.
-- `skills/harness-install/assets/common/`: resources shared by every target.
-- `skills/harness-install/assets/{tool}/`: tool-owned configuration and root guidance.
-- `skills/harness-install/assets/github/`: GitHub templates and inert CI resources.
-- `skills/harness-install/assets/gitlab/`: GitLab templates and inert CI resources.
-- `skills/harness-evolve/`: report-first evolution guidance.
-
-Root marketplace tests and support stay outside published plugin roots.
-A tool bundle may intentionally include tests for validation logic it distributes, such as Gradle `buildSrc` ktlint rules.
+- `skills/implement/SKILL.md`: implementation procedure.
+- `skills/review/SKILL.md`: review procedure.
+- `docs/rules.md`: canonical implementation, design, frontend, language, and test-quality rules shared by both skills.
 
 ## Ownership And Safety
 
-The agent preserves relative paths and executable modes while copying complete bundles.
-Existing matching files are kept.
-Differing target files are preserved until the user explicitly approves replacement.
-After composition, the agent configures the selected CI resource and follows the selected tool's `AGENTS.md` for setup and validation.
+`docs/rules.md` is the single rule source; a rule stated there is not restated in a skill.
+Changing a rule updates the rule and both skill consumers together.
+The skills never disable hooks, fake validation success, or treat a skipped gate as a pass: a gate that cannot run stays a named gap.

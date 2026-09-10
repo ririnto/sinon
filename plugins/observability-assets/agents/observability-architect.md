@@ -3,8 +3,7 @@ name: observability-architect
 description: |-
   Design and architect observability systems: alerting, dashboards, SLOs, and metrics.
   Use this agent when writing Prometheus alerts, building Grafana dashboards, defining SLOs, planning monitoring architecture (golden signals, RED/USE), or testing alert rules.
-model: sonnet
-effort: medium
+model: haiku
 color: green
 tools:
   - Read
