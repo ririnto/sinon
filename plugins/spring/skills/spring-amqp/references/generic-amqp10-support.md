@@ -74,5 +74,7 @@ Request-reply with `@SendTo` fallback is supported.
 ## Pitfalls
 
 - Do not mix `@AmqpListener` and `@RabbitListener` infrastructure in one module without clear separation.
-- AMQP 1.0 addresses are not the same as RabbitMQ routing keys; verify the address convention for the target broker.
-- The `@EnableAmqp` annotation is distinct from `@EnableRabbit`; adding both registers separate listener infrastructures.
+- AMQP 1.0 addresses are not the same as RabbitMQ routing keys.
+  Verify the address convention for the target broker.
+- The `@EnableAmqp` annotation is distinct from `@EnableRabbit`.
+  Adding both registers separate listener infrastructures.

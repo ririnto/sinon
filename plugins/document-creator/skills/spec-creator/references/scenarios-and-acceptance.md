@@ -151,7 +151,8 @@ Anti-patterns:
   - Problem: "works correctly" is unobservable.
 
 - AC-001-B: The system handles errors and logs them.
-  - Problem: Too vague; "handles" and "logs them" need specific assertions about format, content, etc.
+  - Problem: Too vague.
+    "Handles" and "logs them" need specific assertions about format, content, etc.
 
 - AC-001-C: The system is fast and secure.
   - Problem: Vague terms without metrics.
@@ -190,13 +191,16 @@ Anti-patterns:
 
 ```markdown
 - SC-001: The feature is working.
-  - Problem: Not measurable; no metric or verification method.
+  - Problem: Not measurable.
+    There is no metric or verification method.
 
 - SC-002: 100 percent of export requests succeed.
-  - Problem: Unrealistic target; does not account for invalid requests, network failures, or intentional rejections.
+  - Problem: Unrealistic target.
+    It does not account for invalid requests, network failures, or intentional rejections.
 
 - SC-003: The system is fast.
-  - Problem: No metric; "fast" is subjective.
+  - Problem: No metric.
+    "Fast" is subjective.
 ```
 
 ## Policy Constraints and Quality Thresholds
@@ -219,12 +223,14 @@ Good distinction:
 - NFR-SEC-001: The system MUST NOT expose another tenant's data in any response or log.
   - Type: Policy constraint (hard blocker)
   - Verification: Code inspection + segregation tests
-  - Slip policy: Cannot slip; any exposure is a breaking issue.
+  - Slip policy: Cannot slip.
+    Any exposure is a breaking issue.
 
 - NFR-PERF-001: The system SHOULD keep p95 job creation latency under 2 seconds.
   - Type: Quality threshold (aspirational)
   - Measurement: p95 latency of POST /api/export during load testing
-  - Slip policy: MAY exceed under extreme load; documented as a trade-off.
+  - Slip policy: MAY exceed under extreme load.
+    Document this as a trade-off.
 ```
 
 ## Conformance Test Matrix

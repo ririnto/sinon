@@ -8,12 +8,16 @@ If revision requires human judgment, record a focused open question instead of g
 ## Self-Sufficiency
 
 - [ ] The spec does not contain "see `X.md`", "see `ARCHITECTURE.md`", "see `README.md`", "refer to docs/...", or any in-repo cross-doc routing.
-- [ ] The only external references are formal standards (RFC numbers, external API specifications) or data sources that cannot be inlined; these are clearly named as external.
+- [ ] The only external references are formal standards (RFC numbers, external API specifications) or data sources that cannot be inlined.
+  These are clearly named as external.
 - [ ] An unfamiliar engineer or coding agent can read this file and understand what must be implemented without consulting other in-repo documents.
-- [ ] Entity field tables include type, constraints, nullability, and usage; the reader does not need to consult the codebase.
+- [ ] Entity field tables include type, constraints, nullability, and usage.
+  The reader does not need to consult the codebase.
 - [ ] Configuration field tables include defaults, constraints, reload semantics, and environment variable indirection.
-- [ ] Reference algorithms (when present) are detailed enough to implement from; they are not pointers to external docs.
-- [ ] State transition rules name every state and every trigger; the reader can construct a state diagram from the text alone.
+- [ ] Reference algorithms (when present) are detailed enough to implement from.
+  They are not pointers to external docs.
+- [ ] State transition rules name every state and every trigger.
+  The reader can construct a state diagram from the text alone.
 - [ ] Integration protocol details are sufficient for a developer to implement without external documentation (or external docs are referenced by name and chapter).
 - [ ] No placeholders like "see [other component spec]" or "[to be detailed in integration guide]" inside core sections.
 
@@ -22,7 +26,8 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] The Normative Language section is present and defines RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, REQUIRED, RECOMMENDED, OPTIONAL).
 - [ ] The Normative Language section defines `Implementation-defined` and states that implementations MUST document the selected behavior.
 - [ ] RFC 2119 keywords are used deliberately, not randomly.
-- [ ] SHOULD versus MUST distinction is intentional; no SHOULD where MUST is intended, no MUST where the project will diverge.
+- [ ] SHOULD versus MUST distinction is intentional.
+  There is no SHOULD where MUST is intended and no MUST where the project will diverge.
 - [ ] `Implementation-defined` is used consistently for contract surface the spec deliberately does not prescribe.
 - [ ] Vague words ("fast", "robust", "intuitive", "secure", "scalable") either do not appear, or they appear only when quantified or measured (e.g., "fast (<2s)" or "secure (no data leakage)").
 
@@ -45,12 +50,14 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Every functional requirement has a stable ID such as `FR-001`, `FR-002`, etc.
 - [ ] Every non-functional requirement has a category ID such as `NFR-PERF-001`, `NFR-SEC-001`, `NFR-REL-001`, etc.
 - [ ] Requirements use RFC 2119 language deliberately (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, REQUIRED, RECOMMENDED, OPTIONAL).
-- [ ] Each requirement describes one observable behavior or a single real constraint; no "and"-compound requirements.
+- [ ] Each requirement describes one observable behavior or a single real constraint.
+  There are no "and"-compound requirements.
 - [ ] Requirements describe WHAT / WHY, not HOW, unless design is explicitly in scope.
 - [ ] Requirements avoid implementation details (library names, algorithms, tool choices) unless the implementation is a mandated constraint.
 - [ ] Requirements avoid vague words unless quantified or measured (e.g., "fast (<2s)", "secure (no cross-tenant exposure)").
 - [ ] Requirements name limits, thresholds, units, states, and transitions when they affect behavior.
-- [ ] No requirement silently embeds an unresolved assumption; assumptions are captured in Validated Assumptions or Open Questions.
+- [ ] No requirement silently embeds an unresolved assumption.
+  Assumptions are captured in Validated Assumptions or Open Questions.
 - [ ] Requirements are testable or have a stated reason they cannot be scenario-tested.
 - [ ] Functional requirements are grouped logically (by actor, workflow, or feature area).
 - [ ] Non-functional requirements are grouped by category (Performance, Security, Reliability, Observability, Usability, Compatibility).
@@ -63,7 +70,8 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Boundary case scenarios are included (minimum, maximum, empty, zero, one, many, limits, timeouts) when relevant.
 - [ ] Recovery and retry scenarios are included for transient failures when the system has retry logic.
 - [ ] State-machine transition scenarios are present for every named state and trigger (when state machine exists).
-- [ ] Acceptance criteria are testable and observable; they do not say "works correctly", "looks good", "handles errors" without specifics.
+- [ ] Acceptance criteria are testable and observable.
+  They do not say "works correctly", "looks good", or "handles errors" without specifics.
 - [ ] Acceptance criteria are tied to requirement IDs when traceability is needed.
 - [ ] Each acceptance criterion is independently testable without hidden context.
 - [ ] Scenarios do not depend on context outside the spec.
@@ -76,7 +84,8 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Observability requirements (logging, status, monitoring) are present when operational visibility is expected.
 - [ ] Usability and accessibility requirements are present when user-facing and are specific (not "intuitive").
 - [ ] Compatibility and version requirements are present when relevant.
-- [ ] Included NFRs have metrics, thresholds, or verification methods; vague targets like "good performance" are not acceptable.
+- [ ] Included NFRs have metrics, thresholds, or verification methods.
+  Vague targets like "good performance" are not acceptable.
 - [ ] Policy constraints (MUST / MUST NOT) are separated from quality thresholds (SHOULD / goals).
 - [ ] Security, privacy, safety, or compliance blockers are treated as MUST requirements, not optional goals.
 
@@ -93,15 +102,19 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Failure Model and Recovery is present and maps failure classes to recovery behavior.
 - [ ] Security and Operational Safety includes Trust Boundary, Filesystem Safety, Secret Handling, Hook Safety, and Hardening.
 - [ ] Every named state in the state machine appears in at least one transition rule.
-- [ ] Every transition trigger is enumerated; no implicit transitions.
-- [ ] Reference algorithms (when present) are language-agnostic pseudocode in fenced ` ```text ` blocks; they are detailed enough to implement.
+- [ ] Every transition trigger is enumerated.
+  There are no implicit transitions.
+- [ ] Reference algorithms (when present) are language-agnostic pseudocode in fenced ` ```text ` blocks.
+  They are detailed enough to implement.
 - [ ] Conformance Matrix (when present) includes Core Conformance, Extension Conformance (if extensions exist), and Real Integration Profile.
-- [ ] Conformance tests are bulleted per area; tests are specific and testable (not "works").
+- [ ] Conformance tests are bulleted per area.
+  Tests are specific and testable (not "works").
 - [ ] Implementation Checklist (Definition of Done) is present and separates REQUIRED items from RECOMMENDED extensions.
 
 ## Success and Traceability
 
-- [ ] Success criteria are measurable or have an explicit verification method; they are not vague aspirations.
+- [ ] Success criteria are measurable or have an explicit verification method.
+  They are not vague aspirations.
 - [ ] Success criteria include user, business, operational, or compliance outcomes.
 - [ ] Every acceptance criterion traces to a functional requirement (AC-001-A ties to FR-001, etc.).
 - [ ] Every functional requirement traces to at least one scenario or a stated reason it cannot be scenario-tested.
@@ -117,8 +130,10 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] The spec clearly separates WHAT/WHY from HOW unless design is explicitly in scope.
 - [ ] The spec includes enough boundaries (limits, states, transitions) to prevent feature inflation during implementation.
 - [ ] The spec does not instruct an agent to mine repository-local docs (`ARCHITECTURE.md`, `README.md`, `WORKFLOW.md`, etc.) unless the user explicitly authorized that task.
-- [ ] The spec remains one standalone artifact; when it grows beyond ~10,000 words, large conditional details move to appendices inside the same `SPEC.md` and the main sections link to those internal headings.
-- [ ] Ambiguities are resolved; no "implementation may choose" text left without explicit `Implementation-defined` marking.
+- [ ] The spec remains one standalone artifact.
+  When it grows beyond ~10,000 words, large conditional details move to appendices inside the same `SPEC.md` and the main sections link to those internal headings.
+- [ ] Ambiguities are resolved.
+  No "implementation may choose" text is left without explicit `Implementation-defined` marking.
 - [ ] Scenarios are detailed enough for an agent to write test code from them.
 - [ ] Reference algorithms are specific enough for an agent to implement from them.
 

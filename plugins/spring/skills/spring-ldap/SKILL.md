@@ -7,7 +7,9 @@ description: >-
 
 # Spring LDAP
 
-The latest released Spring LDAP line is 4.1.x. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.x path in this skill only when the project baseline already matches the 4.x generation.
+The latest released Spring LDAP line is 4.1.x.
+That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line.
+Keep the direct 4.1.x path in this skill only when the project baseline already matches the 4.x generation.
 If the job needs `LdapRepository`, use the matching Spring Data LDAP 4.1.x and Spring LDAP 4.1.x lines.
 
 ## Boundaries
@@ -470,7 +472,8 @@ spring:
     password: ${LDAP_PASSWORD}
 ```
 
-Use `ldap://` for plain LDAP ports such as 389 and `ldaps://` for LDAPS ports such as 636. Keep the scheme and port consistent.
+Use `ldap://` for plain LDAP ports such as 389 and `ldaps://` for LDAPS ports such as 636.
+Keep the scheme and port consistent.
 For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of configuring `spring.ldap.urls` manually - see [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md).
 
 ## Testing checklist
@@ -490,7 +493,8 @@ For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of con
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

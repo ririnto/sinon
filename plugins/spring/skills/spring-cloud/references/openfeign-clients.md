@@ -57,8 +57,10 @@ Keep the default singleton scope unless the use case explicitly demands per-inst
 
 ## Gotchas
 
-- Do not use `@Scope("prototype")` on `@FeignClient` beans; the HTTP connection pool will leak.
-- Encoder and Decoder beans are auto-configured in Boot 4.x (5.0.2+); missing bean errors in earlier versions are resolved.
+- Do not use `@Scope("prototype")` on `@FeignClient` beans.
+  The HTTP connection pool will leak.
+- Encoder and Decoder beans are auto-configured in Boot 4.x (5.0.2+).
+  Missing bean errors in earlier versions are resolved.
 
 ## Validation rule
 

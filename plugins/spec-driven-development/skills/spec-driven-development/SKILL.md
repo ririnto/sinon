@@ -2,7 +2,8 @@
 name: spec-driven-development
 description: >-
   Drive an explicitly requested end-to-end specification-driven delivery lifecycle through research, spec approval, implementation, and verification gates.
-  Use when the user asks to run or resume the full gated workflow against `SPEC.md`; do not activate for standalone specification authoring or review.
+  Use when the user asks to run or resume the full gated workflow against `SPEC.md`.
+  Do not activate for standalone specification authoring or review.
 ---
 
 # spec-driven-development
@@ -47,9 +48,7 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 ## Package surface
 
 Offline prerequisite: `sdd.ts` runs through Bun.
-The validator is the preferred Spec Review gate when `bun` is installed on the host.
-When `bun` is unavailable, use the manual inline-checklist path.
-The Ordinary offline-capable workflow and Review gates sections document that fallback.
+When `bun` is unavailable, the Operating rules validator fallback applies.
 
 Use these bundled paths from `SKILL_ROOT`:
 
@@ -123,12 +122,7 @@ Follow this path unless a named blocker sends you to an optional reference.
    - Use `call: []` when no outbound dependency exists.
 8. Run Spec Review.
    - Apply the inline review checklist in this file.
-   - Validate the authored tree.
-
-   ```sh
-   "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
-   ```
-
+   - Validate the authored tree per the Operating rules validator requirement.
    - If review passes, set `SPEC.md` status to `approved` and refresh `last_updated`.
    - If review fails, return to the earlier stage that fixes the issue.
 9. Implement only after Gate 2 passes.
@@ -139,12 +133,7 @@ Follow this path unless a named blocker sends you to an optional reference.
     - Verify every Functional Requirement is implemented or explicitly justified in `SPEC.md`.
     - Update `call` when dependencies change.
     - Keep relevant `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md` synchronized with the implemented state.
-    - Re-run validation after the final spec sync.
-
-    ```sh
-    "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
-    ```
-
+    - Re-run validation per the Operating rules validator requirement.
     - Mark `SPEC.md` with the correct post-implementation status and refresh `last_updated`.
 
 ## Status lifecycle
@@ -162,9 +151,7 @@ Passes only when the user explicitly approves the scope, primary requirements, a
 Passes only when both conditions are true:
 
 - Every applicable item in the inline review checklist below is recorded as `pass` or `n/a`, with zero remaining `fail` items.
-- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` exits with status `0` when `bun` is available locally.
-  - If `bun` cannot run locally, the review record documents the runtime blocker.
-  - Every applicable inline-checklist item is recorded as `pass` or `n/a` manually.
+- The Operating rules validator requirement is satisfied: `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` exits with status `0` when `bun` is available locally, and the manual checklist completion covers the `bun`-unavailable case.
 
 ## Inline review checklist
 
@@ -183,7 +170,7 @@ Add rationale for `fail`, `n/a`, and any `pass` whose evidence would be unclear 
 - `RESEARCH.md`, when present, is limited to external framework/library/topic investigation
 - `CONTRACT.md` or `openapi.yaml`, when present, stays consistent with the current SPEC
 - unresolved `TODO:` markers or template placeholders are removed from authored artifacts
-- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` passes
+- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` passes per the Operating rules validator requirement
 
 ### Implementation Review minimum checklist
 
@@ -192,20 +179,12 @@ Add rationale for `fail`, `n/a`, and any `pass` whose evidence would be unclear 
 - `call` links are updated when dependency relationships changed
 - `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`, when present, are synchronized with the implemented state
 - `spec/CHANGELOG.md` keeps the latest date first and excludes planning-only content
-- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` passes after final sync
+- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` passes per the Operating rules validator requirement
 
 ## Review evidence contract
 
-For v1, reviews MUST be recorded in reviewer or agent output.
-The workflow MUST NOT require a repo-tracked `REVIEW.md`.
-
-Each review record MUST include:
-
-- the review type: Spec Review or Implementation Review
-- the reviewed artifact scope
-- one result per applicable checklist item
-- each result expressed as `pass`, `fail`, or `n/a`
-- a short rationale for every applicable checklist item
+Review records MUST satisfy the Review Evidence Contract in `./references/workflow.md`.
+In brief: record results in reviewer or agent output with no repo-tracked `REVIEW.md`, one `pass`/`fail`/`n/a` result and rationale per applicable checklist item.
 
 ## First safe commands
 
@@ -244,7 +223,8 @@ Use this plugin guidance when maintaining the packaged runtime and documentation
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

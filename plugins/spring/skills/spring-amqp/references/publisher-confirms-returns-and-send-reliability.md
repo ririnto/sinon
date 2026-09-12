@@ -54,6 +54,7 @@ Solution: keep send-side publish reliability separate from consumer-side retry a
 
 ## Pitfalls
 
-- Do not treat confirms and returns as consumer retry features; they solve a different failure stage.
+- Do not treat confirms and returns as consumer retry features.
+  They solve a different failure stage.
 - Do not enable send-side reliability features without deciding how the producer records or reacts to failures.
 - Do not assume exchange publish success means the message was actually routed to a queue.

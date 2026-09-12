@@ -21,8 +21,12 @@ Best-practice rules:
   - Examples should read as `Common` first unless the code is intentionally runtime-specific
 - `kotlin.io.path.*` is JVM-only and some APIs are marked `ExperimentalPathApi`.
   - Use it only when the module is explicitly on JVM and real filesystem `Path` behavior matters
-- `kotlin.io.encoding` is stable since Kotlin 2.2. Use it when encoding support is required, and remember that the stream helpers there are JVM-only
-- stdlib `kotlin.time.Instant` is stable since Kotlin 2.3. On the Kotlin 2.1 baseline use `kotlinx.datetime.Instant`, or raise the baseline to 2.3+ for the stdlib type
+- `kotlin.io.encoding` is stable since Kotlin 2.2.
+  - Use it when encoding support is required.
+  - The stream helpers there are JVM-only.
+- stdlib `kotlin.time.Instant` is stable since Kotlin 2.3.
+  - On the Kotlin 2.1 baseline use `kotlinx.datetime.Instant`.
+  - Or raise the baseline to 2.3+ for the stdlib type.
 - `kotlin.uuid` is stable since Kotlin 2.4 (experimental since 2.0).
   - Use it when UUID generation or parsing is genuinely needed
 - `kotlin.contracts` is experimental and is not a common-path recommendation for ordinary application code
@@ -88,7 +92,8 @@ Use when: the team is intentionally opting into contracts and the example must m
 
 Encoding helper with explicit platform status:
 
-`kotlin.io.encoding.Base64` is stable since Kotlin 2.2. The stream helpers are JVM-only.
+`kotlin.io.encoding.Base64` is stable since Kotlin 2.2.
+The stream helpers are JVM-only.
 
 ```kotlin
 import kotlin.io.encoding.Base64
