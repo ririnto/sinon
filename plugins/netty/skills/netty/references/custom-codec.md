@@ -80,7 +80,8 @@ final class TimeDecoder extends ReplayingDecoder<Void> {
 > [!WARNING]
 >
 > `ReplayingDecoder` is slightly slower than `ByteToMessageDecoder` due to try/catch overhead.
-> Use it for readability on simple protocols. Switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
+> Use it for readability on simple protocols.
+> Switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
 
 ## Stateful decoder with `handlerAdded` / `handlerRemoved`
 

@@ -2,19 +2,19 @@
 name: alertmanager
 description: >-
   Configure AlertManager routing, grouping, silencing, and notification flow.
-  Triggers on Alertmanager route tree design and receiver mapping to match alert labels, group batching and notification timing tuning, inhibition or mute schedule implementation to suppress noise without hiding critical signals, notification channel setup (email, Slack, PagerDuty, Webhook, OpsGenie, Telegram, Discord, MS Teams, Jira, Mattermost, and others), or alert routing quality and template-driven notification content guidance.
+  Triggers on Alertmanager route tree design, receiver mapping, group batching and notification timing, inhibition or mute schedule implementation, notification channel setup, or alert routing quality and template-driven notification content.
 ---
 
 # Alertmanager
+
+Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications.
+The common case is one root route, one small set of child routes, one deliberate receiver mapping, and one timing policy that batches related alerts without hiding urgent signal.
 
 ## Official Baseline
 
 - Use modern Alertmanager matcher syntax as the common path: prefer the `matchers:` array form for routes and inhibition rules.
 - Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes.
   Write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.
-
-Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications.
-The common case is one root route, one small set of child routes, one deliberate receiver mapping, and one timing policy that batches related alerts without hiding urgent signal.
 
 ## Common-Case Workflow
 
@@ -52,9 +52,6 @@ receivers:
 
 Use when: you need one readable Alertmanager baseline with a default receiver and one label-based branch.
 
-This skill uses modern `matchers` array syntax as the baseline.
-For version-sensitive notes on time intervals and mute schedules, see [`./references/time-intervals.md`](./references/time-intervals.md).
-
 ## First Runnable Commands or Code Shape
 
 Start by validating the configuration file that will actually ship:
@@ -66,7 +63,7 @@ amtool check-config alertmanager.yml
 Use when: the config was just edited, `amtool` is available in `PATH`, and you need the first safe syntax and schema check.
 If `amtool` is unavailable, stop at a blocked validation state instead of claiming the config is ready.
 
-## Route Schema
+## Route Tree
 
 The route tree is the core of every Alertmanager config.
 Every alert enters at the root route and traverses downward through matching child routes.
@@ -82,22 +79,23 @@ The root route MUST satisfy these constraints (enforced by config validation):
 
 ### Route Fields
 
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `receiver` | string | yes (root) | -- | Receiver name that handles this route's alerts |
-| `group_by` | list of string | no | `["alertname"]` | Labels to group alerts by; `"..."` groups on all labels |
-| `group_wait` | duration | no | 30s | Wait time before sending first notification for a new group |
-| `group_interval` | duration | no | 5m | Minimum interval between notifications for the same group |
-| `repeat_interval` | duration | no | 4h | Minimum interval before re-sending a notification for the same group |
-| `matchers` | list of string | no | -- | Modern matcher expressions (e.g., `severity="page"`) |
-| `match` | map[string]string | no | -- | Deprecated. Exact label equality matching |
-| `match_re` | map[string]string | no | -- | Deprecated. Regex label matching |
-| `continue` | bool | no | false | If true, continue matching child routes after this route matches |
-| `routes` | list of route | no | -- | Child routes evaluated in order after parent matches |
-| `mute_time_intervals` | list of string | no | -- | Named time intervals during which this route is muted |
-| `active_time_intervals` | list of string | no | -- | Named time intervals during which this route is active |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `receiver` | string | -- | Receiver name that handles this route's alerts (required on the root route) |
+| `group_by` | list of string | `["alertname"]` | Labels to group alerts by; `"..."` groups on all labels, `[]` merges every alert into one group |
+| `group_wait` | duration | 30s | Wait time before sending first notification for a new group |
+| `group_interval` | duration | 5m | Minimum interval between notifications for the same group |
+| `repeat_interval` | duration | 4h | Minimum interval before re-sending a notification for the same group |
+| `matchers` | list of string | -- | Modern matcher expressions (e.g., `severity="page"`) |
+| `continue` | bool | false | If true, continue matching child routes after this route matches |
+| `routes` | list of route | -- | Child routes evaluated in order after parent matches |
+| `mute_time_intervals` | list of string | -- | Named time intervals during which this route is muted |
+| `active_time_intervals` | list of string | -- | Named time intervals during which this route is active |
 
-### Route Traversal Algorithm
+Deprecated `match` (exact equality) and `match_re` (regex) fields still parse but MUST NOT be used in new configs.
+`matchers:` replaces both.
+
+### Route Traversal and `continue`
 
 Alertmanager evaluates the route tree as follows:
 
@@ -113,16 +111,7 @@ Alertmanager evaluates the route tree as follows:
 
 Key consequence: `continue: true` allows an alert to fan out to multiple receivers.
 Without it, the first matching child wins and traversal stops.
-
-### The `group_by` Special Value
-
-Setting `group_by: ["..."]` groups alerts on every label.
-This means two alerts with any differing label value form separate groups.
-Use sparingly.
-It creates many small groups and can flood receivers.
-
-An empty `group_by: []` puts every alert into a single group per route.
-Useful when you want exactly one notification per route regardless of labels.
+`continue` is valid only on child routes.
 
 ### Complete Route Example
 
@@ -172,24 +161,8 @@ route:
 
 Global settings define defaults inherited by all receivers unless overridden locally.
 Place credentials and shared endpoints here so individual receiver configs stay minimal.
-
-### Global Fields
-
-The most commonly-used global fields:
-
-| Field | Type | Default | Description |
-| --- | --- | --- | --- |
-| `resolve_timeout` | duration | 5m | Time after which an unresolved alert is declared resolved if not updated |
-| `smtp_smarthost` | host:port | -- | SMTP server address for email notifications |
-| `smtp_from` | string | -- | Sender email address for SMTP |
-| `slack_api_url` | URL | -- | Slack API URL (for webhook-based Slack) |
-| `pagerduty_url` | URL | <https://events.pagerduty.com/v2/enqueue> | PagerDuty Events API v2 endpoint |
-| `http_config` | http_config | -- | Default HTTP client config for all receivers |
-| `templates` | list of string | -- | Glob patterns for template file paths |
-
-For the complete global configuration reference including all credential fields, pairing rules, and inheritance behavior, see [`./references/global-config.md`](./references/global-config.md).
-
-### Global Config Example
+The most commonly used fields are `resolve_timeout` (5m default), `smtp_smarthost`/`smtp_from` for email, `slack_api_url`, `pagerduty_url`, `http_config`, and `templates` glob patterns.
+For the complete field reference including all credential fields, pairing rules, and inheritance behavior, see [`./references/global-config.md`](./references/global-config.md).
 
 ```yaml
 global:
@@ -201,8 +174,6 @@ global:
   smtp_auth_password_file: /etc/alertmanager/smtp-password
   slack_app_token_file: /etc/alertmanager/slack-token
   pagerduty_url: https://events.pagerduty.com/v2/enqueue
-  opsgenie_api_key_file: /etc/alertmanager/opsgenie-key
-  telegram_bot_token_file: /etc/alertmanager/telegram-token
   http_config:
     tls_config:
       insecure_skip_verify: false
@@ -223,29 +194,6 @@ Runtime silences are operational state outside config authoring: create, list, a
 
 Inhibition mutes target alerts when a source alert is already firing and both share specified equal labels.
 
-### Inhibition Rule Schema
-
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `name` | string | no | -- | Optional human-readable name for the rule |
-| `source_matchers` | list of string | yes* | -- | Matchers that identify source alerts (modern syntax) |
-| `target_matchers` | list of string | yes* | -- | Matchers that identify target alerts (modern syntax) |
-| `equal` | list of string | yes | -- | Labels that must be identical between source and target |
-| `source_match` | map[string]string | no | -- | Deprecated. Exact source label matching |
-| `source_match_re` | map[string]string | no | -- | Deprecated. Regex source label matching |
-| `target_match` | map[string]string | no | -- | Deprecated. Exact target label matching |
-| `target_match_re` | map[string]string | no | -- | Deprecated. Regex target label matching |
-
-At least one of `source_matchers`/`source_match`/`source_match_re` must be provided (same for target).
-Prefer `source_matchers` and `target_matchers`.
-
-### Self-Inhibition Prevention
-
-Alertmanager prevents an alert from inhibiting itself.
-A source alert never suppresses a target alert that is the exact same alert instance.
-
-### Basic Inhibition Example
-
 ```yaml
 inhibit_rules:
   - name: severity-suppression
@@ -259,24 +207,15 @@ inhibit_rules:
       - namespace
 ```
 
+A rule needs `source_matchers`, `target_matchers`, and `equal` labels that must be identical between source and target.
+Deprecated `source_match`/`target_match` map forms still parse but MUST NOT be used in new configs.
+Alertmanager prevents an alert from inhibiting itself: a source alert never suppresses the exact same alert instance.
 For guidance on choosing `equal` labels safely and reviewing source/target shape, see [`./references/inhibition-rules.md`](./references/inhibition-rules.md).
 
 ## Label Matchers
 
-Matchers are the mechanism by which routes and inhibition rules select alerts based on label values.
-
-### Modern Matcher Syntax (`matchers`)
-
-Each matcher is a string using one of four operators:
-
-| Operator | Meaning | Example |
-| --- | --- | --- |
-| `=` | Exact equality | `team="api"` |
-| `!=` | Inequality | `environment!="production"` |
-| `=~` | Regex match | `alertname=~".*Down"` |
-| `!~` | Regex mismatch | `severity!~"info\|debug"` |
-
-Matcher strings go into the `matchers:` array:
+Matchers select alerts by label values for routes and inhibition rules.
+Each matcher is a string using one of four operators: `=` (exact), `!=` (negated exact), `=~` (anchored regex), `!~` (negated anchored regex).
 
 ```yaml
 matchers:
@@ -286,81 +225,15 @@ matchers:
   - environment!="staging"
 ```
 
-### UTF-8 Label Names
-
-Modern Alertmanager supports UTF-8 label names (e.g., Chinese characters in label names).
-The transition from classic ASCII-only label names is handled transparently.
+Modern Alertmanager supports UTF-8 label names and handles the transition from classic ASCII-only names transparently.
 Write label names as they appear in your Prometheus metrics.
-
-### Deprecated Forms
-
-- `match: { label: "value" }`: exact equality only, replaced by `matchers: [label="value"]`
-- `match_re: { label: ".*pattern.*" }`: regex only, replaced by `matchers: [label=~".*pattern.*"]`
-
-These deprecated forms still parse, but current docs mark `matchers` as the replacement.
-Always write new configs with `matchers`.
 
 ## Time Intervals
 
 Time intervals define named schedule windows used by `mute_time_intervals` and `active_time_intervals` on routes.
-
-### Time Interval Schema
-
-A top-level `time_intervals:` block contains named entries:
-
-```yaml
-time_intervals:
-  - name: <string>
-    time_intervals:
-      - <TimeIntervalSpec>
-```
-
-`name` is the required unique identifier, and the nested `time_intervals` key is the required list of interval specs.
-
-### TimeIntervalSpec Fields
-
-Each entry within `time_intervals:` defines one schedule window:
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `times` | list of TimeRange | Time-of-day ranges (HH:MM format, exclusive end) |
-| `weekdays` | list of WeekdayRange | Day-of-week ranges (sunday=0 .. saturday=6) |
-| `days_of_month` | list of DayOfMonthRange | Day-of-month ranges (1-31, negative = from month end) |
-| `months` | list of MonthRange | Month ranges (january=1 .. december=12) |
-| `years` | list of YearRange | Year ranges (positive integers) |
-| `location` | string | IANA timezone name (e.g., "America/New_York") |
-
-All fields within a `TimeIntervalSpec` are ANDed together: an alert falls inside the interval only when it satisfies EVERY specified constraint.
-Omitted constraints are unconstrained (always pass).
-
-### Sub-Field Types
-
-#### TimeRange
-
-Shape: `{ start_time: "HH:MM", end_time: "HH:MM" }`.
-End is exclusive.
-Valid range: `00:00` to `24:00`.
-
-#### WeekdayRange
-
-String like `"monday"`, `"monday:friday"`, or `"sunday:saturday"`.
-Use full names or colon-separated ranges.
-
-#### DayOfMonthRange
-
-Integer range like `1`, `15`, `1:15`, or `-3:-1` (negative counts from month end).
-Range `-31` to `31`, excluding 0.
-
-#### MonthRange
-
-String like `"january"`, `"march:may"`, or `"9:12"`.
-Use full names or integer ranges 1-12.
-
-#### YearRange
-
-Integer range like `"2024"` or `"2024:2026"`.
-
-### Time Interval Examples
+A top-level `time_intervals:` block holds named entries, and each entry defines one window with `times`, `weekdays`, `days_of_month`, `months`, `years`, and `location` fields.
+All specified fields are ANDed together.
+Omitted fields are unconstrained.
 
 Business hours in Berlin timezone:
 
@@ -376,134 +249,29 @@ time_intervals:
             end_time: "17:00"
 ```
 
-Month-specific maintenance window:
-
-```yaml
-time_intervals:
-  - name: q1-maintenance
-    time_intervals:
-      - months:
-          - january:march
-        days_of_month:
-          - 1:3
-        times:
-          - start_time: "02:00"
-            end_time: "06:00"
-```
-
-For timezone pitfalls, split-window patterns, year-limited schedules, and version notes, see [`./references/time-intervals.md`](./references/time-intervals.md).
+For the full field schemas, range syntax, timezone pitfalls, split-window patterns, and version notes, see [`./references/time-intervals.md`](./references/time-intervals.md).
 
 ## Receivers Overview
 
-A receiver is a named destination that sends notifications through one or more configured channels.
-Each receiver can define multiple notification configs of the same or different types.
-
-### Receiver Schema
-
-```yaml
-receivers:
-  - name: <string>
-    <type>_configs:
-      - ...
-```
-
-Every receiver MUST have a unique `name`.
-This name is referenced by `receiver:` in route blocks.
-Each `<type>_configs` key contains one or more notification type blocks.
+A receiver is a named destination that sends notifications through one or more configured channel blocks.
+Every receiver MUST have a unique `name`, referenced by `receiver:` in route blocks.
 A receiver with no notification configs is valid (acts as a null sink).
 
-### Shared Inline Fields (NotifierConfig)
-
-Every receiver type inherits these fields from the embedded `NotifierConfig`:
-
-| Field | Type | Default | Description |
-| --- | --- | --- | --- |
-| `send_resolved` | bool | varies by type | Whether to send notifications when alerts resolve |
-
-Default `send_resolved` by receiver type:
-
-- Email: `false`
-- Slack: `false`
-- WeChat: `false`
-- Rocket.Chat: `false`
-- All other receiver types: `true`
-
-### Available Receiver Types
-
-| YAML Key | Name | Description |
-| --- | --- | --- |
-| `email_configs` | Email | SMTP email delivery |
-| `slack_configs` | Slack | Slack messaging (webhook or app token) |
-| `pagerduty_configs` | PagerDuty | PagerDuty Events API v2 |
-| `webhook_configs` | Webhook | Generic HTTP webhook POST |
-| `opsgenie_configs` | OpsGenie | OpsGenie alerting |
-| `victorops_configs` | VictorOps | Splunk On-Call (formerly VictorOps) |
-| `pushover_configs` | Pushover | Pushover mobile notifications |
-| `wechat_configs` | WeChat | WeChat Work messages |
-| `sns_configs` | SNS | AWS SNS notifications |
-| `telegram_configs` | Telegram | Telegram Bot API |
-| `discord_configs` | Discord | Discord webhooks |
-| `msteams_configs` | MS Teams | Microsoft Teams (legacy connector) |
-| `msteamsv2_configs` | MS Teams V2 | Microsoft Teams (workflow bot) |
-| `jira_configs` | Jira | Jira issue creation |
-| `rocketchat_configs` | Rocket.Chat | Rocket.Chat messages |
-| `mattermost_configs` | Mattermost | Mattermost webhooks |
-| `webex_configs` | Webex | Cisco Webex messages |
-| `incidentio_configs` | Incident.io | Incident.io incident creation |
-
+Common channel blocks: `email_configs`, `slack_configs`, `pagerduty_configs`, `webhook_configs`, `opsgenie_configs`, and `telegram_configs`.
+Alertmanager supports 18 receiver types in total, including SNS, Discord, both MS Teams variants, Jira, Rocket.Chat, Mattermost, Webex, VictorOps, Pushover, WeChat, and incident.io.
+Default `send_resolved` is `false` for email, Slack, WeChat, and Rocket.Chat, and `true` for all other receiver types.
 For complete field schemas for every receiver type, see [`./references/receiver-types.md`](./references/receiver-types.md).
 
-## Ready-to-Adapt Templates
+## Notification Templates
 
-Team route branch: route critical API alerts to a dedicated receiver.
+Templates control notification content using Go template syntax with Alertmanager data structures.
+Template files load from glob paths under the top-level `templates:` key, resolved relative to the config file location.
 
-```yaml
-route:
-  receiver: platform-default
-  routes:
-    - receiver: api-pager
-      matchers:
-        - team="api"
-        - severity="page"
+The root template data object provides `.Receiver`, `.Status` (`"firing"` or `"resolved"`), `.Alerts` (with `.Firing` and `.Resolved`), `.GroupLabels`/`.CommonLabels`/`.CommonAnnotations`, and `.ExternalURL`.
+Each alert exposes `.Labels`, `.Annotations`, `.StartsAt`, `.EndsAt`, `.GeneratorURL`, and `.Fingerprint`.
+For the complete data structure reference, all template functions, built-in template names by receiver type, and defensive template patterns, see [`./references/notification-templates.md`](./references/notification-templates.md).
 
-receivers:
-  - name: platform-default
-  - name: api-pager
-```
-
-Use when: one team owns a clearly labeled alert stream.
-
-Grouping defaults: batch related alerts before the first notification.
-
-```yaml
-route:
-  receiver: platform-default
-  group_by:
-    - alertname
-    - service
-  group_wait: 30s
-  group_interval: 5m
-  repeat_interval: 4h
-```
-
-Use when: you need a sane default notification cadence before adding more routes.
-
-Basic inhibition: suppress a lower-severity symptom when a stronger alert already explains it.
-
-```yaml
-inhibit_rules:
-  - source_matchers:
-      - severity="page"
-    target_matchers:
-      - severity="ticket"
-    equal:
-      - service
-      - cluster
-```
-
-Use when: multiple alerts describe the same outage and the lower-severity signal would only add noise.
-
-Minimal notification template: load one template file and render one stable summary from common labels.
+Minimal template wiring -- load one template file and render one stable summary from common labels:
 
 ```yaml
 global:
@@ -526,8 +294,9 @@ receivers:
 {{ end }}
 ```
 
-Use when: the route is already correct and the common path only needs one small template surface for clearer notifications.
 Keep the template file on disk at the path matched by `templates:` so Alertmanager can actually load it, and wire it through a receiver field that actually supports templated strings.
+
+## Ready-to-Adapt Templates
 
 Mute interval on a route: suppress notifications during a scheduled window.
 
@@ -598,47 +367,6 @@ receivers:
 Generic webhook receivers always receive Alertmanager's fixed JSON body built from the notification `Data` object.
 If the downstream service needs a different payload shape, put that transformation in the HTTP receiver or an intermediary adapter.
 
-For complete receiver configurations covering all 18 types, see [`./references/receiver-types.md`](./references/receiver-types.md).
-That reference covers email, webhook, Slack, PagerDuty, OpsGenie, Telegram, Discord, Mattermost, Jira, VictorOps, SNS, WeChat, Pushover, Rocket.Chat, Webex, incident.io, and both Microsoft Teams receiver variants.
-
-## Notification Templates
-
-Templates control the content of notification messages.
-They use Go template syntax with Alertmanager-specific data structures and functions.
-
-### Template Loading
-
-Template files are loaded from paths listed under the top-level `templates:` key:
-
-```yaml
-templates:
-  - '/etc/alertmanager/templates/*.tmpl'
-  - '/etc/alertmanager/templates/custom/*.tmpl'
-```
-
-Paths are resolved relative to the config file location.
-Globs are supported.
-Alertmanager ships built-in templates (`default.tmpl`, `email.tmpl`) that provide default rendering for every receiver type.
-
-### Available Data Fields
-
-The root template data object (`.`) provides these top-level fields:
-
-- `.Receiver`: receiver name
-- `.Status`: `"firing"` or `"resolved"`
-- `.Alerts`: container with `.Firing` and `.Resolved` alert lists
-- `.GroupLabels` / `.CommonLabels` / `.CommonAnnotations`: shared label/annotation KV sets
-- `.ExternalURL`: Alertmanager instance URL
-
-Each alert within `.Alerts.Firing` / `.Alerts.Resolved` exposes `.Labels`, `.Annotations`, `.StartsAt`, `.EndsAt`, `.GeneratorURL`, and `.Fingerprint`.
-KV objects support `.SortedPairs()`, `.Names()`, `.Values()`, `.Remove(keys)`, and `.String()`.
-
-For the complete data structure reference, all 19 template functions with signatures and examples, built-in template names by receiver type, and defensive template patterns, see [`./references/notification-templates.md`](./references/notification-templates.md).
-
-### Minimal Template Wiring Example
-
-See the "Minimal notification template" entry in Ready-to-Adapt Templates above for the complete wiring pattern.
-
 ## Validate the Result
 
 Validate the common case with these checks:
@@ -657,7 +385,8 @@ Validate the common case with these checks:
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 
@@ -670,7 +399,7 @@ Return:
 
 | If the blocker is... | Read... |
 | --- | --- |
-| complete schemas for all 18 receiver types | [`./references/receiver-types.md`](./references/receiver-types.md) |
+| complete schemas for all 18 receiver types and their fields | [`./references/receiver-types.md`](./references/receiver-types.md) |
 | complete global config reference with all fields and constraints | [`./references/global-config.md`](./references/global-config.md) |
 | http_config, oauth2, tls_config, tracing_config shared types | [`./references/shared-types.md`](./references/shared-types.md) |
 | designing or reviewing inhibition logic | [`./references/inhibition-rules.md`](./references/inhibition-rules.md) |
@@ -682,11 +411,11 @@ Return:
 - MUST keep a deliberate default receiver at the root route.
 - MUST keep the ordinary Alertmanager authoring path understandable from this file alone.
 - MUST make matcher and receiver relationships explicit.
+- MUST use `matchers` (modern syntax) over deprecated `match`/`match_re`.
+- MUST ensure receiver names are unique across the entire config.
 - SHOULD keep route trees shallow unless a deeper split is clearly justified.
 - SHOULD use inhibition and mute windows to remove noise, not to hide the primary alert.
 - SHOULD keep grouping timers deliberate and reviewable.
-- MUST use `matchers` (modern syntax) over deprecated `match`/`match_re`.
-- MUST ensure receiver names are unique across the entire config.
 
 ## Common Pitfalls
 
@@ -708,7 +437,7 @@ Return:
 - Activate this skill for:
   - Alertmanager route trees and receivers
   - grouping timers, matchers, inhibition, mute intervals, and templates
-  - all 18 notification receiver type configurations
+  - notification receiver type configurations
   - global configuration and shared infrastructure types
   - downstream notification quality and routing review
 - Do not activate for:

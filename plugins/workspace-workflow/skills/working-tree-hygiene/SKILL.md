@@ -28,14 +28,16 @@ The following invariants ensure safe, reproducible working trees:
 
 - Establish a known starting state: inspect `git status` and accept a clean tree or an intentional baseline.
   - A read-only task may run without a clean tree.
-  - A risky ref transition (merge, rebase, checkout, reset, branch switch) requires a clean tree, isolation (stash or worktree), or an explicitly preserved change path; never discard work.
+  - A risky ref transition (merge, rebase, checkout, reset, branch switch) requires a clean tree, isolation (stash or worktree), or an explicitly preserved change path.
+  - Never discard work.
 - Keep staged and unstaged changes distinct when deciding what belongs in a commit.
   - Separate unrelated changes when the repository workflow calls for focused commits.
 - Check branch sync before pushing when an upstream exists.
   - Fetch current upstream state before integration work when a remote exists.
   - Resolve behind or diverged state before integrateing.
 - Classify untracked files and decide whether to commit, ignore, or remove each one.
-- Use stashing when temporary isolation helps without creating a commit; isolation, not mandatory stashing of unrelated work, solves a dirty tree.
+- Use stashing when temporary isolation helps without creating a commit.
+  Isolation, not mandatory stashing of unrelated work, solves a dirty tree.
 - integrate only the intended committed state: never integrate from a tree with uncommitted or blocking untracked changes.
 
 ## Procedure: Inspect Working Tree Status
@@ -44,188 +46,39 @@ Establish the baseline status:
 
 ```sh
 git status
+git status -s -b
 ```
 
-Example output:
+Verify the output names the intended branch, shows the sync state against the upstream (even, ahead, behind, or diverged), and classifies every change as staged, unstaged, or untracked.
+Behind or diverged state must be resolved before integrateing.
+A clean tree reports `nothing to commit, working tree clean`.
 
-```text
-On branch main
-Your branch is up to date with 'origin/main'.
+## Procedure: Inspect Staged and Unstaged Changes
 
-Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
- modified:   src/Main.java
-
-Changes not staged for commit:
-  (use "git restore <file>..." to discard changes in working directory)
- modified:   src/Helper.java
-
-Untracked files:
-  (use "git ls-files --others --exclude-standard")
- build/
- .DS_Store
-```
-
-### Interpretation
-
-| Output section | Meaning | Next action |
-| --- | --- | --- |
-| `On branch {{branch}}` | Current branch name | Verify this is the intended branch. |
-| `Your branch is up to date with 'origin/{{branch}}'` | Branch is even with upstream. | Safe to work; no forced merge needed on pull. |
-| `Your branch is ahead of 'origin/{{branch}}' by N commits` | Unmerged commits exist locally. | Push or understand why they exist. |
-| `Your branch is behind 'origin/{{branch}}' by N commits` | Upstream has unmerged commits. | Pull to sync before pushing new work. |
-| `Changes to be committed:` | Staged changes await commit. | Decide whether to commit or unstage. |
-| `Changes not staged for commit:` | Unstaged changes exist. | Decide whether to stage and commit or stash. |
-| `Untracked files:` | New files not tracked by Git. | Decide whether to commit, ignore, or delete. |
-| `nothing to commit, working tree clean` | No uncommitted or untracked changes. | Safe to switch branches or push. |
-
-## Procedure: Inspect Staged Changes
-
-View the diff of staged (ready-to-commit) changes:
+View the diff of staged (ready-to-commit) changes and of unstaged changes:
 
 ```sh
 git diff --cached
-```
-
-or more concisely:
-
-```sh
-git diff --staged
-```
-
-Example output:
-
-```text
-diff --git a/src/Main.java b/src/Main.java
-index a1b2c3d..e4f5g6h 100644
---- a/src/Main.java
-+++ b/src/Main.java
-@@ -10,6 +10,10 @@ public class Main {
-   public static void main(String[] args) {
-       System.out.println("Hello");
-+      System.out.println("World");
-   }
- }
+git diff
 ```
 
 Use this to verify that staged changes match your commit intent before running `git commit`.
 
-## Procedure: Inspect Unstaged Changes
-
-View the diff of unstaged (not yet staged) changes:
-
-```sh
-git diff
-```
-
-Example output:
-
-```text
-diff --git a/src/Helper.java b/src/Helper.java
-index x1y2z3a..m1n2o3p 100644
---- a/src/Helper.java
-+++ b/src/Helper.java
-@@ -5,8 +5,10 @@ public class Helper {
-   public static String format(String s) {
--      return s.trim();
-+      return s.trim().toLowerCase();
-   }
- }
-```
-
-### Decision: Stage or stash?
-
-If unstaged changes belong in the current commit, stage them:
-
-```sh
-git add src/Helper.java
-```
-
-If they belong in a separate commit or should be temporarily shelved, stash them:
-
-```sh
-git stash
-```
-
-## Procedure: Check Branch Sync State
-
-Verify the relationship between your branch and its upstream:
-
-```sh
-git status -s -b
-```
-
-Output:
-
-```text
-## main...origin/main
-M  src/Main.java
-?? build/
-```
-
-The first line shows the sync state:
-
-| Sync state | Meaning | Action |
-| --- | --- | --- |
-| `## main...origin/main` | Even (no commits ahead or behind). | Safe to work; ready to push when done. |
-| `## main...origin/main [ahead N]` | N commits ahead of upstream. | Push to share your work; upstream has not changed. |
-| `## main...origin/main [behind N]` | N commits behind upstream. | Pull to sync before continuing; upstream has new work. |
-| `## main...origin/main [ahead N, behind M]` | Diverged (both have unmerged commits). | Pull first to merge upstream changes, then push. |
+If unstaged changes belong in the current commit, stage them with `git add <file>`.
+If they belong in a separate commit or should be temporarily shelved, stash them.
 
 ## Procedure: Stash Changes Temporarily
 
-Use stashing to set aside changes without committing:
-
 ```sh
-git stash
+git stash          # set aside changes without committing
+git stash list     # inspect saved stashes
+git stash pop      # restore the most recent stash and remove it
+git stash apply stash@{0}   # restore without removing
+git stash drop stash@{0}    # remove one stash without applying
 ```
 
-Output:
-
-```text
-Saved working directory and index state WIP on main: a1b2c3d Last commit message
-```
-
-### List stashed changes
-
-```sh
-git stash list
-```
-
-Output:
-
-```text
-stash@{0}: WIP on main: a1b2c3d Last commit message
-stash@{1}: WIP on feat-auth: e4f5g6h Add authentication
-```
-
-### Restore stashed changes
-
-Pop the most recent stash (and remove it from the stash list):
-
-```sh
-git stash pop
-```
-
-or apply without removing:
-
-```sh
-git stash apply stash@{0}
-```
-
-### Drop a stash
-
-Remove a stash without applying it:
-
-```sh
-git stash drop stash@{0}
-```
-
-Clear all stashes:
-
-```sh
-git stash clear
-```
+Stashes are not restored automatically.
+Remember to apply them when returning to the context.
 
 ## Procedure: Classify and Handle Untracked Files
 
@@ -460,16 +313,11 @@ Before creating a change description:
 
 ## First Safe Commands
 
-Inspect the working tree and branch sync state:
+Inspect the working tree and branch sync state, then stage and verify before committing:
 
 ```sh
 git status
 git status -sb
-```
-
-Stage changes and verify before committing:
-
-```sh
 git add <file>
 git diff --staged
 ```
@@ -483,7 +331,8 @@ git stash list
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 ### `git status` clean state
 
@@ -496,63 +345,21 @@ nothing to commit, working tree clean
 
 ### `git status` with changes
 
-```text
-On branch <branch>
-Your branch is <sync-state>.
+The output lists staged changes, unstaged changes, and untracked files in separate sections under the branch and sync-state line.
 
-Changes to be committed:
-  <staged-file-list>
+### `git diff --cached` and `git diff` output
 
-Changes not staged for commit:
-  <unstaged-file-list>
-
-Untracked files:
-  <untracked-file-list>
-```
-
-### `git diff --cached` output
-
-```text
-diff --git a/<path> b/<path>
-index <sha1>..<sha2> <mode>
---- a/<path>
-+++ b/<path>
-@@ -<old-line>,<count> +<new-line>,<count> @@
-<context-and-changes>
-```
-
-One hunk per file region changed.
-Use this to verify staged intent before committing.
-
-### `git diff` output
-
-Same format as `--cached` but shows unstaged (working directory) changes instead.
+Standard unified diff, one hunk per file region changed.
+`--cached` covers staged intent.
+Plain `git diff` covers unstaged working-tree changes.
 
 ### `git status -s -b` output
 
 ```text
 ## <branch>...<upstream> [<sync>]
 <XY> <file>
-<XY> <file>
 ```
 
 `<XY>` is a two-letter status code followed by a space and the path.
-The two letters have three classes:
-
-- Normal (no merge, or merge succeeded): `X` is the status in the index (staged), `Y` is the status in the working tree (unstaged).
-- Unmerged (merge conflict not yet resolved): `X` and `Y` show the state each side introduced relative to the common ancestor (for example `UU` both modified, `AA` both added, `DD` both deleted, `AU` added by us, `UA` added by them, `DU` deleted by us, `UD` deleted by them).
-- Untracked and ignored: `X` and `Y` use the same letter (`??` untracked; `!!` ignored with `--ignored`).
-
-Normal-case codes in full:
-
-```text
- M  modified, unstaged only (working tree)
-M   modified, staged (index)
-MM  staged, then modified again in the working tree
-A   new file added to the index
-D   deleted from the index (staged deletion)
- D  deleted in the working tree only
-R   renamed in the index
-C   copied in the index (needs status.renames=copies)
-T   file type changed (regular file, symbolic link, or submodule)
-```
+`X` is the index (staged) status, `Y` is the working-tree (unstaged) status, and `??` marks untracked files.
+Read the full code table with `git status --help` when an uncommon code appears.

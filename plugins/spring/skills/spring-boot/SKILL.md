@@ -2,7 +2,7 @@
 name: spring-boot
 description: >-
   Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging.
-  Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, using @RedisListener, or managing Spring Boot 4.1 changes.
+  Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, or applying Spring Boot 4.1 changes.
 ---
 
 # Spring Boot
@@ -141,209 +141,10 @@ If the deployment baseline is container-native, keep the image build path explic
 
 ## Spring Boot 4.1 features
 
-### Jackson multi-format configuration
+Spring Boot 4.1 adds Jackson multi-format properties, config-import encoding, lazy JDBC connection fetching, async JPA bootstrapping, `@Async` context propagation, `@RedisListener` auto-configuration, embedded LDAPS, and OpenTelemetry enhancements.
+It also changes test-server behavior, HTTP client cookie handling, response compression, Docker Compose logging, build tooling, and `-DskipTests` AOT semantics.
 
-Common read/write features across Jackson formats (JSON, CBOR, XML) are now configurable via `spring.jackson.read.*` and `spring.jackson.write.*` properties.
-Factory-level read/write constraints use `spring.jackson.factory.*`.
-Auto-configured mappers use a `HandlerInstantiator` that resolves handler instances from application context beans.
-
-```yaml
-spring:
-  jackson:
-    read:
-      strict-duplicate-detection: true
-    write:
-      write-bigdecimal-as-plain: true
-    factory:
-      constraints:
-        read:
-          max-string-length: "256KB"
-        write:
-          max-nesting-depth: 50
-```
-
-For advanced customization, register `JsonMapperBuilderCustomizer`, `JsonFactoryBuilderCustomizer`, `CborFactoryBuilderCustomizer`, or `XmlFactoryBuilderCustomizer` beans.
-
-Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format setup, factory constraints, or HandlerInstantiator wiring.
-
-### Config import encoding
-
-Config imports now support explicit encoding.
-Imported `.properties` files default to ISO-8859-1 encoding unless overridden.
-This does not change YAML or other config formats.
-
-```properties
-spring.config.import=classpath:file.properties[encoding=utf-8]
-```
-
-### Lazy JDBC connection fetching
-
-Defer physical JDBC connections until a statement is actually executed.
-
-```yaml
-spring:
-  datasource:
-    connection-fetch: lazy
-```
-
-When set to `lazy`, the auto-configured pooled `DataSource` is wrapped with `LazyConnectionDataSourceProxy`.
-
-### Async JPA bootstrapping
-
-Background bootstrap of `LocalContainerEntityManagerFactoryBean` for faster startup.
-
-```yaml
-spring:
-  jpa:
-    bootstrap: async
-```
-
-Requires an `AsyncTaskExecutor` bean.
-If none is available when `async` is set, Boot will fail with a clear message.
-
-### WebFlux HTML escaping
-
-Application-wide default HTML escaping for WebFlux views.
-
-```yaml
-spring:
-  webflux:
-    default-html-escape: true
-```
-
-### HTTP client cookie handling
-
-`TestRestTemplate` cookie handling now aligns with `RestTemplate`.
-Configure via `withCookieHandling`, `RestTemplateBuilder`, or a property.
-
-```yaml
-spring:
-  http:
-    clients:
-      cookie-handling: none
-```
-
-### @Async context propagation
-
-Thread context is automatically propagated to `@Async` methods.
-
-```yaml
-spring:
-  task:
-    execution:
-      propagate-context: true
-```
-
-### Embedded web server tests
-
-`@AutoConfigureWebServer` is not a test slice. Use `@SpringBootTest` with an explicit web environment when the test needs the running server.
-
-```java
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class MyWebServerTests {
-    @Autowired
-    TestRestTemplate restTemplate;
-}
-```
-
-### Response compression MIME types
-
-Additional MIME types beyond the defaults for HTTP response compression.
-
-```yaml
-server:
-  compression:
-    additional-mime-types: application/protobuf,application/octet-stream
-```
-
-### @RedisListener auto-configuration
-
-Annotate beans with `@RedisListener` to create listener endpoints.
-Boot auto-configures a `RedisMessageListenerContainer` when none is defined.
-
-```java
-@RedisListener("someChannel")
-public void processMessage(String content) {
-}
-```
-
-### Embedded LDAP SSL (LDAPS)
-
-Enable SSL for the embedded in-memory LDAP server via an SSL bundle.
-
-```yaml
-spring:
-  ldap:
-    embedded:
-      base-dn: dc=spring,dc=io
-      ssl:
-        bundle: example
-```
-
-### OpenTelemetry enhancements
-
-Disable the OTel SDK while keeping propagators active.
-
-```yaml
-management:
-  opentelemetry:
-    enabled: false
-    tracing:
-      sampler: always_on
-```
-
-OTLP exporters support SSL bundles and metrics compression.
-
-```yaml
-management:
-  otlp:
-    metrics:
-      export:
-        compression-mode: gzip
-  opentelemetry:
-    tracing:
-      export:
-        otlp:
-          endpoint: https://collector:4318/v1/traces
-          ssl:
-            bundle: example
-```
-
-Open [references/tracing.md](references/tracing.md) for OTel configuration, OTLP SSL bundles, metrics compression, truststore cert metrics, and exemplar filtering.
-
-### Docker Compose failure logging
-
-On compose startup failure, Boot logs container output at the configured level.
-
-```yaml
-spring:
-  docker:
-    compose:
-      start:
-        log-level: debug
-```
-
-Docker Compose now supports `docker.elastic.co/elasticsearch/elasticsearch` services.
-
-### Build updates
-
-- `bootBuildImage --environment KEY=VALUE` for Gradle CLI environment overrides.
-- `BuildInfo` task output changed to `META-INF/build-info.properties`.
-  - Use the `filename` property to customize.
-- Maven plugin loads `layers.xml` from classpath at `META-INF/spring/layers/<name>.xml`.
-- `-DskipTests` no longer skips AOT.
-  - Use `maven.test.skip` instead.
-
-### Spock support restored
-
-Spock 2.4 with Groovy 5 support is restored.
-Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of the box when `spock-spring` is on the classpath.
-
-### Spring Batch with MongoDB
-
-Auto-configuration for Spring Batch with MongoDB is provided by the dedicated `spring-boot-starter-batch-data-mongodb` starter, with `spring.batch.data.mongodb.*` properties controlling schema initialization and transaction validation.
-
-Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) for Spring Boot 4.1 changes.
+Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) when the task uses a Spring Boot 4.1 feature or migrates from 4.0 to 4.1.
 
 ## Test strategy baseline
 
@@ -391,7 +192,8 @@ Open [references/application-context-runner.md](references/application-context-r
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

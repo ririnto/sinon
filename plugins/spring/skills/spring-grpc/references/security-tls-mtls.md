@@ -36,7 +36,8 @@ GrpcChannelBuilderCustomizer<?> secureChannel() {
 }
 ```
 
-This enables TLS transport only. It does not configure mutual TLS client certificates.
+This enables TLS transport only.
+It does not configure mutual TLS client certificates.
 
 For mTLS, bind the channel to an SSL bundle that contains the client certificate, private key, and trusted server certificate.
 
@@ -97,6 +98,7 @@ Keep authentication policy on the server boundary and pair it with explicit gRPC
 ## Guardrails
 
 - Keep certificates, tokens, and authentication interceptors at the transport boundary rather than inside business services.
-- Treat server TLS and client credentials as separate decisions; many deployments need one without the other.
+- Treat server TLS and client credentials as separate decisions.
+  Many deployments need one without the other.
 - Pair security wiring with explicit deadlines and health behavior so failed authentication does not look like a generic transport outage.
 - Open [`channel-customization.md`](channel-customization.md) only when the blocker is channel construction or interceptor scoping rather than security policy itself.

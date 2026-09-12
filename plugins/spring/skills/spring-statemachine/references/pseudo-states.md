@@ -102,7 +102,8 @@ Use entry and exit points with hierarchical (nested) states to control which sub
 - Do not confuse history with restart persistence.
   - They solve different problems.
 - Do not confuse terminate with end.
-  - Terminated machines stay stopped. End states are final while the machine lifecycle can restart.
+  - Terminated machines stay stopped.
+    End states are final while the machine lifecycle can restart.
 
 ## Verification rule
 

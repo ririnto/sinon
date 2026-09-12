@@ -16,7 +16,8 @@ The common case is writing the smallest failing JUnit 5 test, making the smalles
 - MUST use a unit test by default.
 - MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
 - MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
-- MUST treat 60/30/10 as a suite budget, not a requirement to add all three layers for each feature.
+- SHOULD treat roughly 60/30/10 as the default suite budget across unit/integration/end-to-end layers, choosing layers from the evidence each behavior needs.
+  Follow task, host, and dispatch requirements when they differ.
 - MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD prefer one observable behavior per test.
 - MUST keep test names descriptive and scenario-based.
@@ -320,16 +321,19 @@ tasks.test {
 
 ## Edge cases
 
-- If the main issue is dependency coordinate lookup or repository-wide build governance, that is outside this skill's scope.
-- If the question is about public API or type-modeling decisions, that is outside this skill's scope.
-- If the question is about Spring Boot test-slice selection or full context wiring, state that framework-specific test configuration is outside this skill's scope.
+- Dependency coordinate lookup is outside this skill's scope.
+  Use `java:java-dependency-versioning`.
+- Public API or type-modeling decisions are outside this skill's scope.
+  Use `java:java-language-design`.
+- Spring Boot test-slice selection and full context wiring are outside this skill's scope.
 - If the code under test has no real collaboration boundaries, prefer ordinary objects over mocks.
 - If the behavior can be made deterministic without waiting, make it deterministic before reaching for Awaitility.
 - If using `assertTimeoutPreemptively`, warn that it runs work on a separate thread and may break `ThreadLocal`-sensitive code such as transaction-bound framework tests.
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

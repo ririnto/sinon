@@ -32,7 +32,9 @@ The ordinary Spring Batch job is:
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
 Spring Boot 4.1.x manages Spring Batch 6.0.x.
-The current released Spring Batch artifact line is 6.0.x. Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
+The current released Spring Batch artifact line is 6.0.x.
+Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch.
+Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
 
 JDBC store (default when a `DataSource` is present):
 
@@ -182,7 +184,8 @@ class ImportJobConfiguration {
 The ordinary item-oriented path is reader + optional processor + writer.
 
 - Keep the reader deterministic for the same job parameters.
-- Treat the processor as optional; omit it when the writer can safely consume the reader output directly.
+- Treat the processor as optional.
+  Omit it when the writer can safely consume the reader output directly.
 - Keep the writer idempotent or restart-safe when restartability matters.
 - Add an `ItemProcessor` only when processing logic is a concrete requirement.
 - Open the reader and writer reference for reader, writer, and `ItemStream` implementation details.
@@ -239,7 +242,7 @@ Open the scaling reference only after the single-step path is correct and measur
 Start with unit tests for processors, policies, and transition logic.
 Use a Spring Batch integration test only when job repository state, step wiring, restart behavior, or the real job runtime defines the behavior.
 Reserve an end-to-end job journey for a distinct production-critical flow that lower-level tests do not prove.
-Treat 60/30/10 as a suite budget, not a requirement to add all three layers for each feature.
+Treat roughly 60/30/10 as the default suite budget, not a requirement to add all three layers for each feature.
 Review prose guidance directly instead of testing its wording or file layout.
 
 ```java

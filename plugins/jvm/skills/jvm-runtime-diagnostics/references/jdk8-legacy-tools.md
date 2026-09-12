@@ -112,7 +112,8 @@ java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStam
 
 - `-XX:+PrintGCDateStamps` adds ISO datestamps to each line
 - `-XX:+PrintGCTenuringDistribution` shows survivor age distribution for generational tuning
-- There is no `-Xlog` support on JDK 8. All GC logging must use the legacy flags above
+- There is no `-Xlog` support on JDK 8.
+  All GC logging must use the legacy flags above.
 
 ### Diagnostic Flags Removed After JDK 8
 

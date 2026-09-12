@@ -143,7 +143,8 @@ server:
 ```
 
 Require HTTPS in production.
-The authorization endpoint redirects clients; an unencrypted channel exposes the authorization code to interception.
+The authorization endpoint redirects clients.
+An unencrypted channel exposes the authorization code to interception.
 
 ### Secure cookie settings
 
@@ -185,12 +186,13 @@ Verify that they are enabled only when needed and exercised in deployment tests.
 
 - Introspection matters when relying parties or resource servers need remote token liveness checks.
 - OIDC UserInfo becomes active when OIDC support is enabled.
-- Follow the official OIDC configuration path when enabling UserInfo; do not assume a separate resource-server chain is always required by hand.
+- Follow the official OIDC configuration path when enabling UserInfo.
+  Do not assume a separate resource-server chain is always required by hand.
 
 ## Production checklist
 
 - [ ] Issuer URL matches what clients use for discovery
-- [ ] HTTPS is required; no HTTP fallback in production
+- [ ] HTTPS is required with no HTTP fallback in production
 - [ ] JWK key material is backed up and rotation is documented
 - [ ] Forwarded headers are configured on the proxy and enabled in the server
 - [ ] Registered clients, authorization state, and consent are persisted when restart continuity or clustering requires it

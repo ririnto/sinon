@@ -37,7 +37,8 @@ Required fields:
 - `last_updated`: ISO 8601 calendar date (for example, `2026-03-02`).
 - `subject.name`: Framework, library, or topic name.
 - `subject.version`: Investigated version or release line.
-- `tag`: Array of classification strings; use `[]` when no values apply.
+- `tag`: Array of classification strings.
+  Use `[]` when no values apply.
 
 Optional fields:
 
@@ -136,8 +137,7 @@ Before using research in SPEC decisions:
 - The validator hand-checks these fields at runtime.
 - TODO markers MUST NOT remain.
 - Unresolved placeholders MUST NOT remain.
-- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run when `bun` is available locally, and failures MUST be resolved.
-  - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
+- The packaged validator MUST be run per the `SKILL.md` Operating rules validator requirement, and failures MUST be resolved.
 
 ## Refresh Rules
 

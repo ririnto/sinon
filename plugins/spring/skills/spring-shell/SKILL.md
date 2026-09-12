@@ -79,8 +79,8 @@ Add the test artifact whenever command behavior matters enough to lock with exec
 | Artifact | Role |
 | --- | --- |
 | `spring-shell-starter` | Spring Boot starter with JLine-based interactive REPL |
-| `spring-shell-core` | Command registration, parsing, and execution APIs. Does not depend on Spring Boot or JLine |
-| `spring-shell-jline` | JLine console integration. Required for tab completion, command history, and rich text formatting |
+| `spring-shell-core` | Command registration, parsing, and execution APIs without depending on Spring Boot or JLine |
+| `spring-shell-jline` | JLine console integration required for tab completion, command history, and rich text formatting |
 | `spring-shell-test` | Shell testing utilities for Spring Boot tests |
 
 ### Feature-to-artifact map
@@ -177,7 +177,7 @@ This replaces the v3 `stacktrace` built-in command.
 
 | Property | Default | Effect |
 | --- | --- | --- |
-| `spring.shell.interactive.enabled` | `true` | Enable interactive REPL. Set `false` for single-command execution. |
+| `spring.shell.interactive.enabled` | `true` | Enable the interactive REPL, or set `false` for single-command execution |
 | `spring.shell.script.enabled` | `true` | Enable the `script` built-in command |
 | `spring.shell.debug.enabled` | `false` | Print stack traces on command errors |
 
@@ -185,7 +185,8 @@ This replaces the v3 `stacktrace` built-in command.
 
 Spring Shell exposes built-in commands: `help`, `clear`, `exit`, `quit`, `script`, and `version`.
 
-The `stacktrace` and `completion` built-in commands were removed in 4.0. Use debug mode (`spring.shell.debug.enabled=true`) instead of `stacktrace`.
+The `stacktrace` and `completion` built-in commands were removed in 4.0.
+Use debug mode (`spring.shell.debug.enabled=true`) instead of `stacktrace`.
 Shell-specific completion setup is left to the user's preferred shell.
 
 - Keep built-ins enabled unless the product has a deliberate operator-experience reason to hide them.
@@ -524,7 +525,8 @@ Use `@Arguments` for multi-valued input.
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

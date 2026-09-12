@@ -41,7 +41,8 @@ Tool availability baseline:
 
 - `javac`, `java`, `javadoc`, `jdeps`: available across the supported LTS line used by this plugin
 - `jshell`, `jlink`: JDK 9+
-- `jpackage`: standard from JDK 16. Incubating in JDK 14-15
+- `jpackage`: standard from JDK 16.
+  - Incubating in JDK 14-15.
 
 Confirm the target JDK version before recommending `jshell`, `jlink`, or `jpackage`.
 
@@ -274,7 +275,10 @@ Verify generation succeeded when this file exists and contains the expected pack
 
 ## Scope Boundaries
 
-- Activate this skill for: standard JDK compile, run, REPL, inspect, document, and packaging workflows choosing among `javac`, `java`, `jshell`, `jdeps`, `jlink`, and `jpackage` explaining direct JDK command sequences behind wrappers
+- Activate this skill for:
+  - standard JDK compile, run, REPL, inspect, document, and packaging workflows
+  - choosing among `javac`, `java`, `jshell`, `jdeps`, `jlink`, and `jpackage`
+  - explaining direct JDK command sequences behind wrappers
 - Do not use this skill as the primary source for: runtime diagnostics starting from live JVM symptoms
   - GC evidence and collector choice
   - Java language design or test-structure guidance

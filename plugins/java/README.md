@@ -24,7 +24,7 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 | `java-language-design` | API shape, type modeling, immutability, exception contracts, collection exposure | "design a Java API", "review class structure", "records vs sealed classes" |
 | `java-test` | JUnit 5 TDD, Mockito boundaries, Awaitility async, build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
 | `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
-| `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, install snippets; live registry access is required for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
+| `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, and install snippets with live registry access for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
 
 These skills are meant to help complete Java work directly inside the current repository.
 They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
@@ -103,7 +103,7 @@ plugins/java/
 
 - Keep Java guidance LTS-aware while still naming current-language behavior when it changes implementation choices.
 - Prefer implementation-ready examples for core Java, tests, dependencies, and performance work over catalog-style API summaries.
-- Route framework-specific behavior to Spring, Jakarta EE, or other plugin guidance instead of hiding framework assumptions in shared Java skills.
+- Keep framework-specific behavior outside shared Java skills instead of hiding framework assumptions in them.
 - Use `java-architect` for cross-skill tradeoffs rather than duplicating architecture guidance inside every Java skill.
 
 ## Installation

@@ -59,7 +59,7 @@ This skill does not cover:
 
 ## Procedure: Pre-Merge Verification
 
-1. Verify working tree is clean:
+1. Verify the working tree is clean:
 
     ```sh
     git status
@@ -67,40 +67,14 @@ This skill does not cover:
 
    Expected: "nothing to commit, working tree clean"
 
-1. Fetch latest remote state:
+1. Fetch and confirm you are on the target (base) branch and not behind it:
 
     ```sh
     git fetch origin
-    ```
-
-1. List branches to merge:
-
-    ```sh
-    git branch -a
-    ```
-
-1. Verify you are on the target (base) branch:
-
-    ```sh
     git status -s -b
     ```
 
-   Expected: Current branch line shows the base branch (e.g., `main`, `develop`).
-
-1. If on the wrong branch, switch:
-
-    ```sh
-    git checkout <base-branch>
-    ```
-
-1. Verify the base branch is up to date:
-
-    ```sh
-    git status -s -b
-    ```
-
-   Expected: "even" or "[ahead N]" (never "[behind]").
-
+   Expected: the current branch line shows the base branch, "even" or "[ahead N]" (never "[behind]").
    If behind, pull first:
 
     ```sh
@@ -242,32 +216,7 @@ function greet(name) {
 
 ### Step 3: Resolve conflict manually
 
-Edit the file to choose the correct version or combine both versions:
-
-Option A: Keep HEAD (base branch):
-
-```js
-function greet(name) {
-  return "Hello, " + name;
-}
-```
-
-Option B: Keep feature branch:
-
-```js
-function greet(name) {
-  return "Hi, " + name + "!";
-}
-```
-
-Option C: Combine both:
-
-```js
-function greet(name) {
-  return "Hello, " + name + "!";
-}
-```
-
+Edit the file to keep the correct version or combine both versions.
 Remove all conflict markers after editing.
 
 ### Step 4: Stage resolved file
@@ -418,94 +367,15 @@ git config --global rerere.enabled true
 3. You still must review and commit.
    - Rerere just saves the manual editing step.
 
-### Record and forget: Rerere cache workflow
-
-#### First merge (with conflicts)
-
-1. Encounter conflict:
-
-    ```sh
-    git merge feature-branch
-    ```
-
-1. Resolve manually:
-
-    ```sh
-    git add <file>
-    ```
-
-1. Complete merge:
-
-    ```sh
-    git commit
-    ```
-
-   With `rerere.enabled = true`, Git automatically records the resolution.
-
-#### Second merge (same conflict pattern)
-
-1. Merge again:
-
-    ```sh
-    git merge another-branch
-    ```
-
-1. If the same conflict pattern is detected, Git auto-applies the cached resolution:
-
-    ```text
-    CONFLICT (content): Merge conflict in src/config.js
-    Recorded preimage for 'src/config.js'
-    Automatic merge failed; fix conflicts and then commit the result.
-    ```
-
-1. Review the auto-resolved file:
-
-    ```sh
-    cat src/config.js
-    ```
-
-   If the cached resolution is correct, stage and commit:
-
-    ```sh
-    git add src/config.js
-    git commit
-    ```
-
-### List recorded resolutions
+### Rerere cache maintenance
 
 ```sh
-git rerere list
+git rerere list                       # hash IDs of recorded conflicts
+git rerere forget <hash>              # remove one outdated cached resolution
+git rerere clear                      # remove all cached resolutions
 ```
 
-Output (hash IDs of recorded conflicts):
-
-```text
-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-x1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6
-```
-
-### Forget a resolution
-
-If a cached resolution becomes outdated, remove it:
-
-```sh
-git rerere forget a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-```
-
-or clear all:
-
-```sh
-git rerere clear
-```
-
-### Inspect rerere cache
-
-View cached conflict patterns (stored in `.git/rr-cache/`):
-
-```sh
-ls -la .git/rr-cache/
-```
-
+Cached conflict patterns are stored in `.git/rr-cache/`.
 Each directory represents one recorded conflict.
 
 ## Pitfalls
@@ -557,7 +427,8 @@ git merge --abort
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 ### Successful merge (no conflicts)
 
