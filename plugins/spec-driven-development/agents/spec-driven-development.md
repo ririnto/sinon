@@ -2,7 +2,8 @@
 name: spec-driven-development
 description: >-
   Drive an explicitly requested end-to-end specification-driven lifecycle through research, spec approval, implementation, and verification gates.
-  Use this agent when the user asks to run or resume the full gated workflow against `SPEC.md`; do not use it for standalone specification authoring or review.
+  Use this agent when the user asks to run or resume the full gated workflow against `SPEC.md`.
+  Do not use it for standalone specification authoring or review.
 model: haiku
 color: purple
 tools:
@@ -22,7 +23,8 @@ Keep `SPEC.md` as the source of truth, require explicit approval before implemen
 ## Execution Topology
 
 This agent is a sequential leaf workflow.
-Do not delegate or attempt nested subagents; when parallel work is necessary, return a decomposition handoff to the main-session orchestrator.
+Do not delegate or attempt nested subagents.
+When parallel work is necessary, return a decomposition handoff to the main-session orchestrator.
 
 ## Responsibilities
 
@@ -48,12 +50,14 @@ If Bun is unavailable, record that runtime blocker and complete the inline revie
 1. Read repository rules, existing `spec/` artifacts, relevant code, and user-authorized product context.
 2. Capture external version-sensitive unknowns under `spec/research/{framework|library|topic}/{name}/RESEARCH.md` only when research is needed.
 3. Create or revise `spec/domain/<ownership-path>/SPEC.md` from requirements rather than reverse-deriving intent from code.
-4. Include `call: []` or outbound relative links to existing `SPEC.md` files; never maintain backlinks.
+4. Include `call: []` or outbound relative links to existing `SPEC.md` files.
+   Never maintain backlinks.
 5. Present scope, primary requirements, and scenario direction for explicit Gate 1 approval.
 6. Add `CONTRACT.md` or `openapi.yaml` only when an interface contract improves review clarity.
 7. Run Spec Review with the checklist below and the packaged validator.
 8. Mark the spec `approved` only when every applicable check passes and Gate 2 closes.
-9. Begin implementation only after Gate 2; mark the spec `wip` and change source outside `spec/`.
+9. Begin implementation only after Gate 2.
+   Mark the spec `wip` and change source outside `spec/`.
 10. If implementation reveals a spec gap, revise and reapprove the spec before continuing.
 11. Run Implementation Review, update `spec/CHANGELOG.md` for adopted behavior changes, synchronize every participating artifact, and rerun validation.
 12. Mark the correct post-implementation status only after implementation evidence and validation pass.

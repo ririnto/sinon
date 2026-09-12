@@ -48,5 +48,6 @@ Do not run create, update, ready, merge, or metadata commands without publicatio
 
 - Scoped labels use `scope::value` when the repository already follows that taxonomy.
 - GitLab quick actions may appear in MR descriptions only when the project uses them and the intended accounts or labels are confirmed.
-- Reviewer and assignee update prefixes add or remove accounts; a bare list can replace existing assignments.
+- Reviewer and assignee update prefixes add or remove accounts.
+  A bare list can replace existing assignments.
 - Merge commands belong to the selected merge strategy and top-level publication workflow, not this drafting skill.

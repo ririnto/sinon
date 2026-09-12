@@ -33,7 +33,8 @@ Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new applica
 
 Register every app a topology needs before creating and deploying or launching its definition.
 Metadata is optional and is only needed when operators must inspect app options or deployment properties.
-The stream and task cycles share one command shape; only the definition DSL and deploy or launch verb change.
+The stream and task cycles share one command shape.
+Only the definition DSL and deploy or launch verb change.
 
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
@@ -72,7 +73,8 @@ dataflow:>task list
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

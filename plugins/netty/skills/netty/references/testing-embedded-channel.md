@@ -107,7 +107,8 @@ void buffersShortFrameWithoutException() {
 ## Invariants
 
 - call `finishAndReleaseAll()` to release queued messages and buffers
-  - `finish()` only marks the channel as finished and returns whether anything remains to read. It does not release pending messages, so prefer `finishAndReleaseAll()` for cleanup
+  - `finish()` only marks the channel as finished and returns whether anything remains to read.
+    It does not release pending messages, so prefer `finishAndReleaseAll()` for cleanup.
 - assert both inbound and outbound sides explicitly when the handler transforms messages
 - use `assertThrowsExactly(...)` for exception paths - verify that malformed input either produces no output or triggers the expected error response through the pipeline
 - release outbound `ByteBuf` values read from `readOutbound()` after assertion

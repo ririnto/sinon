@@ -7,7 +7,8 @@ description: >-
 
 # Spring gRPC
 
-The latest stable Spring gRPC line is 1.1.x. On this line, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
+The latest stable Spring gRPC line is 1.1.x.
+On this line, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
 
 ## Boundaries
 
@@ -460,7 +461,8 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 - Prefer the autoconfigured observability interceptor when Actuator is already in use instead of hand-rolling duplicate metrics logic.
 - Distinguish server health publication from client health gating and enable each intentionally.
 - Expose reflection only when operations tooling requires it.
-- Use the Boot-managed gRPC starters on the 1.1.x line; starter coordinates should align with the Boot version.
+- Use the Boot-managed gRPC starters on the 1.1.x line.
+  Starter coordinates should align with the Boot version.
 - Keep transport errors and application errors distinct so retries and observability stay meaningful.
 
 ## References

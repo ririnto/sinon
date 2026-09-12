@@ -10,6 +10,21 @@ description: >-
 Compose one truthful review request from real repository state.
 Keep host-neutral drafting in this file and load only the selected host reference for template locations and CLI commands.
 
+## Default Git Workflow
+
+Run repository changes through this default sequence:
+
+1. Create the issue.
+2. Plan against the issue.
+3. Implement.
+4. Create the pull request or merge request.
+5. Review.
+6. Merge.
+
+A simple task may omit or combine an intermediate phase when the result does not need it.
+Explicitly required validation, review, approval, and safety conditions remain binding in every case.
+Keep the full sequence for substantive changes.
+
 ## Scope
 
 This skill covers:
@@ -94,7 +109,8 @@ type(scope): imperative description
 - Use one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, or `revert`.
 - Add scope only when it clarifies the affected subsystem.
 - Keep the description imperative, specific, and without a trailing period.
-- Follow repository length policy; when none exists, keep the title within 72 characters when practical.
+- Follow repository length policy.
+  When none exists, keep the title within 72 characters when practical.
 
 ## Fallback Body
 
@@ -189,14 +205,16 @@ Before returning the draft, confirm:
 
 - Multiple GitHub and GitLab remotes: ask which host owns the review unless explicit metadata resolves it.
 - Unsupported forge: draft the host-neutral body and return host publication as a blocker.
-- Detached HEAD or missing upstream: rely on explicit target or repository policy; do not invent a base.
+- Detached HEAD or missing upstream: rely on explicit target or repository policy.
+  Do not invent a base.
 - Large or multi-purpose diff: recommend split boundaries before drafting one review body.
 - Binary or generated changes: name their source and verification when available.
 - Stale remote refs: disclose that template and diff discovery may be incomplete.
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

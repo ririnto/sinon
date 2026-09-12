@@ -23,12 +23,12 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Content
 
-- [ ] Necessity section explains the need; it states why this spec is needed
-- [ ] Role section describes the system role; it defines component responsibility
-- [ ] Overview section summarizes scope; it highlights key concepts
-- [ ] Functional Requirements are verifiable; acceptance is testable
+- [ ] Necessity section explains the need and states why this spec is needed
+- [ ] Role section describes the system role and defines component responsibility
+- [ ] Overview section summarizes scope and highlights key concepts
+- [ ] Functional Requirements are verifiable, and acceptance is testable
 - [ ] Every requirement is covered by one or more scenarios
-- [ ] Scenarios include Normal, Alternative, and Error flows; each flow is clear
+- [ ] Scenarios include Normal, Alternative, and Error flows, and each flow is clear
 - [ ] SPEC content stays implementation-agnostic by default and does not introduce unnecessary language, framework, library, or code-style constraints unless they are explicitly requested or materially required
 - [ ] Authored content replaces template prompts with project-specific requirements
 
@@ -95,7 +95,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 - [ ] No unnecessary bold emphasis
 - [ ] Headings used for emphasis instead
-- [ ] Quote rules followed; use `'` for single and `"` for double quotes
+- [ ] Quote rules followed, using `'` for single and `"` for double quotes
 - [ ] Table separator cells use at least 3 hyphens and MAY include leading or trailing alignment colons
 - [ ] A single space appears on both sides of cell content between pipe delimiters (for example, `| value |`)
 - [ ] When adjacent rows share the same first-column value, subsequent rows leave the first column empty (multi-row format)
@@ -119,4 +119,4 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] `spec/CHANGELOG.md` includes only behavior changes, configuration additions or changes, and contract changes
 - [ ] `spec/CHANGELOG.md` excludes research, initialization, planning, and future-reservation content
 - [ ] Frontmatter `call` updated if dependencies changed
-- [ ] `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` re-run after the final spec sync when `bun` is available locally; otherwise the runtime blocker is documented and applicable checks are completed manually
+- [ ] Packaged validator re-run after the final spec sync per the `SKILL.md` Operating rules validator requirement

@@ -24,7 +24,7 @@ Use official Java and OpenJDK materials for version-specific behavior and limita
 
 ## Concrete code examples
 
-Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive. JEP 505 is the fifth preview):
+Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive):
 
 ```java
 import java.util.concurrent.StructuredTaskScope;

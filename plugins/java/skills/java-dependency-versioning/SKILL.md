@@ -152,13 +152,17 @@ curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a
 - If the environment is offline or network access is disallowed, stay with locally verified coordinates and a version placeholder instead of implying a live release check happened.
 - If `latestVersion` sorts unexpectedly (e.g., alpha after release), switch to the safer `core=gav` pattern with explicit sort.
 - If the artifact is a plugin rather than a library, state the distinction clearly in the emitted snippet.
-- If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
-- If the question is about public API or type-modeling decisions, that is outside this skill's scope.
-- If the question is about performance or concurrency tradeoffs, that is outside this skill's scope.
+- Questions about JUnit structure are outside this skill's scope.
+  Use `java:java-test`.
+- Questions about public API or type modeling are outside this skill's scope.
+  Use `java:java-language-design`.
+- Questions about performance and concurrency tradeoffs are outside this skill's scope.
+  Use `java:java-performance-concurrency`.
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

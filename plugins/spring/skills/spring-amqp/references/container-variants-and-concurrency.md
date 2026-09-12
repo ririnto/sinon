@@ -57,7 +57,8 @@ Solution: tune concurrency and prefetch together, then verify ordering and back-
 ## Pitfalls
 
 - Do not raise concurrency before checking whether the listener logic is idempotent.
-- Do not change prefetch in isolation; it changes both memory pressure and fairness.
+- Do not change prefetch in isolation.
+  It changes both memory pressure and fairness.
 - Do not use a dedicated factory when a shared baseline is sufficient.
 
 ## Immediate scale-down (4.1)

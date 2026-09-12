@@ -4,7 +4,8 @@ Open this reference when the ordinary prompt-assembly and structured-output chec
 
 Keep test cases and evaluation harnesses versioned alongside the prompts and retrieval logic they exercise.
 
-Use JUnit 5 style consistently in these examples: `@Test`, `@ExtendWith(MockitoExtension.class)` for Mockito-backed unit tests, `@SpringBootTest` for Spring-backed integration tests, and Jupiter `Assertions` helpers such as `assertEquals`, `assertTrue`, `assertThrowsExactly`, and `assertIterableEquals`.
+Use JUnit 6 (Jupiter) style consistently in these examples: `@Test`, `@ExtendWith(MockitoExtension.class)` for Mockito-backed unit tests, `@SpringBootTest` for Spring-backed integration tests, and Jupiter `Assertions` helpers such as `assertEquals`, `assertTrue`, `assertThrowsExactly`, and `assertIterableEquals`.
+Keep JUnit 5 only for code pinned to a Boot 3.5 or Spring statemachine line.
 
 ## When to open this file
 
