@@ -38,6 +38,8 @@ Keep the common path focused on null safety, type modeling, extensions, collecti
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.
+- SHOULD name lambda parameters instead of `it` when the named form improves scanning or domain clarity.
+- SHOULD use infix functions only when the operation reads naturally at the call site and stays unambiguous without extra context.
 - SHOULD keep class members in a stable scan order so the public shape stays predictable.
 
 ## Common-Path Procedure
@@ -174,6 +176,7 @@ val List<Int>.median: Double?
 
 Use extension properties when the computed value reads as a natural attribute of the receiver type.
 Prefer extension functions when the operation involves parameters or performs side effects.
+Do not hide expensive work, mutation, or surprising derived state behind field-like property syntax.
 
 ### Collections before `Sequence`
 
