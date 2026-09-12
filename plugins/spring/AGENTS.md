@@ -15,7 +15,7 @@ Verify release-sensitive claims against official Spring documentation and publis
 State the target release when a claim is pinned.
 Otherwise use version-line wording.
 Keep BOM-managed dependency examples versionless.
-Use JUnit 5 unless a documented Spring 7 or Boot 4 path requires JUnit 6.
+Use JUnit 6 as the default test line and keep JUnit 5 only for documented Boot 3.5 or Spring statemachine paths.
 Keep Java method declarations, calls, and related assertions compact.
 
 ## Security and Configuration

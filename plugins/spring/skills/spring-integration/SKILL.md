@@ -45,7 +45,9 @@ Add pollers only for sources that do not naturally push messages.
 
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
-For the current stable line, use Spring Integration 7.1.x. Spring Boot 4.1.x manages that line. Boot 3.5.x applications manage the Spring Integration 6.5.x line and therefore remain a separate compatibility branch.
+For the current stable line, use Spring Integration 7.1.x.
+Spring Boot 4.1.x manages that line.
+Boot 3.5.x applications manage the Spring Integration 6.5.x line and therefore remain a separate compatibility branch.
 
 ### Core baseline
 

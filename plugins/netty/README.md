@@ -31,7 +31,7 @@ Typical workflow:
 2. Add reactive behavior when stream processing or backpressure is required.
 3. Use Netty core guidance for low-level channel and pipeline concerns.
 4. Use Reactor Netty guidance for HTTP/WebSocket with reactive patterns.
-5. When the blocker is not Netty or Reactor Netty behavior, stop at Scope Boundaries before choosing another plugin.
+5. When the blocker is not Netty or Reactor Netty behavior, stop at Scope Boundaries.
 
 ## Scope Boundaries
 
@@ -44,7 +44,7 @@ These topics fall outside Netty's scope:
 - General HTTP/WebSocket protocol knowledge.
 
 Netty-specific reactive programming and backpressure handling stay in this plugin.
-Project Reactor patterns without Netty or Reactor Netty context belong in the Reactor plugin.
+Project Reactor patterns without Netty or Reactor Netty context are outside this plugin.
 
 ## Runtime Model
 

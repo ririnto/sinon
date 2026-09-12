@@ -258,16 +258,17 @@ Check these pass/fail conditions before you stop:
 | swallowing `CancellationException` | structured cancellation silently breaks | let cancellation propagate and clean up in `finally` |
 | sharing or buffering a flow by default | delivery semantics become harder to reason about | keep the flow cold and sequential until sharing is required |
 | mutating shared state from multiple coroutines without a rule | race conditions become hidden design bugs | confine the state or protect it deliberately |
-| using `GlobalScope` | escapes structured concurrency; work cannot be cancelled as a group | inject `CoroutineScope` |
+| using `GlobalScope` | escapes structured concurrency, so work cannot be cancelled as a group | inject `CoroutineScope` |
 | catching broad `Exception` in coroutine body | catches `CancellationException` and breaks cancellation | catch specific exceptions or rethrow `CancellationException` |
 | using `async` without `await` | uncaught exceptions propagate as unhandled errors | use `launch` for fire-and-forget |
-| installing `CoroutineExceptionHandler` on child scope or expecting it to handle `async` failures | child handlers do not catch sibling failures, and `async` captures failures in `Deferred` | install handlers only at root contexts or root `launch`; handle `async` with `await` |
+| installing `CoroutineExceptionHandler` on child scope or expecting it to handle `async` failures | child handlers do not catch sibling failures, and `async` captures failures in `Deferred` | install handlers only at root contexts and handle `async` with `await` |
 | calling `withContext` inside `flow { }` | violates context-preservation invariant of Flow | move the context switch to `flowOn()` |
-| assuming `StateFlow` emits every value | `StateFlow` conflates fast updates; intermediate values are dropped | use `SharedFlow` if every value matters |
+| assuming `StateFlow` emits every value | `StateFlow` conflates fast updates and drops intermediate values | use `SharedFlow` if every value matters |
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

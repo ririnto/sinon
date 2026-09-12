@@ -7,7 +7,8 @@ description: >-
 
 # Spring Statemachine
 
-The current stable Spring Statemachine line is 4.0.x. Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
+The current stable Spring Statemachine line is 4.0.x.
+Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 
 > [!WARNING]
 >
@@ -376,7 +377,8 @@ class OrderStateMachineTests {
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

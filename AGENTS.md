@@ -34,7 +34,8 @@ Report a precise blocker when required evidence or authority is missing.
 ## Commit and Publication
 
 The user-facing root session owns integration and publication.
-Publish only capability-scoped plugin components; keep general orchestration profiles out of plugins.
+Publish only capability-scoped plugin components.
+Keep general orchestration profiles out of plugins.
 
 ## Security and Configuration
 

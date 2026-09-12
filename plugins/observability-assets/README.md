@@ -21,7 +21,8 @@ This review checked these upstream versions on 2026-09-11:
 - Alertmanager 0.34.0, released and published on GitHub on 2026-08-16.
 - Grafana 13.2.1, published on GitHub on 2026-09-02.
 
-The release date is used when upstream states one; otherwise, the GitHub publication date is reported.
+The release date is used when upstream states one.
+Otherwise, the GitHub publication date is reported.
 
 Treat these as documentation review baselines, not dependency pins.
 Target deployments may stay on an older supported line, but version-sensitive features need a local version check before use.

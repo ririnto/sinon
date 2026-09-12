@@ -145,31 +145,6 @@ The async refactor introduced subtle timing bugs in test suite.
 Reverting to stable version pending investigation.
 ```
 
-## Choosing the Right Type
-
-Ask these questions in order:
-
-1. Does the code behavior change?
-   - If no: `docs`, `style`, `refactor`, `test`, `build`, `ci`, or `chore`.
-   - If yes: `feat`, `fix`, or `perf`.
-
-2. If behavior changed, is it an improvement or a correction?
-   - Improvement (new capability): `feat`.
-   - Correction (removes error): `fix`.
-   - Speed or memory (no new capability): `perf`.
-
-3. If no behavior change, what kind of change is it?
-   - Documentation only: `docs`.
-   - Formatting or style (spaces, quotes, indentation): `style`.
-   - Restructuring code without changing behavior: `refactor`.
-   - Adding or modifying tests only: `test`.
-   - Dependencies or build config: `build`.
-   - CI/CD or automation: `ci`.
-   - Cleanup, version bumps, or other maintenance: `chore`.
-
-4. Is this reverting a previous commit?
-   - Use `revert`.
-
 ## Choosing a Scope
 
 Scope is optional and SHOULD be used only when it adds clarity.
@@ -319,7 +294,8 @@ git commit -m "type(scope): message for file2"
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 A commit message typically includes:
 

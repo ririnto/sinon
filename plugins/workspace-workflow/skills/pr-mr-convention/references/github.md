@@ -50,6 +50,7 @@ Do not run create, edit, ready, merge, or metadata commands without publication 
 ## GitHub Notes
 
 - GitHub-flavored alerts are allowed when they materially improve risk visibility.
-- Reviewer and assignee logins are bare names; `@me` is supported for self-assignment.
+- Reviewer and assignee logins are bare names.
+  `@me` is supported for self-assignment.
 - Use repository labels exactly as returned by `gh label list`.
 - Merge commands belong to the selected merge strategy and top-level publication workflow, not this drafting skill.

@@ -37,104 +37,27 @@ Load the relevant skill using the Skill tool when the user's question maps to a 
 | `java:java-dependency-versioning` | Artifact coordinates, version-neutral dependency snippets, Maven Central release verification | Coordinate lookup, repository-managed version sources, or BOM/platform install shape |
 | `java:java-performance-concurrency` | Profiling, workload classification, virtual-thread fit, contention and allocation review | Evidence-driven performance or concurrency decisions |
 
-## Decision Frameworks
+## Decision Boundaries
 
-### Language Feature Selection
+The routed skill owns the domain decision rules.
+This agent routes and frames the question.
 
-#### JDK Version Baseline: determine the repository baseline first
-
-- `Java 25 (LTS)`: Latest LTS (GA September 2025).
-  - Scoped values finalized (JEP 506), structured concurrency still preview (JEP 505)
-- `Java 21 baseline`: Records, sealed types, pattern matching, virtual threads available
-- `Java 17 (LTS)`: Records, sealed types, pattern matching.
-  - Standard virtual threads from 21+
-- `Java 11+`: Traditional OOP only.
-  - Consider migrating to 17+ for modern features
-
-### Domain Modeling Patterns
-
-- `Records`: Immutable data carriers, value objects, transparent API contracts
-- `Sealed Types`: Closed type hierarchies, algebraic data types, exhaustiveness checking
-- `Pattern Matching`: Type guards, record decomposition, guard clauses
-- `Enums with Sealed Subtypes`: Bounded polymorphism, discriminated unions
-
-### Testing Strategy
-
-1. `Unit Testing Foundation` (`java:java-test` skill)
-   - Use JUnit 5 unless the repository standardizes another runner.
-   - Start with the smallest failing test for one observable behavior.
-   - Introduce Mockito only at a real collaboration boundary.
-
-2. `Boundary Testing` (`java:java-test` skill)
-   - Use integration tests only when a real process, database, network, filesystem boundary, container, or framework runtime defines the behavior.
-   - Reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
-   - Use Awaitility only for asynchronous or eventually consistent behavior.
-
-3. Test Execution
-   - Keep behavioral test logic separate from build-tool wiring.
-   - Use Maven Surefire for unit tests and Failsafe for integration tests when Maven configuration is the blocker.
-   - Use Gradle `useJUnitPlatform()` when JUnit Platform execution is the blocker.
-
-### Performance & Concurrency
-
-#### Virtual Threads (Java 21+)
-
-Evaluate for blocking I/O workloads when measured waiting dominates:
-
-- Confirm that the workload is not CPU-bound before changing the thread model.
-- Prefer simple sequential code around compatible blocking APIs when virtual threads fit.
-- Re-check pinning and native-call constraints against the active JDK baseline.
-
-#### Structured Concurrency
-
-Parent-child task relationships:
-
-- Task scope management with `StructuredTaskScope`
-- Automatic cancellation propagation on parent cancellation
-- Exception aggregation from parallel subtasks
-
-#### Traditional Concurrency (Java 11-20)
-
-- Lock-free patterns: ConcurrentHashMap, atomic variables
-- CompletableFuture for async composition
-- Reactive streams (Project Reactor, RxJava) as alternative to virtual threads
-
-### Dependency Strategy
-
-1. Repository-Managed Versions (`java:java-dependency-versioning` skill)
-   - Prefer an existing BOM, Gradle version catalog, Maven property, or dependency declaration.
-   - A BOM supplies managed versions only for the artifacts it declares.
-     Consuming declarations can omit those versions.
-   - Confirm the artifact kind and coordinates before recommending BOM or platform syntax.
-
-2. Version Selection
-   - Prefer platform versions already governed by the repository.
-   - Keep reusable guidance version-neutral unless a current release is explicitly requested and verified.
-   - Override a transitive version only when repository policy or concrete resolution evidence requires it.
-   - Do not route dependency-tree analysis or version-conflict diagnosis to `java:java-dependency-versioning`.
-     Those jobs are outside the bundled skill's scope.
-
-3. Testing Dependencies
-   - JUnit 5 (junit-jupiter-api, junit-jupiter-engine)
-   - AssertJ for fluent assertions
-   - Testcontainers for integration testing
-   - Mockito/Wiremock for mocking
+- Determine the repository's Java baseline first.
+  Version-sensitive recommendations depend on it.
+- Dependency-tree analysis and version-conflict diagnosis are outside `java:java-dependency-versioning`.
+  State that boundary instead of routing those jobs to the skill.
 
 ## How to Use This Agent
 
-1. When a user asks about Java architecture, code design, or testing strategy, identify the domain:
-   - Language patterns → `java:java-language-design`
-   - Syntax and baseline availability → `java:java-language-syntax`
-   - Testing approach → `java:java-test`
-   - Dependency coordinates and version sources → `java:java-dependency-versioning`
-   - Performance and concurrency evidence → `java:java-performance-concurrency`
-
-2. Load the matching skill using the Skill tool from the routing table
-3. Apply the domain expertise from the loaded skill to the user's question
-4. Identify the repository's Java baseline before recommending version-sensitive features.
-5. State the boundary explicitly when the request requires framework-specific configuration, build-resolution diagnosis, or operational setup that no bundled Java skill covers.
+1. Identify the domain from the routing table and load the matching skill using the Skill tool.
+2. Apply the domain expertise from the loaded skill to the user's question.
+3. Identify the repository's Java baseline before recommending version-sensitive features.
+4. State the boundary explicitly when the request requires framework-specific configuration, build-resolution diagnosis, or operational setup that no bundled Java skill covers.
 
 ## Output
+
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

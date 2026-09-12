@@ -228,12 +228,12 @@ Key fields per thread:
 
 | Field | Location | How to read it |
 | --- | --- | --- |
-| Thread name | `"http-nio-8080-exec-42"` | Application thread naming convention; pool threads show pattern |
+| Thread name | `"http-nio-8080-exec-42"` | Pool threads follow the application thread naming convention |
 | Thread state | `java.lang.Thread.State: TIMED_WAITING (parking)` | See state table below |
 | CPU time | `cpu=120.00ms` | Total CPU consumed by this thread since start |
 | Elapsed time | `elapsed=320.50s` | Wall-clock time since thread started |
 | Native ID | `nid=0x4e03` | OS-level thread ID for `top -H` or `strace -p` correlation |
-| Stack trace | indented lines below state | Most recent call first; native frames show `(Native Method)` |
+| Stack trace | indented lines below state | Most recent call first, with native frames shown as `(Native Method)` |
 | Lock info | `Locked ownable synchronizers:` | `- None` means no `ReentrantLock` held |
 
 Thread states and what they mean:
@@ -344,7 +344,10 @@ If the runtime also reports a destination or path, confirm it points to the rest
 
 ## Scope Boundaries
 
-- Activate this skill for: stack trace and thread-dump interpretation choosing the next JVM runtime diagnostic command low-risk runtime evidence collection with `jcmd` and JFR
+- Activate this skill for:
+  - stack trace and thread-dump interpretation
+  - choosing the next JVM runtime diagnostic command
+  - low-risk runtime evidence collection with `jcmd` and JFR
 - Do not use this skill as the primary source for:
   - GC collector selection or GC logging strategy
   - Java language design or test-structure decisions

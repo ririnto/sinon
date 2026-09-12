@@ -441,16 +441,21 @@ switch (status) {
 ## Edge cases
 
 - If the user does not specify a Java baseline, ask before recommending any version-sensitive syntax.
-- If the question is about API shape, type modeling, or exception contracts rather than syntax availability, that is outside this skill's scope.
-- If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
-- If the question is about profiling, concurrency, or virtual threads, that is outside this skill's scope.
-- If the question is about Maven coordinate lookup, that is outside this skill's scope.
+- Questions about API shape or type modeling are outside this skill's scope.
+  Use `java:java-language-design`.
+- Questions about JUnit structure are outside this skill's scope.
+  Use `java:java-test`.
+- Questions about profiling or concurrency are outside this skill's scope.
+  Use `java:java-performance-concurrency`.
+- Questions about Maven coordinate lookup are outside this skill's scope.
+  Use `java:java-dependency-versioning`.
 - If a preview feature is requested, state the support cost and baseline requirement explicitly before including it in guidance.
 - If `java.base` drifts toward `jdk.*` tools, `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, or live JVM diagnostics, stop and clarify that those are outside this skill's scope.
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

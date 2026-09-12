@@ -47,9 +47,9 @@ spring.modulith.events.completion-mode=update
 
 | Mode | Behavior |
 | --- | --- |
-| `update` (default) | Sets the completion date on the publication entry. Requires periodic purging via `CompletedEventPublications`. |
-| `delete` | Removes the publication entry on completion. No completed publications are accessible. |
-| `archive` | Copies the entry to an archive table and removes the original. Completed publications remain accessible. |
+| `update` (default) | Sets the completion date on the publication entry and needs periodic purging via `CompletedEventPublications`. |
+| `delete` | Removes the publication entry on completion so no completed publications stay accessible. |
+| `archive` | Copies the entry to an archive table, removes the original, and keeps completed publications accessible. |
 
 ## Housekeeping shape
 
