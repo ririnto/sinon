@@ -27,7 +27,8 @@ The ordinary Spring GraphQL job is:
 4. Keep GraphQL error categories intentional so validation, authorization, and execution failures stay distinguishable.
 5. Add a `GraphQlTester` test that proves the query shape, response path, and error behavior.
 6. Keep one canonical transport, usually HTTP, unless the application truly needs subscriptions or another protocol.
-   - SSE over HTTP is the simplest subscription transport; WebSocket supports bidirectional use on a single connection.
+   - SSE over HTTP is the simplest subscription transport.
+   - WebSocket supports bidirectional use on a single connection.
 
 ## Surface map
 
@@ -43,7 +44,8 @@ The ordinary Spring GraphQL job is:
 ## Dependency baseline
 
 Spring GraphQL 2.0.x requires Spring Framework 7.0, graphql-java 25.0, and Java 17+.
-Spring Boot 4.1.x manages Spring GraphQL 2.0.4. Jackson 3.x is the default serialization library; Jackson 2.x fallback is supported.
+Spring Boot 4.1.x manages Spring GraphQL 2.0.4.
+Jackson 3.x is the default serialization library, with Jackson 2.x supported as a fallback.
 
 Use the Boot starter for application code and the GraphQL test module for focused tests.
 
@@ -103,7 +105,8 @@ spring:
 ### GraphiQL and schema printer
 
 GraphiQL is disabled by default.
-Enable it for development with `spring.graphql.graphiql.enabled: true`; it is auto-enabled with `spring-boot-devtools`.
+Enable it for development with `spring.graphql.graphiql.enabled: true`.
+It is auto-enabled with `spring-boot-devtools`.
 The endpoint defaults to `/graphiql` and is configurable with `spring.graphql.graphiql.path`.
 
 Expose the schema as text at `/graphql/schema` with `spring.graphql.schema.printer.enabled: true`.
@@ -171,9 +174,11 @@ Use this when the query shape maps directly to a repository method and no additi
 
 ## 2.0 notable features
 
-- JSpecify nullability annotations on the entire public API; IDEs can warn about `NullPointerException` risks at compile time.
+- JSpecify nullability annotations on the entire public API.
+  - IDEs can warn about `NullPointerException` risks at compile time.
 - Schema Mapping Inspection checks nullability declared in the schema (`Book` vs `Book!`) against controller method signatures and reports mismatches.
-- Flexible input binding via `GraphQlArgumentBinder.Options` with a `nameResolver` function for adapting schema argument names to Java property naming conventions; set on `AnnotatedControllerConfigurer#setBinderOptions`.
+- Flexible input binding via `GraphQlArgumentBinder.Options` with a `nameResolver` function for adapting schema argument names to Java property naming conventions.
+  - Set the options on `AnnotatedControllerConfigurer#setBinderOptions`.
 - `ArgumentValue<T>` wrapper for input types that distinguishes present-null from omitted, enabling partial-update mutations.
 - Kotlin extensions for `GraphQlClient` and `GraphQlTester` with reified type parameters.
 - SSE (Server-Sent Events) transport as an HTTP-based subscription alternative to WebSocket.
@@ -372,7 +377,8 @@ bookById.title
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

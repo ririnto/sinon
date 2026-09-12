@@ -384,7 +384,7 @@ class InventoryGateway {
 }
 ```
 
-### JUnit 5 validation shape
+### JUnit 6 validation shape
 
 ```java
 @SpringBootTest
@@ -562,5 +562,3 @@ Use these only when the task moves beyond the ordinary config, refresh, discover
 - Open [references/kubernetes-discovery.md](references/kubernetes-discovery.md) when service discovery is backed by Kubernetes namespaces and services.
 - Open [references/bus-refresh.md](references/bus-refresh.md) when the platform actually needs distributed refresh or event propagation.
 - Open [references/cloud-vault-config.md](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
-
-### Data Flow references

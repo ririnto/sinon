@@ -6,7 +6,8 @@ description: >-
 # Harness
 
 Harness provides two portable skills — `implement` and `review` — that give agents concrete engineering rules for implementation, design, language, testing, and review work.
-Both skills reference one canonical rules document, `docs/rules.md`, which owns every rule; the skills own their procedures.
+Both skills reference one canonical rules document, `docs/rules.md`, which owns every rule.
+The skills own their procedures.
 
 ## Skills
 
@@ -16,7 +17,8 @@ Both skills reference one canonical rules document, `docs/rules.md`, which owns 
 | `review` | Review a diff or completed change for correctness, drift, and rule compliance. |
 
 The skills are host-neutral: they never prescribe a universal instruction filename and instead read the root instruction file the active host actually loads.
-Plans belong to GitHub or GitLab issues; execution state stays in agent context.
+Plans belong to GitHub or GitLab issues.
+Execution state stays in agent context.
 
 ## Package Inventory
 
@@ -27,6 +29,7 @@ Plans belong to GitHub or GitLab issues; execution state stays in agent context.
 
 ## Ownership And Safety
 
-`docs/rules.md` is the single rule source; a rule stated there is not restated in a skill.
+`docs/rules.md` is the single rule source.
+A rule stated there is not restated in a skill.
 Changing a rule updates the rule and both skill consumers together.
 The skills never disable hooks, fake validation success, or treat a skipped gate as a pass: a gate that cannot run stays a named gap.

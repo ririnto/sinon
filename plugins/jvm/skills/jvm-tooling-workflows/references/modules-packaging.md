@@ -80,7 +80,8 @@ Packaging rules:
 3. Native packaging output is target-platform specific.
    - Produce it on the operating system that matches the final deliverable.
 
-This path is a JDK 16+ workflow because `jpackage` is a standard tool only from JDK 16. On JDK 14-15 the tool is an incubator (`jdk.incubator.jpackage`) and its command name and options MAY differ from the standard form.
+This path is a JDK 16+ workflow because `jpackage` is a standard tool only from JDK 16.
+On JDK 14-15 the tool is an incubator (`jdk.incubator.jpackage`) and its command name and options MAY differ from the standard form.
 
 On JDK 25 and later, restore service binding with a single quoted `--jlink-options` argument.
 `--jlink-options` takes exactly one string.

@@ -10,10 +10,10 @@ description: >-
 ## Official Baseline
 
 - Use the official Reactor Netty 1.3.x reference guide for this skill.
-  - This review checked `reactor-netty-core` 1.3.7 and `reactor-netty-http` 1.3.7 on 2026-09-11.
+  - Verified against `reactor-netty-core` 1.3.7 and `reactor-netty-http` 1.3.7.
   - The stable `v1.3.7` release is part of the 2025.0.7 Release Train.
 - Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Confirmed `reactor-bom` 2025.0.7 in Maven Central on 2026-09-11.
+  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
 - Confirm the target project's resolved Reactor Netty version before using version-sensitive APIs.
 - Keep HTTP, TCP, UDP, and QUIC aligned with the Reactor Netty reference guide chapters for the same release line.
 
@@ -352,7 +352,8 @@ Open these only when the common path is no longer enough:
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

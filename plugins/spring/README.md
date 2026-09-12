@@ -68,7 +68,6 @@ It may load Spring skills but does not delegate to other agents.
 - gRPC service definition, channel customization, and in-process testing belong in `spring-grpc` guidance.
 - SOAP endpoints, WS-Security, and client-variant patterns belong in `spring-web-services` guidance.
 - SCDF stream/task estate operations belong in `spring-cloud-data-flow` guidance.
-  - Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
 - Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-web-flow` guidance.
 
 Typical workflow:

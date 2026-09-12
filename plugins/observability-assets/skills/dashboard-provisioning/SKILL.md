@@ -2,7 +2,7 @@
 name: dashboard-provisioning
 description: >-
   Author Grafana dashboard provisioning with version-controlled provider YAML files and dashboard JSON source organization.
-  Use when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, managing UI-edit versus file-source-of-truth workflows, or needing guidance on provider YAML schema, dashboard JSON normalization, environment variable substitution, and provisioning lifecycle behavior.
+  Use when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, or managing UI-edit versus file-source-of-truth workflows.
 ---
 
 # Dashboard Provisioning
@@ -410,7 +410,8 @@ Validate the common case with these checks:
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

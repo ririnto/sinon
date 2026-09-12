@@ -74,7 +74,8 @@ Merge is safer when:
 
 ### 1. Before starting: Fetch and verify state
 
-Always ensure your local view of the remote is current:
+When an upstream exists, ensure your local view of the remote is current:
+a purely local rebase with no upstream may skip the fetch.
 
 ```sh
 git fetch origin
@@ -368,7 +369,8 @@ This returns to the state 5 positions back in your reflog.
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

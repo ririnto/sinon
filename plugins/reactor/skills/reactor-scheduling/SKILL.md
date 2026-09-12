@@ -10,9 +10,9 @@ description: >-
 ## Official Baseline
 
 - Use the official Project Reactor 3.8.x scheduler reference for this skill.
-  - This review checked `reactor-core` 3.8.6.
+  - Verified against `reactor-core` 3.8.6.
 - Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Confirmed `reactor-bom` 2025.0.7 in Maven Central on 2026-09-11.
+  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
 
 Choose execution context deliberately in Reactor.
 
@@ -100,7 +100,7 @@ Do not activate for:
 | CPU-bound non-blocking work | `Schedulers.parallel()` | fixed worker pool sized for CPU work |
 | blocking I/O or legacy bridge | `Schedulers.boundedElastic()` | bounded worker expansion for blocking tasks |
 | one serialized execution lane | `Schedulers.single()` | preserves one-thread affinity |
-| no real handoff (test or caller-thread only) | `Schedulers.immediate()` | runs on the current thread; avoid in production pipelines |
+| no real handoff (test or caller-thread only) | `Schedulers.immediate()` | runs on the current thread, so avoid it in production pipelines |
 | move source and subscription | `subscribeOn(...)` | affects upstream work |
 | move downstream operators | `publishOn(...)` | affects work after that operator |
 | request metadata across async boundaries | `contextWrite(...)` + `deferContextual(...)` | survives thread switches without ThreadLocal assumptions |
@@ -206,7 +206,8 @@ final class ContextAcrossThreads {
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

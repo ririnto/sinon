@@ -17,7 +17,7 @@ HTTP controllers and clients, security policy, and Boot auto-configuration are s
 
 Spring Framework 7 requires:
 
-- JDK 17 minimum; JDK 25 recommended as the latest LTS
+- JDK 17 minimum, with JDK 25 recommended as the latest LTS
 - Jakarta EE 11 (Servlet 6.1, JPA 3.2, Bean Validation 3.1)
 - JUnit 6 (JUnit 6 is the target test line)
 - Kotlin 2.2 for Kotlin-based applications
@@ -605,7 +605,8 @@ Keep the default implementation reflective and explicit until the task specifica
 GraalVM 25 introduces the unified reachability metadata format.
 Resource hints now use glob patterns instead of regex: `"/files/*.ext"` matches only direct children, not subdirectories.
 Use `"/files/**/*.ext"` for recursive matching.
-Registering a reflection hint for a type now implies methods, constructors, and fields introspection; `MemberCategory.DECLARED_FIELDS` is changed in favor of a simple `hints.reflection().registerType(MyType.class)`.
+Registering a reflection hint for a type now implies methods, constructors, and fields introspection.
+`MemberCategory.DECLARED_FIELDS` is replaced by a simple `hints.reflection().registerType(MyType.class)`.
 
 ## AOP escalation
 

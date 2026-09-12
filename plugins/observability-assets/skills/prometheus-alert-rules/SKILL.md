@@ -2,7 +2,7 @@
 name: prometheus-alert-rules
 description: >-
   Design, author, and review Prometheus alert rules with PromQL expressions and escalation policy.
-  Use when writing alert or recording rules that map operator symptoms to meaningful firing conditions, setting `for` and `keep_firing_for` timers to avoid flapping, managing alert labels for Alertmanager routing and grouping, authoring Go-templated annotations for clarity, or needing guidance on rule YAML structure, PromQL validation, state-machine behavior, and label-contract handoff to downstream systems.
+  Use when writing alert or recording rules that map operator symptoms to meaningful firing conditions, setting `for` and `keep_firing_for` timers to avoid flapping, managing alert labels for Alertmanager routing and grouping, or authoring Go-templated annotations for clarity.
 ---
 
 # Prometheus Alert Rules
@@ -473,7 +473,8 @@ Validate the common case with these checks:
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

@@ -10,9 +10,9 @@ description: >-
 ## Official Baseline
 
 - Use the official Project Reactor 3.8.x sinks reference for this skill.
-  - This review checked `reactor-core` 3.8.6.
+  - Verified against `reactor-core` 3.8.6.
 - Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Confirmed `reactor-bom` 2025.0.7 in Maven Central on 2026-09-11.
+  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
 
 Author Reactor hot sources deliberately.
 
@@ -261,7 +261,8 @@ Use it when the downstream consumer is known to be singular (e.g., a dedicated p
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

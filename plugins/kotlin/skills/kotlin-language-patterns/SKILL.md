@@ -38,6 +38,8 @@ Keep the common path focused on null safety, type modeling, extensions, collecti
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.
+- SHOULD name lambda parameters instead of `it` when the named form improves scanning or domain clarity.
+- SHOULD use infix functions only when the operation reads naturally at the call site and stays unambiguous without extra context.
 - SHOULD keep class members in a stable scan order so the public shape stays predictable.
 
 ## Common-Path Procedure
@@ -174,6 +176,7 @@ val List<Int>.median: Double?
 
 Use extension properties when the computed value reads as a natural attribute of the receiver type.
 Prefer extension functions when the operation involves parameters or performs side effects.
+Do not hide expensive work, mutation, or surprising derived state behind field-like property syntax.
 
 ### Collections before `Sequence`
 
@@ -334,7 +337,8 @@ Use `Regex` only when pattern matching is the real requirement.
 
 Raw strings (`"""..."""`) preserve formatting and avoid escaping backslashes, which makes regex patterns and multi-line text readable.
 Use them for fixed JSON or regex expectations when exact string semantics matter.
-Raw strings still interpolate `${}` expressions; write `${'$'}` when the content needs a literal dollar sign.
+Raw strings still interpolate `${}` expressions.
+Write `${'$'}` when the content needs a literal dollar sign.
 A trailing newline before the closing delimiter remains part of a multi-line value, so account for it in exact comparisons.
 
 ```kotlin
@@ -556,14 +560,15 @@ Check these pass/fail conditions before you stop:
 | using `Regex` for fixed delimiters or prefixes | parsing gets heavier than the real requirement | start with string helpers |
 | nesting scope functions until the receiver becomes unclear | ownership and flow become hard to scan | use named locals or early returns |
 | threading `Result` through ordinary business logic | local code becomes wrapper-heavy | keep `Result` at the boundary |
-| assuming extension dispatch is virtual | members always win; extension resolution is static on declared type | put polymorphic behavior in members |
+| assuming extension dispatch is virtual | members always win because extension resolution is static on the declared type | put polymorphic behavior in members |
 | using data class `copy()` expecting deep copy | `copy()` is shallow -- nested mutable objects are shared | use immutable nested types or deep clone explicitly |
 | letting platform types (`T!`) propagate from Java interop | null safety guarantees dissolve inward | declare explicit nullability at the interop edge |
 | relying on smart cast across lambda captures of `var` | compiler cannot prove the variable did not change between capture and use | capture the value in a local `val` before the lambda |
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

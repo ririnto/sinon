@@ -202,7 +202,8 @@ Use advisors when the request or response must be decorated around the model cal
 Use `ChatMemory` through an advisor instead of manually appending prior turns.
 
 Spring AI ships built-in advisors: `MessageChatMemoryAdvisor` (message history), `VectorStoreChatMemoryAdvisor` (vector store-backed memory retrieval), `QuestionAnswerAdvisor` (naive RAG), `RetrievalAugmentationAdvisor` (modular RAG with query transformation, document post-processing, and context augmentation), `ReReadingAdvisor` (re-reading reasoning improvement), and `SafeGuardAdvisor` (content safety gate).
-Use in-memory `MessageWindowChatMemory` for demos and tests; use repository-backed memory for production multi-session workloads.
+Use in-memory `MessageWindowChatMemory` for demos and tests.
+Use repository-backed memory for production multi-session workloads.
 
 ```java
 @Bean
