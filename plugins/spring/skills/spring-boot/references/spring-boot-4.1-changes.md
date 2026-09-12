@@ -200,6 +200,10 @@ Spock tests work out of the box when `spock-spring` is on the classpath.
 Auto-configuration for Spring Batch with MongoDB is provided by the dedicated `spring-boot-starter-batch-data-mongodb` starter.
 The `spring.batch.data.mongodb.*` properties control schema initialization and transaction validation.
 
+### bootBuildImage environment overrides
+
+`bootBuildImage` accepts `--environment KEY=VALUE` for Gradle CLI environment overrides.
+
 ## Removed
 
 ### Layertools jar mode
@@ -234,14 +238,13 @@ To skip both tests and AOT, use `-Dmaven.test.skip`.
 ./mvnw spring-boot:process-aot -Dmaven.test.skip
 ```
 
-### Build updates
+## Changed
 
-- `bootBuildImage --environment KEY=VALUE` for Gradle CLI environment overrides.
+### Build task changes
+
 - `BuildInfo` task output changed to `META-INF/build-info.properties`.
   - Use the `filename` property to customize.
 - Maven plugin loads `layers.xml` from classpath at `META-INF/spring/layers/<name>.xml`.
-
-## Changed
 
 ### Derby support
 

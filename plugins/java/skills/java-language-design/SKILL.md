@@ -179,7 +179,7 @@ Return:
 1. The recommended type shape with Java baseline annotation.
 2. Explicit mutability and visibility decisions.
 3. Exception contract with recoverability rationale.
-4. Member ordering that follows the declared baseline.
+4. Member ordering that follows the Operating rules ordering guidance.
 
 ## Support-file pointers
 
