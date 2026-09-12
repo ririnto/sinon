@@ -1,6 +1,5 @@
 # Spring Maintainer Notes
 
-Spring plugin agent-facing rules live in `AGENTS.md`.
-`CLAUDE.md` remains only the Claude Code pointer to that file.
+The plugin's agent-facing rules live in the instruction file that the `CLAUDE.md` pointer references.
 
-Update `AGENTS.md` when Spring review scope, source verification, BOM versioning, frontmatter links, or example style rules change.
+Update those rules when Spring review scope, source verification, BOM versioning, frontmatter links, or example style rules change.

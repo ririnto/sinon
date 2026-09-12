@@ -2,7 +2,7 @@
 name: grafana-dashboards
 description: >-
   Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout.
-  Triggers on Grafana dashboard creation or review, classic dashboard JSON editing, panel query and visualization config authoring, Grafana variables (7 standard classic templating types plus global variables), transformations, field config, thresholds, overrides, and value mappings configuration, dashboard uid stabilization, USE/RED/Golden Signals frameworks application, repeat behavior and links setup, Grafana mixin or Jsonnet generation workflows, or Grafana dashboard asset structure and panel JSON schema guidance.
+  Triggers on Grafana dashboard creation or review, classic dashboard JSON editing, panel or query configuration, variables, transformations, field config, thresholds, overrides, value mappings, uid stabilization, USE/RED/Golden Signals layout, or Grafana mixin and Jsonnet generation workflows.
 ---
 
 # Grafana Dashboards
@@ -11,13 +11,13 @@ Author and review Grafana dashboards as version-controlled assets while keeping 
 
 The common case: one dashboard with a stable `uid`, a deliberate title, explicit datasource handling, a default time range no broader than the last 30 minutes, and a panel layout that answers a real operator question instead of becoming a generic metric scrapbook.
 
-This skill owns the ordinary path for dashboard structure, queries, variables, transformations, field configuration, thresholds, legends, units, layout, repeat behavior, links, annotations, panel types, overrides, value mappings, data links, query options, and the dashboard JSON model boundary.
-For complete panel-type JSON schemas, see [`./references/panel-types.md`](./references/panel-types.md).
-For variable types, syntax, and global variables, see [`./references/variables.md`](./references/variables.md).
-For field config, overrides, value mappings, and data links, see [`./references/field-config.md`](./references/field-config.md).
-See [`./references/grafana-mixin.md`](./references/grafana-mixin.md) for Grafana mixin configuration.
-Read the same reference for Jsonnet generation workflows.
-For export cleanup decisions, normalization targets, and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
+Detailed JSON schemas live in package-local references, not in this file:
+
+- Complete panel-type schemas: [`./references/panel-types.md`](./references/panel-types.md)
+- Variable types, syntax, global variables, and repeat fields: [`./references/variables.md`](./references/variables.md)
+- Field config, overrides, value mappings, data links, and the unit catalog: [`./references/field-config.md`](./references/field-config.md)
+- Grafana mixin configuration and Jsonnet generation: [`./references/grafana-mixin.md`](./references/grafana-mixin.md)
+- Export cleanup decisions and ownership boundaries after UI edits or rendering: [`./references/dashboard-structure.md`](./references/dashboard-structure.md)
 
 ## Common-Case Workflow
 
@@ -110,16 +110,9 @@ Merge this fragment into the full dashboard shell to drive repeated panels from 
       {
         "name": "instance",
         "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
         "query": "label_values(up{job=\"api\"}, instance)",
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
+        "current": { "selected": false, "text": "All", "value": "$__all" },
         "hide": 0
       }
     ]
@@ -127,10 +120,6 @@ Merge this fragment into the full dashboard shell to drive repeated panels from 
   "panels": [
     {
       "title": "Request Rate - ${instance}",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
       "repeat": "instance",
       "repeatDirection": "h",
       "maxPerRow": 3
@@ -141,43 +130,6 @@ Merge this fragment into the full dashboard shell to drive repeated panels from 
 
 Use when: one panel shape should repeat across a bounded variable set without copying panel JSON by hand.
 This is a fragment to merge into the full dashboard shell, not a standalone importable dashboard.
-
-For the full variable type reference (7 standard classic variable types, plus global variables and a boolean-toggle convention), see [`./references/variables.md`](./references/variables.md).
-
-### Transformations and Field Config
-
-Merge this fragment into the target panel when the query already returns the right signal:
-
-```json
-{
-  "fieldConfig": {
-    "defaults": {
-      "unit": "reqps",
-      "min": 0,
-      "decimals": 2,
-      "thresholds": {
-        "mode": "absolute",
-        "steps": [
-          { "color": "green", "value": null },
-          { "color": "yellow", "value": 300 },
-          { "color": "red", "value": 500 }
-        ]
-      }
-    }
-  },
-  "options": {
-    "legend": {
-      "displayMode": "list"
-    }
-  },
-  "transformations": [
-    { "id": "organize", "options": {} }
-  ]
-}
-```
-
-Use when: the query already returns the right signal and the panel only needs clearer units, thresholds, legend behavior, or column organization.
-This is a fragment to merge into an existing panel object, not a standalone dashboard asset or dashboard-root object.
 
 ### Links and Annotations
 
@@ -212,42 +164,22 @@ This is a fragment to merge into the full dashboard shell, not a complete dashbo
 
 Per-target fields that control how a Prometheus query runs:
 
-```json
-{
-  "targets": [
-    {
-      "expr": "rate(http_requests_total[5m])",
-      "refId": "A",
-      "legendFormat": "{{job}}",
-      "format": "time_series",
-      "range": true,
-      "interval": "15s",
-      "datasource": { "type": "prometheus", "uid": "prometheus" }
-    }
-  ]
-}
-```
-
-Key fields:
-
 | Field | Type | Purpose |
 | --- | --- | --- |
 | `format` | string | `"time_series"` (default), `"table"`, or `"heatmap"`; maps to the UI Format option |
-| `instant` / `range` | boolean | Selects an instant or range query; maps to the UI Type option (Both sets both `true`; omit `instant` for a range query) |
+| `instant` / `range` | boolean | Selects an instant or range query (Both sets both `true`; omit `instant` for a range query) |
 | `interval` | string | Min step and `$__interval` override (e.g., `15s`, `1m`); also accepts `$__rate_interval` |
 | `intervalMs` / `maxDataPoints` | integer | Computed by Grafana per request and serialized into exports; not authored by hand |
 | `legendFormat` | string | Legend template such as `"{{job}}"` or a fixed label |
 
 Time-range overrides such as `timeFrom` and `timeShift` are panel-level fields, not per-target.
-See Time Picker Configuration.
 For day-over-day comparison inside one panel, shift the second query in PromQL with `offset` (for example `rate(http_requests_total[5m] offset 1d)`) instead of a per-target time shift.
 
 ## Panel Type Decision Guide
 
 Choose the panel type based on what the operator needs to see.
 The most common types are listed first.
-
-### Quick Decision Table
+Full JSON schemas for every panel type, including option keys such as `drawStyle`, `textMode`, and `graphMode`, are in [`./references/panel-types.md`](./references/panel-types.md).
 
 | Operator Question | Panel Type | Key Distinguishing Feature |
 | --- | --- | --- |
@@ -265,356 +197,24 @@ The most common types are listed first.
 | What is the trace detail? | `traces` | Trace waterfall/duration view |
 | What is the flame graph? | `flamegraph` | Hierarchical call-stack profiling |
 
-### Timeseries Panel (Most Common)
+## Variables, Transformations, and Field Config
 
-The default panel for any time-varying metric.
-Supports multiple series, legends, annotations, and threshold lines.
+The common path uses these defaults.
+Open the owning reference for complete schemas:
 
-```json
-{
-  "id": 1,
-  "title": "Request Rate",
-  "type": "timeseries",
-  "datasource": { "type": "prometheus", "uid": "prometheus" },
-  "targets": [
-    { "expr": "sum(rate(http_requests_total[5m])) by (method)", "refId": "A" }
-  ],
-  "fieldConfig": {
-    "defaults": {
-      "unit": "reqps",
-      "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
-    }
-  },
-  "options": {
-    "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] },
-    "drawStyle": "line",
-    "lineWidth": 1,
-    "fillOpacity": 10,
-    "stacking": { "mode": "none", "group": "A" }
-  },
-  "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
-}
-```
-
-Key `options.drawStyle`: `"line"`, `"bars"`, `"points"`.
-Key `options.stacking.mode`: `"none"`, `"normal"`, `"percent"`.
-
-### Stat Panel
-
-Single large number with optional sparkline, progress bar, and text mode.
-
-```json
-{
-  "id": 2,
-  "title": "Error Rate",
-  "type": "stat",
-  "datasource": { "type": "prometheus", "uid": "prometheus" },
-  "targets": [
-    { "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100", "refId": "A" }
-  ],
-  "fieldConfig": {
-    "defaults": {
-      "unit": "percent",
-      "decimals": 2,
-      "thresholds": {
-        "mode": "absolute",
-        "steps": [
-          { "color": "green", "value": null },
-          { "color": "yellow", "value": 1 },
-          { "color": "red", "value": 5 }
-        ]
-      },
-      "color": { "mode": "thresholds" }
-    }
-  },
-  "options": {
-    "textMode": "auto",
-    "colorMode": "value",
-    "graphMode": "area",
-    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
-  },
-  "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 }
-}
-```
-
-Key `options.textMode`: `"auto"`, `"name"`, `"none"`, `"value"`.
-Key `options.graphMode`: `"none"`, `"area"`, `"linear"`.
-Key `options.colorMode`: `"none"`, `"value"`, `"background"`.
-
-### Table Panel
-
-Display raw tabular data with column customization, sorting, and cell coloring.
-
-```json
-{
-  "id": 5,
-  "title": "Top Endpoints",
-  "type": "table",
-  "datasource": { "type": "prometheus", "uid": "prometheus" },
-  "targets": [
-    { "expr": "topk(10, sum by (path) (increase(http_requests_total[1h])))", "refId": "A", "format": "table", "instant": true }
-  ],
-  "fieldConfig": {
-    "defaults": { "unit": "short", "custom": { "align": "left", "filterable": true } }
-  },
-  "options": { "showHeader": true },
-  "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
-}
-```
-
-For complete JSON schemas covering all remaining panel types (gauge, barchart, heatmap, statetimeline, logs, piechart, histogram, bar gauge, candlestick, trend, XY chart, node graph, traces, flame graph, canvas, geomap, dashboard list, alert list, annotations list, and text/news panels), see [`./references/panel-types.md`](./references/panel-types.md).
-
-## Variable Types Reference (Common Path)
-
-The three most common variable types.
-For all 7 standard classic variable types with complete JSON schemas, global variables, format modifier catalog, cascading patterns, and a boolean-toggle convention, see [`./references/variables.md`](./references/variables.md).
-
-### Query Variable (Most Common)
-
-Queries a datasource to populate options dynamically.
-
-```json
-{
-  "name": "namespace",
-  "type": "query",
-  "label": "Namespace",
-  "datasource": { "type": "prometheus", "uid": "prometheus" },
-  "query": "label_values(kube_pod_info, namespace)",
-  "sort": 1,
-  "multi": true,
-  "includeAll": true,
-  "allValue": ".+",
-  "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
-  "hide": 0
-}
-```
-
-Key fields: `query` (datasource-specific), `regex` (filter results), `sort` (0-6), `multi`, `includeAll`, `allValue`.
-
-### Custom Variable
-
-Hardcoded list of options defined inline.
-Use when the set of values is small, stable, and known at authoring time.
-
-```json
-{
-  "name": "env",
-  "type": "custom",
-  "label": "Environment",
-  "query": "prod,staging,dev",
-  "current": { "selected": true, "text": "prod", "value": "prod" },
-  "options": [
-    { "selected": true, "text": "Production", "value": "prod" },
-    { "selected": false, "text": "Staging", "value": "staging" },
-    { "selected": false, "text": "Development", "value": "dev" }
-  ],
-  "hide": 0
-}
-```
-
-### Textbox Variable
-
-Free-text input for ad-hoc values.
-Always sanitize textbox values in queries to prevent injection.
-
-```json
-{
-  "name": "search",
-  "type": "textbox",
-  "label": "Search",
-  "query": "",
-  "current": { "selected": false, "text": "", "value": "" },
-  "hide": 0
-}
-```
-
-## Transformation Types (Common Path)
-
-Transformations reshape query results before rendering.
-Apply them in order.
-Each transformation receives the output of the previous one.
-For the full catalog of 20+ transformation types, see [`./references/variables.md`](./references/variables.md).
-
-### Organize Fields (Default)
-
-Rename, hide, and reorder columns returned by queries.
-
-```json
-{
-  "transformations": [
-    {
-      "id": "organize",
-      "options": {
-        "excludeByName": { "__name__": true, "job": true },
-        "renameByName": { "Value #A": "requests_per_sec", "Time": "timestamp" },
-        "indexByName": {}
-      }
-    }
-  ]
-}
-```
-
-### Merge
-
-Combine results from multiple queries into one table by joining on shared fields.
-
-```json
-{
-  "transformations": [
-    { "id": "merge", "options": {} }
-  ]
-}
-```
-
-### Filter Data by Values
-
-Remove rows that do not match a condition.
-
-```json
-{
-  "transformations": [
-    {
-      "id": "filterDataByValues",
-      "options": {
-        "filters": [
-          { "fieldName": "status", "type": "include", "match": { "value": "200" } }
-        ],
-        "match": "any"
-      }
-    }
-  ]
-}
-```
-
-Filter types: `"include"`, `"exclude"`.
-Match modes: `"value"`, `"regex"`, `"is"`, `"isNot"`.
-
-## Field Config, Thresholds, Overrides, Value Mappings, and Data Links
-
-These systems control how data appears visually after queries return results.
-For the complete unit catalog (~60 specifiers), all 5 matcher types, all override property IDs, all 4 mapping types (range, regex, special), and full data link variable catalog, see [`./references/field-config.md`](./references/field-config.md).
-
-### Standard Field Config Options
-
-Applied via `fieldConfig.defaults` at the panel level.
-
-```json
-{
-  "fieldConfig": {
-    "defaults": {
-      "unit": "short",
-      "decimals": 2,
-      "min": 0,
-      "max": null,
-      "thresholds": {
-        "mode": "absolute",
-        "steps": [
-          { "color": "green", "value": null },
-          { "color": "yellow", "value": 50 },
-          { "color": "red", "value": 100 }
-        ]
-      },
-      "noValue": "--",
-      "displayName": "",
-      "color": { "mode": "palette-classic" },
-      "mappings": []
-    }
-  }
-}
-```
-
-Common unit specifiers: `"short"`, `"percent"`, `"percentunit"`, `"bytes"`, `"bps"`, `"s"`, `"ms"`, `"reqps"`, `"ops"`.
-Custom unit prefix/suffix: `"prefix:suffix"` (e.g., `"$:USD"` displays as `$123 USD`).
-For the complete unit catalog, see [`./references/field-config.md`](./references/field-config.md).
-
-### Thresholds -- Absolute Mode (Most Common)
-
-Steps trigger at exact numeric values.
-The first step always has `value: null` (base color).
-
-```json
-{
-  "mode": "absolute",
-  "steps": [
-    { "color": "green", "value": null },
-    { "color": "yellow", "value": 50 },
-    { "color": "red", "value": 100 }
-  ]
-}
-```
-
-For percentage mode (requires explicit `min`/`max` on the field), see [`./references/field-config.md`](./references/field-config.md).
-
-### Overrides System
-
-Overrides let you apply different visual settings to specific fields or series within the same panel.
-An override consists of matchers (which fields to target) and properties (what to change).
-
-```json
-{
-  "fieldConfig": {
-    "overrides": [
-      {
-        "matcher": { "id": "byName", "options": "errors" },
-        "properties": [
-          { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } },
-          { "id": "custom.lineWidth", "value": 3 }
-        ]
-      }
-    ]
-  }
-}
-```
-
-For all 5 matcher types (`byName`, `byRegexp`, `byType`, `byFrameRefID`, `byValue`) and common override property IDs, see [`./references/field-config.md`](./references/field-config.md).
-
-### Value Mappings
-
-Map raw values to displayed text/colors without changing the underlying data.
-
-Value mapping (most common): exact match on specific values.
-
-```json
-{
-  "mappings": [
-    {
-      "type": "value",
-      "options": {
-        "0": { "text": "OK", "color": "green" },
-        "1": { "text": "WARNING", "color": "yellow" },
-        "2": { "text": "CRITICAL", "color": "red" }
-      }
-    }
-  ]
-}
-```
-
-For range, regex, and special mapping types (null/NaN/boolean handling), see [`./references/field-config.md`](./references/field-config.md).
-Multiple mapping types can coexist in the same `mappings` array.
-They are evaluated in order and the first match wins.
-
-### Data Links
-
-Attach clickable URLs to data points that open external resources with interpolated context.
-
-```json
-{
-  "fieldConfig": {
-    "defaults": {
-      "links": [
-        {
-          "title": "View Traces",
-          "url": "https://jaeger.example.com/search${__url_time_range}&service=${__data.fields.service}",
-          "targetBlank": true,
-          "tooltip": "Open in Jaeger"
-        }
-      ]
-    }
-  }
-}
-```
-
-For the full data link variable catalog (`${__series.name}`, `${__field.labels.*}`, `${__value.*}`, etc.), see [`./references/field-config.md`](./references/field-config.md).
+- Variables: query variables for dynamic lists, custom variables for small static enums, textbox variables for ad-hoc input.
+  - Sanitize textbox values in queries to prevent injection.
+  - All 7 standard classic variable types, global variables, and format modifiers: [`./references/variables.md`](./references/variables.md)
+- Transformations reshape query results before rendering.
+  - Apply them in order.
+  - Each transformation receives the output of the previous one.
+  - Full catalog of 20+ transformation types: [`./references/variables.md`](./references/variables.md)
+- Field config controls units, decimals, thresholds, mappings, and data links after queries return results.
+  - The first threshold step always has `value: null` (base color).
+  - Percentage mode requires explicit `min`/`max` on the field.
+  - Overrides pair matchers with properties.
+  - Value mappings are evaluated in order and the first match wins.
+  - Unit catalog (~60 specifiers), all 5 override matcher types, all 4 mapping types, and the data link variable catalog: [`./references/field-config.md`](./references/field-config.md)
 
 ## Best Practice Frameworks
 
@@ -630,23 +230,6 @@ Focus on Utilization, Saturation, and Errors for resource-centric views.
 | Saturation | How much demand is queued? | `node_load_avg`, queue depth, conn count |
 | Errors | How many operations failed? | Error rate, 5xx count, error ratio |
 
-Dashboard layout following USE:
-
-```json
-{
-  "title": "Node Resource Health - ${instance}",
-  "panels": [
-    { "title": "CPU Utilization", "type": "timeseries" },
-    { "title": "CPU Saturation (Load)", "type": "timeseries" },
-    { "title": "Memory Utilization", "type": "timeseries" },
-    { "title": "Memory Saturation (OOM Kills)", "type": "timeseries" },
-    { "title": "Disk I/O Utilization", "type": "timeseries" },
-    { "title": "Disk Saturation (I/O Wait)", "type": "timeseries" },
-    { "title": "Network Errors", "type": "timeseries" }
-  ]
-}
-```
-
 ### RED Method
 
 Focus on Rate, Errors, and Duration for request-driven services.
@@ -656,22 +239,6 @@ Focus on Rate, Errors, and Duration for request-driven services.
 | Rate | How many requests per second? | `rate(http_requests_total[5m])` |
 | Errors | How many are failing? | `rate(http_requests_total{status=~"5.."}[5m])` |
 | Duration | How long do requests take? | `histogram_quantile(0.99, ...)` |
-
-Dashboard layout following RED:
-
-```json
-{
-  "title": "Service RED Metrics - ${service}",
-  "panels": [
-    { "title": "Request Rate", "type": "timeseries" },
-    { "title": "Error Rate (%)", "type": "stat" },
-    { "title": "Error Count", "type": "timeseries" },
-    { "title": "Latency p50", "type": "timeseries" },
-    { "title": "Latency p95", "type": "timeseries" },
-    { "title": "Latency p99", "type": "timeseries" }
-  ]
-}
-```
 
 ### Four Golden Signals
 
@@ -683,23 +250,6 @@ Google's SRE framework: Latency, Traffic, Errors, and Saturation.
 | Traffic | How much demand is there? | Requests/sec, connections/sec |
 | Errors | How many are failing? | Error rate, failure percentage |
 | Saturation | How close to capacity? | CPU, memory, disk, connection pool usage |
-
-Dashboard layout following Four Golden Signals:
-
-```json
-{
-  "title": "SRE Golden Signals - ${service}",
-  "panels": [
-    { "title": "Request Latency (p50/p95/p99)", "type": "timeseries" },
-    { "title": "Traffic (RPS)", "type": "stat" },
-    { "title": "Error Rate", "type": "stat" },
-    { "title": "Errors Over Time", "type": "timeseries" },
-    { "title": "CPU Saturation", "type": "gauge" },
-    { "title": "Memory Saturation", "type": "gauge" },
-    { "title": "Connection Pool Usage", "type": "gauge" }
-  ]
-}
-```
 
 ### Dashboard Maturity Model
 
@@ -714,63 +264,18 @@ Aim for Level 3 minimum for production dashboards.
 | 4 | Includes runbook links, alert annotations, drill-down paths, self-documenting layout |
 | 5 | Automated testing, versioned alongside code, reviewed on every change, part of on-call rotation |
 
-## Time Picker Configuration
+## Time Picker and Repeat Behavior
 
-Control how the dashboard time range behaves.
-
-```json
-{
-  "time": {
-    "from": "now-30m",
-    "to": "now"
-  },
-  "timezone": "browser",
-  "graphTooltip": 0,
-  "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"],
-    "hidden": false,
-    "collapse": false,
-    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-  }
-}
-```
-
-Key fields:
+Dashboard-level time controls:
 
 | Field | Values | Purpose |
 | --- | --- | --- |
 | `timezone` | `"browser"`, `"utc"`, `"America/New_York"` etc. | Which timezone to use for display |
 | `graphTooltip` | `0` (single), `1` (per series), `2` (all series) | Tooltip behavior on hover |
 | `timepicker.hidden` | `true`, `false` | Hide the time picker UI entirely |
-| `timepicker.collapse` | `true`, `false` | Collapse time picker by default |
 | `refresh` | `"5s"`, `"10s"`, `"30s"`, `"1m"`, `"5m"` etc. | Auto-refresh interval |
 
-Panel-level time override -- individual panels can shift or constrain their own time range independently of the dashboard:
-
-```json
-{
-  "timeFrom": "now-6h",
-  "timeShift": "1d",
-  "hideTimeOverride": false
-}
-```
-
-Add these fields directly to a panel object (not inside `options`).
-`timeFrom` sets the earliest data point relative to now.
-`timeShift` shifts the entire query window (useful for day-over-day comparisons).
-`hideTimeOverride` hides the panel's custom time indicator.
-
-## Repeat Behavior
-
-Control how repeated panels lay out across the dashboard.
-
-```json
-{
-  "repeat": "instance",
-  "repeatDirection": "h",
-  "maxPerRow": 3
-}
-```
+Repeat fields on a panel or row:
 
 | Field | Values | Effect |
 | --- | --- | --- |
@@ -778,8 +283,6 @@ Control how repeated panels lay out across the dashboard.
 | `repeatDirection` | `"h"`, `"v"` | Horizontal or vertical layout |
 | `maxPerRow` | integer | Max panels per row (horizontal mode only) |
 
-When `repeatDirection` is `"h"`, panels fill left-to-right, wrapping to the next row after `maxPerRow`.
-When `"v"`, panels stack top-to-bottom.
 Keep one repeat driver per repeating panel or row.
 If you still need a two-dimensional layout, compose it from supported building blocks such as a repeated row for the outer dimension and panels inside that row using regular variable interpolation for titles and queries.
 
@@ -804,11 +307,8 @@ grafana/
 ```
 
 Use when: the team keeps reviewed dashboard JSON directly in the repository rather than generating it from Jsonnet.
-
-See [`./references/grafana-mixin.md`](./references/grafana-mixin.md) for Grafana mixin configuration.
-Read the same reference for Jsonnet source patterns, render commands, and source-vs-rendered handoff.
-
-For export cleanup decisions, normalization targets, and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
+For mixin configuration, Jsonnet source patterns, and source-vs-rendered handoff, see [`./references/grafana-mixin.md`](./references/grafana-mixin.md).
+For export cleanup decisions and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
 
 ## Validate the Result
 
@@ -830,7 +330,8 @@ Validate the common case with these checks:
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 
@@ -843,9 +344,9 @@ Return:
 
 | If the blocker is... | Read... |
 | --- | --- |
-| Complete JSON schema for ALL panel types (bar gauge, candlestick, trend, XY chart, node graph, traces, flame graph, canvas, geomap, dashboard list, alert list, annotations list, text/news) | [`./references/panel-types.md`](./references/panel-types.md) |
-| Complete variable reference: 7 standard classic variable types, global vars, format options, advanced patterns, boolean-toggle convention | [`./references/variables.md`](./references/variables.md) |
-| Complete field config, all override property IDs, value mappings, data link variables, data link builder patterns | [`./references/field-config.md`](./references/field-config.md) |
+| Complete JSON schema for any panel type and its options | [`./references/panel-types.md`](./references/panel-types.md) |
+| Complete variable reference: 7 classic types, global vars, format options, advanced patterns, boolean-toggle convention | [`./references/variables.md`](./references/variables.md) |
+| Complete field config, override property IDs, value mappings, data link variables, unit catalog | [`./references/field-config.md`](./references/field-config.md) |
 | Mixin configuration and Jsonnet generation | [`./references/grafana-mixin.md`](./references/grafana-mixin.md) |
 | Export cleanup decisions, normalization targets, ownership boundaries after UI edits or rendering | [`./references/dashboard-structure.md`](./references/dashboard-structure.md) |
 
@@ -855,12 +356,12 @@ Return:
 - MUST validate edited JSON before claiming the dashboard is ready.
 - MUST keep the default dashboard time range within 30 minutes unless a wider window is explicitly justified.
 - MUST keep ordinary dashboard authoring and review understandable from this file alone.
-- SHOULD keep panels organized around one operator story rather than a random metric collection.
 - MUST keep datasource references explicit.
+- MUST NOT include unstable runtime-only fields in Git-owned dashboard JSON.
+- SHOULD keep panels organized around one operator story rather than a random metric collection.
 - SHOULD use variables, repeat, transformations, field config, thresholds, legends, links, and annotations only when they serve the operator question directly.
 - SHOULD choose panel types that match the operator question, not default to timeseries for everything.
 - SHOULD follow USE, RED, or Four Golden Signals framework when structuring service dashboards.
-- MUST NOT include unstable runtime-only fields in Git-owned dashboard JSON.
 
 ## Common Pitfalls
 

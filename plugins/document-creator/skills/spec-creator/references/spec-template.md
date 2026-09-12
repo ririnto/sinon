@@ -792,7 +792,8 @@ Conformance requirement:
 
 - Every section in the template addresses one coherent topic.
 - Sections are numbered for stable cross-reference.
-- Bracketed placeholders `[text]` indicate where content is inserted; remove brackets when filled.
+- Bracketed placeholders `[text]` indicate where content is inserted.
+  Remove brackets when filled.
 - Nested state transitions and retry formulas are shown as pseudocode in ` ```text ` fences.
 - Entity field tables show type, constraints, nullability, and usage.
 - Conformance tests are itemized by area and clearly mark which tests are REQUIRED versus OPTIONAL/Extension.

@@ -16,7 +16,7 @@ Open this when shared default resources are no longer enough and the application
 | Parameter | Meaning |
 | --- | --- |
 | `prefix` | thread name prefix (e.g., `"app"` creates `app-nio-1`, `app-nio-2`, ...) |
-| `workerCount` | number of event loop threads; defaults to available processors |
+| `workerCount` | number of event loop threads, defaulting to available processors |
 | `daemon` | whether event loop threads are daemon threads (`true` for server apps) |
 
 ```java

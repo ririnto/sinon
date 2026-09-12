@@ -79,7 +79,8 @@ final class RefCountExample {
 ```
 
 With threshold of 1, the source starts immediately on the first subscription.
-When `disposable1` disposes, the source stays alive because `disposable2` keeps the count at 1. When `disposable2` also disposes, the count drops below 1 and the upstream cancels.
+When `disposable1` disposes, the source stays alive because `disposable2` keeps the count at 1.
+When `disposable2` also disposes, the count drops below 1 and the upstream cancels.
 
 ## `replay(...)`: late subscribers see history
 

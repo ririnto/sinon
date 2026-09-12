@@ -24,7 +24,8 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 - MUST use a unit test by default.
 - MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
 - MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
-- MUST treat 60/30/10 as a suite budget, not a requirement to add all three layers for each feature.
+- SHOULD treat roughly 60/30/10 as the default suite budget across unit/integration/end-to-end layers, choosing layers from the evidence each behavior needs.
+  Follow task, host, and dispatch requirements when they differ.
 - MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD keep one observable behavior per test.
 - SHOULD name tests as `verbCondition` or `subjectVerb` describing the observable behavior (e.g., `returnsCachedProfile`, `emitsLoadingThenData`, `rejectsInvalidInput`).
@@ -217,7 +218,8 @@ Check these pass/fail conditions before you stop:
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

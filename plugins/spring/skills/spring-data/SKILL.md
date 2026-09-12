@@ -13,7 +13,8 @@ Use `spring-data` for repository abstraction, derived query methods, projections
 
 - Use store-specific repository guidance when the real problem depends on one store's persistence model.
 - Keep this skill focused on what is shared across Spring Data modules rather than store-specific query languages or transaction mechanics.
-- The concrete repository examples in this common path assume imperative repository contracts; reactive execution details belong in the matching store-specific reactive path.
+- The concrete repository examples in this common path assume imperative repository contracts.
+  Reactive execution details belong in the matching store-specific reactive path.
 
 ## Common path
 
@@ -122,7 +123,8 @@ List<CustomerSummary> summaries = repository.findByEmail("a@example.com", Custom
 
 The projection type must be a valid Spring Data projection interface or a DTO class such as a record.
 For class-based DTO projections, keep a single constructor or mark the constructor Spring Data should use with `@PersistenceCreator`.
-Dynamic projection works naturally with derived queries; declared queries must still return a shape that matches the selected projection.
+Dynamic projection works naturally with derived queries.
+Declared queries must still return a shape that matches the selected projection.
 
 ### Null-safe repository contract shape
 
@@ -158,7 +160,8 @@ interface CustomerRepository extends ListCrudRepository<Customer, Long> {
 ```
 
 Use `Optional<T>` for absent aggregate results and `@Nullable` for truly nullable scalar or entity return types.
-Do not wrap `Optional<T>` itself in `@Nullable`; absence belongs inside the `Optional`.
+Do not wrap `Optional<T>` itself in `@Nullable`.
+Absence belongs inside the `Optional`.
 
 ### Scroll or window shape
 
@@ -316,7 +319,8 @@ Window<CustomerView> findFirst20ByAddressCityOrderByIdAsc(String city, ScrollPos
 Use `Page` when the caller needs total count, `Slice` when the caller scrolls through an unknown-length feed, and `Window` when the caller scrolls with deterministic ordering and extracts the next position from the current window.
 `Page` is the heaviest because it runs a separate count query.
 `Slice` avoids the count but still uses pageable offset traversal.
-`Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`; the underlying scroll can be offset- or keyset-based depending on the repository method and store support.
+`Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`.
+The underlying scroll can be offset- or keyset-based depending on the repository method and store support.
 
 Keyset scrolling constraints:
 

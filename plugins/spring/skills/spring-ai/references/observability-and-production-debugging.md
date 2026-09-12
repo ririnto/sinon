@@ -105,7 +105,8 @@ class InventoryTools {
 - `ai.call.tokens.total` - total token count
 - `ai.retrieval.count` - number of documents returned from vector search
 - `ai.retrieval.latency` - latency of the similarity search call
-- `ai.tool.calls` - count of tool invocations labeled by tool name (span name changed to `execute_tool` in 2.0.0; attributes include `spring.ai.tool.type` and `spring.ai.tool.call.id`)
+- `ai.tool.calls` - count of tool invocations labeled by tool name (span name changed to `execute_tool` in 2.0.0).
+  - Attributes include `spring.ai.tool.type` and `spring.ai.tool.call.id`.
 
 ## Tracing Spring AI calls
 

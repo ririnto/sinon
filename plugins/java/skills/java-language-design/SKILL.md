@@ -73,80 +73,9 @@ public final class RetryPolicy {
 
 ### Builder for complex construction
 
-When a type has many optional parameters and a factory method becomes unwieldy:
-
-```java
-public final class QueryOptions {
-    private final int limit;
-    private final int offset;
-    private final String sortBy;
-    private final boolean ascending;
-
-    private QueryOptions(Builder builder) {
-        this.limit = builder.limit;
-        this.offset = builder.offset;
-        this.sortBy = builder.sortBy;
-        this.ascending = builder.ascending;
-    }
-
-    public int limit() {
-        return limit;
-    }
-
-    public int offset() {
-        return offset;
-    }
-
-    public String sortBy() {
-        return sortBy;
-    }
-
-    public boolean ascending() {
-        return ascending;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static final class Builder {
-        private int limit = 100;
-        private int offset = 0;
-        private String sortBy = "id";
-        private boolean ascending = true;
-
-        public Builder limit(int limit) {
-            if (limit < 1) {
-                throw new IllegalArgumentException("limit must be positive");
-            }
-            this.limit = limit;
-            return this;
-        }
-
-        public Builder offset(int offset) {
-            if (offset < 0) {
-                throw new IllegalArgumentException("offset must be >= 0");
-            }
-            this.offset = offset;
-            return this;
-        }
-
-        public Builder sortBy(String sortBy) {
-            this.sortBy = sortBy;
-            return this;
-        }
-
-        public Builder ascending(boolean ascending) {
-            this.ascending = ascending;
-            return this;
-        }
-
-        public QueryOptions build() {
-            return new QueryOptions(this);
-        }
-    }
-}
-```
+When a type has many optional parameters and a factory method becomes unwieldy, keep the Builder's constructor private, keep defaults visible as Builder field initializers, and validate ranges in the setter (or in `build()` when several fields interact).
+Return an immutable instance from `build()`.
+The model knows the pattern shape.
 
 ### equals and hashCode for non-record value types (pre-Java 17)
 
@@ -178,37 +107,6 @@ public final class Money {
     @Override
     public int hashCode() {
         return Objects.hash(currency, cents);
-    }
-}
-```
-
-### Member ordering baseline
-
-```java
-public final class Example {
-
-    private static final String TYPE = "example";
-
-    private final String value;
-
-    public Example(String value) {
-        this.value = value;
-    }
-
-    public static Example of(String value) {
-        return new Example(value);
-    }
-
-    @Override
-    public String toString() {
-        return value;
-    }
-
-    public String value() {
-        return value;
-    }
-
-    static final class Parser {
     }
 }
 ```
@@ -261,23 +159,27 @@ public interface RetryStrategy {
 
 ## Edge cases
 
-- If the question is about syntax availability across Java versions rather than design semantics, that is outside this skill's scope.
-- If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
-- If the question is about performance tuning or concurrency model selection, that is outside this skill's scope.
+- Questions about syntax availability across Java versions are outside this skill's scope.
+  Use `java:java-language-syntax`.
+- Questions about JUnit structure or test-first workflow are outside this skill's scope.
+  Use `java:java-test`.
+- Questions about performance tuning and concurrency model selection are outside this skill's scope.
+  Use `java:java-performance-concurrency`.
 - If the Java baseline does not support records (pre-16), fall back to `final` classes with manual equality and constructor validation.
 - If a type owns evolving state or identity-bearing behavior, a record may not fit even when the baseline supports it.
 - If the domain must remain extensible across package or module boundaries, prefer an open interface over a sealed hierarchy.
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 
 1. The recommended type shape with Java baseline annotation.
 2. Explicit mutability and visibility decisions.
 3. Exception contract with recoverability rationale.
-4. Member ordering that follows the declared baseline.
+4. Member ordering that follows the Operating rules ordering guidance.
 
 ## Support-file pointers
 
@@ -292,4 +194,3 @@ Return:
 - Do not use inheritance when the model is just data or capability.
 - Do not throw checked exceptions for non-recoverable failures.
 - Do not hide invariants inside overloaded constructors.
-- Do not mix fields, constructors, methods, and nested types in scan-hostile order.

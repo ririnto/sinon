@@ -25,7 +25,8 @@ Spring Web Services 5.0 requires JDK 17+ (compatible through JDK 27), Jakarta EE
   - The Boot starter manages the Spring WS version.
 - `XwsSecurityInterceptor` was removed in Spring WS 4.0 and is not available.
   - Use `Wss4jSecurityInterceptor` for all WS-Security configuration.
-- `WsConfigurerAdapter` was removed in Spring WS 5.0. Implement `WsConfigurer` directly (it provides default methods).
+- `WsConfigurerAdapter` was removed in Spring WS 5.0.
+  Implement `WsConfigurer` directly (it provides default methods).
 
 ## Common path
 

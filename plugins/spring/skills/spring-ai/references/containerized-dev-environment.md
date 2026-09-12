@@ -8,7 +8,8 @@ Problem: the team needs a repeatable local environment for models and retrieval 
 
 Solution: keep the local runtime list short and explicit so every developer sees the same endpoints.
 
-The reviewed Ollama image is 0.31.2; refresh this digest deliberately when adopting a newer release.
+The reviewed Ollama image is 0.31.2.
+Refresh this digest deliberately when adopting a newer release.
 
 ```yaml
 services:

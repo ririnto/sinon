@@ -8,7 +8,8 @@ description: >-
 # Spring REST Docs
 
 Spring REST Docs 4.0.1 requires Spring Framework 7.0 (Spring Boot 4.x), JUnit 6.0, AsciidoctorJ 3.0, Jackson 3, and Bean Validation 3.1 (Hibernate Validator 9.0).
-REST Assured support was removed in 4.0. The only supported documentation surfaces are MockMvc and WebTestClient.
+REST Assured support was removed in 4.0.
+The only supported documentation surfaces are MockMvc and WebTestClient.
 
 ## Boundaries
 
@@ -276,7 +277,8 @@ operation::orders-create[snippets='http-request,http-response,response-fields']
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

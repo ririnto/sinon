@@ -57,50 +57,15 @@ Delegating to another agent is not.
 | `reactor:reactor-sinks` | Sinks variants, ConnectableFlux boundaries, hot sources, multicast patterns | Hot source design and lifecycle |
 | `reactor:reactor-testing` | StepVerifier, virtual time, TestPublisher, PublisherProbe | Test strategy and validation |
 
-## Quality Standards
+## Decision Boundaries
 
-- Clarify whether the source is cold or hot when subscription and emission timing affects the recommendation.
-  - Cold sources (Flux.range, database queries) emit on each subscription.
-  - Hot sources (Sinks, UI events) emit independently of subscriptions.
-- For scheduler decisions, be explicit about the workload profile (CPU vs. I/O) and expected concurrency level.
-  - Start with Reactor's default execution model and add a scheduler boundary only when workload placement or isolation requires one.
-  - Use `parallel()` for fast, non-blocking CPU work.
-  - Wrap unavoidable blocking I/O at its source and offload it with `subscribeOn(boundedElastic())`.
-  - Prefer the fewest scheduler hops that preserve correctness.
-- When discussing hot sources (Sinks, ConnectableFlux), clarify the subscription versus emission timeline and whether late subscribers should receive buffered events (replay).
-  - Sinks.multicast allows explicit control.
-  - ConnectableFlux.autoConnect lets subscribers decide connection timing.
-- Use StepVerifier for ordinary publisher assertions and virtual time for time-based operators when Reactor controls the relevant scheduler.
-  - Validate both happy path and error scenarios (timeout, backpressure).
-  - Use StepVerifier.withVirtualTime for timeout-sensitive tests.
-- For backpressure strategy, clarify whether to reshape upstream demand, use a bounded buffer, drop or retain selected signals, or fail on overflow.
-  - Treat Reactive Streams demand separately from scheduler queue capacity.
-    `boundedElastic()` does not provide backpressure for an I/O source.
-- When diagnosing memory leaks in Flux chains, look for unbounded operators (buffer without limit, replay without upper bound) and check for leaked subscriptions (Disposable not disposed).
+The routed skill owns the scheduler tables and testing recipes.
+This agent frames the question:
 
-## Decision Trees
-
-### Hot and Cold Source
-
-- Data-driven (query database, read file)?
-  - Cold source (Flux.fromIterable, Mono.fromCallable).
-- Event-driven (button click, WebSocket message)?
-  - Hot source (Sinks, ConnectableFlux).
-- Need multicast to multiple subscribers?
-  - ConnectableFlux.share() or Sinks.multicast.
-- Need to replay buffered events?
-  - ConnectableFlux.replay() or Sinks with buffer strategy.
-
-## Scheduler Selection
-
-- CPU-intensive task (sorting, encryption)?
-  - Use Schedulers.parallel().
-- Blocking I/O (database, HTTP, file)?
-  - Use Schedulers.boundedElastic().
-- Serial, ordered processing required?
-  - Use Schedulers.single() or custom single-threaded executor.
-- Synchronous or guaranteed immediate execution?
-  - Schedulers.immediate().
+- Name the workload profile (CPU vs. blocking I/O) and expected concurrency level before scheduler talk.
+- Name the hot/cold source semantics and the subscription-versus-emission timeline before composition talk.
+- Treat Reactive Streams demand separately from scheduler queue capacity.
+  `boundedElastic()` does not provide backpressure for an I/O source.
 
 ## Escalation
 
@@ -108,6 +73,9 @@ Stop and report the missing workload, subscription timeline, baseline, or measur
 Do not invent scheduler, backpressure, or lifecycle assumptions.
 
 ## Output Format
+
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 When recommending a composition pattern or architecture:
 

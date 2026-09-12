@@ -69,7 +69,8 @@ Required fields:
 
 Optional fields:
 
-- `tag`: Array of classification strings; use `[]` when retaining the field without values.
+- `tag`: Array of classification strings.
+  Use `[]` when retaining the field without values.
 - `owner`
 - `priority`
 - `metadata`
@@ -181,11 +182,11 @@ Before marking `review` or higher:
 
 - In authored `SPEC.md` content, TODO markers MUST NOT remain.
 - In authored `SPEC.md` content, unresolved placeholders MUST NOT remain.
-- Replace template prompts while authoring `SPEC.md`; reviewers assess the resulting document in context.
+- Replace template prompts while authoring `SPEC.md`.
+  Reviewers assess the resulting document in context.
 - Manual numbered headings (`## 1. Something` form) MUST NOT be used.
   Reviewers assess heading style in `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
-- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run when `bun` is available locally, and failures MUST be resolved.
-  - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
+- The packaged validator MUST be run per the `SKILL.md` Operating rules validator requirement, and failures MUST be resolved.
 
 ## Common Mistakes
 
@@ -196,4 +197,5 @@ Before marking `review` or higher:
 - Linking to non-SPEC files in frontmatter `call`.
 - Forgetting to update frontmatter `call` after dependency changes.
 - Advancing status without updating `last_updated`.
-- Using manual numbered headings (`## 1. Something` form); reviewers should request descriptive headings instead.
+- Using manual numbered headings (`## 1. Something` form).
+  Reviewers should request descriptive headings instead.

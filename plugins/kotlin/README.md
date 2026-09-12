@@ -44,16 +44,16 @@ Start here when Kotlin work could fit more than one skill:
 1. Establish the type model, null-safety, and collection shape first with `kotlin-language-patterns`.
 2. Add coroutine and Flow guidance when async control flow, cancellation, or stream semantics matter with `kotlin-coroutines-flows`.
 3. Lock behavior with deterministic tests and the smallest correct scope with `kotlin-test`.
-4. Java syntax and JVM tooling questions belong in Java- or JVM-focused guidance.
-5. Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior belong
-   in Spring-focused guidance.
+4. Java syntax and JVM tooling questions are outside Kotlin guidance.
+5. Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior are
+   outside Kotlin guidance.
 
 ### Scope boundaries
 
 Pure Kotlin unit tests, coroutine tests, and test-structure decisions that do not require Spring
 context stay in Kotlin-focused guidance.
 Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure
-behavior belong in Spring-focused guidance.
+behavior are outside Kotlin-focused guidance.
 
 Kotlin stays responsible for Kotlin-native language patterns, coroutine and Flow modeling,
 Kotlin-focused test structure, and kotlin-lsp-assisted source analysis.
@@ -64,7 +64,7 @@ These topics fall outside Kotlin's scope:
 - JVM tools, JVM diagnostics, and GC analysis.
 - Spring annotations, WebFlux framework wiring, Spring Boot testing, and framework-managed reactive behavior.
 
-Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage belong to Spring-focused guidance.
+Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage are outside Kotlin guidance.
 Kotlin remains the home for general coroutine and Flow design outside Spring framework behavior.
 
 ## Design Principles
@@ -72,13 +72,7 @@ Kotlin remains the home for general coroutine and Flow design outside Spring fra
 - Prefer working code shapes over generic language summaries.
 - Keep examples minimal but directly adaptable to production code.
 - Choose the smallest Kotlin skill that matches the task.
-- Unnecessary blank lines inside function bodies SHOULD be removed.
-- Variables used only once SHOULD be inlined when their names and extraction order do not add meaning.
-- Explicit lambda parameter names SHOULD be preferred over `it` when the named form improves scanning or domain clarity.
-- Class-level and member properties SHOULD spell out their types.
-- Extension functions and extension properties SHOULD be used only when the receiver-centric shape makes the call site clearer than an ordinary function or member.
-- Extension properties SHOULD NOT hide expensive work, mutation, or surprising derived state behind field-like syntax.
-- Infix functions SHOULD be used only when the operation reads naturally at the call site and remains unambiguous without extra context.
+  Each skill owns its style and pattern rules.
 
 ## Runtime Model
 

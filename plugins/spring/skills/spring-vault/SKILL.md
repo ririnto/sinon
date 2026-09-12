@@ -1,8 +1,8 @@
 ---
 name: spring-vault
 description: >-
-  Integrate Spring applications with HashiCorp Vault or Cloud Foundry CredHub for secret and credential reads, writes, authentication, property-source loading, transit encryption, declarative secret rotation, and certificate management.
-  Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, applying transit encryption and decryption, using `VaultClient` for low-level Vault HTTP access, configuring `ManagedSecret` rotation, issuing certificates through `CertificateContainer`, reading or writing CredHub credentials, configuring mutual-TLS or OAuth2 CredHub authentication, or generating CredHub passwords or certificates.
+  Integrate Spring applications with HashiCorp Vault or Cloud Foundry CredHub for secret and credential management.
+  Use when authenticating with Vault, reading or writing secrets, loading Vault-backed property sources, applying transit encryption, rotating credentials, or reading and writing CredHub credentials.
 ---
 
 # Spring Vault and CredHub
@@ -520,7 +520,8 @@ void passwordReturnsValueFromCredHub() {
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

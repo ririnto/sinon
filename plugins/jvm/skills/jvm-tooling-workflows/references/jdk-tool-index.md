@@ -17,10 +17,10 @@ Use this reference when the blocker is choosing among the wider JDK tool set bef
 | `javadoc` | All LTS | Generate API documentation from source |
 | `jdeps` | All LTS | Analyze package and module dependencies |
 | `jlink` | JDK 9+ | Build custom runtime images from modules |
-| `jpackage` | JDK 14-15 incubator (`jdk.incubator.jpackage`); standard from JDK 16 (JEP 392) | Build native installers or app images |
+| `jpackage` | JDK 14-15 incubator (`jdk.incubator.jpackage`), standard from JDK 16 (JEP 392) | Build native installers or app images |
 | `jcmd` | All LTS | Send diagnostic commands to running JVMs |
-| `jstack` | All LTS (deprecated) | Print thread dumps (legacy; prefer `jcmd Thread.print`) |
-| `jmap` | All LTS (deprecated) | Heap inspection and dump (legacy; prefer `jcmd GC.*`) |
+| `jstack` | All LTS (deprecated) | Print thread dumps (legacy, prefer `jcmd Thread.print`) |
+| `jmap` | All LTS (deprecated) | Heap inspection and dump (legacy, prefer `jcmd GC.*`) |
 | `jfr` | JDK 11+ on OpenJDK; JDK 8 only on distributions/updates that include and license Flight Recorder | JFR provides Flight Recorder capture and analysis.<br>Verify vendor, update level, and `jcmd <pid> help` before use. |
 
 ## Selection Rule
@@ -58,5 +58,5 @@ java.sql
 | Analyze module deps | 9 | `jdeps --print-module-deps` |
 | Build custom runtime image | 9 | `jlink` |
 | Generate API docs | 8 | `javadoc` |
-| Build native installer | 16 (standard) / 14 (incubator; not production-grade) | `jpackage` |
+| Build native installer | 16 (standard) / 14 (incubator, not production-grade) | `jpackage` |
 | Low-overhead flight recording | OpenJDK supports low-overhead flight recording from JDK 11 onward.<br>JDK 8 supports it only when the exact distribution/update includes licensed Flight Recorder. | `JFR.start` via `jcmd`, after checking `jcmd <pid> help` |

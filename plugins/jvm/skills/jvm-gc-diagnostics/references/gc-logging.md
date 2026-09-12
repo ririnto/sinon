@@ -148,7 +148,7 @@ Key fields to read from legacy output:
 | `-XX:+PrintGCApplicationConcurrentTime` | `-Xlog:safepoint` |
 | `-XX:+PrintGCApplicationStoppedTime` | `-Xlog:safepoint` |
 | `-XX:+PrintTenuringDistribution` | `-Xlog:gc+age=trace` |
-| `-XX:+PrintHeapAtGC` | Not directly equivalent; use `-Xlog:gc+heap=debug` |
+| `-XX:+PrintHeapAtGC` | Not directly equivalent, closest is `-Xlog:gc+heap=debug` |
 
 ## Red Flags in GC Log Output
 

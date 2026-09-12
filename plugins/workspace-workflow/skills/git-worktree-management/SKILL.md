@@ -316,39 +316,20 @@ git worktree remove worktrees/<branch-name>
 
 ## Output Contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 ### `git worktree list` output shape
 
 ```text
 <path>  <sha>  [<branch>]  (<metadata>)
-<path>  <sha>  [<branch>]  (<metadata>)
 ```
 
-- Each line represents one worktree.
-- Path is absolute.
-- SHA is the current HEAD commit hash (short form, typically 7 chars).
-- Branch is the current branch name, enclosed in `[...]`.
-- Metadata is optional and includes lock status, detach reason, etc.
+- Each line represents one worktree with its absolute path, current HEAD commit hash, branch name in brackets (or detach status), and optional lock/detach metadata.
 
 ### `git worktree add` success output
 
-Git prints one of these shapes.
-
-New branch (created with `-b`):
-
-```text
-Preparing worktree (new branch '<branch>')
-HEAD is now at <sha> <commit-message>
-```
-
-Existing branch:
-
-```text
-Preparing worktree (checking out '<branch>')
-HEAD is now at <sha> <commit-message>
-```
-
+Git prints `Preparing worktree (...)` followed by `HEAD is now at <sha> <commit-message>`.
 If no output appears, the worktree was created successfully.
 
 ### `git worktree add` failure output

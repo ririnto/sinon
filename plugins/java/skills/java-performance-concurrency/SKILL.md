@@ -113,14 +113,9 @@ dependencies {
 
 ### GC selection decision tree
 
-| Collector | Flag | Best for | Avoid when |
-| --- | --- | --- | --- |
-| G1 (default) | `-XX:+UseG1GC` | General-purpose, balanced latency/throughput | Sub-millisecond pause requirements |
-| ZGC | `-XX:+UseZGC` | Low-latency, large heaps (JDK 15+ production-ready) | Very small heaps, JDK 11 |
-| Shenandoah | `-XX:+UseShenandoahGC` | Low-latency alternative to ZGC | Not available in all JDK distributions |
-| Parallel | `-XX:+UseParallelGC` | Batch/throughput-focused, max throughput | Latency-sensitive services |
-
-Rule: do not change the collector without allocation and pause evidence from JFR or GC logs.
+Default to G1 unless measured evidence points elsewhere.
+Justify any collector change with JFR allocation profiles and GC pause logs from the real workload, and confirm pause behavior on the target heap size before rollout.
+This skill stops at the selection decision.
 
 ### Blocking-I/O review
 
@@ -252,9 +247,12 @@ jhsdb jmap --binaryheap --dumpfile /tmp/heap.hprof --pid <pid>
 
 ## Edge cases
 
-- If the main task is runtime incident capture from a live JVM rather than performance interpretation, state that live incident triage is outside this skill's scope.
-- If the question is about public API or type-modeling decisions, that is outside this skill's scope.
-- If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
+- Live JVM incident triage is outside this skill's scope.
+  Collect the first evidence with the JFR recording and heap-dump capture commands in this file.
+- Public API or type-modeling decisions are outside this skill's scope.
+  Use `java:java-language-design`.
+- JUnit structure or test-first workflow is outside this skill's scope.
+  Use `java:java-test`.
 - If no profiling evidence exists, collect evidence before recommending any change.
 - If someone proposes virtual threads for CPU-bound work, reject the recommendation and point to the hot computation path first.
 - If discussing `synchronized` pinning, state whether the target runtime is Java 21-23 or Java 24+ before giving version-specific advice.
@@ -262,7 +260,8 @@ jhsdb jmap --binaryheap --dumpfile /tmp/heap.hprof --pid <pid>
 
 ## Output contract
 
-Use the following as recommended defaults; follow task, host, and dispatch requirements when they differ.
+Use the following as recommended defaults.
+Follow task, host, and dispatch requirements when they differ.
 
 Return:
 

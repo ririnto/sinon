@@ -100,11 +100,14 @@ Avoid vague, compound, or implementation-led requirements.
 - FR-001: The system should handle exports well.
   - Problems: "well" is vague, "handle" is too broad, no measurable criteria.
 - FR-002: Use Redis and a worker queue to process exports.
-  - Problems: Implementation detail (Redis, worker queue) not observable behavior; prescribes HOW, not WHAT.
+  - Problems: Implementation detail (Redis, worker queue) is not observable behavior.
+    It prescribes HOW, not WHAT.
 - FR-003: The export feature must be fast, secure, intuitive, and scalable.
-  - Problems: Vague terms (fast, secure, intuitive, scalable) without metrics; compound requirement joined by "and".
+  - Problems: Vague terms (fast, secure, intuitive, scalable) without metrics.
+    It is a compound requirement joined by "and".
 - FR-004: Export jobs that fail SHOULD retry automatically and MUST support rollback.
-  - Problems: Two separate behaviors in one requirement; "support rollback" is too vague.
+  - Problems: Two separate behaviors in one requirement.
+    "Support rollback" is too vague.
 ```
 
 Each problem above violates one rule: observable behavior, no implementation detail unless mandated, no vague terms, one behavior per requirement.
@@ -147,7 +150,8 @@ Form: Metric + measurement point + verification method.
 
 - NFR-SEC-001: The system MUST NOT expose another tenant's data in any API response, log output, or error message.
   - Measurement: Code inspection + end-to-end tests.
-  - Verification: [Data segregation tests] MUST pass; audit logs MUST show no cross-tenant access.
+  - Verification: [Data segregation tests] MUST pass.
+    Audit logs MUST show no cross-tenant access.
 
 - NFR-REL-001: The system MUST recover from transient network failures and retry failed upstream calls up to 3 times with exponential backoff.
   - Measurement: Upstream failure injection + observation of retry behavior.
