@@ -11,7 +11,6 @@ The user's instructions take precedence over skill guidance, repository document
 If guidance conflicts with the user's intent, prioritize the user, then the active host's policy, then repository instructions, then skills.
 
 Read the target repository's root instruction file before editing.
-Do not assume a universal filename: discover the file the active host actually loads (`AGENTS.md`, `CLAUDE.md`, or another host-specific file).
 One repository may carry several.
 Follow the one the active host selects, and treat repository-level pointers (`@AGENTS.md` includes) as part of the file.
 If no root instruction file exists, fall back to README and contribution documents.
@@ -50,6 +49,9 @@ A mechanical change applied across a repository is one reviewable change with a 
 ## Validation
 
 Choose the proof before editing and run the narrowest existing checks that exercise the changed behavior.
+Prefer an explicit fix over a read-only check when the defect is already confirmed, and prefer a read-only check when the change must not alter the tree.
+Run existing checks directly instead of wrapping them in new scripts.
+Split independent checks into parallel `run-p` children, and use `run-s` only for a real remaining dependency between steps.
 Do not write tests for reversible, low-impact changes that mirror the implementation.
 A new test protects one acceptance criterion or regression risk and does not duplicate existing coverage of the same behavior.
 Use the repository's native test runner and maintained toolchain commands.
@@ -69,24 +71,63 @@ A unit test proves the unit.
 Only a live check proves the runtime path.
 Every verdict names the evidence class that supports it.
 
-## Language And Binding Rules
+## Code Rules Common To All Languages
 
-Prefer immutable bindings (`val`, `const`, `readonly`) for values that do not need reassignment.
-A binding prevents reassignment only.
-It does not make the object or collection immutable, so keep the two concepts distinct.
-When converting mutable state to immutable bindings, preserve evaluation order, evaluation count, exception timing, mutable snapshots, and closure capture.
-Apply conversion at the smallest scope where the reason is visible.
-Use no mechanical global conversion and no unconditional deep-freeze abstraction.
+Document every externally exposed declaration in English using the language's multiline documentation syntax.
+Keep documentation at declaration level and state the contract or reason instead of restating the identifier.
+Keep function bodies free of blank lines.
+Allow blank lines between functions and tests.
+Put no inline comments inside function bodies.
+Move explanations that must survive to the relevant declaration documentation.
 
-Pass an existing function reference instead of a wrapper unless adaptation is needed.
-Where the language provides it, prefer tail recursion over a loop when the recursive call is in real tail position and semantics and readability hold.
+Inline a single-use local only when evaluation count, evaluation order, exception timing, mutable snapshots, closure capture, and overload or receiver resolution stay identical.
+Retain the binding and state the concrete reason when any of them would change.
 
-Use raw multi-line strings for regular expressions and JSON fixtures where the language supports them.
-Raw strings remove quote and backslash escaping while preserving interpolation.
-Know whether the trailing newline before the closing delimiter is part of the value, and match the exact target.
+Replace an intermediate guard return with an inverted condition that encloses the trailing work when the two forms behave identically.
+Keep a guard return when inversion would change cleanup, exception timing, loop or caller control flow, or a returned value, or when the guard expresses validation failure or an early exit that inversion would obscure.
+
 Compare expected strings with full equality.
 Parse structured output (JSON, HTML, URLs, headers, event streams), and compare exact fields or elements instead of substring, prefix, or suffix matching.
 Use membership assertions only when membership itself is the observable contract.
+
+## YAML Authoring
+
+Use the `.yaml` extension for every maintained YAML file unless the consuming host or tool requires `.yml` (for example `.gitlab-ci.yml` at a GitLab repository root or `.custom-gcl.yml` for golangci-lint module plugins).
+Write sequences in block style.
+Keep a flow sequence only for an explicit empty sequence (`key: []`), because block style cannot express an empty sequence without turning it into null.
+Do not convert flow sequences inside string payloads, PromQL, GitHub expressions, or quoted scalars; they are not YAML lists.
+Do not rely on YAML 1.1 truthy coercion (`on`, `off`, `yes`, `no` as booleans); quote such scalars.
+Do not quote a scalar when its parsed type and value already match the consumer's need.
+Use double quotes only when the actual consumer requires the exact string type or value, such as a YAML 1.1 scalar that would coerce, or a version-like or numeric-key scalar that must stay a string.
+
+## Language Documents
+
+The package-local language documents own visibility, documentation syntax and tags, binding syntax, control-flow syntax, lambdas, extensions, recursion limits, and raw strings.
+Read the document matching the language of the file under change:
+
+- `languages/java.md`
+- `languages/kotlin.md`
+- `languages/typescript.md`
+- `languages/javascript.md`
+- `languages/python.md`
+- `languages/go.md`
+- `languages/rust.md`
+- `languages/shell.md`
+
+The package-local tool documents own detection, native configuration, merge rules, commands, CI catalogs, and limitations.
+Read the tool document matching each selected profile:
+
+- `tools/bun.md`
+- `tools/gradle.md`
+- `tools/maven.md`
+- `tools/uv.md`
+- `tools/go.md`
+- `tools/rust.md`
+- `tools/shell.md`
+
+The installer preserves these references in the installed copy.
+The Kotlin tool integration also copies its complete native module when the Kotlin profile is selected.
+Its real `RuleSetProviderV3` service descriptor must be available on the ktlint runtime classpath.
 
 ## Domain Boundaries And Design Direction
 

@@ -16,6 +16,8 @@ Focus on pauses, throughput, allocation pressure, heap behavior, and what is act
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and anchor collector guidance to the actual deployed runtime instead of assuming the newest LTS behavior.
 
+Collector availability and JEP claims in this skill were verified against the official JDK documentation and JEP index at `openjdk.org` and `docs.oracle.com`, read on 2026-09-13.
+
 Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later.
 On JDK 8, verify the exact Oracle JDK 8 Flight Recorder availability, commercial-feature status, and licensing posture before recommending JFR commands.
 Otherwise prefer GC logs plus `jcmd` evidence first.

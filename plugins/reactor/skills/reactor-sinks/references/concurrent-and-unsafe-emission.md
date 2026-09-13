@@ -92,4 +92,4 @@ Using `Sinks.unsafe()` with actual multi-threaded contention produces undefined 
 - Prefer safe sinks unless you control emission serialization yourself.
 - `Sinks.unsafe()` is an internal optimization boundary, not a public API default.
 - Busy-loop retry is for short-lived contention, not for hiding a broken producer design.
-- If the real blocker is emission outcome handling rather than producer contention, open [Sink Emission Failures](sink-failures.md).
+- If the real blocker is emission outcome handling rather than producer contention, open [Sink Emission Failures](failures.md).

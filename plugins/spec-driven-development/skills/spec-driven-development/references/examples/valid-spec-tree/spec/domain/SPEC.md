@@ -1,5 +1,5 @@
 ---
-title: "Domain Capability"
+title: Domain Capability
 description: >-
   Defines the domain-level capability and delegates ingestion behavior to the
   ingest sub-capability.
@@ -8,7 +8,7 @@ status: implemented
 tag:
   - domain
 call:
-  - "./ingest/SPEC.md"
+  - ./ingest/SPEC.md
 metadata: {}
 ---
 

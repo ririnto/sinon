@@ -4,12 +4,20 @@ import path from "node:path";
 import { isRecord, parseYamlRecord } from "./infrastructure.js";
 import { DOC_FILE_NAMES, FRONTMATTER_DELIMITER_RE } from "./shared.js";
 import type {
+  FilterRule,
   FrontmatterBlock,
   JsonRecord,
-  LoadEntry,
+  LoadEntryResult,
   MutableRecord
 } from "./shared.js";
 
+/**
+ * Extracts the YAML frontmatter block from document text.
+ *
+ * @returns The block, or undefined when the text does not start with a
+ * frontmatter header.
+ * @throws {Error} When the opening delimiter has no closing delimiter.
+ */
 export const extractFrontmatterFromText = (
   text: string
 ): FrontmatterBlock | undefined => {
@@ -26,11 +34,17 @@ export const extractFrontmatterFromText = (
   throw new Error("Unterminated YAML frontmatter");
 };
 
+/**
+ * Extracts the YAML frontmatter block from a file's contents.
+ */
 export const extractFrontmatterFromFile = (
   filePath: string
 ): FrontmatterBlock | undefined =>
   extractFrontmatterFromText(readFileSync(filePath, "utf-8"));
 
+/**
+ * Normalizes a single tag or tag array into trimmed, non-empty strings.
+ */
 export const normalizeTag = (value: unknown): readonly string[] => {
   if (Array.isArray(value)) {
     return value
@@ -44,6 +58,10 @@ export const normalizeTag = (value: unknown): readonly string[] => {
   return scalar ? [scalar] : [];
 };
 
+/**
+ * Parses a comma-separated output field list; undefined for empty input and
+ * lists with no usable fields.
+ */
 export const parseFields = (
   rawFields: string | undefined
 ): readonly string[] | undefined => {
@@ -57,6 +75,10 @@ export const parseFields = (
   return fields.length > 0 ? fields : undefined;
 };
 
+/**
+ * Renders the subject record as a `name@version` string; empty when either
+ * part is missing.
+ */
 export const subjectString = (data: JsonRecord): string => {
   const { subject } = data;
   if (!isRecord(subject)) {
@@ -67,6 +89,10 @@ export const subjectString = (data: JsonRecord): string => {
   return name || version ? `${name}@${version}` : "";
 };
 
+/**
+ * Returns the document kind matching the file's basename; empty when the
+ * name is not a known document file name.
+ */
 export const toKindLabel = (filePath: string): string => {
   const base = path.basename(filePath);
   for (const [kind, fileName] of Object.entries(DOC_FILE_NAMES)) {
@@ -77,9 +103,16 @@ export const toKindLabel = (filePath: string): string => {
   return "";
 };
 
+/**
+ * Reports whether a file path matches the document kind; `any` matches all.
+ */
 export const matchesKind = (filePath: string, kind: string): boolean =>
   kind === "any" || path.basename(filePath) === DOC_FILE_NAMES[kind];
 
+/**
+ * Builds a list-output record from the original frontmatter, filling absent
+ * fields with empty values.
+ */
 export const buildRecord = (
   filePath: string,
   data: MutableRecord,
@@ -101,43 +134,52 @@ export const buildRecord = (
   };
 };
 
-export const loadFrontmatterEntry = (
-  filePath: string
-): LoadEntry | string | undefined => {
+/**
+ * Parses a file's YAML frontmatter into a discriminated result: entry,
+ * missing, or error carrying the failure message.
+ */
+export const loadFrontmatterEntry = (filePath: string): LoadEntryResult => {
   try {
     const block = extractFrontmatterFromFile(filePath);
     if (!block) {
-      return undefined;
+      return { kind: "missing" };
     }
     if (!block.yaml.trim()) {
-      return "Empty YAML frontmatter";
+      return { kind: "error", message: "Empty YAML frontmatter" };
     }
     const data = parseYamlRecord(block.yaml);
     if (!data) {
-      return "Invalid YAML frontmatter";
+      return { kind: "error", message: "Invalid YAML frontmatter" };
     }
     const tags = normalizeTag(data["tag"] ?? data["tags"]);
     const record = buildRecord(filePath, data, block.endLine);
     return {
-      data,
-      endLine: block.endLine,
-      record,
-      subjectStr: subjectString(data),
-      tags,
-      yamlBody: block.yaml
+      entry: {
+        data,
+        endLine: block.endLine,
+        record,
+        subjectStr: subjectString(data),
+        tags,
+        yamlBody: block.yaml
+      },
+      kind: "entry"
     };
   } catch (error) {
     if (error instanceof Error) {
-      return error.message;
+      return { kind: "error", message: error.message };
     }
     throw error;
   }
 };
 
+/**
+ * Reports whether the record and frontmatter satisfy every filter; a key is
+ * read from the record first and falls back to the raw frontmatter.
+ */
 export const matchesFilters = (
   record: JsonRecord,
   frontmatter: JsonRecord,
-  filters: readonly (readonly [string, readonly string[]])[]
+  filters: readonly FilterRule[]
 ): boolean => {
   for (const [key, values] of filters) {
     const current = key in record ? record[key] : frontmatter[key];

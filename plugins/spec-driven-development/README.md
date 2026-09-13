@@ -29,7 +29,7 @@ Use `spec-driven-development` only when the user explicitly asks to run or resum
 Standalone `SPEC.md` creation or review is outside this trigger.
 
 - `references/workflow.md` - full stage model, approval gates, review loops, and lifecycle semantics.
-- `references/spec-authoring-guide.md` - writing or revising `SPEC.md` content.
+- `references/authoring-guide.md` - writing or revising `SPEC.md` content.
 - `references/research-authoring-guide.md` - writing or revising `RESEARCH.md`.
 - `references/linking-guide.md` - editing `call` relationships or checking dependencies.
 - `references/review-checklist.md` - Spec Review and Implementation Review.
@@ -51,7 +51,7 @@ plugins/spec-driven-development/
         +-- SKILL.md
         +-- references/
         |   +-- workflow.md
-        |   +-- spec-authoring-guide.md
+        |   +-- authoring-guide.md
         |   +-- research-authoring-guide.md
         |   +-- linking-guide.md
         |   +-- review-checklist.md

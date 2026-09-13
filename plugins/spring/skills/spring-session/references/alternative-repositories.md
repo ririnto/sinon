@@ -24,25 +24,40 @@ Implement `SessionRepository<S>` or `ReactiveSessionRepository<S>` only when no 
 class InMemorySessionRepository implements SessionRepository<Session>, FindByIndexNameSessionRepository<Session> {
     private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
     private Duration defaultMaxInactiveInterval = Duration.ofMinutes(30);
+    /**
+     * Creates a new session with the repository's default inactive interval.
+     */
     public Session createSession() {
         MapSession session = new MapSession();
         session.setMaxInactiveInterval(defaultMaxInactiveInterval);
         return session;
     }
+    /**
+     * Stores the session by id in the in-memory map.
+     */
     public void save(Session session) {
         sessions.put(session.getId(), session);
     }
+    /**
+     * Returns the stored session, deleting it instead when it has expired.
+     */
     public Session findById(String id) {
         Session session = sessions.get(id);
-        if (session != null && session.isExpired()) {
-            deleteById(id);
-            return null;
+        if (session == null || !session.isExpired()) {
+            return session;
         }
-        return session;
+        deleteById(id);
+        return null;
     }
+    /**
+     * Removes the session with the given id.
+     */
     public void deleteById(String id) {
         sessions.remove(id);
     }
+    /**
+     * Maps sessions stored under the principal-name index attribute to their ids.
+     */
     public Map<String, Session> findByPrincipalName(String principalName) {
         return sessions.values().stream().filter(s -> principalName.equals(s.getAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME))).collect(Collectors.toMap(Session::getId, Function.identity()));
     }
@@ -64,7 +79,13 @@ class CustomSessionConfig {
     }
 }
 
+/**
+ * Registers the Spring Session filter with the servlet container.
+ */
 public class Initializer extends AbstractHttpSessionApplicationInitializer {
+    /**
+     * Wires the initializer to the custom session configuration.
+     */
     public Initializer() {
         super(CustomSessionConfig.class);
     }

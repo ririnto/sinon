@@ -43,7 +43,7 @@ The code shapes differ but the workflow is equivalent.
 | KV v2 versioning and CAS | multiple writers or explicit secret versions matter | open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) |
 | Credential rotation | secrets must renew or rotate during application lifetime | open [references/credential-rotation.md](references/credential-rotation.md) |
 | Certificate issuance and rotation | PKI certificates must rotate on a schedule | open [references/credential-rotation.md](references/credential-rotation.md) |
-| Vault repositories and query keywords | domain objects must persist in Vault with query derivation | open [references/vault-repositories.md](references/vault-repositories.md) |
+| Vault repositories and query keywords | domain objects must persist in Vault with query derivation | open [references/repositories.md](references/repositories.md) |
 | CredHub credential read/write | Cloud Foundry CredHub is the secret store and the app reads or writes typed credentials | stay in `SKILL.md` |
 | CredHub auth (mutual TLS / OAuth2) | the app must authenticate with CredHub using client certificates or OAuth2 tokens | open [references/credhub-auth-and-credential-variants.md](references/credhub-auth-and-credential-variants.md) |
 | CredHub reactive access | CredHub reads are already on a reactive request path | open [references/credhub-reactive-access.md](references/credhub-reactive-access.md) |
@@ -66,7 +66,7 @@ The ordinary Spring Vault job is:
 - Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when secret access is already on a reactive request path and the task needs `ReactiveVaultTemplate`.
 - Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when KV v2 version retrieval, CAS writes, or version-aware conflict handling matters.
 - Open [references/credential-rotation.md](references/credential-rotation.md) when secrets require lease renewal, rotation, or managed certificate lifecycle.
-- Open [references/vault-repositories.md](references/vault-repositories.md) when domain entities must persist in Vault with query derivation, regex predicates, or set-based lookups.
+- Open [references/repositories.md](references/repositories.md) when domain entities must persist in Vault with query derivation, regex predicates, or set-based lookups.
 
 ## Dependency baseline
 
@@ -601,7 +601,7 @@ CredHub credential unreadable: /app/prod/db-password
 - Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when the ordinary imperative client path is not enough and the task needs `ReactiveVaultTemplate`.
 - Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when the ordinary KV read-or-write path is not enough and the task needs KV v2 version control or CAS behavior.
 - Open [references/credential-rotation.md](references/credential-rotation.md) when the task needs secret lease renewal, rotation, or managed certificate lifecycle.
-- Open [references/vault-repositories.md](references/vault-repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
+- Open [references/repositories.md](references/repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
 - Open [references/credhub-auth-and-credential-variants.md](references/credhub-auth-and-credential-variants.md) when the task needs CredHub mutual TLS versus OAuth2 authentication setup.
 - Open [references/credhub-reactive-access.md](references/credhub-reactive-access.md) when the task needs `ReactiveCredHubOperations` on a reactive request path.
 - Open [references/credhub-advanced-credential-patterns.md](references/credhub-advanced-credential-patterns.md) when the task needs CredHub interpolation, certificate generation, permissions, or non-default credential families.

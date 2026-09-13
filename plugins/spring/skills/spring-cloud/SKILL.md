@@ -31,7 +31,7 @@ Use `spring-cloud` for release-train-aligned distributed application wiring, ext
 
 | Surface | Start here when | Open a reference when |
 | --- | --- | --- |
-| ConfigData client | the service needs externalized configuration through ConfigData | Vault-backed config is the real blocker in [references/cloud-vault-config.md](references/cloud-vault-config.md) or Kubernetes-backed config is the blocker in [references/kubernetes-config.md](references/kubernetes-config.md) |
+| ConfigData client | the service needs externalized configuration through ConfigData | Vault-backed config is the real blocker in [references/vault-config.md](references/vault-config.md) or Kubernetes-backed config is the blocker in [references/kubernetes-config.md](references/kubernetes-config.md) |
 | Refresh-aware configuration | one bean must rebind after refresh | distributed refresh propagation is the blocker in [references/bus-refresh.md](references/bus-refresh.md) |
 | Service discovery and load-balanced clients | one service calls another by logical service id | Kubernetes-backed discovery is the blocker in [references/kubernetes-discovery.md](references/kubernetes-discovery.md) or declarative clients are clearer in [references/openfeign-clients.md](references/openfeign-clients.md) |
 | Circuit-breaker boundary | one remote call needs resilience | gateway routing is the real boundary in [references/gateway-routing.md](references/gateway-routing.md) |
@@ -96,7 +96,7 @@ Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies
 | Edge routing | add the Gateway starter from [references/gateway-routing.md](references/gateway-routing.md) |
 | Declarative HTTP clients | add the OpenFeign starter from [references/openfeign-clients.md](references/openfeign-clients.md) when OpenFeign is the chosen client style |
 | Broker-backed event transport | add the binder starter from [references/stream-binders.md](references/stream-binders.md) |
-| Vault-backed secrets import | add the Vault starter from [references/cloud-vault-config.md](references/cloud-vault-config.md) |
+| Vault-backed secrets import | add the Vault starter from [references/vault-config.md](references/vault-config.md) |
 | Kubernetes-native config or discovery | add the Kubernetes starter from [references/kubernetes-config.md](references/kubernetes-config.md) or [references/kubernetes-discovery.md](references/kubernetes-discovery.md) |
 | Distributed refresh propagation | add the Bus transport starter from [references/bus-refresh.md](references/bus-refresh.md) |
 | Contract definition and provider verification | apply the verifier plugin from [references/contract-testing.md](references/contract-testing.md) |
@@ -197,10 +197,16 @@ Disable only when the Config Server intentionally serves profiles that are not s
 class CatalogProperties {
     private String region;
 
+    /**
+     * Returns the current {@code region} property value, rebound after each config refresh.
+     */
     public String getRegion() {
         return this.region;
     }
 
+    /**
+     * Stores the newly bound {@code region} property value.
+     */
     public void setRegion(String region) {
         this.region = region;
     }
@@ -279,7 +285,13 @@ Do not treat resilience as a global default for local method calls.
 ```java
 @SpringBootApplication
 @EnableTask
+/**
+ * Entry point that registers this application as a Spring Cloud Task execution.
+ */
 public class ImportTaskApplication {
+    /**
+     * Launches the task application context.
+     */
     public static void main(String[] args) {
         SpringApplication.run(ImportTaskApplication.class, args);
     }
@@ -561,4 +573,4 @@ Use these only when the task moves beyond the ordinary config, refresh, discover
 - Open [references/kubernetes-config.md](references/kubernetes-config.md) when config import or reload is backed by Kubernetes sources.
 - Open [references/kubernetes-discovery.md](references/kubernetes-discovery.md) when service discovery is backed by Kubernetes namespaces and services.
 - Open [references/bus-refresh.md](references/bus-refresh.md) when the platform actually needs distributed refresh or event propagation.
-- Open [references/cloud-vault-config.md](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
+- Open [references/vault-config.md](references/vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.

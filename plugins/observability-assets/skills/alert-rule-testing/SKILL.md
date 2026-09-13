@@ -10,6 +10,11 @@ description: >-
 Write and review `promtool test rules` files that lock alert behavior before a rule ships.
 The common case is one test file that points at the real rule file, defines a small set of `input_series`, and proves the alert stays non-firing, becomes pending, fires after the `for` window, and resolves when the signal recovers.
 
+## Official Baseline
+
+- Use the official Prometheus testing documentation for release 3.14.0, read on 2026-09-13: [Test your rules](https://prometheus.io/docs/prometheus/3.14/configuration/unit_testing_rules/).
+- Schema facts were also checked against the `promtool` test-rule parser in the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
+
 ## Common-Case Workflow
 
 1. Start from the real alert rule file that must stay stable.
@@ -21,6 +26,9 @@ The common case is one test file that points at the real rule file, defines a sm
 7. On failure: check that `input_series` values align with the rule expression, verify `eval_time` placement against the `for` window, confirm `exp_labels` match the actual alert label set, then revise and re-run.
 
 ## Test File Schema
+
+Schema facts here match the `promtool` test-rule parser in the Prometheus 3.14.0 source (`cmd/promtool/unittest.go`), read on 2026-09-13.
+The schema also supports per-test-group `external_labels` and `external_url`, which the tables below omit.
 
 ### Top-Level Fields
 

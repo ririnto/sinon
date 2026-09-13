@@ -10,6 +10,12 @@ Detailed PromQL language and API facts moved out of the skill root.
 The skill root keeps the authoring workflow, review guidance, and common templates.
 Open this reference when the blocker is exact syntax, an operator or function table, or an HTTP API shape.
 
+## Official documentation
+
+Facts were verified against the official Prometheus documentation for release 3.14.0, read on 2026-09-13: [Querying basics](https://prometheus.io/docs/prometheus/3.14/querying/basics/), [Operators](https://prometheus.io/docs/prometheus/3.14/querying/operators/), [Functions](https://prometheus.io/docs/prometheus/3.14/querying/functions/), [HTTP API](https://prometheus.io/docs/prometheus/3.14/querying/api/), and [Feature flags](https://prometheus.io/docs/prometheus/3.14/feature_flags/).
+The source repository content is Apache License 2.0 (`prometheus/prometheus` tag `v3.14.0`, `docs/querying/`).
+Content here is a condensed authored summary of those pages, not a verbatim copy.
+
 ## Data Types
 
 PromQL expressions evaluate to one of four types:
@@ -184,7 +190,7 @@ Runs an instant query over a range at a given resolution, producing a range vect
 ```
 
 `<range_expr>`, `<resolution_expr>`, and `<offset_expr>` accept numeric or duration literals such as `3600` and `1h`.
-On the repository's Prometheus 3.14.0 review baseline, duration arithmetic such as `5m * 2`, and the `step()` and `range()` duration expressions, require `--enable-feature=promql-duration-expr`.
+On the repository's Prometheus 3.14.0 review baseline, duration arithmetic such as `5m * 2`, and the `step()` and `range()` duration functions, require `--enable-feature=promql-duration-expr`.
 Duration expressions used with `offset` must be parenthesized, such as `offset (step() * 2)`.
 Resolution defaults to the global evaluation interval if omitted.
 
@@ -262,10 +268,8 @@ Interpolation applied when threshold does not align to bucket boundary.
 
 Defined between: scalar/scalar (requires `bool`), vector/scalar, vector/vector (with matching).
 
-With `bool`: unmatched elements return no result (not 0).
-Metric name is dropped.
-Without `bool`: LHS metric name retained (unless `on` used.
-`group_right` keeps RHS name).
+With `bool`: unmatched elements return no result (not 0), and the metric name is dropped.
+Without `bool`: the LHS metric name is retained, except `on` drops the metric name and `group_right` retains the RHS metric name.
 
 ### Logical / set operators (instant vectors only)
 
@@ -400,6 +404,7 @@ The `by`/`without` clause may appear before or after the expression.
 | `days_in_month(v)` | Days in month (UTC) | 28-31 |
 | `hour(v)` | Hour (UTC) | 0-23 |
 | `minute(v)` | Minute (UTC) | 0-59 |
+| `start_timestamp(v)` | Start timestamp of each sample | Seconds since 1970-01-01 UTC. Float and histogram samples. Requires the `use-start-timestamps` feature flag and a direct instant-vector argument, otherwise the result is empty. |
 
 ### Sorting functions
 
@@ -590,7 +595,7 @@ Native histograms include a `"histogram"` key with count, sum, and buckets array
 | `/api/v1/status/flags` | Command-line flags |
 | `/api/v1/status/runtimeinfo` | Server runtime properties |
 | `/api/v1/status/buildinfo` | Build version info |
-| `/api/v1/openapi.yaml` | Full OpenAPI spec (add `?openapi_version=3.2` for extended) |
+| `/api/v1/openapi.yaml` | OpenAPI spec (3.1 by default; `?openapi_version=3.2` for extended) |
 
 ## Additional Query Shapes
 

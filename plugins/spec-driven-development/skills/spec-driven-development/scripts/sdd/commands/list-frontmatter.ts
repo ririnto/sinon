@@ -18,7 +18,6 @@ import {
   collectMarkdownFiles,
   fail,
   sanitizeTsvCell,
-  stringifyJson,
   warn
 } from "../infrastructure.js";
 import { extractLinkTargets, resolveTargetPaths } from "../links.js";
@@ -57,7 +56,7 @@ const formatInboundRow = (
     row["frontmatter_yaml"] = entry.yamlBody;
   }
   return jsonl
-    ? stringifyJson(row)
+    ? JSON.stringify(row)
     : [inboundOf, filePath, target.raw].map(sanitizeTsvCell).join("\t");
 };
 
@@ -87,7 +86,7 @@ const formatJsonlRow = (
   if (includeYaml) {
     row["frontmatter_yaml"] = entry.yamlBody;
   }
-  return stringifyJson(row);
+  return JSON.stringify(row);
 };
 
 const formatFieldsTsvRow = (
@@ -153,6 +152,10 @@ const collectInboundRows = (
   return rows;
 };
 
+/**
+ * Runs the document frontmatter list command and returns the process exit
+ * code.
+ */
 export const cmdListFrontmatter = (args: ParsedArgs): number => {
   const specPath = commandSpecPath(args, 0, "spec_path");
   if (!specPath) {
@@ -181,10 +184,11 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
     fail(`FAIL: No markdown files found under ${specPath}`);
     return 1;
   }
-  const filters = buildFilters(args);
-  if (typeof filters === "number") {
-    return filters;
+  const filterResult = buildFilters(args);
+  if (filterResult.kind === "error") {
+    return 1;
   }
+  const { filters } = filterResult;
   const fields = parseFields(optionString(args, "fields"));
   const inboundOf = optionString(args, "inbound-of");
   const targetCandidates = inboundOf
@@ -196,16 +200,20 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
   }
   let failures = 0;
   for (const filePath of files) {
-    const entry = loadFrontmatterEntry(filePath);
-    if (typeof entry === "string") {
+    const result = loadFrontmatterEntry(filePath);
+    if (result.kind === "error") {
       failures += 1;
-      fail(`FAIL [${filePath}]: ${entry}`);
+      fail(`FAIL [${filePath}]: ${result.message}`);
       if (!optionBool(args, "best-effort")) {
         return 1;
       }
       continue;
     }
-    if (!entry || !matchesFilters(entry.record, entry.data, filters)) {
+    if (result.kind === "missing") {
+      continue;
+    }
+    const { entry } = result;
+    if (!matchesFilters(entry.record, entry.data, filters)) {
       continue;
     }
     if (inboundOf) {

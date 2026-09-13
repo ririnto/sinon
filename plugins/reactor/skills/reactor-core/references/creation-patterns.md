@@ -29,9 +29,9 @@ final class GeneratedIds {
                 int current = state.getAndIncrement();
                 if (current == 5) {
                     sink.complete();
-                    return state;
+                } else {
+                    sink.next("id-" + current);
                 }
-                sink.next("id-" + current);
                 return state;
             }
         );

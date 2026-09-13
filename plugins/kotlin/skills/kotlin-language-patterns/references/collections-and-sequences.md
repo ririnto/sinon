@@ -20,22 +20,22 @@ Readable eager pipeline:
 
 ```kotlin
 fun enabledNames(users: List<User>): List<String> =
-    users.filter { user -> user.enabled }.map { user -> user.name }
+    users.filter(User::enabled).map(User::name)
 ```
 
 Lazy sequence when the source is large and the chain is selective:
 
 ```kotlin
-fun loadEnabledUsers(lines: List<String>): List<UserId> {
-    val cleaned = lines
+fun loadEnabledUsers(lines: List<String>): List<UserId> =
+    lines
         .asSequence()
-        .map { line -> line.substringBefore('#').trim() }
-        .filter { line -> line.isNotEmpty() }
-        .mapNotNull { raw -> raw.toLongOrNull() }
+        .map { line -> line.substringBefore('#') }
+        .map(String::trim)
+        .filterNot(String::isEmpty)
+        .mapNotNull(String::toLongOrNull)
         .map(::UserId)
         .take(500)
-    return cleaned.toList()
-}
+        .toList()
 ```
 
 ## Pitfalls
@@ -51,16 +51,16 @@ fun loadEnabledUsers(lines: List<String>): List<UserId> {
 ### Grouping and associating
 
 ```kotlin
-val byCategory: Map<String, List<Order>> = orders.groupBy { order -> order.category }
-val byId: Map<String, Order> = orders.associateBy { order -> order.id }
-val lengths: Map<String, Int> = names.associateWith { name -> name.length }
-val pairs: Map<String, Int> = names.associate { name -> name to name.length }
+val byCategory: Map<String, List<Order>> = orders.groupBy(Order::category)
+val byId: Map<String, Order> = orders.associateBy(Order::id)
+val lengths: Map<String, Int> = names.associateWith(String::length)
+val pairs: Map<String, Int> = names.associateWith { name -> name to name.length }
 ```
 
 ### Flattening and zipping
 
 ```kotlin
-val allItems: List<Item> = orders.flatMap { order -> order.items }
+val allItems: List<Item> = orders.flatMap(Order::items)
 val paired: List<Pair<String, Int>> = names.zip(ages)
 val (namesAgain, agesAgain) = paired.unzip()
 ```
@@ -77,7 +77,7 @@ val joined: String = numbers.fold("") { acc, n -> "$acc,$n" }
 ```kotlin
 val filtered: List<String> = buildList {
     for (item in source) {
-        if (item.isActive()) add(item.name)
+        if (item.isActive()) { add(item.name) }
     }
 }
 ```
@@ -87,5 +87,5 @@ val filtered: List<String> = buildList {
 ```kotlin
 val batches: List<List<Order>> = orders.chunked(size = 100)
 val triples: List<List<Int>> = numbers.windowed(size = 3)
-val unique: List<User> = users.distinctBy { user -> user.email }
+val unique: List<User> = users.distinctBy(User::email)
 ```

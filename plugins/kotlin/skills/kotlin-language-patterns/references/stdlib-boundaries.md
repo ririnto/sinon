@@ -8,6 +8,9 @@ description: >-
 Use this reference when the job is to recommend a Kotlin stdlib API responsibly, with the right platform and stability caveats.
 This reference should be sufficient on its own for that decision.
 
+Stability and platform claims were verified against the official Kotlin stdlib API reference (`kotlinlang.org/api/core/kotlin-stdlib/`, Kotlin 2.4 docs, read on 2026-09-13) and the Kotlin release notes for 2.2, 2.3, and 2.4.
+The Kotlin compiler and standard library are licensed under the Apache License 2.0.
+
 Use this file to finish one of these jobs:
 
 - decide whether an API is common, JVM-only, or platform-filtered
@@ -19,15 +22,16 @@ Best-practice rules:
 
 - treat the Kotlin stdlib docs as versioned and platform-filtered.
   - Examples should read as `Common` first unless the code is intentionally runtime-specific
-- `kotlin.io.path.*` is JVM-only and some APIs are marked `ExperimentalPathApi`.
+- `kotlin.io.path.*` is JVM-only, and some APIs there (for example `copyToRecursively` helpers) remain marked `ExperimentalPathApi`, so check the opt-in status of the specific function.
   - Use it only when the module is explicitly on JVM and real filesystem `Path` behavior matters
-- `kotlin.io.encoding` is stable since Kotlin 2.2.
+- `kotlin.io.encoding.Base64` is stable since Kotlin 2.2.
   - Use it when encoding support is required.
-  - The stream helpers there are JVM-only.
+  - The stream helpers `decodingWith` and `encodingWith` are JVM-only and still require an `@OptIn(ExperimentalEncodingApi::class)`.
 - stdlib `kotlin.time.Instant` is stable since Kotlin 2.3.
   - On the Kotlin 2.1 baseline use `kotlinx.datetime.Instant`.
   - Or raise the baseline to 2.3+ for the stdlib type.
-- `kotlin.uuid` is stable since Kotlin 2.4 (experimental since 2.0).
+- `kotlin.uuid` graduated to stable in Kotlin 2.4 (experimental since 2.0).
+  - The exceptions are `Uuid.generateV4()` and `Uuid.generateV7()`, which remain experimental and still require an `@OptIn(ExperimentalUuidApi::class)`.
   - Use it when UUID generation or parsing is genuinely needed
 - `kotlin.contracts` is experimental and is not a common-path recommendation for ordinary application code
 - `Regex` exists across platforms, but options and behavior can differ because JS uses the host `RegExp` behavior with stricter Unicode parsing
@@ -61,7 +65,7 @@ Use when: the example is multiplatform in principle, but callers should not assu
 Recently stabilized API with explicit status:
 
 State an API's current stability in prose before imports or on a declaration KDoc, not as a detached KDoc before an import.
-`kotlin.uuid` graduated to Stable in Kotlin 2.4, so it no longer requires an opt-in.
+`kotlin.uuid` graduated to Stable in Kotlin 2.4; `Uuid.random()` needs no opt-in there, while `Uuid.generateV4()` and `Uuid.generateV7()` remain experimental.
 
 ```kotlin
 import kotlin.uuid.Uuid
@@ -93,7 +97,7 @@ Use when: the team is intentionally opting into contracts and the example must m
 Encoding helper with explicit platform status:
 
 `kotlin.io.encoding.Base64` is stable since Kotlin 2.2.
-The stream helpers are JVM-only.
+The stream helpers `decodingWith` and `encodingWith` are JVM-only and still require an `@OptIn(ExperimentalEncodingApi::class)`.
 
 ```kotlin
 import kotlin.io.encoding.Base64

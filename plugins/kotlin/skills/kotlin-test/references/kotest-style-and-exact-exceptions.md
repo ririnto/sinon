@@ -13,6 +13,10 @@ Open this when the project already uses Kotest and the remaining blocker is keep
   Do not mix styles.
 - use `assertSoftly` when several assertions describe one observable behavior
 - use `shouldThrowExactly<T>()` when the exact exception type matters
+- assert the caught exception's `message` with `shouldBe` against the exact expected text, and check the meaningful fields it declares
+- use `shouldNotThrowAny` when the no-exception property itself is the contract
+- do not place `shouldThrowExactly`, `shouldThrowAny`, or other throwing assertions inside `assertSoftly`.
+  They abort the soft block immediately, so later assertions never run.
 - place lifecycle hooks at the spec level
 
 ## Spec styles
@@ -22,8 +26,7 @@ Choose the style the project already uses.
 ```kotlin
 class ProfileServiceTest : FunSpec({
     test("returns cached profile") {
-        val result = service.loadProfile("user-1")
-        result shouldBe Profile("user-1")
+        service.loadProfile("user-1") shouldBe Profile("user-1")
     }
 })
 
@@ -37,7 +40,9 @@ class OrderServiceTest : DescribeSpec({
 class CartTest : BehaviorSpec({
     given("an empty cart") {
         `when`("an item is added") {
-            then("size becomes 1") { cart.size shouldBe 1 }
+            then("size becomes 1") {
+                cart.size shouldBe 1
+            }
         }
     }
 })
@@ -46,14 +51,16 @@ class CartTest : BehaviorSpec({
 ## Common matchers
 
 ```kotlin
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
-import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 result shouldBe expected
 result shouldNotBe unexpected
@@ -62,6 +69,12 @@ list shouldHaveSize 3
 value shouldBeInstanceOf<String>()
 nullable.shouldBeNull()
 message shouldContain "error"
+shouldThrowExactly<RetryException> {
+    service.run()
+}.message shouldBe "retry budget exhausted"
+val parsed = shouldNotThrowAny {
+    parser.parse(raw)
+}
 ```
 
 ## Soft assertions
@@ -69,11 +82,10 @@ message shouldContain "error"
 ```kotlin
 class ProfileServiceKotestTest : FunSpec({
     test("returns cached profile with correct fields") {
-        val result = service.loadProfile("user-1")
-        assertSoftly(result) {
-            it shouldBe Profile("user-1")
-            it.id shouldBe "user-1"
-            it.isActive shouldBe true
+        assertSoftly(service.loadProfile("user-1")) { profile ->
+            shouldBe(Profile("user-1"))
+            id shouldBe "user-1"
+            isActive.shouldBeTrue()
         }
     }
 })
@@ -81,13 +93,52 @@ class ProfileServiceKotestTest : FunSpec({
 
 ## Exact exception check
 
+`shouldThrowExactly<T>` fails when the block throws a subclass of `T` instead of `T` itself, so the test proves the precise exception contract.
+It returns the caught exception, so the message and fields stay available for exact checks.
+Import it from `io.kotest.assertions.throwables.shouldThrowExactly`.
+
 ```kotlin
+import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+
+class RetryBudgetException(message: String, val attemptedBudget: Int) :
+    RuntimeException(message)
+
 class RetryPolicyKotestTest : FunSpec({
     test("rejects invalid retry budget") {
-        val error = shouldThrowExactly<RetryException> {
-            service.run()
+        val error = shouldThrowExactly<RetryBudgetException> {
+            service.configure(RetryPolicy(budget = -1))
         }
-        error.message shouldBe "retry budget exhausted"
+        error.message shouldBe "retry budget must be positive, got -1"
+        error.attemptedBudget shouldBe -1
+    }
+})
+```
+
+The `RetryBudgetException` declaration above shows the assumed application-owned exception type.
+Assert only the fields the exception actually declares, and copy the real message format from its construction site so the expectation stays deterministic across library upgrades.
+
+## No-exception contract
+
+`shouldNotThrowAny` proves that a block completes without throwing.
+Use it only when the no-exception property itself is the observable contract, such as a parsing edge case that must succeed or a migration that must tolerate legacy input.
+Do not wrap ordinary happy-path code in it just to mirror the implementation, and do not wrap assertions from other libraries in it merely as a formality.
+
+```kotlin
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+
+class LegacyConfigKotestTest : FunSpec({
+    test("parses a config with an empty optional section") {
+        shouldNotThrowAny {
+            AppConfigParser.parse("""
+                [general]
+                name = app
+                [optional-section-may-be-empty]
+            """.trimIndent())
+        }.name shouldBe "app"
     }
 })
 ```

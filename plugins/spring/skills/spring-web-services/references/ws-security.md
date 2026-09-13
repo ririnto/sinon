@@ -62,6 +62,9 @@ class WsSecurityConfig implements WsConfigurer {
         this.securityInterceptor = securityInterceptor;
     }
 
+    /**
+     * Adds the WS-Security interceptor to the endpoint interceptor chain.
+     */
     @Override
     public void addInterceptors(List<EndpointInterceptor> interceptors) {
         interceptors.add(securityInterceptor);

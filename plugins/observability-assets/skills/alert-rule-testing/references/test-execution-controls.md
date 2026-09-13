@@ -187,7 +187,12 @@ The timestamp starts the fixture at 03:00 UTC.
 tests:
   - name: dst-transition
     start_timestamp: 2026-03-08T01:59:00Z
-    ...
+    promql_expr_test:
+      - expr: hour(timestamp(vector(0)))
+        eval_time: 1m
+        exp_samples:
+          - labels: '{}'
+            value: 1
 ```
 
 The timestamp lands just before a spring-forward transition.

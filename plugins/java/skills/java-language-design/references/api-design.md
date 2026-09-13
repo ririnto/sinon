@@ -61,6 +61,9 @@ import java.util.List;
 final class UserDirectory {
     private final ArrayList<User> users = new ArrayList<>();
 
+    /**
+     * Returns a read-only snapshot of the stored users.
+     */
     public List<User> users() {
         return List.copyOf(users);
     }
@@ -122,6 +125,11 @@ final class PortRange {
         this.hi = hi;
     }
 
+    /**
+     * Creates a range that includes both bounds, requiring {@code lo <= hi}.
+     *
+     * @throws IllegalArgumentException if {@code lo} exceeds {@code hi}
+     */
     public static PortRange ofInclusive(int lo, int hi) {
         if (lo > hi) {
             throw new IllegalArgumentException("lo must be <= hi");
@@ -153,6 +161,11 @@ interface DocumentStore {
 }
 
 final class DocumentParser {
+    /**
+     * Parses a non-blank raw document.
+     *
+     * @throws IllegalArgumentException if {@code raw} is blank
+     */
     public Document parse(String raw) {
         if (raw.isBlank()) {
             throw new IllegalArgumentException("raw must not be blank");
@@ -179,6 +192,9 @@ public final class EmailValidator {
 Correct: callers depend on capability, and implementation stays hidden.
 
 ```java
+/**
+ * Capability for validating an email address.
+ */
 public interface EmailValidationService {
     boolean isValid(String value);
 }

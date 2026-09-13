@@ -1,0 +1,20 @@
+name: shell
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install ShellCheck and shfmt
+        run: |-
+          sudo apt-get update
+          sudo apt-get install -y shellcheck shfmt
+      - run: git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --
+      - run: git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --
+
+permissions:
+  contents: read

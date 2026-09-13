@@ -218,6 +218,9 @@ states.withStates()
 Set `autoStartup(true)` in configuration to avoid calling `startReactively()` manually.
 
 ```java
+/**
+ * Applies configuration-model options such as auto-startup and listeners.
+ */
 @Override
 public void configure(StateMachineConfigurationConfigurer<States, Events> config) throws Exception {
     config.withConfiguration().autoStartup(true);
@@ -272,6 +275,9 @@ enum Events { PAY, SHIP, CANCEL }
 @Configuration
 @EnableStateMachine
 class OrderStateMachineConfig extends EnumStateMachineConfigurerAdapter<States, Events> {
+    /**
+     * Declares the machine states, including the initial and end states.
+     */
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
         states.withStates()
@@ -281,6 +287,9 @@ class OrderStateMachineConfig extends EnumStateMachineConfigurerAdapter<States, 
             .end(States.CANCELLED);
     }
 
+    /**
+     * Declares the external transitions between states and their triggering events.
+     */
     @Override
     public void configure(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
         transitions
@@ -326,6 +335,9 @@ stateMachine.getExtendedState().getVariables().put("paymentAllowed", true);
 @Bean
 StateMachineListener<States, Events> stateChangeListener() {
     return new StateMachineListenerAdapter<>() {
+        /**
+         * Records every state change in the audit service.
+         */
         @Override
         public void stateChanged(State<States, Events> from, State<States, Events> to) {
             auditService.record(from == null ? null : from.getId(), to == null ? null : to.getId());
@@ -333,6 +345,9 @@ StateMachineListener<States, Events> stateChangeListener() {
     };
 }
 
+/**
+ * Applies configuration-model options such as auto-startup and listeners.
+ */
 @Override
 public void configure(StateMachineConfigurationConfigurer<States, Events> config) throws Exception {
     config.withConfiguration().listener(stateChangeListener());
@@ -405,8 +420,7 @@ Return:
 - Make transition side effects idempotent or compensate for duplicate delivery.
 - Persist state only when restart or multi-node continuity is actually required.
 - Keep extended state small and serializable when the machine is persisted.
-- When using Kryo-based persistence (e.g.
-  - `RedisStateMachineContextRepository`), configure a class allowlist to prevent arbitrary class deserialization.
+- When using Kryo-based persistence through a repository such as `RedisStateMachineContextRepository`, configure a class allowlist to prevent arbitrary class deserialization.
 - Treat state-machine tests as part of the lifecycle compatibility surface.
 
 ## References

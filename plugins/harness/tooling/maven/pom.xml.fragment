@@ -1,0 +1,65 @@
+<!-- Adapted fragment: merge properties into <project><properties> and plugins into <build><plugins>. -->
+<fragment>
+  <properties>
+    <spotless.maven.version>3.10.2</spotless.maven.version>
+    <palantir.java.format.version>2.98.0</palantir.java.format.version>
+    <checkstyle.version>14.1.0</checkstyle.version>
+  </properties>
+
+  <plugins>
+    <plugin>
+      <groupId>com.diffplug.spotless</groupId>
+      <artifactId>spotless-maven-plugin</artifactId>
+      <version>${spotless.maven.version}</version>
+      <configuration>
+        <java>
+          <palantirJavaFormat>
+            <version>${palantir.java.format.version}</version>
+            <style>PALANTIR</style>
+            <formatJavadoc>true</formatJavadoc>
+          </palantirJavaFormat>
+          <removeUnusedImports />
+          <trimTrailingWhitespace />
+          <endWithNewline />
+        </java>
+      </configuration>
+      <executions>
+        <execution>
+          <id>spotless-check</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>check</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-checkstyle-plugin</artifactId>
+      <version>3.6.0</version>
+      <dependencies>
+        <dependency>
+          <groupId>com.puppycrawl.tools</groupId>
+          <artifactId>checkstyle</artifactId>
+          <version>${checkstyle.version}</version>
+        </dependency>
+      </dependencies>
+      <configuration>
+        <configLocation>${maven.multiModuleProjectDirectory}/tooling/java/checkstyle.xml</configLocation>
+        <consoleOutput>true</consoleOutput>
+        <failOnViolation>true</failOnViolation>
+        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+      </configuration>
+      <executions>
+        <execution>
+          <id>checkstyle-check</id>
+          <phase>validate</phase>
+          <goals>
+            <goal>check</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</fragment>

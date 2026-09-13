@@ -30,7 +30,7 @@ spring:
     factory:
       constraints:
         read:
-          max-string-length: "256KB"
+          max-string-length: 256KB
           max-number-length: "1024"
         write:
           max-nesting-depth: 50

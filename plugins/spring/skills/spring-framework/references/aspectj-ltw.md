@@ -117,6 +117,9 @@ class Order {
     @Autowired
     private OrderValidator validator;
 
+    /**
+     * Runs the injected validator against this domain object.
+     */
     public void validate() {
         validator.check(this);
     }

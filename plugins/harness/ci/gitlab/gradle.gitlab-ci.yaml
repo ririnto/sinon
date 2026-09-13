@@ -1,0 +1,5 @@
+gradle-java:
+  stage: validate
+  image: gradle:9.7.1-jdk25-ubi10
+  script:
+    - ./gradlew check

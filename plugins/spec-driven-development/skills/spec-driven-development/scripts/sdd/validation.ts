@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 
 import { extractFrontmatterFromText } from "./frontmatter.js";
 import { isRecord, parseYamlRecord } from "./infrastructure.js";
-import { extractLinkTargets } from "./links.js";
+import { extractCallPath, extractLinkTargets } from "./links.js";
 import {
   CHANGELOG_ENTRY_RE,
   ISO_DATE_RE,
@@ -63,16 +63,6 @@ const validateStringFields = (
   return errors;
 };
 
-const extractCallLink = (item: unknown): string | undefined => {
-  if (typeof item === "string") {
-    return item;
-  }
-  if (isRecord(item) && typeof item["path"] === "string") {
-    return item["path"];
-  }
-  return undefined;
-};
-
 const validateSpecFields = (
   filePath: string,
   kind: string,
@@ -92,7 +82,7 @@ const validateSpecFields = (
   }
   if (Array.isArray(data["call"])) {
     for (const item of data["call"]) {
-      const link = extractCallLink(item);
+      const link = extractCallPath(item);
       if (!link || !RELATIVE_SPEC_LINK_RE.test(link)) {
         errors.push(
           `FAIL [${filePath}]: call entries must be relative SPEC.md links`
@@ -143,6 +133,10 @@ const validateResearchSubject = (
   return [];
 };
 
+/**
+ * Validates frontmatter structure against the rules for one document kind,
+ * returning one message per violation.
+ */
 export const validateFrontmatterShape = (
   filePath: string,
   kind: string,
@@ -155,6 +149,9 @@ export const validateFrontmatterShape = (
   ...validateResearchSubject(filePath, kind, data)
 ];
 
+/**
+ * Validates that each SPEC call target exists on disk.
+ */
 export const validateSpecLinks = (
   filePath: string,
   data: JsonRecord
@@ -168,6 +165,10 @@ export const validateSpecLinks = (
   return errors;
 };
 
+/**
+ * Reads one document and validates its frontmatter and, for specs, call
+ * link targets.
+ */
 export const validateDocument = (
   filePath: string,
   kind: string
@@ -206,6 +207,9 @@ export const validateDocument = (
   return { errors, passed: errors.length === 0 };
 };
 
+/**
+ * Validates that a changelog contains dated entries sorted newest first.
+ */
 export const validateChangelogFile = (filePath: string): ValidationResult => {
   const text = readFileSync(filePath, "utf-8");
   const errors: string[] = [];

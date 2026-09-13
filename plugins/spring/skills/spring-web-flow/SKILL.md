@@ -155,6 +155,9 @@ Keep Jupiter tests outside the JUnit 3-based Web Flow harness and expose only th
 
 ```java
 final class RegistrationFlowHarness extends AbstractXmlFlowExecutionTests {
+    /**
+     * Locates the flow definition XML that this harness executes.
+     */
     @Override
     protected FlowDefinitionResource getResource(FlowDefinitionResourceFactory resources) {
         return resources.createFileResource("src/main/webapp/WEB-INF/flows/registration/registration-flow.xml");
@@ -229,6 +232,6 @@ Return:
 
 ## References
 
-- Open [references/web-flow-scopes.md](references/web-flow-scopes.md) when request, flash, view, flow, and conversation scope tradeoffs are the blocker.
-- Open [references/web-flow-validation-and-exception-handling.md](references/web-flow-validation-and-exception-handling.md) when grouped validation, validator methods, or shared recovery behavior goes beyond the common path.
-- Open [references/web-flow-execution-testing.md](references/web-flow-execution-testing.md) when backtracking, invalid input, exceptions, or subflow exits need dedicated tests.
+- Open [references/scopes.md](references/scopes.md) when request, flash, view, flow, and conversation scope tradeoffs are the blocker.
+- Open [references/validation-and-exception-handling.md](references/validation-and-exception-handling.md) when grouped validation, validator methods, or shared recovery behavior goes beyond the common path.
+- Open [references/execution-testing.md](references/execution-testing.md) when backtracking, invalid input, exceptions, or subflow exits need dedicated tests.

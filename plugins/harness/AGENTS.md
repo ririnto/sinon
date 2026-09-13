@@ -1,13 +1,15 @@
 # Repository Guidelines
 
-Harness contains the shared implementation and review skills and their canonical rules document.
+Harness contains the shared implementation and review skills, a target-repository installer, and their canonical rules documents.
 
 ## Component Boundary
 
-- `skills/implement/SKILL.md` and `skills/review/SKILL.md` are the only skills.
+- `skills/implement/SKILL.md`, `skills/review/SKILL.md`, and `skills/harness-install/SKILL.md` are the skills.
   The plugin ships no agents, settings adapters, hooks, or asset bundles.
-- `docs/rules.md` owns every implementation, design, frontend, language, and test-quality rule.
-- Each skill owns only its procedure and references `docs/rules.md` for the rules.
+- `docs/rules.md` owns every implementation, design, frontend, and test-quality rule, and indexes the language and tool documents.
+- `docs/languages/` owns per-language rules, and `docs/tools/` owns profile-specific tool and CI guidance.
+- Each consumer skill owns only its procedure and references the canonical rules documents.
+  The installer owns only target materialization and verification.
   A rule appears in exactly one file.
 - Changing a rule updates `docs/rules.md` and both skill consumers in the same change.
 - Skill bodies stay host-neutral: they discover the target repository's actual root instruction file per active host and never prescribe a universal filename.

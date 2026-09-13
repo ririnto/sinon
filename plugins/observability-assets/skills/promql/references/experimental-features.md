@@ -17,7 +17,7 @@ Use this reference when the query requires a function or operator that is gated 
 | | Label sort and timestamp helper functions are also gated by this flag. |
 | `--enable-feature=promql-binop-fill-modifiers` | Enables `fill()`, `fill_left()`, `fill_right()` modifiers for binary operations |
 | `--enable-feature=promql-duration-expr` | Enables arithmetic duration expressions in range queries and offset durations. |
-| | Also enables `step()`, `range()`, `min()`, and `max()` in duration expressions. |
+| | Also enables the `step()`, `range()`, `min_of()`, and `max_of()` duration functions. |
 
 ## Experimental Functions Summary
 

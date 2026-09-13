@@ -1,0 +1,6 @@
+ruff:
+  stage: validate
+  image: ghcr.io/astral-sh/uv:python3.14-trixie
+  script:
+    - uv run ruff check .
+    - uv run ruff format --check .
