@@ -18,6 +18,7 @@ Do not pack multiple sentences into one line with semicolons.
 Keep fenced code blocks, YAML frontmatter, tables, and link syntax intact.
 Relative references that load instruction or implementation content must stay inside the package root.
 Authoritative public standards and vendor documentation citations may stay.
+Local reference filenames omit parts redundant with the owning skill's subject while keeping the distinguishing topic or version.
 
 ## Validation
 

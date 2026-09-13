@@ -32,11 +32,17 @@ Formatter shape:
 
 ```java
 class MoneyFormatter implements Formatter<Money> {
+    /**
+     * Parses locale-aware text into a {@link Money} value.
+     */
     @Override
     public Money parse(String text, Locale locale) {
         return Money.parse(text, locale);
     }
 
+    /**
+     * Renders a {@link Money} value as locale-aware text.
+     */
     @Override
     public String print(Money value, Locale locale) {
         return value.format(locale);
@@ -63,7 +69,13 @@ ConversionService conversionService() {
 Converter shape:
 
 ```java
+/**
+ * Converts a string source value into a {@link Money} target.
+ */
 public class MyCustomConverter implements Converter<String, Money> {
+    /**
+     * Converts the string source value into a {@link Money} instance.
+     */
     @Override
     public Money convert(String source) {
         return new Money(source, Currency.getInstance("USD"));
@@ -152,12 +164,21 @@ class OrderService {
 ## Custom validator
 
 ```java
+/**
+ * Validates {@link Order} instances for the bean-validation container.
+ */
 public class OrderValidator implements Validator {
+    /**
+     * Accepts only {@link Order} types.
+     */
     @Override
     public boolean supports(Class<?> clazz) {
         return Order.class.isAssignableFrom(clazz);
     }
 
+    /**
+     * Rejects the order with a field error when its items are empty.
+     */
     @Override
     public void validate(Object target, Errors errors) {
         Order order = (Order) target;

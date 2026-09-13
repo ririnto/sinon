@@ -5,20 +5,26 @@ import { isRecord } from "./infrastructure.js";
 import { URL_SCHEME_RE } from "./shared.js";
 import type { JsonRecord } from "./shared.js";
 
-export const findSpecRoot = (inputPath: string): string | undefined => {
-  let cursor = path.resolve(inputPath);
-  while (true) {
-    if (path.basename(cursor) === "spec") {
-      return cursor;
-    }
-    const parent = path.dirname(cursor);
-    if (parent === cursor) {
-      return undefined;
-    }
-    cursor = parent;
+const findSpecRootFrom = (cursor: string): string | undefined => {
+  if (path.basename(cursor) === "spec") {
+    return cursor;
   }
+  const parent = path.dirname(cursor);
+  return parent === cursor ? undefined : findSpecRootFrom(parent);
 };
 
+/**
+ * Finds the closest directory named `spec` at or above the input path;
+ * undefined when no ancestor is a spec root.
+ */
+export const findSpecRoot = (inputPath: string): string | undefined =>
+  findSpecRootFrom(path.resolve(inputPath));
+
+/**
+ * Resolves the validation pair: spec root plus the path to scan. When the
+ * input sits inside a spec root the scan target is the input itself;
+ * otherwise the input must contain a spec directory.
+ */
 export const resolveValidationRoots = (
   specPath: string
 ): readonly [string, string] | undefined => {
@@ -34,6 +40,11 @@ export const resolveValidationRoots = (
   return undefined;
 };
 
+/**
+ * Converts a link value into absolute path candidates for existence checks;
+ * relative `spec/...` links resolve against the spec root in addition to the
+ * base directory.
+ */
 export const resolveTargetPaths = (
   value: string,
   baseDir: string
@@ -60,7 +71,11 @@ export const resolveTargetPaths = (
   return resolved;
 };
 
-const extractCallPath = (rawCall: unknown): string => {
+/**
+ * Reads the call entry's link path; empty for non-string paths and
+ * non-record entries.
+ */
+export const extractCallPath = (rawCall: unknown): string => {
   if (typeof rawCall === "string") {
     return rawCall;
   }
@@ -70,11 +85,18 @@ const extractCallPath = (rawCall: unknown): string => {
   return "";
 };
 
+/**
+ * Stores a SPEC link's raw text and its source-resolved absolute path.
+ */
 export interface LinkTarget {
   readonly resolved: string;
   readonly raw: string;
 }
 
+/**
+ * Extracts relative SPEC.md links from a frontmatter call list, dropping
+ * duplicates and links that are absolute or scheme-qualified.
+ */
 export const extractLinkTargets = (
   data: JsonRecord,
   sourceFile: string

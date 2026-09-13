@@ -33,6 +33,9 @@ service Greeter {
 ```
 
 ```java
+/**
+ * Streams one reply per request element and completes the stream.
+ */
 @Override
 public void streamHellos(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
     responseObserver.onNext(HelloReply.newBuilder().setMessage("hello " + request.getName()).build());

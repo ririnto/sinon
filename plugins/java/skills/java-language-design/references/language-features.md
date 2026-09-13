@@ -100,9 +100,15 @@ record Rejected(String reason) implements PaymentResult {
 Open interface: implementations can come from other packages or modules.
 
 ```java
+/**
+ * Outcome of a payment operation, open for external implementations.
+ */
 public interface PaymentResult {
 }
 
+/**
+ * Approved payment carrying its authorization identifier.
+ */
 public final class Approved implements PaymentResult {
     private final String authorizationId;
 
@@ -111,6 +117,9 @@ public final class Approved implements PaymentResult {
     }
 }
 
+/**
+ * Rejected payment carrying the rejection reason.
+ */
 public final class Rejected implements PaymentResult {
     private final String reason;
 

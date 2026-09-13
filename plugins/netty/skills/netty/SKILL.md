@@ -291,8 +291,9 @@ final class UnixTime {
 final class TimeDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
-        if (in.readableBytes() < 4) return;
-        out.add(new UnixTime(in.readUnsignedInt()));
+        if (in.readableBytes() >= 4) {
+            out.add(new UnixTime(in.readUnsignedInt()));
+        }
     }
 }
 

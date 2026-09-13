@@ -39,6 +39,6 @@
     "ultracite": "catalog:"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24.15.0 <25"
   }
 }

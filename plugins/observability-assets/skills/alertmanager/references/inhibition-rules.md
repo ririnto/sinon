@@ -61,3 +61,8 @@ equal:
 - can the source and target alerts ever be the same alert
 - do the `equal` labels define one real failure domain
 - would cleaner routing remove the need for inhibition entirely
+
+## Official documentation
+
+Matcher and rule semantics were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/), sections `<inhibit_rule>` and label matchers.
+The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`).

@@ -310,7 +310,7 @@ The second test creates the `delayElement` publisher inside the supplier, allowi
 | Open this when... | Reference |
 | --- | --- |
 | basic verifier flow is not enough and you need scenario options, context expectations, or richer post-verification assertions | [Advanced StepVerifier](references/stepverifier-advanced.md) |
-| the blocker is timeout behavior or virtual-time failure cases | [Testing Errors and Edge Cases](references/testing-errors-and-edge-cases.md) |
+| the blocker is timeout behavior or virtual-time failure cases | [Testing Errors and Edge Cases](references/errors-and-edge-cases.md) |
 | the blocker is a noncompliant `TestPublisher` or deliberate spec-edge behavior | [Noncompliant TestPublishers](references/noncompliant-testpublisher.md) |
 
 ## Output contract

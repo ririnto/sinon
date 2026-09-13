@@ -7,6 +7,9 @@ import { resolveValidationRoots } from "../links.js";
 import type { ParsedArgs, ValidationResult } from "../shared.js";
 import { validateChangelogFile, validateDocument } from "../validation.js";
 
+/**
+ * Runs the document validation command and returns the process exit code.
+ */
 export const cmdValidate = (args: ParsedArgs): number => {
   const specPathArg = commandSpecPath(args, 0, "spec_path");
   if (!specPathArg) {
@@ -74,9 +77,9 @@ export const cmdValidate = (args: ParsedArgs): number => {
   console.log(`- Passed: ${passed}`);
   console.log(`- Failed: ${failed}`);
   console.log(`- Changelog layout failures: ${changelogLayoutFailures}`);
-  if (failed > 0) {
-    return 1;
+  if (failed === 0) {
+    console.log(`OK: Validation complete for ${scanRoot}`);
+    return 0;
   }
-  console.log(`OK: Validation complete for ${scanRoot}`);
-  return 0;
+  return 1;
 };

@@ -15,6 +15,9 @@ If one external transition plus a guard keeps the topology readable, use that ap
 Use them when the machine itself, not an application service, owns the branching semantics.
 
 ```java
+/**
+ * Declares the machine states, including the choice pseudo-state.
+ */
 @Override
 public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
     states.withStates()
@@ -24,6 +27,9 @@ public void configure(StateMachineStateConfigurer<States, Events> states) throws
         .state(States.CANCELLED);
 }
 
+/**
+ * Declares the choice transitions with their guard conditions.
+ */
 @Override
 public void configure(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
     transitions

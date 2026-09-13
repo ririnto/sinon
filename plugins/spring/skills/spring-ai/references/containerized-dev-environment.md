@@ -16,11 +16,11 @@ services:
   ollama:
     image: ollama/ollama@sha256:509fdf54e23bd50d87af646cb51c0a7a203d6a83cc4d6695b3b08c5be1c62c0a
     ports:
-      - "11434:11434"
+      - 11434:11434
   pgvector:
     image: pgvector/pgvector:pg16
     ports:
-      - "5432:5432"
+      - 5432:5432
 ```
 
 ## Decision points

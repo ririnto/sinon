@@ -9,6 +9,13 @@ description: >-
 
 Author and review Grafana dashboards as version-controlled assets while keeping dashboard identity stable across environments.
 
+## Official Baseline
+
+- Use the current Grafana stable line for new classic dashboard JSON.
+  - Verified against the Grafana 13.2.1 GitHub release on 2026-09-02.
+- The classic dashboard JSON model (`schemaVersion`, `panels`, `templating`) and the Grafana 13 V2 Resource model differ; check the target instance before copying examples.
+- Schema details in the references are authored summaries of the official documentation at [grafana.com/docs](https://grafana.com/docs/), not verbatim copies.
+
 The common case: one dashboard with a stable `uid`, a deliberate title, explicit datasource handling, a default time range no broader than the last 30 minutes, and a panel layout that answers a real operator question instead of becoming a generic metric scrapbook.
 
 Detailed JSON schemas live in package-local references, not in this file:
@@ -17,7 +24,7 @@ Detailed JSON schemas live in package-local references, not in this file:
 - Variable types, syntax, global variables, and repeat fields: [`./references/variables.md`](./references/variables.md)
 - Field config, overrides, value mappings, data links, and the unit catalog: [`./references/field-config.md`](./references/field-config.md)
 - Grafana mixin configuration and Jsonnet generation: [`./references/grafana-mixin.md`](./references/grafana-mixin.md)
-- Export cleanup decisions and ownership boundaries after UI edits or rendering: [`./references/dashboard-structure.md`](./references/dashboard-structure.md)
+- Export cleanup decisions and ownership boundaries after UI edits or rendering: [`./references/structure.md`](./references/structure.md)
 
 ## Common-Case Workflow
 
@@ -308,7 +315,7 @@ grafana/
 
 Use when: the team keeps reviewed dashboard JSON directly in the repository rather than generating it from Jsonnet.
 For mixin configuration, Jsonnet source patterns, and source-vs-rendered handoff, see [`./references/grafana-mixin.md`](./references/grafana-mixin.md).
-For export cleanup decisions and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
+For export cleanup decisions and ownership boundaries after UI edits or rendering, see [`./references/structure.md`](./references/structure.md).
 
 ## Validate the Result
 
@@ -348,7 +355,7 @@ Return:
 | Complete variable reference: 7 classic types, global vars, format options, advanced patterns, boolean-toggle convention | [`./references/variables.md`](./references/variables.md) |
 | Complete field config, override property IDs, value mappings, data link variables, unit catalog | [`./references/field-config.md`](./references/field-config.md) |
 | Mixin configuration and Jsonnet generation | [`./references/grafana-mixin.md`](./references/grafana-mixin.md) |
-| Export cleanup decisions, normalization targets, ownership boundaries after UI edits or rendering | [`./references/dashboard-structure.md`](./references/dashboard-structure.md) |
+| Export cleanup decisions, normalization targets, ownership boundaries after UI edits or rendering | [`./references/structure.md`](./references/structure.md) |
 
 ## Invariants
 

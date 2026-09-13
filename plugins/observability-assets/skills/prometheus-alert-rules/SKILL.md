@@ -10,6 +10,11 @@ description: >-
 Design and review Prometheus alert and recording rules around real operator symptoms, validate them with `promtool`, and keep rule definitions stable in version-controlled files.
 The common case is one rule group with a deliberate evaluation interval, one alert tied to a meaningful symptom, one explicit `for` window that avoids flapping, one clear alert name, one bounded label contract for Alertmanager, and one validation path that proves the shipped rule file is sane before it lands.
 
+## Official Baseline
+
+- Use the official Prometheus rule and alerting documentation for release 3.14.0, read on 2026-09-13: [Recording rules](https://prometheus.io/docs/prometheus/3.14/configuration/recording_rules/) and [Alerting rules](https://prometheus.io/docs/prometheus/3.14/configuration/alerting_rules/).
+- Verified against the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
+
 ## Common-Case Workflow
 
 1. Start from the operator symptom that should page or ticket, not from a random metric spike.
@@ -487,7 +492,7 @@ Return:
 
 | If the blocker is... | Read... |
 | --- | --- |
-| deciding whether an alert needs dedicated regression coverage, recording-rule settle-time checks, or `for`/`keep_firing_for` lifecycle protection | [`./references/rule-testing.md`](./references/rule-testing.md) |
+| deciding whether an alert needs dedicated regression coverage, recording-rule settle-time checks, or `for`/`keep_firing_for` lifecycle protection | [`./references/testing.md`](./references/testing.md) |
 | choosing between direct alerts, recording rules, or reusable low-noise alert patterns | [`./references/alert-patterns.md`](./references/alert-patterns.md) |
 
 ## Invariants

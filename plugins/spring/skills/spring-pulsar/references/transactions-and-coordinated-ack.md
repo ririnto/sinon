@@ -46,6 +46,9 @@ void listen(String msg) {
 Use `PulsarTransactionManager` with `@Transactional` or `TransactionTemplate` for synchronized transactions.
 
 ```java
+/**
+ * Sends the shipment event and its audit event in one coordinated Pulsar transaction.
+ */
 @Transactional("pulsarTransactionManager")
 public void processInTransaction(ShipmentEvent event) {
     pulsarTemplate.send("shipments", event);

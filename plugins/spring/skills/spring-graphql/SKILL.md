@@ -119,7 +119,7 @@ Use `spring.graphql.cors.*` properties to configure Cross-Origin Resource Sharin
 spring:
     graphql:
         cors:
-            allowed-origins: "https://example.org"
+            allowed-origins: https://example.org
             allowed-methods: GET,POST
             max-age: 1800s
 ```

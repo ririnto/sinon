@@ -28,7 +28,9 @@ final class CheckpointedPipeline {
             .map(value -> value * 2)
             .checkpoint("after-doubling")
             .map(value -> {
-                if (value == 4) throw new IllegalStateException("bad value");
+                if (value == 4) {
+                    throw new IllegalStateException("bad value");
+                }
                 return value;
             });
     }

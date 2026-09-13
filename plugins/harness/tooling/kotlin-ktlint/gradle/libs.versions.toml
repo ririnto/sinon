@@ -1,0 +1,18 @@
+[versions]
+kotlin = "2.4.20"
+ktlint = "14.2.0"
+ktlint-engine = "1.8.0"
+slf4j = "2.0.19"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+
+[libraries]
+kotlin-test-junit5 = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit5", version.ref = "kotlin" }
+ktlint-bom = { group = "com.pinterest.ktlint", name = "ktlint-bom", version.ref = "ktlint-engine" }
+ktlint-cli-ruleset-core = { group = "com.pinterest.ktlint", name = "ktlint-cli-ruleset-core" }
+ktlint-rule-engine = { group = "com.pinterest.ktlint", name = "ktlint-rule-engine" }
+ktlint-rule-engine-core = { group = "com.pinterest.ktlint", name = "ktlint-rule-engine-core" }
+ktlint-test = { group = "com.pinterest.ktlint", name = "ktlint-test" }
+slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }

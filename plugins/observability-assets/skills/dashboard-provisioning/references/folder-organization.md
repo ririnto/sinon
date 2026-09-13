@@ -161,7 +161,7 @@ This example targets an existing Grafana folder by UID instead of by folder name
 apiVersion: 1
 providers:
   - name: targeted-provider
-    folderUid: "abc123def"
+    folderUid: abc123def
     type: file
     options:
       path: /var/lib/grafana/dashboards/target
