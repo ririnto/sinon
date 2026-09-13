@@ -284,6 +284,9 @@ class GreeterService extends GreeterGrpc.GreeterImplBase {
         this.greetingService = greetingService;
     }
 
+    /**
+     * Replies to one unary greeting request through the response observer.
+     */
     @Override
     public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
         HelloReply reply = HelloReply.newBuilder()
@@ -339,6 +342,9 @@ class GreetingClient {
 @GlobalServerInterceptor
 ServerInterceptor correlationInterceptor() {
     return new ServerInterceptor() {
+        /**
+         * Reads the correlation-id metadata key so every server call carries request correlation.
+         */
         @Override
         public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
             String correlationId = headers.get(Metadata.Key.of("x-correlation-id", Metadata.ASCII_STRING_MARSHALLER));

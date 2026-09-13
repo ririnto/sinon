@@ -1,0 +1,9 @@
+stages:
+  - validate
+
+bun:
+  stage: validate
+  image: oven/bun:1
+  script:
+    - bun install --frozen-lockfile
+    - bun run check

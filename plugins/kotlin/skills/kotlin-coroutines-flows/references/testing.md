@@ -87,9 +87,7 @@ import kotlin.test.assertTrue
 fun cancellationRunsCleanup() {
     val resource = TrackingResource()
     val scope = TestScope()
-    val job: Job = scope.launch {
-        resource.use { r -> r.longOperation() }
-    }
+    val job: Job = scope.launch { resource.use(TrackingResource::longOperation) }
     scope.runCurrent()
     job.cancel()
     scope.advanceUntilIdle()

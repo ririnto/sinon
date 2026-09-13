@@ -103,3 +103,4 @@ Replay-focused checklist:
 
 The JUnit examples in this file use JUnit consistently.
 The Kotest example is the deliberate exception for Kotest-based suites.
+For exact-exception assertions in a Kotest suite, use the `shouldThrowExactly` shape documented in `kotest-style-and-exact-exceptions.md`.

@@ -32,7 +32,7 @@ import kotlinx.serialization.modules.SerializersModule
 data class Note(
     val title: String,
     val createdAt: Instant,
-    val dueDate: LocalDate? = null,
+    val dueDate: LocalDate? = null
 )
 
 val json = Json {
@@ -44,8 +44,8 @@ val encoded = json.encodeToString(
     Note(
         title = "ship-skill",
         createdAt = Clock.System.now(),
-        dueDate = LocalDate.parse("2026-04-20"),
-    ),
+        dueDate = LocalDate.parse("2026-04-20")
+    )
 )
 
 val decoded = json.decodeFromString<Note>(encoded)

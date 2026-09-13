@@ -154,7 +154,7 @@ class DiscountCalculatorTest {
         @JvmStatic
         private fun edgeCases() = listOf(
             Arguments.of(0, 10, 0.0),
-            Arguments.of(-100, 10, -100.0),
+            Arguments.of(-100, 10, -100.0)
         )
     }
 

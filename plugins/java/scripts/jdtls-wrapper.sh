@@ -66,10 +66,8 @@ find_project_root() {
 # @param project_root Project root directory to scan.
 # @return Prints the resolved jar path, or nothing if not found.
 resolve_project_lombok_jar() {
-  if project_lombok_jar=$("${script_dir}/has-lombok.sh" --resolve-project-jar "$1"); then
-    printf '%s\n' "${project_lombok_jar}"
-  fi
-  return 0
+  project_lombok_jar=$("${script_dir}/has-lombok.sh" --resolve-project-jar "$1") || true
+  printf '%s\n' "${project_lombok_jar}"
 }
 
 # Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
@@ -130,15 +128,8 @@ maybe_enable_lombok_agent() {
   if ! is_lombok_support_enabled; then
     return 0
   fi
-  project_root=""
-  if detected_project_root=$(find_project_root); then
-    project_root="${detected_project_root}"
-  fi
-  if selected_lombok=$(select_lombok_jar "${project_root}"); then
-    :
-  else
-    selected_lombok=""
-  fi
+  project_root=$(find_project_root) || true
+  selected_lombok=$(select_lombok_jar "${project_root}") || true
   if [ -z "${selected_lombok}" ]; then
     return 0
   fi
@@ -154,11 +145,7 @@ maybe_enable_lombok_agent() {
   fi
   strip_existing_lombok_agents
   selected_agent="-javaagent:${selected_jar}"
-  if [ -n "${JDK_JAVA_OPTIONS:-}" ]; then
-    export JDK_JAVA_OPTIONS="${selected_agent} ${JDK_JAVA_OPTIONS}"
-  else
-    export JDK_JAVA_OPTIONS="${selected_agent}"
-  fi
+  export JDK_JAVA_OPTIONS="${selected_agent} ${JDK_JAVA_OPTIONS:-}"
   warn_optional_lombok_support "java: Enabled Lombok support from ${selected_source} source (${selected_jar})."
 }
 

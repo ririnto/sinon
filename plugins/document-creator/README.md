@@ -21,7 +21,7 @@ Focus on documents that capture requirements, design intent, and acceptance crit
 
 Use `spec-creator` when the requested deliverable is the specification document itself: "create `SPEC.md`", "write a spec", "draft a product spec", "create structured requirements", "write acceptance criteria", "make an RFC-style spec", or "make an SRS-style spec".
 
-- `references/spec-template.md` - canonical `SPEC.md` skeleton and section rules.
+- `references/template.md` - canonical `SPEC.md` skeleton and section rules.
 - `references/requirements-style.md` - requirement IDs, RFC 2119 language, and EARS patterns.
 - `references/scenarios-and-acceptance.md` - scenario and acceptance-criteria guidance.
 - `references/quality-checklist.md` - review checklist for spec completeness and quality.
@@ -43,7 +43,7 @@ plugins/document-creator/
             +-- quality-checklist.md
             +-- requirements-style.md
             +-- scenarios-and-acceptance.md
-            +-- spec-template.md
+            +-- template.md
 ```
 
 ## Shipped Surfaces

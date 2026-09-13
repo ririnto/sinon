@@ -9,6 +9,9 @@ Open reference when expiring or invalidating the backing session must terminate 
 @EnableScheduling
 @EnableWebSocketMessageBroker
 class WebSocketConfig extends AbstractSessionWebSocketMessageBrokerConfigurer<Session> {
+    /**
+     * Registers the STOMP endpoint that the session-aware handshake intercepts.
+     */
     @Override
     protected void configureStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
@@ -16,6 +19,9 @@ class WebSocketConfig extends AbstractSessionWebSocketMessageBrokerConfigurer<Se
             .withSockJS();
     }
 
+    /**
+     * Enables the simple broker and the application destination prefixes.
+     */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue/", "/topic/");

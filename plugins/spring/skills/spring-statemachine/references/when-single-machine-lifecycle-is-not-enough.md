@@ -10,11 +10,17 @@ Use `@EnableStateMachineFactory` when the application needs many machine instanc
 @Configuration
 @EnableStateMachineFactory
 class OrderStateMachineFactoryConfig extends EnumStateMachineConfigurerAdapter<States, Events> {
+    /**
+     * Declares the shared machine topology used by every factory-built instance.
+     */
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
         states.withStates().initial(States.NEW).state(States.PAID);
     }
 
+    /**
+     * Declares the shared transition set used by every factory-built instance.
+     */
     @Override
     public void configure(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
         transitions.withExternal().source(States.NEW).target(States.PAID).event(Events.PAY);
@@ -75,10 +81,16 @@ Implement `StateMachinePersist<S, E, T>` to define where state is stored:
 ```java
 class InMemoryStateMachinePersist<S, E, T> implements StateMachinePersist<S, E, T> {
     private final Map<T, StateMachineContext<S, E>> contexts = new HashMap<>();
+    /**
+     * Stores the machine context under its persistence key.
+     */
     @Override
     public void write(StateMachineContext<S, E> context, T contextObj) throws Exception {
         contexts.put(contextObj, context);
     }
+    /**
+     * Returns the stored context for the key, or {@code null} when none was persisted.
+     */
     @Override
     public StateMachineContext<S, E> read(T contextObj) throws Exception {
         return contexts.get(contextObj);
@@ -105,6 +117,9 @@ Built-in implementations exist for JPA (`JpaPersistingStateMachineInterceptor`),
 Wire a runtime persister through configuration:
 
 ```java
+/**
+ * Wires the runtime persister so transitions persist state automatically.
+ */
 @Override
 public void configure(StateMachineConfigurationConfigurer<States, Events> config) throws Exception {
     config.withPersistence().runtimePersister(stateMachineRuntimePersister);
@@ -153,10 +168,16 @@ Register through `StateMachineAccessor`:
 ```java
 stateMachine.getStateMachineAccessor()
     .doWithRegion(access -> access.addStateMachineInterceptor(new StateMachineInterceptorAdapter<>() {
+        /**
+         * Runs before each transition and returns the context that continues the chain.
+         */
         @Override
         public StateContext<States, Events> preTransition(StateContext<States, Events> context) {
             return context;
         }
+        /**
+         * Handles the transition error and returns the exception that the machine should propagate.
+         */
         @Override
         public Exception stateMachineError(StateMachine<States, Events> machine, Exception exception) {
             return exception;

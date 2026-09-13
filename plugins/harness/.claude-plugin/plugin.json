@@ -3,7 +3,7 @@
   "author": {
     "name": "ririnto"
   },
-  "description": "Shared implementation and review guidance for agent-driven engineering work, with portable skills for implementing and reviewing changes.",
+  "description": "Shared implementation and review guidance for agent-driven engineering work, with portable skills for implementing, reviewing, and installing current Harness guidance into target repositories.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
   "keywords": [
     "harness",

@@ -17,12 +17,20 @@ Open this when nullable flow and scope-function readability are the hard part.
 
 ## Patterns
 
-Nullable handoff with an early return:
+Nullable handoff with `?.`:
 
 ```kotlin
-fun primaryEmail(user: User?): String? {
-    val account = user ?: return null
+fun primaryEmail(user: User?): String? =
+    user?.emails?.firstOrNull { email -> email.isPrimary }?.value
+```
+
+The same handoff when absence must stop the current path:
+
+```kotlin
+fun requiredPrimaryEmail(user: User?): String {
+    val account = user ?: throw IllegalArgumentException("user must not be null")
     return account.emails.firstOrNull { email -> email.isPrimary }?.value
+        ?: throw IllegalArgumentException("user has no primary email")
 }
 ```
 
@@ -30,7 +38,7 @@ fun primaryEmail(user: User?): String? {
 
 ```kotlin
 fun displayName(user: User?): String =
-    user?.name?.trim()?.takeIf { name -> name.isNotEmpty() } ?: "anonymous"
+    user?.name?.trim()?.takeIf(String::isNotEmpty) ?: "anonymous"
 ```
 
 `apply` for local configuration:
@@ -58,7 +66,7 @@ Pin the nullability at the interop boundary and never let a raw `T!` escape into
 
 ## Late Initialization
 
-Use `lateinit var` for non-primitive properties that the constructor cannot set and dependency injection initializes before first access:
+Use `lateinit var` for non-primitive properties that the constructor cannot set and a non-DI initialization lifecycle fills before first access:
 
 ```kotlin
 class Service {
@@ -74,6 +82,7 @@ class Service {
 
 Restrictions: `lateinit` only works with non-primitive types that do not have a custom getter.
 Access before initialization throws `UninitializedPropertyAccessException`.
+A class that a container or DI framework constructs takes its dependencies through non-null, default-free constructor parameters instead of a `lateinit` property.
 
 ## Smart Cast Limits
 
@@ -84,13 +93,13 @@ class Container(val item: Any?)
 
 fun printLength(c: Container) {
     val value = c.item
-    if (value is String) println(value.length)
+    if (value is String) { println(value.length) }
 }
 
 fun process(varValue: String?) {
-    val safe: String = varValue ?: return
-    listOf(1, 2).forEach { println(safe.length) }
+    varValue?.let { value -> println(value.length) }
 }
 ```
 
-Smart casts fail when a custom getter prevents the compiler from tracking the type, or when a `var` captured in a lambda might change between the check and use.
+Smart casts fail when a custom getter prevents the compiler from tracking the type.
+A nullable value captured in a lambda is handled with `?.let` and a named non-null parameter instead of a temporary `val` plus an early return.

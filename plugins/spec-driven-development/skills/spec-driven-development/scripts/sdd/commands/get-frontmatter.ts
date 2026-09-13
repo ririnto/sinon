@@ -7,16 +7,17 @@ import {
   normalizeTag,
   parseFields
 } from "../frontmatter.js";
-import { fail, isRecord, stringifyJson } from "../infrastructure.js";
+import { fail, isRecord } from "../infrastructure.js";
 import { DOC_FILE_NAMES, VALID_FORMATS, VALID_KINDS } from "../shared.js";
 import type { LoadEntry, MutableRecord, ParsedArgs } from "../shared.js";
 
 const resolveDocPath = (kind: string, rawPath: string): string | undefined => {
   const docName = DOC_FILE_NAMES[kind] ?? "";
-  let docPath = path.resolve(rawPath);
-  if (existsSync(docPath) && statSync(docPath).isDirectory()) {
-    docPath = path.join(docPath, docName);
-  }
+  const resolved = path.resolve(rawPath);
+  const docPath =
+    existsSync(resolved) && statSync(resolved).isDirectory()
+      ? path.join(resolved, docName)
+      : resolved;
   if (!existsSync(docPath)) {
     fail(`FAIL: Document not found: ${docPath}`);
     return undefined;
@@ -46,7 +47,7 @@ const outputValue = (
   const field = fields[0] ?? "";
   const value = field in entry.record ? entry.record[field] : outputData[field];
   if (Array.isArray(value) || isRecord(value)) {
-    process.stdout.write(stringifyJson(value));
+    process.stdout.write(JSON.stringify(value));
   } else {
     process.stdout.write(`${String(value ?? "")}\n`);
   }
@@ -79,10 +80,14 @@ const outputJson = (
   if (optionBool(args, "include-yaml")) {
     out["frontmatter_yaml"] = entry.yamlBody;
   }
-  console.log(stringifyJson(out, format === "jsonl" ? undefined : 2));
+  console.log(JSON.stringify(out, null, format === "jsonl" ? undefined : 2));
   return 0;
 };
 
+/**
+ * Runs the document frontmatter lookup command and returns the process
+ * exit code.
+ */
 export const cmdGetFrontmatter = (args: ParsedArgs): number => {
   const kind = args.positionals[0] ?? "";
   const rawPath = args.positionals[1] ?? "";
@@ -105,26 +110,32 @@ export const cmdGetFrontmatter = (args: ParsedArgs): number => {
     process.stdout.write(readFileSync(docPath, "utf-8"));
     return 0;
   }
-  const entry = loadFrontmatterEntry(docPath);
-  if (typeof entry === "string") {
-    fail(`FAIL: ${entry}: ${docPath}`);
+  const result = loadFrontmatterEntry(docPath);
+  if (result.kind === "error") {
+    fail(`FAIL: ${result.message}: ${docPath}`);
     return 1;
   }
-  if (!entry) {
+  if (result.kind === "missing") {
     fail(`FAIL: No YAML frontmatter found: ${docPath}`);
     return 1;
   }
+  const { entry } = result;
   const outputData: MutableRecord = { ...entry.data };
   if ("tag" in outputData || "tags" in outputData) {
     outputData["tag"] = normalizeTag(outputData["tag"] ?? outputData["tags"]);
   }
-  if (format === "yaml") {
-    console.log(entry.yamlBody);
-    return 0;
+  switch (format) {
+    case "yaml": {
+      console.log(entry.yamlBody);
+      return 0;
+    }
+    case "value": {
+      const fields = parseFields(optionString(args, "fields"));
+      return outputValue(entry, outputData, fields);
+    }
+    default: {
+      const fields = parseFields(optionString(args, "fields"));
+      return outputJson(args, entry, outputData, docPath, kind, format, fields);
+    }
   }
-  const fields = parseFields(optionString(args, "fields"));
-  if (format === "value") {
-    return outputValue(entry, outputData, fields);
-  }
-  return outputJson(args, entry, outputData, docPath, kind, format, fields);
 };

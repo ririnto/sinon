@@ -6,20 +6,21 @@ import {
 } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/frontmatter.js";
 
 test("extractFrontmatterFromText returns the closing line number", () => {
-  const block = extractFrontmatterFromText("---\ntitle: value\n---\nbody");
-  expect(block?.endLine).toBe(3);
+  expect(
+    extractFrontmatterFromText("---\ntitle: value\n---\nbody")?.endLine
+  ).toBe(3);
 });
 
 test("extractFrontmatterFromText returns undefined without a header", () => {
-  const block = extractFrontmatterFromText("title: value\n---");
-  expect(block).toBeUndefined();
+  expect(extractFrontmatterFromText("title: value\n---")).toBeUndefined();
 });
 
 test("extractFrontmatterFromText rejects unterminated frontmatter", () => {
-  expect(() => extractFrontmatterFromText("---\ntitle: value")).toThrow();
+  expect(() => extractFrontmatterFromText("---\ntitle: value")).toThrow(
+    "Unterminated YAML frontmatter"
+  );
 });
 
 test("parseFields returns undefined for empty input", () => {
-  const fields = parseFields("");
-  expect(fields).toBeUndefined();
+  expect(parseFields("")).toBeUndefined();
 });

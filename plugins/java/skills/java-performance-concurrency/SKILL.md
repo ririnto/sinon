@@ -68,6 +68,9 @@ import org.openjdk.jmh.annotations.Measurement;
 public class ParserBenchmark {
     private final byte[] payload = "key=value,name=test".getBytes();
 
+    /**
+     * Measures parser throughput over the fixed benchmark payload.
+     */
     @Benchmark
     public Result parse() {
         return Parser.parse(payload);
@@ -167,11 +170,12 @@ not_first:
 
 ```java
 import java.util.List;
+import java.util.function.Predicate;
 
 List<Result> parse(List<String> lines) {
     return lines.stream()
-        .map(line -> line.trim())
-        .filter(line -> !line.isEmpty())
+        .map(String::trim)
+        .filter(Predicate.not(String::isEmpty))
         .map(line -> line.split(","))
         .map(parts -> new Result(parts[0], Integer.parseInt(parts[1])))
         .toList();

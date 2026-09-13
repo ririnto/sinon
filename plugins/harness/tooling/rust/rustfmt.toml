@@ -1,0 +1,8 @@
+# Canonical rustfmt configuration for the Harness `rust` profile.
+# Merge keys into an existing rustfmt.toml instead of replacing it.
+# Unstable keys require a nightly rustfmt; these keys are stable.
+# See docs/tools/rust.md for integration rules.
+
+max_width = 100
+newline_style = "Unix"
+use_small_heuristics = "Max"

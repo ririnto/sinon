@@ -19,6 +19,9 @@ Use tags that operators actually query, such as job name, step name, and result.
 @Bean
 JobExecutionListener metricsListener(MeterRegistry meterRegistry) {
     return new JobExecutionListener() {
+        /**
+         * Records the job duration and final status as tagged timer metrics after each job execution.
+         */
         @Override
         public void afterJob(JobExecution jobExecution) {
             Duration duration = Duration.between(jobExecution.getStartTime(), jobExecution.getEndTime());

@@ -140,8 +140,10 @@ Select expression for choosing between multiple suspend sources:
 ```kotlin
 import kotlinx.coroutines.selects.select
 
+private fun identity(data: Data): Data = data
+
 suspend fun raceTwoSources(): Data = select<Data> {
-    sourceA.onReceive { data -> data }
-    sourceB.onReceive { data -> data }
+    sourceA.onReceive(::identity)
+    sourceB.onReceive(::identity)
 }
 ```

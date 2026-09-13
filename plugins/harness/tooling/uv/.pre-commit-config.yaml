@@ -1,0 +1,20 @@
+# Optional pre-commit hooks for the Harness `uv` profile.
+# Install only when the target explicitly selects hooks and owns no existing
+# .pre-commit-config.yaml; merge the repos list when one exists.
+# Local hooks call the project environment, so they pin no remote revision.
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types:
+          - python
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check
+        language: system
+        types:
+          - python

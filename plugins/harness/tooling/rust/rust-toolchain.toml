@@ -1,0 +1,8 @@
+# Reference toolchain selection for targets that have no rust-toolchain.toml.
+# Do NOT overwrite an existing target toolchain file: the target's own
+# channel and components stay authoritative. See docs/tools/rust.md.
+
+[toolchain]
+channel = "stable"
+profile = "minimal"
+components = ["clippy", "rustfmt"]

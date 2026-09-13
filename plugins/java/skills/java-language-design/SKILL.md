@@ -17,6 +17,8 @@ The common case is choosing a clearer type shape, a narrower contract, and an un
 
 - SHOULD prefer value semantics where possible.
 - MUST keep public APIs narrow and intention-revealing.
+- MUST document every externally visible declaration with Javadoc.
+  - Package-private helpers inside a published package stay undocumented unless the contract is surprising.
 - MUST expose immutable views unless mutation is part of the contract.
 - SHOULD prefer simple, explicit contracts over inheritance-heavy designs.
 - SHOULD check whether records, sealed classes, enums, or interfaces fit the model better than ordinary classes.
@@ -40,9 +42,15 @@ The common case is choosing a clearer type shape, a narrower contract, and an un
 Start from one explicit value carrier and one explicit capability interface:
 
 ```java
+/**
+ * Value carrier for a customer identifier.
+ */
 public record CustomerId(String value) {
 }
 
+/**
+ * Gateway capability for charging a payment request.
+ */
 public interface PaymentGateway {
     Receipt charge(ChargeRequest request);
 }
@@ -55,6 +63,9 @@ Use when: tightening a contract or replacing a vague mutable DTO or service surf
 ### Factory for clearer invariants
 
 ```java
+/**
+ * Immutable retry policy with a positive attempt budget.
+ */
 public final class RetryPolicy {
     private final int maxAttempts;
 
@@ -62,6 +73,11 @@ public final class RetryPolicy {
         this.maxAttempts = maxAttempts;
     }
 
+    /**
+     * Creates a policy that allows the given positive number of attempts.
+     *
+     * @throws IllegalArgumentException if {@code maxAttempts} is below 1
+     */
     public static RetryPolicy of(int maxAttempts) {
         if (maxAttempts < 1) {
             throw new IllegalArgumentException("maxAttempts must be positive");
@@ -82,6 +98,9 @@ The model knows the pattern shape.
 ```java
 import java.util.Objects;
 
+/**
+ * Immutable money amount in a minor-unit representation.
+ */
 public final class Money {
     private final String currency;
     private final long cents;
@@ -116,6 +135,9 @@ public final class Money {
 ```java
 import java.util.List;
 
+/**
+ * Exposes roles as a read-only snapshot view.
+ */
 public List<String> roles() {
     return List.copyOf(roles);
 }
@@ -126,6 +148,9 @@ public List<String> roles() {
 ```java
 import java.io.IOException;
 
+/**
+ * Loads a receipt, signaling recoverable I/O failure to the caller.
+ */
 public Receipt load(String id) throws IOException {
     return gateway.load(id);
 }
@@ -139,10 +164,16 @@ Use `? extends T` for input (producer) and `? super T` for output (consumer):
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Runs every task in the given producer collection.
+ */
 public void processAll(Collection<? extends Task> tasks) {
     tasks.forEach(Task::run);
 }
 
+/**
+ * Copies source strings into the given consumer list.
+ */
 public void addAll(List<? super String> target, List<String> source) {
     target.addAll(source);
 }
@@ -151,6 +182,9 @@ public void addAll(List<? super String> target, List<String> source) {
 ### @FunctionalInterface for SAM types
 
 ```java
+/**
+ * Strategy for deciding whether a failed attempt should run again.
+ */
 @FunctionalInterface
 public interface RetryStrategy {
     boolean shouldRetry(int attempt, Throwable lastFailure);

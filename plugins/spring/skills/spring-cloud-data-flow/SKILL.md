@@ -54,13 +54,13 @@ Import a curated starter catalog with `app import` only when the deployment owns
 
 | Surface | Open when |
 | --- | --- |
-| Platform setup | [references/data-flow-platform-setup.md](references/data-flow-platform-setup.md) |
-| Platform accounts | [references/data-flow-platform-accounts.md](references/data-flow-platform-accounts.md) |
-| App registration and metadata | [references/data-flow-app-registration-metadata.md](references/data-flow-app-registration-metadata.md) |
-| Runtime operations | [references/data-flow-runtime-operations.md](references/data-flow-runtime-operations.md) |
-| Composed tasks | [references/data-flow-composed-tasks.md](references/data-flow-composed-tasks.md) |
-| Schedules | [references/data-flow-schedules.md](references/data-flow-schedules.md) |
-| Troubleshooting | [references/data-flow-troubleshooting.md](references/data-flow-troubleshooting.md) |
+| Platform setup | [references/platform-setup.md](references/platform-setup.md) |
+| Platform accounts | [references/platform-accounts.md](references/platform-accounts.md) |
+| App registration and metadata | [references/app-registration-metadata.md](references/app-registration-metadata.md) |
+| Runtime operations | [references/runtime-operations.md](references/runtime-operations.md) |
+| Composed tasks | [references/composed-tasks.md](references/composed-tasks.md) |
+| Schedules | [references/schedules.md](references/schedules.md) |
+| Troubleshooting | [references/troubleshooting.md](references/troubleshooting.md) |
 
 ## First safe commands
 

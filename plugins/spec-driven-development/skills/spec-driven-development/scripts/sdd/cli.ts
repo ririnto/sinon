@@ -6,14 +6,12 @@ import { cmdListTags } from "./commands/list-tags.js";
 import { cmdValidate } from "./commands/validate.js";
 import { fail } from "./infrastructure.js";
 
+/**
+ * Runs the SDD command line and returns the process exit code.
+ */
 export const main = (argv: readonly string[]): number => {
   const args = parseArgs(argv);
-  if (
-    !args ||
-    args.command === "--help" ||
-    args.command === "-h" ||
-    optionBool(args, "help")
-  ) {
+  if (!args || optionBool(args, "help")) {
     printHelp();
     return args ? 0 : 1;
   }

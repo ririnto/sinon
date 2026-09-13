@@ -40,9 +40,9 @@ The ordinary Spring Security job is:
 - Open [references/saml2-login.md](references/saml2-login.md) only when enterprise identity-provider requirements specifically depend on SAML2.
 - Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when different URL spaces need separate servlet chains or a custom filter must be placed relative to Spring Security's built-in filters.
 - Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default `scope` to authority conversion is not enough, nested or multi-location claim extraction is needed, or issuer, audience, algorithm, or principal-claim rules must be customized.
-- Open [references/security-exception-handling.md](references/security-exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
+- Open [references/exception-handling.md](references/exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
 - Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when the job depends on concurrent-session control, custom logout success handling, or stateful session persistence rules beyond the ordinary path.
-- Open [references/security-headers.md](references/security-headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
+- Open [references/headers.md](references/headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
 - Open [references/servlet-opaque-token-resource-server.md](references/servlet-opaque-token-resource-server.md) only when the servlet resource server must validate bearer tokens via introspection instead of local JWT verification.
 
 ## Dependency baseline

@@ -25,6 +25,9 @@ example.orders.internal
 ```java
 package example.orders.api;
 
+/**
+ * Publishes the order lookup capability that other modules may depend on.
+ */
 public interface OrderLookup {
     OrderSummary findById(String orderId);
 }

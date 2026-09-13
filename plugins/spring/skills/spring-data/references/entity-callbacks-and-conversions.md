@@ -12,6 +12,9 @@ Use the examples below as imperative callback shapes, and move reactive callback
 ```java
 @Component
 class CustomerBeforeConvertCallback implements BeforeConvertCallback<Customer> {
+    /**
+     * Adjusts the entity before it is converted into its store representation.
+     */
     @Override
     public Customer onBeforeConvert(Customer entity) {
         return entity;
@@ -27,6 +30,9 @@ Order callback execution deliberately when more than one callback targets the sa
 @Component
 @Order(10)
 class CustomerAfterConvertCallback implements AfterConvertCallback<Customer> {
+    /**
+     * Adjusts the entity after it was read back from its store representation.
+     */
     @Override
     public Customer onAfterConvert(Customer entity) {
         return entity;
@@ -44,6 +50,9 @@ Use custom conversions when a value object needs a stable read or write represen
 ```java
 @WritingConverter
 class EmailWriteConverter implements Converter<EmailAddress, String> {
+    /**
+     * Writes the value object as its plain string store representation.
+     */
     @Override
     public String convert(EmailAddress source) {
         return source.value();
@@ -73,11 +82,17 @@ class Customer {
 }
 
 class EncryptedStringValueConverter implements PropertyValueConverter<String, String, ValueConversionContext<?>> {
+    /**
+     * Encrypts the property value before it reaches the store.
+     */
     @Override
     public String write(String value, ValueConversionContext<?> context) {
         return encrypt(value);
     }
 
+    /**
+     * Decrypts the stored value before it is bound to the entity property.
+     */
     @Override
     public String read(String value, ValueConversionContext<?> context) {
         return decrypt(value);

@@ -1,0 +1,10 @@
+# Fragment for an existing pyproject.toml managed by uv.
+# Merge these tables into the target's own manifest; never replace the file.
+# The project table stays target-owned: keep its name, version, and dependencies.
+# Add [tool.uv] only when the target has no [tool.uv] table; keep the target's
+# existing values, including package = true for a real distributed package.
+
+[dependency-groups]
+dev = ["pre-commit>=4.2.0,<5", "ruff>=0.16.0,<0.17"]
+# Merge rule: union by group name. Add a missing group, and add missing
+# requirements to an existing group; never drop the target's own entries.

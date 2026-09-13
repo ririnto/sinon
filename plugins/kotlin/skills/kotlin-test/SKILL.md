@@ -33,6 +33,8 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 - MUST use `runTest` when coroutine semantics actually matter.
 - SHOULD keep Flow assertions bounded with `first()`, `single()`, or `take(n).toList()`.
 - SHOULD use `assertFailsWith<T>()` when exception type is part of the contract.
+- MUST assert the caught exception's message and meaningful fields when the exception contract matters, not only the type.
+- MUST NOT introduce Kotest into a `kotlin.test` or JUnit suite just for its exception helpers, and MUST NOT add Kotest assertions inside ktlint-rule or other library-native test harnesses.
 - MUST compare serialized output with full equality after parsing structured formats into exact fields or elements.
   - Use containment only when membership itself is the observable contract.
 - MUST avoid real sleeps when deterministic scheduler control can prove the same behavior.
@@ -189,6 +191,10 @@ class RetryPolicyTest {
     }
 }
 ```
+
+In suites that already use Kotest, use `shouldThrowExactly<T>()` for the same contract because it rejects subclasses of `T`.
+Assert `error.message shouldBe "<exact expected text>"` plus the meaningful fields the exception declares, and use `shouldNotThrowAny { }` only when no-exception is itself the contract.
+Open the Kotest reference for the exact shapes and the `assertSoftly` interaction caveat.
 
 ## First Safe Default
 

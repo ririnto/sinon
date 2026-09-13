@@ -106,7 +106,7 @@ suspend fun heavyComputation(data: List<Data>): Result {
     var accumulator = Initial
     for ((index, item) in data.withIndex()) {
         accumulator = combine(accumulator, transform(item))
-        if (index % 1000 == 0) yield()
+        if (index % 1000 == 0) { yield() }
     }
     return accumulator
 }

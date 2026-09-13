@@ -6,27 +6,23 @@ import {
 } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/frontmatter.js";
 
 test("matchesKind rejects a mismatched document kind", () => {
-  const matched = matchesKind("input/SPEC.md", "research");
-  expect(matched).toBe(false);
+  expect(matchesKind("input/SPEC.md", "research")).toBe(false);
 });
 
 test("matchesFilters accepts a matching scalar value", () => {
-  const matched = matchesFilters({ status: "implemented" }, {}, [
-    ["status", ["implemented"]]
-  ]);
-  expect(matched).toBe(true);
+  expect(
+    matchesFilters({ status: "implemented" }, {}, [["status", ["implemented"]]])
+  ).toBe(true);
 });
 
 test("matchesFilters rejects a non-matching scalar value", () => {
-  const matched = matchesFilters({ status: "draft" }, {}, [
-    ["status", ["implemented"]]
-  ]);
-  expect(matched).toBe(false);
+  expect(
+    matchesFilters({ status: "draft" }, {}, [["status", ["implemented"]]])
+  ).toBe(false);
 });
 
 test("matchesFilters accepts one matching tag", () => {
-  const matched = matchesFilters({ tag: ["ingest", "domain"] }, {}, [
-    ["tag", ["ingest"]]
-  ]);
-  expect(matched).toBe(true);
+  expect(
+    matchesFilters({ tag: ["ingest", "domain"] }, {}, [["tag", ["ingest"]]])
+  ).toBe(true);
 });

@@ -73,7 +73,7 @@ Use unique subsection headings for each unit (for example, `#### Input Rules (Un
 
 ```yaml
 input:
-  {{example_input_key}}: "{{example_input_value}}"
+  "{{example_input_key}}": "{{example_input_value}}"
 output:
-  {{example_output_key}}: "{{example_output_value}}"
+  "{{example_output_key}}": "{{example_output_value}}"
 ```

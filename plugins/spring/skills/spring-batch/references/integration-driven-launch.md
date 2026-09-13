@@ -50,9 +50,10 @@ If a Boot-managed older line exposes only `JobLauncher`-based launch integration
 void handleReply(JobExecution execution) {
     if (execution.getStatus() == BatchStatus.COMPLETED) {
         notifications.publishSuccess(execution.getJobInstance().getJobName(), execution.getId());
-        return;
     }
-    notifications.publishFailure(execution.getJobInstance().getJobName(), execution.getAllFailureExceptions());
+    else {
+        notifications.publishFailure(execution.getJobInstance().getJobName(), execution.getAllFailureExceptions());
+    }
 }
 ```
 
