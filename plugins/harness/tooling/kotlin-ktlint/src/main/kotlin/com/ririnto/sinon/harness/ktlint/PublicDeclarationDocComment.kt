@@ -70,7 +70,10 @@ class PublicDeclarationDocComment :
     ) : KtTreeVisitorVoid() {
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
-            if (klass.parent !is KtBlockExpression && shouldCheck(klass, KtTokens.CLASS_KEYWORD) && klass.docComment == null) {
+            if (klass.parent !is KtBlockExpression &&
+                shouldCheck(klass, KtTokens.CLASS_KEYWORD, KtTokens.INTERFACE_KEYWORD) &&
+                klass.docComment == null
+            ) {
                 report(klass, klass.name ?: "unknown", "public declaration")
             }
         }
