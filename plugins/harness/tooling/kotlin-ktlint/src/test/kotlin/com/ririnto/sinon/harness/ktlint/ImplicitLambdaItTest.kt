@@ -73,14 +73,36 @@ class ImplicitLambdaItTest {
     }
 
     @Test
-    fun preservesRawStringTemplateReferences() {
+    fun preservesMultilineEscapedStringTemplateReferences() {
         val source =
             """
-            fun render(items: List<String>) = items.joinToString { "\"\"\"${'$'}it\"\"\"" }
+            fun render(items: List<String>) = items.joinToString {
+                "\\n${'$'}it"
+            }
             """.trimIndent() + "\n"
         val expected =
             """
-            fun render(items: List<String>) = items.joinToString { value -> "\"\"\"${'$'}value\"\"\"" }
+            fun render(items: List<String>) = items.joinToString {
+                value ->
+                "\\n${'$'}value"
+            }
+            """.trimIndent() + "\n"
+        val itOffset = source.indexOf("it", source.indexOf('{'))
+        assertThat(source)
+            .hasLintViolation(2, itOffset - source.indexOf('\n'), "use an explicit name for the implicit `it` lambda parameter")
+            .isFormattedAs(expected)
+    }
+
+    @Test
+    fun preservesRawStringTemplateReferences() {
+        val rawQuote = "\"\"\""
+        val source =
+            """
+            fun render(items: List<String>) = items.joinToString { $rawQuote${'$'}it$rawQuote }
+            """.trimIndent() + "\n"
+        val expected =
+            """
+            fun render(items: List<String>) = items.joinToString { value -> $rawQuote${'$'}value$rawQuote }
             """.trimIndent() + "\n"
         val itOffset = source.indexOf("it", source.indexOf('{'))
         assertThat(source)
