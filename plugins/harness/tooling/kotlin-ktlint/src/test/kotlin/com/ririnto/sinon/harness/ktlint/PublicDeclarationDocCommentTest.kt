@@ -23,6 +23,24 @@ class PublicDeclarationDocCommentTest {
     }
 
     @Test
+    fun requiresDocumentationOnPublicInterfaces() {
+        val source =
+            """
+            interface Repository {
+                fun find(): String
+            }
+            """.trimIndent() + "\n"
+        assertThat(source)
+            .withEditorConfigOverride(PublicDeclarationDocComment.DOC_COMMENT_MODE to "on")
+            .hasLintViolations(
+                com.pinterest.ktlint.test
+                    .LintViolation(1, 11, "add a documentation comment to public declaration `Repository`", false),
+                com.pinterest.ktlint.test
+                    .LintViolation(2, 9, "add a documentation comment to public declaration `find`", false)
+            )
+    }
+
+    @Test
     fun acceptsDocumentationAndInheritedOverrideContracts() {
         val source =
             """
