@@ -16,7 +16,8 @@
       "description": "Skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md creation.",
       "license": "MIT",
       "name": "document-creator",
-      "source": "./plugins/document-creator"
+      "source": "./plugins/document-creator",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -26,7 +27,8 @@
       "description": "Shared implementation and review guidance for agent-driven engineering work, with portable skills for implementing and reviewing changes.",
       "license": "Apache-2.0",
       "name": "harness",
-      "source": "./plugins/harness"
+      "source": "./plugins/harness",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -36,7 +38,8 @@
       "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
       "license": "MIT",
       "name": "java",
-      "source": "./plugins/java"
+      "source": "./plugins/java",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -46,7 +49,8 @@
       "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
       "license": "MIT",
       "name": "jvm",
-      "source": "./plugins/jvm"
+      "source": "./plugins/jvm",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -56,7 +60,8 @@
       "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
       "license": "MIT",
       "name": "kotlin",
-      "source": "./plugins/kotlin"
+      "source": "./plugins/kotlin",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -66,7 +71,8 @@
       "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
       "license": "MIT",
       "name": "netty",
-      "source": "./plugins/netty"
+      "source": "./plugins/netty",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -76,7 +82,8 @@
       "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
       "license": "MIT",
       "name": "observability-assets",
-      "source": "./plugins/observability-assets"
+      "source": "./plugins/observability-assets",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -86,7 +93,8 @@
       "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
       "license": "MIT",
       "name": "reactor",
-      "source": "./plugins/reactor"
+      "source": "./plugins/reactor",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -96,7 +104,8 @@
       "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
       "license": "Apache-2.0",
       "name": "spec-driven-development",
-      "source": "./plugins/spec-driven-development"
+      "source": "./plugins/spec-driven-development",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -106,7 +115,8 @@
       "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus the spring-architect agent for architecture and component design.",
       "license": "MIT",
       "name": "spring",
-      "source": "./plugins/spring"
+      "source": "./plugins/spring",
+      "version": "2026.09.13.00"
     },
     {
       "author": {
@@ -130,7 +140,8 @@
       "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
       "license": "Apache-2.0",
       "name": "workspace-workflow",
-      "source": "./plugins/workspace-workflow"
+      "source": "./plugins/workspace-workflow",
+      "version": "2026.09.13.00"
     }
   ]
 }
