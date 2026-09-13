@@ -8,7 +8,6 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -78,13 +77,8 @@ class ImplicitLambdaIt :
                     .toList()
             val enclosingParameters =
                 generateSequence(lambdaExpression.parent) { element -> element.parent }
-                    .filterIsInstance<PsiElement>()
-                    .flatMap { element ->
-                        when (element) {
-                            is KtLambdaExpression -> element.valueParameters.asSequence()
-                            else -> emptySequence()
-                        }
-                    }
+                    .filterIsInstance<KtLambdaExpression>()
+                    .flatMap { element -> element.valueParameters.asSequence() }
             return generateSequence("value") { name -> "${name}Value" }
                 .firstOrNull { name ->
                     declarations.none { declaration -> declaration.name == name } &&
