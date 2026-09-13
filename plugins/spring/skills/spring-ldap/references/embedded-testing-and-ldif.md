@@ -75,7 +75,7 @@ The embedded server uses the SSL bundle's `SSLContext` to create both the `SSLSe
 Use `spring.ssl.bundle.jks.<name>.protocol` to control the TLS protocol version.
 `TLSv1.2` is a safe default.
 
-Test configuration with `application-test.yml`:
+Test configuration with `application-test.yaml`:
 
 ```yaml
 spring:

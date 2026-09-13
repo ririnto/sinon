@@ -29,6 +29,9 @@ class NativeHintsConfiguration {
 }
 
 class MyHints implements RuntimeHintsRegistrar {
+    /**
+     * Registers the reflection and resource entries that the native image needs at runtime.
+     */
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         hints.reflection().registerType(MyClass.class, hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_METHODS));

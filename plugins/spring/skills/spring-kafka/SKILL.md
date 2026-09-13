@@ -89,8 +89,8 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.example.events"
-        spring.json.value.default.type: "com.example.events.PaymentEvent"
+        spring.json.trusted.packages: com.example.events
+        spring.json.value.default.type: com.example.events.PaymentEvent
 ```
 
 ## Coding procedure

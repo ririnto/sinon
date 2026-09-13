@@ -37,6 +37,9 @@ When enabled, the application fails to start if module boundary violations are d
 @Component
 class CatalogDataLoader implements ApplicationModuleInitializer {
 
+    /**
+     * Runs at startup after the modules this one depends on have initialized.
+     */
     @Override
     public void initialize() {
     }
@@ -146,18 +149,30 @@ For local development, use the default detector which considers uncommitted chan
 Contribute application modules from packages outside the main application class:
 
 ```java
+/**
+ * Contributes application modules from packages outside the main application class.
+ */
 public class CustomApplicationModuleSourceFactory implements ApplicationModuleSourceFactory {
 
+    /**
+     * Returns the additional root packages that host module sources.
+     */
     @Override
     public List<String> getRootPackages() {
         return List.of("com.acme.shared");
     }
 
+    /**
+     * Selects the strategy that discovers only explicitly annotated modules.
+     */
     @Override
     public ApplicationModuleDetectionStrategy getApplicationModuleDetectionStrategy() {
         return ApplicationModuleDetectionStrategy.explicitlyAnnotated();
     }
 
+    /**
+     * Returns the base packages scanned for module sources.
+     */
     @Override
     public List<String> getModuleBasePackages() {
         return List.of("com.acme.module");

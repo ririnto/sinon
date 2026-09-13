@@ -9,7 +9,8 @@ description: >-
 
 ## Goal
 
-Establish clear, machine-parseable commit messages following Conventional Commits specification.
+Establish clear, machine-parseable commit messages following the Conventional Commits 1.0.0 specification, read on 2026-09-13: [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/).
+The spec is licensed CC BY 3.0; the format summary here is an authored condensation, not a verbatim copy.
 A well-formed commit message makes history readable, enables automated tooling (version bumping, changelog generation), and provides future developers with both what changed and why.
 
 ## Scope
@@ -185,7 +186,7 @@ Independent concerns are changes that:
 Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`.
 These SHOULD be split into two commits.
 
-```markdown
+```sh
 # Suggested split:
 git reset
 git add auth.js
@@ -198,14 +199,14 @@ git commit -m "style: align button spacing in form"
 
 Vague subjects without verbs:
 
-```markdown
+```text
 # Wrong
 fix: stuff
 chore: updates
 docs: changes
 ```
 
-```markdown
+```text
 # Correct
 fix: handle null pointer in user lookup
 chore: upgrade lodash to 4.17.21
@@ -214,7 +215,7 @@ docs: add setup instructions for macOS
 
 Body restates the diff instead of explaining why:
 
-```markdown
+```text
 # Wrong
 fix: update login handler
 
@@ -222,7 +223,7 @@ Modified login.js to check token expiry. Also updated session.js
 to clear storage.
 ```
 
-```markdown
+```text
 # Correct
 fix: resolve session token expiration on logout
 
@@ -232,7 +233,7 @@ immediately to prevent reuse in a hijacking scenario.
 
 Mixing unrelated changes:
 
-```markdown
+```text
 # Wrong
 feat: add two-factor auth and update dependencies
 
@@ -241,7 +242,7 @@ Two independent concerns forced into one message. Should be split.
 
 Breaking change missing the `!` marker:
 
-```markdown
+```text
 # Wrong
 feat(api): remove deprecated endpoint
 
@@ -249,7 +250,7 @@ Git log hides the breaking-change signal.
 Release tooling may miss it.
 ```
 
-```markdown
+```text
 # Correct
 feat(api)!: remove deprecated endpoint
 

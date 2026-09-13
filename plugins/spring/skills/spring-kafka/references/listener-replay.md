@@ -13,6 +13,9 @@ class ReplayListener implements ConsumerSeekAware {
     void handle(AccountEvent event) {
     }
 
+    /**
+     * Seeks each newly assigned partition back to its beginning so replay starts from the first record.
+     */
     @Override
     public void onPartitionsAssigned(Map<TopicPartition, Long> assignments, ConsumerSeekCallback callback) {
         assignments.keySet().forEach(partition -> callback.seekToBeginning(partition.topic(), partition.partition()));

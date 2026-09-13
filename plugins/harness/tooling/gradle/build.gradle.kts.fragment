@@ -1,0 +1,15 @@
+spotless {
+    java {
+        palantirJavaFormat("2.98.0")
+            .style("PALANTIR")
+            .formatJavadoc(true)
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+checkstyle {
+    toolVersion = "14.1.0"
+    configFile = file("tooling/java/checkstyle.xml")
+}

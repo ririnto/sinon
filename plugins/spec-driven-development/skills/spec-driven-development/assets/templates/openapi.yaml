@@ -1,8 +1,8 @@
-openapi: "3.1.0"
+openapi: 3.1.0
 info:
   title: "{{title}} API"
   description: "{{description_yaml}}"
-  version: "0.1.0"
+  version: 0.1.0
 paths:
   /{{operation_path}}:
     post:
@@ -16,43 +16,43 @@ paths:
               $ref: "#/components/schemas/{{request_schema_name}}"
             examples:
               default:
-                summary: "Primary request example"
+                summary: Primary request example
                 value:
                   "{{input_field_name}}": "{{input_field_value}}"
       responses:
         "200":
-          description: "Successful response"
+          description: Successful response
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/{{response_schema_name}}"
               examples:
                 default:
-                  summary: "Primary response example"
+                  summary: Primary response example
                   value:
                     "{{output_field_name}}": "{{output_field_value}}"
         "400":
-          description: "Invalid request"
+          description: Invalid request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
                 default:
-                  summary: "Validation error example"
+                  summary: Validation error example
                   value:
-                    error: "Invalid request"
+                    error: Invalid request
         "500":
-          description: "Unexpected failure"
+          description: Unexpected failure
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
                 default:
-                  summary: "Unexpected error example"
+                  summary: Unexpected error example
                   value:
-                    error: "Unexpected failure"
+                    error: Unexpected failure
 components:
   schemas:
     "{{request_schema_name}}":

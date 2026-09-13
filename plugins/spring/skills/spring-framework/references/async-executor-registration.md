@@ -11,6 +11,9 @@ Handle those failures with an `AsyncUncaughtExceptionHandler`:
 @Configuration
 @EnableAsync
 class AppConfig implements AsyncConfigurer {
+    /**
+     * Supplies the handler that logs exceptions thrown by {@code void} {@code @Async} methods.
+     */
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return (ex, method, params) -> {

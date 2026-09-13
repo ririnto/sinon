@@ -12,7 +12,13 @@ Open this reference when a traditional servlet container is a hard requirement.
 
 ```java
 @SpringBootApplication
+/**
+ * Entry point that supports deployment both as an executable archive and as a traditional WAR.
+ */
 public class Application extends SpringBootServletInitializer {
+    /**
+     * Points the servlet initializer at this application class during WAR deployment.
+     */
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);

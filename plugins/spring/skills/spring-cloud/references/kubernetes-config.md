@@ -17,7 +17,7 @@ Use it only when Kubernetes itself is the configuration source of truth.
 ```yaml
 spring:
   config:
-    import: kubernetes:
+    import: "kubernetes:"
 ```
 
 ```yaml

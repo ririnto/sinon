@@ -5,9 +5,10 @@ description: Use when reviewing a diff or completed change for correctness, drif
 
 # Review
 
-Judge the change against evidence and the target repository's own rules, following the shared rules in `docs/rules.md` (located next to this plugin's `skills/` directory).
+Judge the change against evidence and the target repository's own rules.
+Read the shared rules from `../docs/rules.md` relative to this skill directory.
 This skill owns the review procedure.
-`docs/rules.md` owns the rules.
+The shared rules document owns the rules.
 The `implement` skill consumes the same rules.
 
 ## Procedure
@@ -17,7 +18,7 @@ The `implement` skill consumes the same rules.
    Discover it per host.
 2. Read the stated requirements before judging.
    Review against what was asked, not against unstated taste.
-3. Compare each finding against `docs/rules.md` and the repository's own instruction files.
+3. Compare each finding against `../docs/rules.md`, the package-local language document and tool document matching each changed file and selected profile, and the repository's own instruction files.
    Name the file and quote the rule a finding enforces.
 4. Run the checks that exercise the changed behavior.
    Record commands with exit codes.

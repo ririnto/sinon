@@ -54,7 +54,7 @@ import kotlinx.datetime.TimeZone
 
 data class Invoice(
     val issuedAt: Instant,
-    val dueDate: LocalDate,
+    val dueDate: LocalDate
 )
 
 val now: Instant = Clock.System.now()

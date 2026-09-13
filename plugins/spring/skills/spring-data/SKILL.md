@@ -390,8 +390,8 @@ Instant createdAt;
 - Open [references/query-by-example.md](references/query-by-example.md) when the blocker is Query by Example matcher behavior, probe design, or choosing QBE instead of a derived query.
 - Open [references/entity-callbacks-and-conversions.md](references/entity-callbacks-and-conversions.md) when the blocker is entity callback registration, custom conversions, or per-property value conversion.
 - Open [references/multimodule-repository-scanning.md](references/multimodule-repository-scanning.md) when the blocker is strict repository scanning across more than one Spring Data store module.
-- Open [references/spring-data-domain-events.md](references/spring-data-domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
-- Open [references/spring-data-rest-exposure.md](references/spring-data-rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
-- Open [references/spring-data-aot.md](references/spring-data-aot.md) when the task depends on AOT or native-image repository details.
+- Open [references/domain-events.md](references/domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
+- Open [references/rest-exposure.md](references/rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
+- Open [references/aot.md](references/aot.md) when the task depends on AOT or native-image repository details.
 - Open [references/scrolling-patterns.md](references/scrolling-patterns.md) when the blocker is scroll position semantics, `WindowIterator`, or projection constraints in keyset scrolling.
 - Open [references/jpa-transactions.md](references/jpa-transactions.md) when the blocker is JPA repository transaction inheritance, declared `@Query` methods, or `@Modifying` behavior.

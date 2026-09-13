@@ -12,6 +12,9 @@ import { collectMarkdownFiles, fail } from "../infrastructure.js";
 import { LIST_KINDS } from "../shared.js";
 import type { ParsedArgs } from "../shared.js";
 
+/**
+ * Runs the document tag list command and returns the process exit code.
+ */
 export const cmdListTags = (args: ParsedArgs): number => {
   const specPath = commandSpecPath(args, 0, "spec_path");
   if (!specPath) {
@@ -29,15 +32,15 @@ export const cmdListTags = (args: ParsedArgs): number => {
   for (const filePath of collectMarkdownFiles(path.resolve(specPath)).filter(
     (candidate) => matchesKind(candidate, kind)
   )) {
-    const entry = loadFrontmatterEntry(filePath);
-    if (typeof entry === "string") {
-      fail(`FAIL [${filePath}]: ${entry}`);
+    const result = loadFrontmatterEntry(filePath);
+    if (result.kind === "error") {
+      fail(`FAIL [${filePath}]: ${result.message}`);
       return 1;
     }
-    if (!entry) {
+    if (result.kind === "missing") {
       continue;
     }
-    for (const tag of entry.tags) {
+    for (const tag of result.entry.tags) {
       counter.set(tag, (counter.get(tag) ?? 0) + 1);
     }
   }

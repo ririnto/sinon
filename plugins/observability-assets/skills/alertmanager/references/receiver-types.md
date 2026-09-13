@@ -77,7 +77,7 @@ receivers:
         html: '{{ template "email.default.html" . }}'
         headers:
           X-Priority: "1"
-          X-Auto-Response-Suppress: "OOF,DR,N,RN,BNR"
+          X-Auto-Response-Suppress: OOF,DR,N,RN,BNR
         require_tls: true
         threading:
           enabled: true
@@ -192,8 +192,8 @@ receivers:
         send_resolved: true
         actions:
           - type: button
-            text: "Acknowledge"
-            url: "https://example.com/ack"
+            text: Acknowledge
+            url: https://example.com/ack
             style: danger
 
 ```
@@ -286,7 +286,7 @@ receivers:
         component: monitoring
         group: platform
         details:
-          playbook: "https://runbook.example.com/{{ .CommonLabels.alertname }}"
+          playbook: https://runbook.example.com/{{ .CommonLabels.alertname }}
         send_resolved: true
 
 ```
@@ -439,9 +439,9 @@ receivers:
         description: '{{ template "opsgenie.default.description" . }}'
         priority: P3
         responders:
-          - name: "oncall-team"
+          - name: oncall-team
             type: team
-          - username: "ops-user"
+          - username: ops-user
             type: user
         tags: prometheus,alertmanager
         send_resolved: true
@@ -789,7 +789,7 @@ receivers:
       - webhook_url: https://discord.com/api/webhooks/xxx/yyy
         title: '{{ template "discord.default.title" . }}'
         message: '{{ template "discord.default.message" . }}'
-        username: "Alertmanager"
+        username: Alertmanager
 
 ```
 
@@ -956,8 +956,8 @@ receivers:
         labels:
           - prometheus
           - auto-created
-        reopen_transition: "Reopen Issue"
-        resolve_transition: "Resolve Issue"
+        reopen_transition: Reopen Issue
+        resolve_transition: Resolve Issue
         reopen_duration: 72h
         fields:
           components:
@@ -1149,7 +1149,7 @@ receivers:
   - name: mattermost-team
     mattermost_configs:
       - webhook_url: https://mattermost.example.com/hooks/xxx
-        channel: "~town-square"
+        channel: ~town-square
         title: '{{ template "mattermost.default.title" . }}'
         text: '{{ template "mattermost.default.text" . }}'
         priority:
@@ -1195,7 +1195,7 @@ receivers:
 receivers:
   - name: webex-alerts
     webex_configs:
-      - room_id: "Y2lzY29zcGFyazovL3Vz..."
+      - room_id: Y2lzY29zcGFyazovL3Vz...
         message: '{{ template "webex.default.message" . }}'
         http_config:
           authorization:
@@ -1241,6 +1241,7 @@ Auth via `alert_source_token`/*_file` or `http_config.authorization` is required
 - Cannot use `alert_source_token` alongside `http_config.authorization`.
 - At least one auth method must be configured.
 - Default `send_resolved`: `true`.
+- Payloads over the incident.io API limit (512KB) truncate all alerts except the first.
 
 ### Complete Example
 
@@ -1254,3 +1255,9 @@ receivers:
         timeout: 30s
 
 ```
+
+## Official documentation
+
+Schemas were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
+The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`, `docs/configuration.md`).
+The field tables here are a condensed authored summary of that page, not a verbatim copy.

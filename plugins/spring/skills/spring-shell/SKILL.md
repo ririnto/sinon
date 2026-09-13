@@ -108,7 +108,13 @@ class ExampleCommands {
 
 @Configuration
 @EnableCommand(ExampleCommands.class)
+/**
+ * Entry point that boots the Spring Shell runtime from an annotation context.
+ */
 public class SpringShellApplication {
+    /**
+     * Runs the shell until the interactive session exits.
+     */
     public static void main(String[] args) throws Exception {
         ApplicationContext context = new AnnotationConfigApplicationContext(SpringShellApplication.class);
         ShellRunner runner = context.getBean(ShellRunner.class);
@@ -316,6 +322,9 @@ Use `AbstractCommand` for a base class with built-in help-option handling:
 @Bean
 Command statusCommand(ClusterService clusterService) {
     return new AbstractCommand("cluster status", "Show current cluster status") {
+        /**
+         * Prints the current cluster status to the command output writer.
+         */
         @Override
         public ExitStatus doExecute(CommandContext commandContext) {
             commandContext.outputWriter().println(clusterService.currentStatus());

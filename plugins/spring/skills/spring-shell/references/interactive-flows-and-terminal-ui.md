@@ -43,11 +43,11 @@ Use flow components when a command must lead the operator through several depend
             ComponentFlowResult result = flow.run();
             String namespace = (String) result.getContext().get("namespace");
             boolean confirmed = (Boolean) result.getContext().get("confirmed");
-            if (!confirmed) {
-                return "cancelled";
+            if (confirmed) {
+                clusterService.reset(cluster, namespace);
+                return "reset cluster=%s namespace=%s".formatted(cluster, namespace);
             }
-            clusterService.reset(cluster, namespace);
-            return "reset cluster=%s namespace=%s".formatted(cluster, namespace);
+            return "cancelled";
         }
     }
     ```

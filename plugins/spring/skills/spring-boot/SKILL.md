@@ -62,7 +62,13 @@ Use Boot dependency management and only the starters the application actually ne
 
 ```java
 @SpringBootApplication
+/**
+ * Entry point that boots the application through Spring Boot's auto-configuration.
+ */
 public class Application {
+    /**
+     * Launches the Spring application context.
+     */
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
@@ -90,6 +96,9 @@ class CatalogConfiguration {
 
 @Validated
 @ConfigurationProperties("catalog")
+/**
+ * Holds the validated {@code catalog} configuration properties.
+ */
 public record CatalogProperties(@NotBlank String region, int pageSize) {
 }
 ```
@@ -105,6 +114,7 @@ spring:
       on-profile: prod
 catalog:
   region: eu-west-1
+  page-size: 25
 ```
 
 ### Actuator exposure shape
@@ -136,6 +146,7 @@ If the deployment baseline is container-native, keep the image build path explic
 - Keep one entrypoint annotated with `@SpringBootApplication`.
 - Prefer constructor injection over field injection.
 - Use `@ConfigurationProperties` for durable settings and reserve `@Value` for narrow one-off expressions.
+- Keep configuration-binding types default-free: for a `@ConfigurationProperties` type, every bound property value comes from the configuration sources, and a default-free declaration paired with validation makes a missing required value fail startup.
 - Keep startup work in runners or dedicated services, not in bean constructors.
 - Let auto-configuration do the ordinary wiring before adding custom Boot infrastructure.
 
@@ -144,7 +155,7 @@ If the deployment baseline is container-native, keep the image build path explic
 Spring Boot 4.1 adds Jackson multi-format properties, config-import encoding, lazy JDBC connection fetching, async JPA bootstrapping, `@Async` context propagation, `@RedisListener` auto-configuration, embedded LDAPS, and OpenTelemetry enhancements.
 It also changes test-server behavior, HTTP client cookie handling, response compression, Docker Compose logging, build tooling, and `-DskipTests` AOT semantics.
 
-Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) when the task uses a Spring Boot 4.1 feature or migrates from 4.0 to 4.1.
+Open [references/4.1-changes.md](references/4.1-changes.md) when the task uses a Spring Boot 4.1 feature or migrates from 4.0 to 4.1.
 
 ## Test strategy baseline
 
@@ -226,4 +237,4 @@ Return:
 - Open [references/aot-processing.md](references/aot-processing.md) when the blocker is AOT generation or runtime hints.
 - Open [references/native-image.md](references/native-image.md) when the blocker is native-image build or runtime behavior.
 - Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
-- Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.
+- Open [references/4.1-changes.md](references/4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.

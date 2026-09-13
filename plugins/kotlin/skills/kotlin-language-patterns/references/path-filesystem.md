@@ -62,25 +62,21 @@ import java.io.StringReader
 fun firstNonBlankLine(raw: String): String? =
     BufferedReader(StringReader(raw)).use { reader ->
         reader.lineSequence()
-            .map { line -> line.trim() }
-            .firstOrNull { line -> line.isNotEmpty() }
+            .map(String::trim)
+            .firstOrNull(String::isNotEmpty)
     }
 ```
 
-Large-file example:
+Large-file example (streams the file line by line without loading it all at once):
 
 ```kotlin
-import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.useLines
 
-fun countErrors(logFile: File): Int {
-    var count = 0
-    logFile.forEachLine { line ->
-        if ("ERROR" in line) {
-            count += 1
-        }
+fun countErrors(logFile: Path): Int =
+    logFile.useLines { lines ->
+        lines.count { line -> "ERROR" in line }
     }
-    return count
-}
 ```
 
 Use this shape when the code needs path joining, parent creation, conditional first-write, filename inspection, or ordinary text I/O in one boundary.

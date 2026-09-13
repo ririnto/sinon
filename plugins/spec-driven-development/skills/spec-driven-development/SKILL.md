@@ -204,7 +204,7 @@ SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 Open a reference only for the named blocker:
 
 - `./references/workflow.md` - open when you need the full stage-by-stage lifecycle, entry and exit conditions, or review-loop semantics
-- `./references/spec-authoring-guide.md` - open when drafting or revising detailed `SPEC.md` sections
+- `./references/authoring-guide.md` - open when drafting or revising detailed `SPEC.md` sections
 - `./references/research-authoring-guide.md` - open when drafting or revising `RESEARCH.md`
 - `./references/linking-guide.md` - open when editing `call` links or querying inbound dependencies
 - `./references/review-checklist.md` - open when you need the full Spec Review or Implementation Review worksheet.

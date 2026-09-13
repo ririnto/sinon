@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+  - package-ecosystem: gradle
+    directory: /plugins/harness/tooling/kotlin-ktlint
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+    groups:
+      kotlin-ktlint-toolchain:
+        patterns:
+          - "org.jetbrains.kotlin.jvm"
+          - "org.jlleitschuh.gradle.ktlint"
+          - "com.pinterest.ktlint:ktlint-bom"
+          - "com.pinterest.ktlint:ktlint-cli-ruleset-core"
+          - "com.pinterest.ktlint:ktlint-rule-engine"
+          - "com.pinterest.ktlint:ktlint-rule-engine-core"
+          - "com.pinterest.ktlint:ktlint-test"
+          - "org.jetbrains.kotlin:kotlin-test-junit5"
+        update-types:
+          - minor
+          - patch

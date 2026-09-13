@@ -48,7 +48,7 @@ Control its cadence:
 spring:
   session:
     jdbc:
-      cleanup-cron: "0 * * * * *"
+      cleanup-cron: 0 * * * * *
 ```
 
 Disable cleanup when an external job or database-level TTL handles expiration:

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+  <property name="charset" value="UTF-8" />
+  <module name="LineLength">
+    <property name="max" value="100" />
+    <property name="ignorePattern" value="^package |^import |https?://" />
+  </module>
+  <module name="TreeWalker">
+    <module name="AvoidStarImport" />
+    <module name="UnusedImports" />
+    <module name="NoArrayTrailingComma" />
+    <module name="NoEnumTrailingComma" />
+    <module name="NeedBraces" />
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="^\s*System\.(out|err)\.print" />
+      <property name="message" value="Use a structured logger instead of System.out/System.err printing" />
+      <property name="ignoreComments" value="true" />
+    </module>
+    <module name="MissingJavadocType">
+      <property name="scope" value="public" />
+    </module>
+    <module name="MissingJavadocMethod">
+      <property name="scope" value="public" />
+      <property name="allowMissingPropertyJavadoc" value="true" />
+    </module>
+    <module name="JavadocVariable">
+      <property name="accessModifiers" value="public" />
+    </module>
+    <module name="TypeName" />
+    <module name="MethodName" />
+    <module name="MemberName">
+      <property name="format" value="^(?!_)[a-z][a-zA-Z0-9]*$" />
+    </module>
+    <module name="ParameterName">
+      <property name="format" value="^(?!_)[a-z][a-zA-Z0-9]*$" />
+    </module>
+    <module name="LocalVariableName">
+      <property name="format" value="^(?!_)[a-z][a-zA-Z0-9]*$" />
+    </module>
+  </module>
+</module>

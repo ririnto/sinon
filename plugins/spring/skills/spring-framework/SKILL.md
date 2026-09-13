@@ -128,6 +128,9 @@ class MyConfiguration {
 }
 
 class MyBeanRegistrar implements BeanRegistrar {
+    /**
+     * Registers beans programmatically, conditionally on the active environment profiles.
+     */
     @Override
     public void register(BeanRegistry registry, Environment env) {
         registry.registerBean(InventoryService.class);
@@ -243,6 +246,9 @@ class InventoryWarmup {
 ```java
 @Component
 class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent> {
+    /**
+     * Runs the warmup once the application context is fully refreshed.
+     */
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
     }
@@ -265,6 +271,9 @@ class OrderService {
         this.events = events;
     }
 
+    /**
+     * Places the order and publishes the corresponding application event.
+     */
     public void place(Order order) {
         events.publishEvent(new OrderPlacedEvent(this, order));
     }
@@ -276,6 +285,9 @@ Listen to events:
 ```java
 @Component
 class OrderNotificationListener implements ApplicationListener<OrderPlacedEvent> {
+    /**
+     * Reacts to one published order placement event.
+     */
     @Override
     public void onApplicationEvent(OrderPlacedEvent event) {
     }

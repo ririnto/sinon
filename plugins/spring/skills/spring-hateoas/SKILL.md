@@ -184,10 +184,16 @@ class OrderModel extends RepresentationModel<OrderModel> {
         this.status = status;
     }
 
+    /**
+     * Returns the order identifier exposed in the representation.
+     */
     public long getId() {
         return id;
     }
 
+    /**
+     * Returns the order status exposed in the representation.
+     */
     public String getStatus() {
         return status;
     }
@@ -195,6 +201,9 @@ class OrderModel extends RepresentationModel<OrderModel> {
 
 @Component
 class OrderModelAssembler implements RepresentationModelAssembler<Order, OrderModel> {
+    /**
+     * Builds the order representation with self and collection links.
+     */
     @Override
     public OrderModel toModel(Order order) {
         OrderModel model = new OrderModel(order.id(), order.status());
@@ -203,6 +212,9 @@ class OrderModelAssembler implements RepresentationModelAssembler<Order, OrderMo
         return model;
     }
 
+    /**
+     * Builds the collection representation and adds the collection self link.
+     */
     @Override
     public CollectionModel<OrderModel> toCollectionModel(Iterable<? extends Order> orders) {
         CollectionModel<OrderModel> models = RepresentationModelAssembler.super.toCollectionModel(orders);

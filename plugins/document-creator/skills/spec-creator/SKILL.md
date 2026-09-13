@@ -325,7 +325,7 @@ The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHOULD`, `SHOULD NOT`, `RECOMMEND
 
 For projects that are systems, services, daemons, protocols, agents, or anything that warrants reference algorithms, state machines, or conformance matrices, use the Section Catalog in this file in the listed order.
 The catalog, output properties, authoring rules, and validation checklist are sufficient for ordinary system-scale authoring.
-The numbered section order and the expanded copyable skeleton live in [`./references/spec-template.md`](./references/spec-template.md).
+The numbered section order and the expanded copyable skeleton live in [`./references/template.md`](./references/template.md).
 Open it when a full skeleton would reduce mechanical setup.
 
 Within system-scale sections:
@@ -370,5 +370,5 @@ The choice between feature-scale and system-scale is determined by:
 
 - [requirements-style.md](references/requirements-style.md) - Open for extended category patterns, delta requirements, and prioritization examples.
 - [scenarios-and-acceptance.md](references/scenarios-and-acceptance.md) - Open for recovery, state-machine, and conformance-matrix examples.
-- [spec-template.md](references/spec-template.md) - Copy when an expanded system-scale skeleton is useful.
+- [template.md](references/template.md) - Copy when an expanded system-scale skeleton is useful.
 - [quality-checklist.md](references/quality-checklist.md) - Open for a full audit worksheet after the inline validation pass.

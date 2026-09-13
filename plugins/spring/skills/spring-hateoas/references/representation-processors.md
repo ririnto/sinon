@@ -11,6 +11,9 @@ import org.springframework.hateoas.IanaLinkRelations;
 
 @Component
 class OrdersCollectionProcessor implements RepresentationModelProcessor<CollectionModel<OrderModel>> {
+    /**
+     * Adds the shared profile link to every processed collection representation.
+     */
     @Override
     public CollectionModel<OrderModel> process(CollectionModel<OrderModel> model) {
         return model.add(Link.of("/docs/orders", IanaLinkRelations.PROFILE));

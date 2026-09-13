@@ -23,9 +23,7 @@ Buffering with a clear tradeoff:
 orders
     .buffer(16)
     .conflate()
-    .collect { order ->
-        process(order)
-    }
+    .collect(::process)
 ```
 
 Context change for upstream work only -- `flowOn` changes the dispatcher for upstream operations without affecting downstream collectors:
@@ -44,13 +42,13 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flatMapLatest
 
 val parallelResults: Flow<Result> = ids
-    .flatMapMerge(concurrency = 4) { id -> fetchDetail(id) }
+    .flatMapMerge(concurrency = 4, ::fetchDetail)
 
 val sequentialResults: Flow<Result> = ids
-    .flatMapConcat { id -> fetchDetail(id) }
+    .flatMapConcat(::fetchDetail)
 
 val latestResults: Flow<SearchResult> = queries
-    .flatMapLatest { query -> search(query) }
+    .flatMapLatest(::search)
 ```
 
 Use `flatMapMerge` for parallel I/O from a stream of inputs.
@@ -105,19 +103,22 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.retryWhen
 
 rawEvents
-    .map { parseEvent(it) }
+    .map(::parseEvent)
     .retryWhen { cause, attempt ->
-        if (attempt >= 3 || cause !is IOException) return@retryWhen false
-        delay((attempt + 1) * 1_000L)
-        true
+        if (attempt < 3 && cause is IOException) {
+            delay((attempt + 1) * 1_000L)
+            true
+        } else {
+            false
+        }
     }
     .catch { e ->
         logger.warn("Stream error after retries, emitting fallback", e)
         emit(Event.Fallback)
     }
     .onStart { emit(Event.Connected) }
-    .onCompletion { cause -> if (cause == null) emit(Event.Completed) }
-    .collect { event -> handle(event) }
+    .onCompletion { cause -> if (cause == null) { emit(Event.Completed) } }
+    .collect(::handle)
 ```
 
 `retry(n) { cause -> Boolean }` takes a predicate that receives the failure only (single parameter).
@@ -148,6 +149,6 @@ val allUpdates: Flow<Update> = merge(flowA, flowB, flowC)
 
 searchText
     .debounce(300)
-    .mapLatest { query -> repository.search(query) }
-    .collect { results -> showResults(results) }
+    .mapLatest(repository::search)
+    .collect(::showResults)
 ```

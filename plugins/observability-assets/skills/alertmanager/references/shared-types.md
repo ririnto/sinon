@@ -195,3 +195,9 @@ tracing:
     insecure_skip_verify: true
 
 ```
+
+## Official documentation
+
+Schemas were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
+The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`, `docs/configuration.md`, sections `<http_config>` and `<tls_config>`) and the `github.com/prometheus/common/config` package.
+The field tables here are a condensed authored summary, not a verbatim copy.

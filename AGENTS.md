@@ -5,7 +5,6 @@ description: Repository-wide guidance for the Sinon plugin marketplace.
 # Repository Guidelines
 
 Sinon publishes Claude Code plugins and portable Agent Skills.
-`CLAUDE.md` files are exact pointers and must not become duplicate rule files.
 
 ## Project Structure
 
@@ -13,6 +12,7 @@ Sinon publishes Claude Code plugins and portable Agent Skills.
 - `.claude-plugin/marketplace.json` lists local package roots and external catalog registrations.
 - `scripts/` contains repository validation checks.
 - `rules/` contains repository Markdown custom lint rules.
+- `.github/` contains GitHub repository automation configuration.
 - Preserve existing named top-level components.
 - Each top-level component MUST have one documented responsibility.
 - Adding, removing, or moving a top-level component MUST update architecture, dependencies, consumers, and relevant documentation.
