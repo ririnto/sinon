@@ -102,7 +102,7 @@ AuthorizationServerSettings authorizationServerSettings() {
 
 The explicit issuer above is a single-issuer example.
 For multiple issuers, do not configure a global `.issuer(...)`.
-Enable `multipleIssuersAllowed(true)` and delegate registered clients, authorizations, consent, signing keys, and related components by issuer as described in [references/authorization-server-multitenancy.md](references/authorization-server-multitenancy.md).
+Enable `multipleIssuersAllowed(true)` and delegate registered clients, authorizations, consent, signing keys, and related components by issuer as described in [references/multitenancy.md](references/multitenancy.md).
 Keep a single issuer stable and equal to the externally visible URL behind proxies and TLS termination.
 Add `.oidc(Customizer.withDefaults())` to the authorization-server configurer only when the provider must publish OIDC metadata, UserInfo, or ID-token surfaces.
 
@@ -235,20 +235,20 @@ Return:
 
 ## References
 
-- Open [references/authorization-server-client-authentication-variants.md](references/authorization-server-client-authentication-variants.md) when a confidential client or non-default token-endpoint authentication method is required.
-- Open [references/authorization-server-proof-of-possession-variants.md](references/authorization-server-proof-of-possession-variants.md) when DPoP or MTLS-bound tokens are required.
-- Open [references/authorization-server-token-generation-and-customization.md](references/authorization-server-token-generation-and-customization.md) when token formats, generators, or claims differ from the minimal JWT hook.
-- Open [references/authorization-server-oidc-provider-endpoints.md](references/authorization-server-oidc-provider-endpoints.md) when OIDC discovery, UserInfo, logout, or ID-token behavior is required.
-- Open [references/authorization-server-pushed-authorization-requests.md](references/authorization-server-pushed-authorization-requests.md) when clients require PAR.
-- Open [references/authorization-server-device-authorization-grant.md](references/authorization-server-device-authorization-grant.md) when browserless clients require device authorization.
-- Open [references/authorization-server-introspection-and-revocation.md](references/authorization-server-introspection-and-revocation.md) when token liveness inspection or revocation is required.
-- Open [references/authorization-server-dynamic-client-registration.md](references/authorization-server-dynamic-client-registration.md) when external clients need self-service registration.
-- Open [references/authorization-server-federated-identity-and-social-login.md](references/authorization-server-federated-identity-and-social-login.md) when user authentication is delegated to an external provider.
-- Open [references/authorization-server-extension-grants.md](references/authorization-server-extension-grants.md) when an extension grant or token exchange path is required.
-- Open [references/authorization-server-jpa-persistence.md](references/authorization-server-jpa-persistence.md) or [references/authorization-server-redis-persistence.md](references/authorization-server-redis-persistence.md) when registered clients, authorization state, or consent must survive restart.
-- Open [references/authorization-server-multitenancy.md](references/authorization-server-multitenancy.md) when issuer, clients, or signing keys differ by tenant.
-- Open [references/authorization-server-endpoint-customization.md](references/authorization-server-endpoint-customization.md) when protocol endpoint request or response handling must change.
-- Open [references/authorization-server-deployment-and-operations.md](references/authorization-server-deployment-and-operations.md) when proxying, production hardening, or key operations are the blocker.
-- Open [references/authorization-server-upgrade-spring-authorization-server.md](references/authorization-server-upgrade-spring-authorization-server.md) or [references/authorization-server-migrate-spring-security-6-to-7.md](references/authorization-server-migrate-spring-security-6-to-7.md) when the blocker is version migration.
-- Open [references/authorization-server-testing-authorization-endpoint.md](references/authorization-server-testing-authorization-endpoint.md) or [references/authorization-server-testing-refresh-path.md](references/authorization-server-testing-refresh-path.md) when authorization-code or refresh-token behavior needs deeper verification.
-- Open [references/authorization-server-testing-token-metadata-and-jwk-endpoints.md](references/authorization-server-testing-token-metadata-and-jwk-endpoints.md), [references/authorization-server-testing-oidc-endpoints.md](references/authorization-server-testing-oidc-endpoints.md), or [references/authorization-server-testing-introspection-revocation-and-consent.md](references/authorization-server-testing-introspection-revocation-and-consent.md) when the corresponding protocol endpoints need deeper request and response verification.
+- Open [references/client-authentication-variants.md](references/client-authentication-variants.md) when a confidential client or non-default token-endpoint authentication method is required.
+- Open [references/proof-of-possession-variants.md](references/proof-of-possession-variants.md) when DPoP or MTLS-bound tokens are required.
+- Open [references/token-generation-and-customization.md](references/token-generation-and-customization.md) when token formats, generators, or claims differ from the minimal JWT hook.
+- Open [references/oidc-provider-endpoints.md](references/oidc-provider-endpoints.md) when OIDC discovery, UserInfo, logout, or ID-token behavior is required.
+- Open [references/pushed-authorization-requests.md](references/pushed-authorization-requests.md) when clients require PAR.
+- Open [references/device-authorization-grant.md](references/device-authorization-grant.md) when browserless clients require device authorization.
+- Open [references/introspection-and-revocation.md](references/introspection-and-revocation.md) when token liveness inspection or revocation is required.
+- Open [references/dynamic-client-registration.md](references/dynamic-client-registration.md) when external clients need self-service registration.
+- Open [references/federated-identity-and-social-login.md](references/federated-identity-and-social-login.md) when user authentication is delegated to an external provider.
+- Open [references/extension-grants.md](references/extension-grants.md) when an extension grant or token exchange path is required.
+- Open [references/jpa-persistence.md](references/jpa-persistence.md) or [references/redis-persistence.md](references/redis-persistence.md) when registered clients, authorization state, or consent must survive restart.
+- Open [references/multitenancy.md](references/multitenancy.md) when issuer, clients, or signing keys differ by tenant.
+- Open [references/endpoint-customization.md](references/endpoint-customization.md) when protocol endpoint request or response handling must change.
+- Open [references/deployment-and-operations.md](references/deployment-and-operations.md) when proxying, production hardening, or key operations are the blocker.
+- Open [references/upgrade-spring-authorization-server.md](references/upgrade-spring-authorization-server.md) or [references/migrate-spring-security-6-to-7.md](references/migrate-spring-security-6-to-7.md) when the blocker is version migration.
+- Open [references/testing-authorization-endpoint.md](references/testing-authorization-endpoint.md) or [references/testing-refresh-path.md](references/testing-refresh-path.md) when authorization-code or refresh-token behavior needs deeper verification.
+- Open [references/testing-token-metadata-and-jwk-endpoints.md](references/testing-token-metadata-and-jwk-endpoints.md), [references/testing-oidc-endpoints.md](references/testing-oidc-endpoints.md), or [references/testing-introspection-revocation-and-consent.md](references/testing-introspection-revocation-and-consent.md) when the corresponding protocol endpoints need deeper request and response verification.

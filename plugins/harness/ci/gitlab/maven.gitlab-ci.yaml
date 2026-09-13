@@ -1,0 +1,5 @@
+maven-java:
+  stage: validate
+  image: maven:3.9.16-eclipse-temurin-25
+  script:
+    - ./mvnw verify

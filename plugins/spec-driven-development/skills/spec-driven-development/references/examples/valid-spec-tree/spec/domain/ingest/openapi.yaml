@@ -1,13 +1,13 @@
-openapi: "3.1.0"
+openapi: 3.1.0
 info:
-  title: "Domain Ingest API"
-  description: "HTTP contract example for the domain ingest capability"
-  version: "0.1.0"
+  title: Domain Ingest API
+  description: HTTP contract example for the domain ingest capability
+  version: 0.1.0
 paths:
   /domain/ingest:
     post:
-      summary: "Submit a domain ingest request"
-      operationId: "submitDomainIngest"
+      summary: Submit a domain ingest request
+      operationId: submitDomainIngest
       requestBody:
         required: true
         content:
@@ -16,45 +16,45 @@ paths:
               $ref: "#/components/schemas/DomainIngestRequest"
             examples:
               default:
-                summary: "Primary request example"
+                summary: Primary request example
                 value:
-                  requestId: "ingest-request-001"
-                  note: "primary path"
+                  requestId: ingest-request-001
+                  note: primary path
       responses:
         "200":
-          description: "Accepted request"
+          description: Accepted request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/DomainIngestResponse"
               examples:
                 default:
-                  summary: "Accepted response example"
+                  summary: Accepted response example
                   value:
-                    outcome: "accepted"
-                    recordId: "record-001"
+                    outcome: accepted
+                    recordId: record-001
         "400":
-          description: "Invalid request"
+          description: Invalid request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
                 default:
-                  summary: "Validation error example"
+                  summary: Validation error example
                   value:
-                    error: "invalid_request"
+                    error: invalid_request
         "500":
-          description: "Unexpected failure"
+          description: Unexpected failure
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
                 default:
-                  summary: "Unexpected failure example"
+                  summary: Unexpected failure example
                   value:
-                    error: "unexpected_failure"
+                    error: unexpected_failure
 components:
   schemas:
     DomainIngestRequest:
@@ -64,10 +64,10 @@ components:
       properties:
         requestId:
           type: string
-          description: "Caller-provided request identifier"
+          description: Caller-provided request identifier
         note:
           type: string
-          description: "Optional note stored with the accepted request"
+          description: Optional note stored with the accepted request
     DomainIngestResponse:
       type: object
       required:
@@ -75,10 +75,10 @@ components:
       properties:
         outcome:
           type: string
-          description: "Documented ingest outcome"
+          description: Documented ingest outcome
         recordId:
           type: string
-          description: "Persisted record identifier for accepted requests"
+          description: Persisted record identifier for accepted requests
     Error:
       type: object
       required:
@@ -86,4 +86,4 @@ components:
       properties:
         error:
           type: string
-          description: "Documented error code"
+          description: Documented error code

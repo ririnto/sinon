@@ -17,6 +17,13 @@ const SDD_OPTIONS = {
   tag: { multiple: true, type: "string" }
 } as const;
 
+/**
+ * Parses command-line arguments into an SDD command and options.
+ *
+ * @param argv - Raw argument list without the executable and script paths.
+ * @returns Parsed arguments, or undefined when the command is absent or the
+ * option syntax is invalid.
+ */
 export const parseArgs = (argv: readonly string[]): ParsedArgs | undefined => {
   const [command, ...rest] = argv;
   if (!command) {
@@ -41,6 +48,9 @@ export const parseArgs = (argv: readonly string[]): ParsedArgs | undefined => {
   }
 };
 
+/**
+ * Reads a string option from parsed arguments.
+ */
 export const optionString = (
   args: ParsedArgs,
   name: string
@@ -49,6 +59,9 @@ export const optionString = (
   return typeof value === "string" ? value : undefined;
 };
 
+/**
+ * Reads a repeated string option as a list; empty when absent or scalar.
+ */
 export const optionList = (
   args: ParsedArgs,
   name: string
@@ -57,9 +70,17 @@ export const optionList = (
   return Array.isArray(value) ? value.map(String) : [];
 };
 
+/**
+ * Reads a boolean option; false when absent or not exactly true.
+ */
 export const optionBool = (args: ParsedArgs, name: string): boolean =>
   args.options[name] === true;
 
+/**
+ * Reports whether a value is inside the allowed choices.
+ *
+ * @param label - Option name used in the failure message.
+ */
 export const requireChoice = (
   value: string,
   choices: readonly string[],
@@ -72,6 +93,13 @@ export const requireChoice = (
   return false;
 };
 
+/**
+ * Resolves the spec path from a positional argument or the default spec
+ * directory; prints a failure and returns undefined when neither exists.
+ *
+ * @param index - Positional index holding the caller-supplied path.
+ * @param label - Argument name used in the failure message.
+ */
 export const commandSpecPath = (
   args: ParsedArgs,
   index: number,
@@ -89,6 +117,9 @@ export const commandSpecPath = (
   return undefined;
 };
 
+/**
+ * Prints SDD command usage to standard error.
+ */
 export const printHelp = (): void => {
   const name = cliName();
   console.error(`usage: ${name} <command> [options]`);

@@ -113,7 +113,7 @@ import kotlinx.coroutines.flow.SharedFlow
 private val mutableEvents = MutableSharedFlow<UiEvent>(
     replay = 0,
     extraBufferCapacity = 64,
-    onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    onBufferOverflow = BufferOverflow.DROP_OLDEST
 )
 val events: SharedFlow<UiEvent> = mutableEvents
 ```
@@ -172,9 +172,9 @@ Keep chains readable by grouping related transforms together.
 ```kotlin
 repository.observeOrders()
     .filter { order -> order.status == Status.ACTIVE }
-    .map { order -> order.toDisplayModel() }
+    .map(Order::toDisplayModel)
     .distinctUntilChanged()
-    .collect { model -> render(model) }
+    .collect(::render)
 ```
 
 Use `flowOf(...)` for constant flows, `emptyFlow()` for completed flows, and `.asFlow()` to convert collections:
@@ -194,15 +194,15 @@ Use `onEach` to inject side effects (logging, metrics) into a Flow chain without
 ```kotlin
 orders
     .onEach { order -> log.debug("Processing order ${order.id}") }
-    .map { order -> order.toDisplayModel() }
-    .collect { model -> render(model) }
+    .map(Order::toDisplayModel)
+    .collect(::render)
 ```
 
 Use `launchIn(scope)` as the idiomatic alternative to `scope.launch { flow.collect {} }` for collecting a flow into an external scope (common in UI code):
 
 ```kotlin
 viewModel.orders
-    .onEach { orders -> render(orders) }
+    .onEach(::render)
     .launchIn(viewModelScope)
 ```
 
@@ -213,8 +213,8 @@ The `catch` operator intercepts upstream exceptions before they reach the collec
 ```kotlin
 repository.observeOrders()
     .retry(3) { error -> error is IOException }
-    .catch { e -> emit(FallbackOrderList) }
-    .collect { orders -> render(orders) }
+    .catch { emit(FallbackOrderList) }
+    .collect(::render)
 ```
 
 ## First Safe Default

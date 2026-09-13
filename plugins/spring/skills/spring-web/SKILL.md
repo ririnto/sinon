@@ -223,6 +223,9 @@ Spring Framework 7 uses Jackson 3 for JSON integration.
 Register MVC converters only when defaults are not enough:
 
 ```java
+/**
+ * Appends the Jackson 3 converter built from the custom object mapper.
+ */
 @Override
 public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     converters.add(new JacksonJsonHttpMessageConverter(customMapper));

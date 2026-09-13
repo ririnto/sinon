@@ -6,6 +6,10 @@ import { generateMermaid } from "../graph.js";
 import { fail } from "../infrastructure.js";
 import type { ParsedArgs } from "../shared.js";
 
+/**
+ * Runs the Mermaid diagram generation command and returns the process exit
+ * code.
+ */
 export const cmdGenerateDiagram = (args: ParsedArgs): number => {
   const specRoot = commandSpecPath(args, 0, "spec_root");
   if (!specRoot) {

@@ -103,15 +103,10 @@ Block-body lambda:
 ```java
 import java.util.function.Consumer;
 
-Consumer<String> logger = message -> {
+Consumer<String> auditor = message -> {
     System.err.println(message);
+    metrics.record(message.length());
 };
-```
-
-No-argument lambda:
-
-```java
-Runnable task = () -> runCleanup();
 ```
 
 Type-inferred lambda with functional interface:
@@ -121,6 +116,8 @@ import java.util.function.Function;
 
 Function<String, Integer> lengthOf = String::length;
 ```
+
+Prefer a method reference when the lambda only forwards to one call and the target instance, overload, and evaluation timing stay identical.
 
 ### Method references `(JDK 8+)`
 

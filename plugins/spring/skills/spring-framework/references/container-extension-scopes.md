@@ -9,6 +9,9 @@ Use a `BeanFactoryPostProcessor` when bean definitions must change before any ap
 ```java
 @Component
 class PlaceholderPrefixPostProcessor implements BeanFactoryPostProcessor {
+    /**
+     * Adjusts bean definitions before any application bean is instantiated.
+     */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
     }
@@ -24,6 +27,9 @@ Use a `BeanPostProcessor` when bean instances must be wrapped or adjusted after 
 ```java
 @Component
 class TimingBeanPostProcessor implements BeanPostProcessor {
+    /**
+     * Wraps or observes each fully initialized bean instance.
+     */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) {
         return bean;

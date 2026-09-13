@@ -255,7 +255,7 @@ Use it when the downstream consumer is known to be singular (e.g., a dedicated p
 
 | Open this when... | Reference |
 | --- | --- |
-| `EmitResult`, retry policy, overflow, or terminated/cancelled emission is the blocker | [Sink Emission Failures](references/sink-failures.md) |
+| `EmitResult`, retry policy, overflow, or terminated/cancelled emission is the blocker | [Sink Emission Failures](references/failures.md) |
 | the real problem is connect, disconnect, replay, or subscriber rendezvous for a shared cold source | [Connectable Flux Patterns](references/connectable-patterns.md) |
 | contention, external synchronization, or `Sinks.unsafe()` is the blocker | [Concurrent and Unsafe Emission](references/concurrent-and-unsafe-emission.md) |
 

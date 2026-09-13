@@ -59,3 +59,5 @@ tasks.test {
 - pin versions for transitive-heavy libraries (MockK, Kotest, coroutines-test)
 - include `junit-platform-launcher` as `testRuntimeOnly` when using JUnit 5
 - configure `maxParallelForks` only after confirming tests have no shared mutable state
+- adopt Kotest only for an application suite that already uses it.
+  Tests for library internals, such as ktlint custom rules, use their own maintained harness (for example `KtLintAssertThat` from `com.pinterest.ktlint:ktlint-test`) instead of adding Kotest alongside it.

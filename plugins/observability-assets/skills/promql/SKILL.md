@@ -9,6 +9,12 @@ description: >-
 
 Write and review PromQL queries that stay readable, correct, and appropriate for the consumer that will use them.
 This file keeps the authoring workflow, function-choice baseline, common templates, and review checks.
+
+## Official Baseline
+
+- Use the official Prometheus query documentation for release 3.14.0, read on 2026-09-13: [Querying basics](https://prometheus.io/docs/prometheus/3.14/querying/basics/), [Operators](https://prometheus.io/docs/prometheus/3.14/querying/operators/), and [Functions](https://prometheus.io/docs/prometheus/3.14/querying/functions/).
+- Verified against the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
+
 Exact language syntax, operator and function tables, vector matching detail, staleness, and HTTP API shapes live in [`./references/language-reference.md`](./references/language-reference.md).
 
 ## Common-Case Workflow

@@ -1,22 +1,22 @@
 import type { Rule } from "markdownlint";
 
-const boxDrawingPattern = /(?<boxDrawing>[\u2500-\u257F])/u;
+const boxDrawingPattern = /[\u2500-\u257F]/u;
 
 /**
- * Markdownlint rule rejecting Unicode box drawing characters.
+ * Markdownlint rule rejecting Unicode box drawing characters (U+2500 to
+ * U+257F) in Markdown documents.
  */
 const rule: Rule = {
   description: "Unicode box drawing characters are not allowed in Markdown",
   function: (params, onError) => {
     for (const [index, line] of params.lines.entries()) {
       const match = boxDrawingPattern.exec(line);
-      if (match?.groups?.boxDrawing) {
-        const character = match.groups.boxDrawing;
+      if (match) {
         onError({
           context: line.trim(),
           detail: "Use ASCII tree markers such as +-- and | instead.",
           lineNumber: index + 1,
-          range: [match.index + 1, character.length]
+          range: [match.index + 1, match[0].length]
         });
       }
     }

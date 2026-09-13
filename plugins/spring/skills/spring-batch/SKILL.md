@@ -154,7 +154,7 @@ spring:
 ```
 
 Change repository strategy only when operations, scale, or platform constraints require it.
-Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) directly for Batch 6-specific migration behavior beyond these annotations.
+Open [references/6-migration.md](references/6-migration.md) directly for Batch 6-specific migration behavior beyond these annotations.
 
 ### Chunk job baseline
 
@@ -283,4 +283,4 @@ class ImportJobTests {
 - Open [references/testing-batch-jobs-and-step-scope.md](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
 - Open [references/integration-driven-launch.md](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
 - Open [references/observability-and-monitoring.md](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
-- Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) directly when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.
+- Open [references/6-migration.md](references/6-migration.md) directly when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.

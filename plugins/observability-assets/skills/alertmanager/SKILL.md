@@ -12,6 +12,8 @@ The common case is one root route, one small set of child routes, one deliberate
 
 ## Official Baseline
 
+- Use the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
+  - Verified against the `prometheus/alertmanager` tag `v0.34.0` (Apache License 2.0).
 - Use modern Alertmanager matcher syntax as the common path: prefer the `matchers:` array form for routes and inhibition rules.
 - Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes.
   Write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.

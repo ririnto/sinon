@@ -9,6 +9,9 @@ Open this reference when payload parsing is too dynamic or partial for straightf
 - Keep namespace bindings explicit because most XPath mistakes in SOAP endpoints come from namespace drift.
 
     ```java
+    /**
+     * Books the holiday by extracting employee and start date through XPath expressions.
+     */
     @Namespace(prefix = "hr", uri = "http://example.com/hr")
     @PayloadRoot(namespace = "http://example.com/hr", localPart = "HolidayRequest")
     @ResponsePayload

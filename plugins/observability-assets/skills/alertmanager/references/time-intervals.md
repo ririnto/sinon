@@ -327,3 +327,8 @@ Alerts that would have matched fall through to the next matching route or the ro
 - Use `time_intervals` for current Alertmanager configs.
 - Keep the deprecated top-level `mute_time_intervals` key only when maintaining an existing config that still depends on it.
   - Current docs mark it as deprecated and point to `time_intervals`.
+
+## Official documentation
+
+Schema and semantics were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/), section `<time_interval>`.
+The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`).

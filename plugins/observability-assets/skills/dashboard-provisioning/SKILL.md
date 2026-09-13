@@ -10,6 +10,12 @@ description: >-
 Provision Grafana dashboards as reviewed files instead of relying on long-lived manual UI state.
 The common case is one provider YAML file, one deliberate dashboard source directory, one folder strategy, and one review path that keeps file content as the source of truth when Grafana and Git disagree.
 
+## Official Baseline
+
+- Use the official Grafana provisioning documentation for the running Grafana line, read on 2026-09-13: [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/).
+- Verified against the Grafana 13.2.1 GitHub release on 2026-09-02.
+- Provider YAML facts here are an authored summary of that documentation, not a verbatim copy.
+
 ## Common-Case Workflow
 
 1. Start from the dashboard files that should become the reviewed source of truth.

@@ -1,13 +1,13 @@
 ---
-title: "Demo Library Research"
+title: Demo Library Research
 description: >-
   Captures version-sensitive behavior for the demo library
   used by the fixture spec tree.
 last_updated: "2026-03-06"
 subject:
-  name: "Demo Library"
-  version: "1.0.0"
-  url: "https://example.com/demo-lib"
+  name: Demo Library
+  version: 1.0.0
+  url: https://example.com/demo-lib
 tag:
   - research
 ---

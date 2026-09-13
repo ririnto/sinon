@@ -1,0 +1,10 @@
+# Canonical Ruff configuration for the Harness `uv` profile.
+# Merge into an existing Ruff configuration instead of replacing it.
+# See docs/tools/uv.md for integration rules.
+
+[lint.isort]
+split-on-trailing-comma = false
+
+[format]
+quote-style = "double"
+skip-magic-trailing-comma = true

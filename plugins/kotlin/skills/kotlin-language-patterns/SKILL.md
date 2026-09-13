@@ -32,15 +32,24 @@ Keep the common path focused on null safety, type modeling, extensions, collecti
 - SHOULD choose the smallest type shape that matches the domain.
 - SHOULD expose read-only collection interfaces from public APIs rather than mutable variants.
 - SHOULD prefer direct string helpers before introducing `Regex`.
-- SHOULD pass an existing function reference instead of wrapping it in a lambda when no adaptation is needed.
+- SHOULD pass an existing function reference instead of wrapping it in a lambda when the meaning, receiver binding, and overload resolution stay identical.
+- SHOULD document every effectively public declaration with KDoc.
+  - Consider the enclosing visibility: a public member inside an `internal` or `private` holder is not public API and does not require KDoc.
+  - Private helpers and local callbacks stay undocumented unless the contract is surprising.
 - SHOULD prefer `tailrec` over a loop when the recursive call is in real tail position and semantics and readability hold.
 - SHOULD keep collection pipelines eager by default and move to `Sequence` only when laziness materially helps.
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.
-- SHOULD name lambda parameters instead of `it` when the named form improves scanning or domain clarity.
+- MUST NOT use the implicit `it` lambda parameter; name the parameter with a meaningful role or use a callable reference.
+  - This rule never expires for short scopes.
+  - The `it` name of a Kotest test-case DSL call, such as `it("calculates total") { }`, is a test name argument, not an implicit lambda parameter.
 - SHOULD use infix functions only when the operation reads naturally at the call site and stays unambiguous without extra context.
 - SHOULD keep class members in a stable scan order so the public shape stays predictable.
+- MUST declare constructor parameters that a container or DI framework supplies non-null and default-free.
+  - A missing required value fails registration instead of falling back to a code default or a nullable property.
+  - This rule targets registered classes only; domain and protocol values keep explicit nullable flow.
+- SHOULD express optional behavior as explicit strategy implementations selected at composition time instead of a nullable or defaulted dependency.
 
 ## Common-Path Procedure
 
@@ -168,13 +177,18 @@ Use extensions for utility surface that does not need runtime polymorphism.
 Extension properties follow the same dispatch rules as extension functions -- static resolution on the declared type:
 
 ```kotlin
-val String.isBlankOrEmpty: Boolean get() = isBlank() || isEmpty()
+val String.lineCount: Int
+    get() = count { char -> char == '\n' } + 1
 
 val List<Int>.median: Double?
-    get() = if (isEmpty()) null else sorted()[size / 2].toDouble()
+    get() = if (isEmpty()) {
+        null
+    } else {
+        sorted()[size / 2].toDouble()
+    }
 ```
 
-Use extension properties when the computed value reads as a natural attribute of the receiver type.
+Use extension properties when the computed value reads as a natural attribute of the receiver type and each access costs no more than the equivalent call would.
 Prefer extension functions when the operation involves parameters or performs side effects.
 Do not hide expensive work, mutation, or surprising derived state behind field-like property syntax.
 
@@ -185,7 +199,7 @@ Move to `Sequence` only when laziness or single-pass processing materially impro
 
 ```kotlin
 fun activeIds(customers: List<Customer>): List<CustomerId> =
-    customers.filter { customer -> customer.active }.map { customer -> customer.id }
+    customers.filter(Customer::active).map(Customer::id)
 ```
 
 Expose read-only collection interfaces from public APIs so callers cannot mutate internal state:
@@ -278,7 +292,7 @@ fun <T> serialize(value: T): String where T : Comparable<T>, T : Serializable {
 Star projections (`<*>`) let you accept a generic type without knowing its variance direction when you only read from it (equivalent to `out Any?`) or only write to it (equivalent to `in Nothing`):
 
 ```kotlin
-fun printAll(items: List<*>) { items.forEach { item -> println(item) } }
+fun printAll(items: List<*>) { items.forEach(::println) }
 ```
 
 ### Property delegation
@@ -375,10 +389,8 @@ class IssueKeyParser {
     private val issuePattern = Regex("""([A-Z]+)-(\d+)""")
 
     fun parse(input: String): Pair<String, Int>? {
-        val trimmed = input.substringBefore('?').trim()
-        val match = issuePattern.matchEntire(trimmed) ?: return null
-        val (project, number) = match.destructured
-        return project to number.toInt()
+        val match = issuePattern.matchEntire(input.substringBefore('?').trim())
+        return match?.destructured?.let { (project, number) -> project to number.toInt() }
     }
 }
 ```
@@ -401,7 +413,7 @@ Use `fold()` to handle both success and failure branches in one expression:
 
 ```kotlin
 parsePort(portStr).fold(
-    onSuccess = { port -> startServer(port) },
+    onSuccess = ::startServer,
     onFailure = { ex -> log.error("Invalid port: ${ex.message}") }
 )
 ```
@@ -410,8 +422,11 @@ Use `recover()` to transform specific failures into success values while letting
 
 ```kotlin
 parsePort(portStr).recover { ex ->
-    if (ex is NumberFormatException) DEFAULT_PORT
-    else throw ex
+    if (ex is NumberFormatException) {
+        DEFAULT_PORT
+    } else {
+        throw ex
+    }
 }
 ```
 
@@ -427,7 +442,11 @@ If Java calls the API, avoid surprising Kotlin-only assumptions around default p
 class OrderFormatter {
     @JvmOverloads
     fun format(orderId: String, uppercase: Boolean = false): String {
-        return if (uppercase) orderId.uppercase() else orderId
+        return if (uppercase) {
+            orderId.uppercase()
+        } else {
+            orderId
+        }
     }
 }
 ```
@@ -517,7 +536,7 @@ value class UserId(val value: Long)
 data class User(val id: UserId, val active: Boolean)
 
 fun activeUserIds(users: List<User>): List<UserId> =
-    users.filter { user -> user.active }.map { user -> user.id }
+    users.filter(User::active).map(User::id)
 ```
 
 ## Validate the Result

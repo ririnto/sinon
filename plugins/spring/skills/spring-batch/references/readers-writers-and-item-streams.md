@@ -28,21 +28,33 @@ class RestartableCustomerReader implements ItemStreamReader<CustomerInput> {
         this.delegate = delegate;
     }
 
+    /**
+     * Reads the next item through the delegate reader.
+     */
     @Override
     public CustomerInput read() throws Exception {
         return delegate.read();
     }
 
+    /**
+     * Opens the delegate and restores its saved stream state.
+     */
     @Override
     public void open(ExecutionContext executionContext) throws Exception {
         delegate.open(executionContext);
     }
 
+    /**
+     * Saves the delegate stream state so a restart can resume from it.
+     */
     @Override
     public void update(ExecutionContext executionContext) throws Exception {
         delegate.update(executionContext);
     }
 
+    /**
+     * Releases the delegate reader resources.
+     */
     @Override
     public void close() throws Exception {
         delegate.close();

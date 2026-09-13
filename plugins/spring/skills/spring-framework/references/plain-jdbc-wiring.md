@@ -59,6 +59,9 @@ Extract a `RowMapper` for reuse across query methods:
 
 ```java
 class ItemRowMapper implements RowMapper<Item> {
+    /**
+     * Maps the current result-set row to one {@link Item}.
+     */
     @Override
     public Item mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity"));

@@ -6,6 +6,9 @@ const sddSkillRoot = path.join(
   "plugins/spec-driven-development/skills/spec-driven-development"
 );
 
+/**
+ * Provides repository test fixture paths.
+ */
 export const repositoryPaths = Object.freeze({
   sddFixtureRoot: path.join(
     sddSkillRoot,
