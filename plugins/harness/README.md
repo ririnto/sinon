@@ -20,7 +20,7 @@ The installed skills are project-local copies derived from the current canonical
 | `harness-install` | Install the implement and review skills and their current documentation into a target repository. |
 
 The skills are host-neutral: they never prescribe a universal instruction filename and instead read the root instruction file the active host actually loads.
-Plans belong to GitHub or GitLab issues.
+Plans are self-contained and do not depend on an external tracker.
 Execution state stays in agent context.
 
 ## Package Inventory

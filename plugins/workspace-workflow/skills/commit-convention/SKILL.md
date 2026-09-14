@@ -63,6 +63,7 @@ A Conventional Commit has the structure:
   - No trailing period.
   - Lowercase preferred.
 - `body` (optional but recommended for non-trivial changes): Explains context, motivation, or design decisions.
+- `footers` (optional): Co-authors or breaking-change details.
   - Format: `Token: value` on separate lines.
 
 ### Type Reference

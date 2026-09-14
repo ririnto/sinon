@@ -17,7 +17,8 @@ Harness contains the shared implementation and review skills, a target-repositor
 ## Change Discipline
 
 Make the smallest change that satisfies the acceptance criteria and preserve unrelated work.
-Plans belong to GitHub or GitLab issues.
+Start from the task, keep a self-contained plan, implement it, run appropriate native proof, review the proportional diff, and integrate with Git.
+Keep the plan in agent context unless the target repository defines an approved planning surface.
 Execution handoffs stay in agent context.
 Do not add legacy compatibility surfaces, scratch plan files, or bundled target templates.
 

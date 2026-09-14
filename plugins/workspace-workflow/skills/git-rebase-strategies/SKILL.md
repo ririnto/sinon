@@ -44,7 +44,7 @@ These invariants govern safe rebase practice:
 - Force-push MUST only be used with `--force-with-lease` to prevent overwriting remote changes you have not seen.
   - Bare `--force` is unsafe on branches others might push to simultaneously.
 - Commit references (SHAs) change on rebase.
-  - Update any references to old commits in tickets, PRs, or scripts.
+  - Update any repository-relative references to old commits in documentation or scripts.
 
 ## Rebase and Merge Decision
 
@@ -297,14 +297,8 @@ MUST NOT rebase shared branches without explicit team agreement and communicatio
 ### Editing history of commits already pushed
 
 After a force-push following rebase, commit SHAs change.
-If the commits are referenced in:
-
-- change description comments or descriptions
-- Ticket systems or issue trackers
-- Commit links in documentation or chat
-
-Those references will become invalid.
-Communicate the change to affected parties.
+Update repository-relative commit references in documentation or scripts.
+External references may become invalid and require separate coordination.
 
 ## First Safe Commands
 

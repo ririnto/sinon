@@ -40,7 +40,7 @@ The `check:markdownlint-cli2` task runs the plain `markdownlint-cli2` command, a
 
 Run `bun install` after a dependency change.
 Run `bun run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs `ultracite check`, which reports issues without writing source changes.
+The `check:ultracite` task runs `ultracite check`, which reports findings without writing source changes.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `bun run fix` only when the user approves source changes; the `fix:ultracite` task runs the Ultracite fixer and `fix:markdownlint-cli2` applies Markdownlint fixes.
 Run `bun test` only when the target owns Bun tests.

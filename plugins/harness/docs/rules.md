@@ -17,14 +17,13 @@ If no root instruction file exists, fall back to README and contribution documen
 
 ## Plans And Execution State
 
-Plans belong in repository-owned Git documents, not in hosted issue trackers.
-Record the outcome, scope, files, and proof of a planned change in the plan before implementation.
-Keep execution handoffs and progress in agent context.
+Write a self-contained plan with the outcome, scope, affected files, and proof before implementation.
+Keep execution handoffs and progress in agent context unless the target repository defines an approved planning surface.
 Do not create execution-plan records, plan directories, or scratch status reports inside the target repository.
 
 ## Default Git Workflow
 
-Run repository changes through this default sequence: task capture, planning, implementation, proof, review, and Git integration.
+Run substantive repository changes through this default sequence: task, self-contained plan, implementation, appropriate native proof, proportional diff review, and Git integration.
 A simple task may omit or combine an intermediate phase when the result does not need it.
 Explicitly required validation, review, approval, and safety conditions remain binding in every case.
 Keep the full sequence for substantive changes.

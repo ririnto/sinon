@@ -265,9 +265,9 @@ You have untracked build artifacts and `.gitignore` updates:
 
 1. Delete the artifact or run a clean build.
 
-### Pattern: Pre-integration handoff verification
+### Pattern: Pre-integration verification
 
-Before creating a change description:
+Before handing a committed change to review or integration:
 
 1. Verify status is clean:
 
