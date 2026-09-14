@@ -47,5 +47,5 @@ Do not use this agent for:
 
 - Rewriting Git history or interactive rebase strategy.
 - Resolving merge conflicts.
-- General GitHub or GitLab workflows beyond commit messaging.
+- General remote-host workflows beyond commit messaging.
 - Teaching low-level Git fundamentals to beginners.

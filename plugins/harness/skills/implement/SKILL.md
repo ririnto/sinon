@@ -17,15 +17,16 @@ The `review` skill consumes the same rules.
    Do not assume a universal instruction filename.
    Discover it per host.
 2. Read `../docs/rules.md`, plus the package-local language document and tool document matching each selected language and build profile under change.
-3. Record the plan as a GitHub or GitLab issue: intended outcome, scope, affected files, and the proof that will demonstrate completion.
-   Keep execution state in agent context, not in disk plan files.
+3. Write a self-contained plan with the intended outcome, scope, affected files, and proof.
+   Keep execution state in agent context unless the target repository defines an approved planning surface.
 4. Make the smallest complete change at the root cause.
    Reuse existing helpers, patterns, and installed dependencies before adding anything.
-   Delegate bounded read-only exploration to the cheapest capable agent when the host supports it.
 5. Run the narrowest existing checks that exercise the changed behavior and record commands with exit codes.
    Do not add tests that mirror the implementation without protecting a real acceptance criterion.
-6. Remove replaced code, fallbacks, scratch files, and obsolete paths in the same change.
-7. Report outcome, changed paths, evidence with its class, and any named gaps.
+6. Review the proportional diff against the task, repository rules, and changed boundaries.
+7. Integrate with Git according to repository policy and user authorization.
+8. Remove replaced code, fallbacks, scratch files, and obsolete paths in the same change.
+9. Report outcome, changed paths, evidence with its class, and any named gaps.
    Output fields are recommended choices.
    The task or host requirement wins over any fixed schema.
 

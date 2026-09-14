@@ -5,15 +5,15 @@ description: >-
 
 # Workspace Workflow
 
-Workspace Workflow is a shared, skill-first plugin for end-to-end Git workspace and change-integration handoff workflow in the Sinon Claude marketplace.
-It covers isolated worktree work, working-tree discipline, history integration (merge or rebase), commit message conventions, and pull or change description composition under one coherent plugin.
+Workspace Workflow is a shared, skill-first plugin for end-to-end Git workspace and change-integration workflow in the Sinon Claude marketplace.
+It covers isolated worktree work, working-tree discipline, history integration (merge or rebase), commit message conventions, and Git-contained change-description composition under one coherent plugin.
 
 ## Purpose
 
 - Provide reusable guidance for managing parallel development using git worktrees without switching HEAD.
-- Establish hygiene discipline for clean working-tree state before any merge, rebase, commit, or integrate step.
+- Establish hygiene discipline for clean working-tree state before any merge, rebase, commit, or review step.
 - Document merge and rebase strategies with concrete commands, decision tables, and conflict-handling procedures.
-- Standardize commit messages with Conventional Commits and align change description bodies across hosted service and hosted service.
+- Standardize commit messages with Conventional Commits and align change description bodies across Git repositories.
 - Coordinate decisions across these skills through focused workspace agents.
 
 ## Included Skills
@@ -25,14 +25,15 @@ It covers isolated worktree work, working-tree discipline, history integration (
 | git-merge-strategies | Choose and execute merge mode (fast-forward, no-ff, squash, octopus) with conflict and rerere patterns | "merge a feature branch", "resolve a merge conflict", "decide between ff and no-ff" |
 | git-rebase-strategies | Run interactive rebase, autosquash, and `--onto` reapplication while protecting shared history | "squash commits", "reorder history", "rebase onto a new base", "recover a failed rebase" |
 | commit-convention | Author Conventional Commits messages with type, scope, body, footer, and split decisions | "write a commit message", "normalize history", "split a change into commits" |
+| change-description | Compose Git-contained change descriptions with rationale, validation, review focus, and merge handoff | "describe a change", "write review context", "prepare a merge handoff" |
 
-These skills compose into the everyday loop: prepare a clean working tree (optionally inside a fresh worktree), shape commits with `commit-convention`, integrate with the right `git-merge-strategies` or `git-rebase-strategies` mode, and integrate through `change-description`.
+These skills compose into the everyday loop: prepare a clean working tree (optionally inside a fresh worktree), shape commits with `commit-convention`, describe the change with `change-description`, and integrate with the right `git-merge-strategies` or `git-rebase-strategies` mode.
 
 ## Included Agents
 
-- workspace-architect: coordinates decisions across the workspace-workflow skills, sequences operations when a task spans worktree, hygiene, history integration, and integration handoff, and enforces team conventions consistently.
+- workspace-architect: coordinates decisions across the workspace-workflow skills, sequences operations when a task spans worktree, hygiene, history integration, and change description, and enforces team conventions consistently.
 - commit-message-architect: drafts Conventional Commit messages from staged changes and evaluates commit cohesion and readiness.
-- pr-body-architect: drafts change description bodies that preserve repository templates and describe real change intent.
+- change-description-architect: drafts Git-contained change descriptions that state real change intent and merge context.
 
 All three agents are read-only leaves for workspace decisions.
 They may load workspace skills but do not delegate, mutate Git state, or integrate.
@@ -51,7 +52,7 @@ plugins/workspace-workflow/
 +-- agents/
 |   +-- workspace-architect.md
 |   +-- commit-message-architect.md
-|   +-- pr-body-architect.md
+|   +-- change-description-architect.md
 +-- skills/
     +-- commit-convention/
     |   +-- SKILL.md
@@ -63,16 +64,13 @@ plugins/workspace-workflow/
     |   +-- SKILL.md
     +-- change-description/
     |   +-- SKILL.md
-    |   +-- references/
-    |       +-- hosted-service.md
-    |       +-- hosted-service.md
     +-- working-tree-hygiene/
         +-- SKILL.md
 ```
 
 ## Shipped Surfaces
 
-- Six reusable skills under `skills/` cover the full workspace-to-integration handoff workflow.
+- Six reusable skills under `skills/` cover the full workspace-to-integration workflow.
 - Three agents under `agents/` cover workflow coordination, commit-message drafting, and change description body drafting.
 
 ## Design Principles
@@ -81,7 +79,7 @@ plugins/workspace-workflow/
   - Route cross-skill decisions through `workspace-architect`.
 - Keep the common path self-sufficient inside each `SKILL.md` with concrete commands, invariants, and decision tables.
 - Derive guidance from real Git behavior and repository state rather than generic tutorials.
-- Detect the integration handoff host from explicit intent and repository evidence, then load only the selected repository reference.
+- Keep change descriptions self-contained and derive review and merge context from repository evidence.
 - Treat shared history as a contract: rebasing or force-pushing integrateed branches requires explicit, team-acknowledged intent.
 - Keep `plugin.json` thin and let the skills and agents carry the reusable substance.
 
@@ -101,12 +99,12 @@ claude --plugin-dir /path/to/sinon/plugins/workspace-workflow
 
 ## Scope Notes
 
-This plugin focuses on the Git-driven workspace and change-integration handoff loop.
+This plugin focuses on the Git-driven workspace and change-integration loop.
 It intentionally does not cover:
 
 - Code review judgement on the merits of the change.
-  - The change description body sets up the review context.
+  - The change description sets up the review context.
   - Reviewers and other plugins evaluate it.
 - Language- or framework-specific build, test, or release tooling (see language plugins such as `java`, `kotlin`, or framework plugins such as `spring`, `reactor`).
-- Custom CI/CD pipeline templates beyond minimal command snippets used in change description descriptions.
+- Custom CI/CD pipeline templates beyond minimal command snippets used in repository guidance.
 - Hooks, MCP servers, or repository-level automation outside the workspace workflow itself.

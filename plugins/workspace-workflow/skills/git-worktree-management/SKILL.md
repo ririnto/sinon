@@ -267,7 +267,7 @@ git worktree remove worktrees/spike-new-api
     cd worktrees/hotfix-prod-bug
     # Fix, test, commit
     git push
-    # Then create change description
+    # Then hand off the committed change for review
     cd ../../
     ```
 

@@ -2,25 +2,22 @@
 
 ## Project Structure
 
-`skills/pr-mr-convention/` owns host-neutral integration handoff guidance and host references.
+`skills/change-description/` owns Git-contained change-description guidance.
 Agents draft or route work.
 They do not integrate.
 
-## integration handoff Host Selection
+## Change Description
 
-Inspect `git remote -v`, `git status --short --branch`, and `git branch -vv` before host advice.
-Select a host from explicit user choice, existing review metadata, policy, upstream, then remote evidence.
-If hosted service and hosted service remain plausible, ask for a choice.
-Load only the selected host reference and preserve the repository template.
+Inspect `git status --short --branch`, `git branch -vv`, and the relevant Git diff before drafting change context.
+Use repository-relative paths, portable examples, and evidence from the local Git history.
+Keep rationale, validation, review focus, and merge handoff self-contained.
 
-## Commit and integration handoff
+## Commit and Integration
 
 Treat force-push and history rewriting as explicit user decisions.
+Use the repository's selected Git merge strategy and preserve the required review evidence.
 
 ## Security and Configuration
 
-Report stale remote data and template uncertainty. Do not expose credentials or run host authentication checks before host selection.
-
-Open the selected host reference only after selection.
-This file stays host-neutral.
-State which host evidence selected before drafting integration handoff guidance.
+Do not expose credentials or private local environment details.
+Keep external work-item identifiers and review URLs out of committed text.

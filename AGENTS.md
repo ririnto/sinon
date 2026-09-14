@@ -40,4 +40,5 @@ Keep general orchestration profiles out of plugins.
 ## Security and Configuration
 
 Do not edit credentials, local configuration, caches, or vendored files unless the task names them.
+Do not commit work-item identifiers, review URLs, or local environment details; use repository-relative paths and portable examples.
 Review changes that cross command, filesystem, network, credential, or publication boundaries for safety risks.
