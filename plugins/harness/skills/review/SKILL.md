@@ -1,51 +1,23 @@
 ---
 name: review
-description: Use when reviewing a diff or completed change for correctness, drift, and rule compliance.
+description: Use when reviewing a diff or completed change for correctness and requirement compliance.
 ---
 
 # Review
 
-Judge the change against evidence and the target repository's own rules.
-Read the shared rules from `../docs/rules.md` relative to this skill directory.
-This skill owns the review procedure.
-The shared rules document owns the rules.
-The `implement` skill consumes the same rules.
+Judge the change against the stated requirements and the target repository's own rules, not unstated preferences.
+Use the [shared engineering rules](../../docs/rules.md) for instruction discovery, authority, validation, evidence, and review criteria.
+From their index, load language and tool guidance only for affected files, profiles, or suspected findings.
 
-## Procedure
+## Review
 
-1. Read the root instruction file the active host actually loads, plus the complete diff and the code around every changed line.
-   Do not assume a universal instruction filename.
-   Discover it per host.
-2. Read the stated requirements before judging.
-   Review against what was asked, not against unstated taste.
-3. Compare each finding against `../docs/rules.md`, the package-local language document and tool document matching each changed file and selected profile, and the repository's own instruction files.
-   Name the file and quote the rule a finding enforces.
-4. Run the checks that exercise the changed behavior.
-   Record commands with exit codes.
-   A check that cannot run stays an explicit named gap, never a silent pass.
-5. Report a verdict with findings ranked by severity, each anchored to a file and line.
-   State the evidence class behind each verdict: source inspection, automated check, live behavior, or independent review.
-   Output fields are recommended choices.
-   The task or host requirement wins over any fixed schema.
+Read the complete scoped diff, surrounding code, relevant callers, and existing validation evidence.
+Verify each suspected finding with a concrete failure scenario or a violated explicit requirement.
+For a rule-based finding, name its owning file and quote the relevant rule.
+Run additional checks only for changed behavior, failed checks, or unresolved concerns not covered by valid evidence.
 
-## Reject As Drift
-
-- Weakened or skipped validation commands, or a check turned into a no-op.
-- Edits that mask a failing contract instead of fixing it.
-- Accidental deletion, silent error swallowing, or invented values for required identifiers.
-- Scope expansion beyond the stated task.
-- Documentation left stale where the change alters a documented boundary, workflow, or invariant.
-- Full revalidation demanded only because a commit hash changed.
-  Require the related-scope check instead.
-
-## Decisions
-
-- Prefer reusing the original implementer's context for fixes when the host supports it.
-- Distinguish explicit requirements from your interpretation.
-  State assumptions plainly.
-- A review fix reruns only the checks in the affected scope, preserving valid evidence for unchanged inputs.
-
-## Update Triggers
-
-Update this skill when the review procedure changes.
-Update `docs/rules.md` when a rule changes.
+Report findings by severity with file and line references, evidence, and material assumptions or validation gaps.
+State explicitly when no findings remain.
+Follow the task's output format and distinguish source inspection from runtime proof and independent review.
+Review authority does not grant edits or Git actions.
+When fixes are authorized, reuse the implementer's context when supported and rerun only affected checks.

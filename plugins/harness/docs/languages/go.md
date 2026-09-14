@@ -1,7 +1,7 @@
 # Go Language Rules
 
 This document owns Go-specific rules for the `go` profile.
-The shared rules in `docs/rules.md` apply in full; this file adds Go-only invariants.
+The [shared rules](../rules.md) apply alongside these Go-only invariants.
 The [Go tool reference](../tools/go.md) owns commands and configuration.
 
 ## Errors

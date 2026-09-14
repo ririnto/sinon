@@ -1,7 +1,7 @@
 # Shell Language Rules
 
 This document owns POSIX-shell-specific rules for the `shell` profile.
-The shared rules in `docs/rules.md` apply in full; this file adds shell-only invariants.
+The [shared rules](../rules.md) apply alongside these shell-only invariants.
 The [shell tool reference](../tools/shell.md) owns commands and configuration.
 
 ## Dialect And Portability
