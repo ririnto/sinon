@@ -1,28 +1,24 @@
 # Repository Guidelines
 
-Harness contains the shared implementation and review skills, a target-repository installer, and their canonical rules documents.
+Harness provides implementation, review, and target-repository installation guidance.
 
 ## Component Boundary
 
-- `skills/implement/SKILL.md`, `skills/review/SKILL.md`, and `skills/harness-install/SKILL.md` are the skills.
-  The plugin ships no agents, settings adapters, hooks, or asset bundles.
-- `docs/rules.md` owns every implementation, design, frontend, and test-quality rule, and indexes the language and tool documents.
-- `docs/languages/` owns per-language rules, and `docs/tools/` owns profile-specific tool and CI guidance.
-- Each consumer skill owns only its procedure and references the canonical rules documents.
-  The installer owns only target materialization and verification.
-  A rule appears in exactly one file.
-- Changing a rule updates `docs/rules.md` and both skill consumers in the same change.
-- Skill bodies stay host-neutral: they discover the target repository's actual root instruction file per active host and never prescribe a universal filename.
+- `skills/implement/SKILL.md` and `skills/review/SKILL.md` route their tasks to the shared rules and relevant references.
+- `skills/harness-install/SKILL.md` owns target materialization, path remapping, conflict handling, and installation proof.
+- `docs/rules.md` owns common engineering rules, workflow boundaries, and the language and tool index.
+- `docs/languages/` owns language-specific rules; `docs/tools/` owns profile-specific configuration, checks, CI guidance, and limitations.
+- `tooling/` contains native configuration fragments and ruleset sources; `ci/` contains optional profile catalogs.
 
-## Change Discipline
-
-Make the smallest change that satisfies the acceptance criteria and preserve unrelated work.
-Start from the task, keep a self-contained plan, implement it, run appropriate native proof, review the proportional diff, and integrate with Git.
-Keep the plan in agent context unless the target repository defines an approved planning surface.
-Execution handoffs stay in agent context.
+Keep each rule in its owning document.
+Update consumers when their routing or contract changes, not merely because a referenced rule changes.
+Skill bodies discover the instruction files selected by the active host rather than prescribing a universal filename.
+The plugin ships no agents, settings adapters, hooks, or asset bundles.
 Do not add legacy compatibility surfaces, scratch plan files, or bundled target templates.
 
 ## Validation
 
 Run `claude plugin validate plugins/harness` after changing this package.
-Keep skill frontmatter valid and machine-consumable for the host skill loader.
+Keep skill frontmatter valid for the host loader.
+For routing changes, check published links and the installer's remapped regular files.
+Run native profile checks when their implementation or integration changes, not for unrelated guidance edits.

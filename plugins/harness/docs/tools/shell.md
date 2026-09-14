@@ -1,7 +1,7 @@
 # Shell Tool Reference
 
 This document owns the `shell` profile commands and target integration rules for repositories with shell scripts.
-It is the tool-level companion to [the shell language rules](../languages/shell.md) and the shared rules in `docs/rules.md`.
+It accompanies the [shell language rules](../languages/shell.md) and [shared rules](../rules.md).
 The only native configuration source lives under `tooling/shell/`.
 
 ## Scope And Detection

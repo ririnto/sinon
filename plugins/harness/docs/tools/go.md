@@ -1,7 +1,7 @@
 # Go Tool Reference
 
 This document owns the `go` profile commands, dependencies, and target integration rules for Go module targets.
-It is the tool-level companion to [the Go language rules](../languages/go.md) and the shared rules in `docs/rules.md`.
+It accompanies the [Go language rules](../languages/go.md) and [shared rules](../rules.md).
 Native configuration sources live under `tooling/go/`.
 
 ## Scope And Detection

@@ -1,7 +1,7 @@
 # Python Language Rules
 
 This document owns Python-specific rules for the `uv` profile.
-The shared rules in `docs/rules.md` apply in full; this file adds Python-only invariants.
+The [shared rules](../rules.md) apply alongside these Python-only invariants.
 The [uv tool reference](../tools/uv.md) owns commands and configuration.
 
 ## Bindings And Data

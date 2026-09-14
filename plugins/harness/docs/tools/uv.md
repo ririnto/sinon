@@ -1,7 +1,7 @@
 # uv Tool Reference
 
 This document owns the `uv` profile commands, dependencies, and target integration rules for Python targets.
-It is the tool-level companion to [the Python language rules](../languages/python.md) and the shared rules in `docs/rules.md`.
+It accompanies the [Python language rules](../languages/python.md) and [shared rules](../rules.md).
 Native configuration sources live under `tooling/uv/`.
 
 ## Scope And Detection

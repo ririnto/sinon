@@ -1,7 +1,7 @@
 # Rust Language Rules
 
 This document owns Rust-specific rules for the `rust` profile.
-The shared rules in `docs/rules.md` apply in full; this file adds Rust-only invariants.
+The [shared rules](../rules.md) apply alongside these Rust-only invariants.
 The [Rust tool reference](../tools/rust.md) owns commands and configuration.
 
 ## Ownership And Borrowing

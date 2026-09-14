@@ -1,6 +1,7 @@
 # Repository Conventions
 
-Open this reference when editing source, scripts, documentation, or configuration.
+Use the sections for the files under change.
+Shell and TypeScript sections apply to source, documentation sections to prose, and YAML rules to configuration.
 
 ## Shell
 
@@ -43,6 +44,18 @@ Relative references that load instruction or implementation content must stay in
 Authoritative public standards and vendor documentation citations may stay.
 Use real `#` heading syntax for structural headings.
 Do not use bold text on its own line as a pseudo-heading; a natural prose lead-in to a code block does not need to become a heading.
+
+## Instruction And Skill Authoring
+
+Keep activation descriptions short and specific to the task that needs the skill.
+Use skill roots as small routers; name when each supporting reference applies.
+Keep each rule with its existing owner instead of repeating it across consumers.
+Specify the required outcome, authority, and completion boundary rather than a fixed itinerary for every task.
+Match proof to acceptance criteria and changed behavior; do not add tests that only restate prose.
+Preserve explicit user requirements, safety boundaries, and required source standards when simplifying guidance.
+
+This guidance adapts OpenAI's [Rethinking skills and prompts for GPT-6 Astra](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md).
+The unversioned article was read on 2026-09-15 and gives qualitative recommendations, not measured results.
 
 ## Official References
 

@@ -1,7 +1,7 @@
 # Rust Tool Reference
 
 This document owns the `rust` profile commands, dependencies, and target integration rules for Cargo workspace targets.
-It is the tool-level companion to [the Rust language rules](../languages/rust.md) and the shared rules in `docs/rules.md`.
+It accompanies the [Rust language rules](../languages/rust.md) and [shared rules](../rules.md).
 Native configuration sources live under `tooling/rust/`.
 
 ## Scope And Detection

@@ -8,7 +8,7 @@ description: >-
 Harness provides three skills: `implement`, `review`, and `harness-install`.
 The first two give agents concrete engineering rules for implementation, design, language, testing, and review work.
 The installer materializes the implementation and review skills and their canonical documentation in a target repository.
-The skills own their procedures, and the package-local documents own their rules.
+The skills route each task to shared rules and context-specific language and tool guidance.
 The installed skills are project-local copies derived from the current canonical files.
 
 ## Skills
@@ -21,7 +21,7 @@ The installed skills are project-local copies derived from the current canonical
 
 The skills are host-neutral: they never prescribe a universal instruction filename and instead read the root instruction file the active host actually loads.
 Plans are self-contained and do not depend on an external tracker.
-Execution state stays in agent context.
+Execution state stays in agent context unless the user or target repository names an approved planning surface.
 
 ## Package Inventory
 
@@ -40,8 +40,13 @@ Execution state stays in agent context.
 `docs/rules.md` is the common rule source.
 Language documents own language-specific rules, and tool documents own profile-specific integration guidance.
 A rule stated in a canonical document is not restated in a skill.
-Changing a rule updates its document and both consumer skills together.
-The installer reads the current canonical files, materializes selected language and tool guidance, and writes only explicitly mapped target paths.
+Change consumers only when their routing or contract changes.
+Published consumers link to `../../docs/rules.md` from their skill directories.
+The installer rewrites that link to `../docs/rules.md` in each target copy, keeping both layouts self-contained.
+References from language and tool documents to common rules stay `../rules.md` in both layouts.
+The installer reads current canonical inputs and writes only mapped target paths.
+It manages only `implement` and `review` skills and their supporting documents, preserving other target skills.
+Its preview separates safe creates and unchanged files from conflicts that require explicit replacement authority.
 For Kotlin, it also materializes the complete target-owned `tooling/kotlin-ktlint/` Gradle module when the Kotlin profile is selected.
 The target must attach its produced JAR to the actual ktlint runtime through `ktlintRuleset(...)`; buildSrc classes alone are not sufficient.
 The skills never disable hooks, fake validation success, or treat a skipped gate as a pass: a gate that cannot run stays a named gap.
