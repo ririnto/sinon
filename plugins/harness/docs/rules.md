@@ -16,6 +16,15 @@ Do not assume a universal root filename.
 If none exists, use the relevant README and contribution guidance.
 Load supporting references for the task's language, profile, or changed boundary rather than reading every document.
 
+## Supported LTS Policy
+
+Use an officially designated supported LTS line when the runtime or tool offers one.
+Do not treat `stable` or `latest` as LTS labels.
+Choose an explicit supported LTS baseline for runtime images.
+When no official LTS exists, retain the required compatible tool and report the limitation.
+Do not label a non-LTS tool as LTS, or autoupgrade or remove a profile to create artificial compliance.
+Rust, Go, Bun, Python, Gradle, Maven, and Kotlin do not offer an official LTS line, so universal LTS coverage across all profiles is unavailable.
+
 ## Authority And Completion
 
 A clear task authorizes work within its stated scope, not every action on resources encountered during inspection.
