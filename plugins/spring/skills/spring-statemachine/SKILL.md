@@ -1,8 +1,7 @@
 ---
 name: spring-statemachine
 description: >-
-  Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests.
-  Use when defining state machine factories, configuring guards and actions on transitions, persisting machine state to a repository, or writing state-machine integration tests.
+  Model or troubleshoot Spring Statemachine states, events, guards, actions, factories, persistence, and lifecycle tests.
 ---
 
 # Spring Statemachine
@@ -32,19 +31,14 @@ Use `spring-statemachine` for finite-state lifecycle modeling where legal transi
   - Persistence does not imply a distributed machine, and a distributed machine is not the default solution for restart survival.
 - Keep `@WithStateMachine` context integration, `StateMachineInterceptor`, monitoring, and security out of the ordinary path unless those features are explicitly needed.
 
-## Common path
+## Task scope
 
-The ordinary Spring Statemachine job is:
+Preserve state names, event names, and transition semantics unless changing their contract is in scope.
+For a new lifecycle, define states and events as enums and make unsupported-event behavior explicit.
+Use guards for eligibility, actions for transition side effects, and extended state only for machine-owned context.
+Use the sections and references for the affected topology, dispatch, or persistence concern.
 
-1. Define the states and events as enums before writing configuration.
-2. Model only the valid external transitions and let unsupported events remain explicit failures or no-ops.
-3. Use guards for transition eligibility and actions for side effects tied to a transition.
-4. Keep transient workflow context in extended state only when it truly belongs to the state machine.
-5. Send events through the machine using `MessageBuilder` and subscribe to the reactive result.
-6. Observe state changes with a listener or test plan.
-7. Add a test that proves the expected event sequence reaches the right terminal or intermediate state.
-
-### Branch selector
+## Surface map
 
 | Situation | Stay here or open a reference |
 | --- | --- |
@@ -129,15 +123,14 @@ class OrderStateMachineConfig {
 Start with one machine and one clear lifecycle.
 Add factories, persistence, pseudo states, or regions only when the workflow truly requires them.
 
-## Coding procedure
+## Implementation guidance
 
-1. Keep state and event names business-meaningful and stable.
-2. Use external transitions for ordinary lifecycle movement and reserve pseudo states for genuinely branching or hierarchical lifecycle semantics.
-3. Put eligibility checks in guards instead of burying them in actions.
-4. Keep actions idempotent when retries or duplicate events are possible.
-5. Keep extended state small and explicit so guards and actions can reason about it safely.
-6. Persist state only when the lifecycle must survive process restarts or multiple runtime instances.
-7. Test the happy path and at least one blocked or invalid transition path.
+- Keep state and event names business-meaningful and stable.
+- Use external transitions for ordinary lifecycle movement and reserve pseudo states for genuinely branching or hierarchical lifecycle semantics.
+- Put eligibility checks in guards instead of burying them in actions.
+- Keep actions idempotent when retries or duplicate events are possible.
+- Keep extended state small and explicit so guards and actions can reason about it safely.
+- Persist state only when the lifecycle must survive process restarts or multiple runtime instances.
 
 ## Key API patterns
 
@@ -257,12 +250,6 @@ transitions.withExternal()
     .source(States.NEW).target(States.PAID).event(Events.PAY)
     .action(reserveInventory(), handleError());
 ```
-
-## Edge cases
-
-- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when lifecycle semantics go beyond guarded external transitions.
-- Open [references/reactive-support.md](references/reactive-support.md) when actions, guards, or event dispatch must stay reactive end to end.
 
 ## Implementation examples
 
@@ -392,20 +379,15 @@ class OrderStateMachineTests {
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
+Report the changed lifecycle contract, relevant dispatch or persistence decisions, and verification results.
+Identify unverified transition behavior or blockers.
+Follow the task's required response format.
 
-Return:
+## Verification
 
-1. The named states and events that define the lifecycle
-2. The dependency shape, including the BOM import and the versionless modules required for runtime and tests
-3. The transition shape, including where guards and actions apply
-4. Any extended-state variables that are required for transition decisions
-5. The event-dispatch and listener shape used to observe lifecycle movement
-6. The JUnit 5 test shape proving the happy path and at least one blocked or invalid transition path
-7. Any blocker that requires factories, persistence, pseudo states, regions, or reactive support
-
-## Testing checklist
+Use existing state-machine tests for changed transitions and regression risks.
+Keep the JUnit 5 path for this Boot 3.5-based line.
+Select checks for affected events, guards, actions, and observation behavior:
 
 - Verify the happy-path event sequence reaches the intended state.
 - Verify an invalid or disallowed event does not silently produce the wrong transition.
@@ -422,9 +404,3 @@ Return:
 - Keep extended state small and serializable when the machine is persisted.
 - When using Kryo-based persistence through a repository such as `RedisStateMachineContextRepository`, configure a class allowlist to prevent arbitrary class deserialization.
 - Treat state-machine tests as part of the lifecycle compatibility surface.
-
-## References
-
-- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when the ordinary single-machine lifecycle is not enough and the task needs factories, persistence, regions, or deeper testing patterns.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when the workflow needs explicit pseudo-state semantics.
-- Open [references/reactive-support.md](references/reactive-support.md) when the machine must stay reactive.

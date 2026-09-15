@@ -233,7 +233,9 @@ Persisted-machine testing belongs here, not in the ordinary-path checklist, beca
 
 ## Verification rule
 
-Verify that the chosen factory or persistence path solves a real lifecycle requirement, then prove it with a save or restore test instead of assuming the machine state survives process boundaries.
+For factory changes, verify instance creation, identity, and startup behavior.
+For persistence changes, verify save and restore behavior across the storage boundary, including required extended-state variables.
+Do not infer restart survival from factory use alone.
 
 ## Related blockers
 

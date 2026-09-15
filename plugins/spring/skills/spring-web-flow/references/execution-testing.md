@@ -130,7 +130,8 @@ void enterDetailsNextMovesToConfirm() {
 }
 ```
 
-Test the smallest meaningful transition sequence first, then add edge cases for backtracking, invalid input, or subflow exits.
+Test the smallest transition sequence that proves the changed contract.
+Cover backtracking, invalid input, or subflow exits when affected behavior or regression risks require them.
 
 ## Invalid input and backtracking shapes
 
@@ -179,7 +180,7 @@ void saveBookingFailureGoesToTechnicalError() {
 }
 ```
 
-Use one exception-path test when a global transition, exception handler, or recovery state is part of the contract.
+Test the affected exception paths when changing a global transition, exception handler, or recovery state.
 
 ## JUnit 5 compatibility note
 
@@ -192,5 +193,5 @@ Keep one assertion per `assertAll` line when multiple flow-outcome checks belong
   - The official API expects `resumeFlow(context)` with a `MockExternalContext`.
 - Do not skip `getResource(...)` or bean registration when the flow evaluates services, validators, or subflow dependencies.
 - Do not start with a full end-to-end journey when one state transition is the behavior under test.
-- Do not skip negative-path assertions for invalid input, backtracking, or exception handling.
-- Do not treat subflow entry and exit mapping as implicitly correct without a dedicated assertion.
+- Cover negative paths when changing invalid input, backtracking, or exception handling.
+- Assert affected subflow entry and exit mappings rather than assuming they remain correct.

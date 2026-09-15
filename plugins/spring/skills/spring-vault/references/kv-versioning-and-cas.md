@@ -33,7 +33,9 @@ operations.put("app/prod/database", Map.of("username", "app"), Versioned.Version
 
 ## Testing rule
 
-Add tests for version conflicts, expected soft-delete behavior, and any startup failure that should remain fail-fast when configuration import depends on a versioned path.
+Use existing tests for the versioned behavior under change.
+Cover version conflicts for concurrent writes and soft-delete behavior when deletion is part of the contract.
+Verify fail-fast startup behavior when configuration import depends on the affected versioned path.
 
 ## Gotchas
 

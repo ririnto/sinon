@@ -1,8 +1,7 @@
 ---
 name: spring-shell
 description: >-
-  Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests.
-  Triggers on command registration with options and validation, tab completion configuration, runtime command availability control, or interactive REPL workflow construction.
+  Implement or troubleshoot Spring Shell commands, options, validation, availability, completion, terminal interaction, and CLI tests.
 ---
 
 # Spring Shell
@@ -36,22 +35,11 @@ Use `spring-shell` for command registration, command grouping, option syntax, va
 | Guided flows or selection widgets | plain options become error-prone or too hard to discover | open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) |
 | Prompt or output risk signaling | environment, login state, or operator risk must stay visible | open [references/prompt-and-styling.md](references/prompt-and-styling.md) |
 
-## Common path
+## Task scope
 
-The ordinary Spring Shell job is:
-
-1. Define the CLI task boundary and keep domain logic in application services.
-2. Register a small command group with explicit names, help text, and option defaults.
-3. Add validation, completion, and availability rules close to the command signature.
-4. Use `CommandContext` input and output APIs when a command needs interactive reads or terminal-aware writes.
-5. Keep success output, help output, and exit behavior stable enough for automation and tests.
-6. Add shell-focused tests that prove parsing, validation, help, and command dispatch.
-
-### Branch selector
-
-- Stay in `SKILL.md` for the ordinary command path: annotation-based commands, command grouping, built-in help behavior, option defaults, validation, completion, availability, `CommandContext` reads and writes, stable output, exit-status decisions, headless execution, and shell-focused tests.
-- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer terminal UI behavior.
-- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must reflect environment, login state, or operator risk.
+Preserve the existing command names, option syntax, output, and exit behavior unless the task requires changes.
+Keep command methods focused on the CLI boundary and application services responsible for business workflows.
+Use the sections and references for the affected command, execution mode, or terminal interaction.
 
 ## Dependency baseline
 
@@ -201,19 +189,15 @@ Shell-specific completion setup is left to the user's preferred shell.
   - Keep command names, options, defaults, and examples aligned with what `help` prints.
 - Use script mode when support teams need reproducible CLI runs for onboarding, automation, or incident response.
 
-## Coding procedure
+## Implementation guidance
 
-1. Start from the user-facing command contract: command name, group, required options, defaults, and terminal output.
-2. Default to annotation-based command registration for ordinary shells.
-   - Use programmatic registration only when commands must be assembled dynamically at runtime.
-3. Keep command methods thin.
-   - Parse input in the shell layer and delegate real work to an injected service.
-4. Use `@Option` defaults and required flags to make invalid input fail early.
-5. Add Bean Validation, completion, and `Availability` checks as close as possible to the command boundary.
-6. Use `CommandContext` for interactive reads and terminal-aware writes instead of `System.in` or `System.out`.
-7. Make success output deterministic and define non-zero exit behavior explicitly when operators or automation depend on it.
-8. Add shell tests that prove command execution, help output, invalid input handling, and availability behavior.
-9. Add a Spring Boot end-to-end test when startup wiring, profiles, or full application context integration matter.
+- Define the affected command's name, group, options, defaults, help text, and terminal output.
+- Default to annotation-based command registration unless native compilation or dynamic registration requires the programmatic path.
+- Keep command methods thin and delegate real work to an injected service.
+- Use `@Option` defaults, required flags, and Bean Validation to reject invalid input at the command boundary.
+  Add completion and `Availability` checks when bounded values or runtime prerequisites require them.
+- Use `CommandContext` for interactive reads and terminal-aware writes instead of `System.in` or `System.out`.
+- Make success output deterministic and define non-zero exit behavior when operators or automation depend on it.
 
 ## Implementation examples
 
@@ -534,16 +518,9 @@ Use `@Arguments` for multi-valued input.
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The registered command shape, including names, groups, help text, options, defaults, and availability behavior
-2. The terminal output contract for success, validation failure, unavailable-command paths, and any explicit non-zero exit behavior
-3. The completion or prompt behavior when the command depends on bounded values or operator context
-4. The shell-focused test shape proving parsing, help, dispatch, and deterministic output
-5. Any blocker that requires guided flows, prompt styling, or richer terminal UI beyond the ordinary command path
+Report the changed command contract, relevant terminal behavior, and verification results.
+Identify unverified interactive or startup behavior and any blocker.
+Follow the task's required response format.
 
 ## Output shapes
 
@@ -571,7 +548,10 @@ catalog item add --sku <string> [--quantity <int>]
 exit code: 2
 ```
 
-## Testing checklist
+## Verification
+
+Use existing tests for the changed command contract and regression risks.
+Select the checks that apply:
 
 - Verify a valid command dispatches to the correct service and returns deterministic terminal output.
 - Verify required options, default values, and invalid values produce the expected shell error.
