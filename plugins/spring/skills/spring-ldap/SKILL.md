@@ -1,8 +1,7 @@
 ---
 name: spring-ldap
 description: >-
-  Build LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests.
-  Use when querying directory entries with filters, mapping LDAP attributes to Java objects with `@Entry`, or setting up embedded UnboundID test servers.
+  Implement or troubleshoot Spring LDAP queries, DN handling, ODM mapping, repositories, authentication checks, and embedded LDAP tests.
 ---
 
 # Spring LDAP
@@ -20,15 +19,11 @@ Use `spring-ldap` for LDAP operations, ODM mapping, LDAP repository support, and
 - Keep repository-backed LDAP query design in this skill.
   - Treat authentication or authorization policy as a separate application-security concern rather than directory access itself.
 
-## Common path
+## Task scope
 
-The ordinary Spring LDAP job is:
-
-1. Add the smallest dependency set that covers the LDAP operation type.
-2. Configure the LDAP context source with server URL, base DN, and credentials.
-3. Use `LdapTemplate` for direct reads and writes, or add Spring Data LDAP and `LdapRepository` for repository-backed queries.
-4. Map directory entries with ODM annotations or `DirContextAdapter`.
-5. Add an embedded LDAP test that proves queries return the expected entries.
+Preserve the directory schema, base DN, and access contract unless the task requires changes.
+Choose the access and mapping surface for the directory operation rather than adding repository or ODM layers by default.
+Use the sections and references for the affected query, mapping, connection, or test concern.
 
 ## Surface map
 
@@ -231,16 +226,15 @@ class RepositoryConfiguration {
 Use this configuration only when the direct non-Boot path needs `LdapRepository`.
 If the task only needs `LdapTemplate`, keep the simpler direct bean path above.
 
-## Coding procedure
+## Implementation guidance
 
-1. Identify whether the task needs `LdapClient` (simplified API, no ODM), `LdapTemplate` (direct operations with optional ODM), or `LdapRepository` for query-method derivation.
-2. Configure the `ContextSource` with URL, base DN, user DN, and password before writing any query or mapping code.
-3. Use ODM annotations (`@Entry`, `@DnAttribute`, `@Attribute`) when the directory schema maps cleanly to Java types.
-   - Use `DirContextAdapter` when mapping is dynamic or partial.
-4. Build filters with `LdapQueryBuilder` or `query().where(...)` for readable filter chains.
-   - Treat raw string filters as a last resort and keep Spring LDAP builders or helpers in front of manual escaping.
-5. For authentication checks, search by the directory attribute your deployment uses for login such as `uid` or `cn`, and keep the attribute name explicit in code and tests.
-6. Add an embedded LDAP test that loads a small LDIF file and verifies the query returns the expected entries.
+- Configure the `ContextSource` with URL, base DN, user DN, and an externalized password.
+- Use ODM annotations (`@Entry`, `@DnAttribute`, `@Attribute`) when the directory schema maps cleanly to Java types.
+  Use `DirContextAdapter` when mapping is dynamic or partial.
+- Build filters with `LdapQueryBuilder` or `query().where(...)`.
+  Use raw strings only when necessary, and prefer Spring LDAP escaping helpers over manual escaping.
+- For authentication checks, use the deployment's login attribute, such as `uid` or `cn`.
+  Keep that attribute explicit in code and tests.
 
 ## Implementation examples
 
@@ -476,7 +470,11 @@ Use `ldap://` for plain LDAP ports such as 389 and `ldaps://` for LDAPS ports su
 Keep the scheme and port consistent.
 For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of configuring `spring.ldap.urls` manually - see [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md).
 
-## Testing checklist
+## Verification
+
+Use existing tests for changed directory behavior and regression risks.
+Extend embedded LDAP coverage when real filters, mappings, binds, or server configuration define the contract.
+Select the checks that apply:
 
 - Verify queries return the expected entries after loading a known LDIF data set.
 - Verify ODM mapping extracts DN components and directory attributes correctly.
@@ -493,17 +491,9 @@ For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of con
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen LDAP access surface and why it fits the task
-2. The context source and base-DN configuration shape
-3. The mapping approach, including whether ODM or `DirContextAdapter` is used
-4. The query or repository contract the client depends on
-5. The embedded LDAP test shape and LDIF fixture path
-6. Any blocker that requires advanced filters, transaction-aware context sources, or deeper ODM mapping
+Report the changed LDAP access contract, relevant configuration or mapping decisions, and verification results.
+Name any unverified directory behavior or blocker without exposing credentials.
+Follow the task's required response format.
 
 ## Production checklist
 
@@ -512,10 +502,3 @@ Return:
 - Validate LDIF imports against the target directory schema before deployment.
 - Monitor directory operation latency and connection pool utilization through application metrics.
 - Record the Spring LDAP version in build files or a platform BOM to avoid unexpected compatibility issues.
-
-## References
-
-- Open [references/advanced-odm-and-repositories.md](references/advanced-odm-and-repositories.md) when the schema needs multi-valued ODM fields, raw `@Query`, or deeper repository derivation rules.
-- Open [references/filters-and-dn-handling.md](references/filters-and-dn-handling.md) when the task needs complex LDAP filters, escaping, or DN parsing beyond the common path.
-- Open [references/transactions-and-context-source.md](references/transactions-and-context-source.md) when the application needs transaction-aware context sources or connection-pool tuning.
-- Open [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md) when embedded LDAP setup needs custom ports, LDIF handling, LDAPS/SSL, or schema-validation tuning.

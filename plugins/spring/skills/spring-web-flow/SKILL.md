@@ -1,8 +1,7 @@
 ---
 name: spring-web-flow
 description: >-
-  Build Spring Web Flow browser conversations with flow definitions, conversation state, scoped variables, validation, exception handling, MVC integration, and flow execution tests.
-  Use when implementing guided checkouts, onboarding wizards, review-confirm-submit flows, or other stateful web conversations.
+  Implement or troubleshoot Spring Web Flow browser conversations, scoped models, transitions, validation, recovery, MVC integration, and execution tests.
 ---
 
 # Spring Web Flow
@@ -15,14 +14,19 @@ Ordinary stateless MVC controllers, reactive HTTP handlers, outbound HTTP client
 The current public Spring Web Flow line is 4.0.x.
 The dependency baseline below pins the current 4.0.1 artifact.
 
-## Common path
+## Task scope
 
-1. Draw the happy-path states and event names before writing XML.
-2. Put the multi-step form model in `flowScope` and keep durable domain state outside the conversation.
-3. Define forward, backward, completion, validation, and technical-recovery transitions explicitly.
-4. Register the flow before ordinary controller mappings and expose a `FlowExecutor` plus MVC adapter.
-5. Render forms that post to `flowExecutionUrl` with a concrete `_eventId`.
-6. Add one flow-execution test that starts the flow, follows the happy path, and verifies its outcome.
+Preserve existing flow IDs, event names, scope lifetimes, and navigation contracts unless the task requires changes.
+For a new flow, define the states and events that express the browser conversation.
+Keep durable domain state outside the conversation and use `flowScope` for a model shared across its steps.
+Define forward, backward, completion, validation, and technical-recovery transitions where the flow needs them.
+Use the sections and references for the affected navigation, scope, integration, or test concern.
+
+## References
+
+- Open [references/scopes.md](references/scopes.md) for request, flash, view, flow, and conversation scope decisions.
+- Open [references/validation-and-exception-handling.md](references/validation-and-exception-handling.md) for grouped validation, validator methods, or shared recovery behavior.
+- Open [references/execution-testing.md](references/execution-testing.md) for backtracking, invalid input, exceptions, or subflow-exit tests.
 
 ## Dependency baseline
 
@@ -208,30 +212,21 @@ class RegistrationFlowTests {
 
 Add separate tests for validation retention, backtracking, recovery, and subflow outcomes only when those branches are part of the flow contract.
 
-## Validation checklist
+## Verification
+
+Use existing tests for the changed flow contract and regression risks.
+Choose focused transition tests unless startup, mapping, or a complete conversation is the behavior under change.
+Select the checks that apply:
 
 - Verify the start URL resolves the intended flow id.
 - Verify every form posts to `flowExecutionUrl` with the intended `_eventId`.
 - Verify forward navigation validates the scoped model and backward navigation follows the intended validation policy.
 - Verify mapping order does not let an MVC controller shadow the flow id.
-- Verify one happy path ends with the expected outcome.
+- For completion changes, verify the flow ends with the expected outcome.
 - Verify technical recovery renders a stable state without swallowing expected business failures.
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The flow XML, flow id, start URL, and event names
-2. The scoped model, validation timing, and recovery contract
-3. The registry, executor, handler mapping, adapter, and mapping order
-4. The event-form shape and focused flow-execution test
-5. Any subflow, scope-lifetime, validator, persistence, or error-recovery blocker
-
-## References
-
-- Open [references/scopes.md](references/scopes.md) when request, flash, view, flow, and conversation scope tradeoffs are the blocker.
-- Open [references/validation-and-exception-handling.md](references/validation-and-exception-handling.md) when grouped validation, validator methods, or shared recovery behavior goes beyond the common path.
-- Open [references/execution-testing.md](references/execution-testing.md) when backtracking, invalid input, exceptions, or subflow exits need dedicated tests.
+Report the changed flow contract, relevant scope or MVC integration decisions, and verification results.
+Identify unverified navigation, recovery, or subflow behavior and any blocker.
+Follow the task's required response format.
