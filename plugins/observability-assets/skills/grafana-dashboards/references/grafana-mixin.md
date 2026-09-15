@@ -63,8 +63,9 @@ Jsonnet can inline imported local file contents into generated artifacts.
 
 ## Render Boundary Checks
 
-- point render commands at the documented rendered-asset tree
-- write generated dashboards under `grafana/rendered/dashboards/`
+- use the repository's existing renderer and documented output tree
+- treat `grafana/rendered/dashboards/` below as an example path, not a required repository layout
+- confirm the output path is not watched by a live provider before treating rendering as local-only preparation
 
 Example source-to-rendered contract:
 
@@ -180,8 +181,9 @@ config + {
 (import 'mixin.libsonnet').grafanaDashboards
 ```
 
-Use `jb init` once for a Jsonnet tree.
-Run `jb install` so jsonnet-bundler updates `jsonnetfile.json` when adding external mixins or Grafonnet.
+Reuse the existing Jsonnet setup without initializing another dependency tree.
+When an external dependency is authorized, use `jb init` only if the tree has no jsonnet-bundler manifest.
+Run `jb install` so jsonnet-bundler owns manifest and lock updates.
 Install Grafonnet only when the source imports Grafonnet:
 
 ```sh

@@ -1,31 +1,30 @@
 ---
 name: prometheus-alert-rules
 description: >-
-  Design, author, and review Prometheus alert rules with PromQL expressions and escalation policy.
-  Use when writing alert or recording rules that map operator symptoms to meaningful firing conditions, setting `for` and `keep_firing_for` timers to avoid flapping, managing alert labels for Alertmanager routing and grouping, or authoring Go-templated annotations for clarity.
+  Use for Prometheus alert and recording rules, firing timers, routing labels, annotations, and promtool check rules validation.
 ---
 
 # Prometheus Alert Rules
 
 Design and review Prometheus alert and recording rules around real operator symptoms, validate them with `promtool`, and keep rule definitions stable in version-controlled files.
-The common case is one rule group with a deliberate evaluation interval, one alert tied to a meaningful symptom, one explicit `for` window that avoids flapping, one clear alert name, one bounded label contract for Alertmanager, and one validation path that proves the shipped rule file is sane before it lands.
 
 ## Official Baseline
 
 - Use the official Prometheus rule and alerting documentation for release 3.14.0, read on 2026-09-13: [Recording rules](https://prometheus.io/docs/prometheus/3.14/configuration/recording_rules/) and [Alerting rules](https://prometheus.io/docs/prometheus/3.14/configuration/alerting_rules/).
 - Verified against the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
 
-## Common-Case Workflow
+## Task Focus
 
-1. Start from the operator symptom that should page or ticket, not from a random metric spike.
-2. Put the rule in a deliberate group, keep the evaluation interval explicit when the default is not enough, and write the smallest alert expression that captures the symptom.
-3. Add an explicit `for` window, and add `keep_firing_for` only when brief recoveries or scrape gaps would otherwise cause noisy false resolution and the deployed Prometheus version supports it.
-4. Keep labels literal, bounded, and routing-oriented.
-   - Keep annotations actionable.
-   - Keep link-like annotations such as `runbook_url` literal and trusted.
-   - Use lightweight Go templates such as `{{ $labels.service }}` or `{{ $value }}` only in human-readable annotations where they improve operator clarity.
-5. If the same expensive expression will be reused, extract it into a recording rule before writing the final alert expression.
-6. Validate syntax with `promtool check rules`, and hand off deeper regression-fixture work to the adjacent testing path when dedicated tests are needed.
+- Inspect the affected rules, consumers, and existing tests against the operator symptom that should page or ticket.
+- Keep group placement, evaluation intervals, and the alert expression deliberate.
+- Choose an explicit `for` window for sustained symptoms.
+  Use `keep_firing_for` only when brief recoveries need suppression and the deployed version supports it.
+- Keep labels literal, bounded, and routing-oriented, and keep annotations actionable.
+  Keep link-like annotations such as `runbook_url` literal and trusted.
+  Use lightweight Go templates only in human-readable annotations where they improve operator clarity.
+- Introduce recording rules when reuse or evaluation cost justifies them, not as a prerequisite to alert authoring.
+- Validate edited rule files with `promtool check rules`.
+  Use `alert-rule-testing` when timing, thresholds, or label changes need regression fixtures.
 
 ## File Structure Hierarchy
 
@@ -462,7 +461,7 @@ Use when: the same symptom needs different urgency levels at different threshold
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Review the affected rules with these checks:
 
 - The alert maps to an operator symptom rather than one noisy infrastructure blip
 - Rule groups and intervals are deliberate rather than left implicit by accident
@@ -475,6 +474,10 @@ Validate the common case with these checks:
 - The label set is a deliberate contract for downstream Alertmanager routing, grouping, and inhibition
 - `promtool check rules` passes on the actual shipped file
 - Dedicated alert-rule tests exist in the adjacent testing path when alert behavior must stay stable over time
+
+Report syntax validation separately from behavioral test evidence.
+Authoring and local validation do not authorize deploying rules or reloading Prometheus.
+Obtain explicit authorization for the target before either runtime action.
 
 ## Output contract
 
@@ -499,7 +502,6 @@ Return:
 
 - MUST tie the alert to a meaningful operator symptom.
 - MUST validate edited rule files with `promtool check rules` before claiming they are ready.
-- MUST keep the ordinary alert-rule path understandable from this file alone.
 - MUST keep routing labels and annotations explicit.
 - MUST keep rule group structure, `for`, and `keep_firing_for` choices deliberate.
 - MUST name alerts so the firing condition is obvious from the alert name itself.

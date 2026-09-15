@@ -53,16 +53,12 @@ It may load observability skills but does not delegate to other agents.
 - Dashboard JSON authoring, Grafana mixin usage, stable `uid` handling, and dashboard review belong in `grafana-dashboards`.
 - Provider YAML, dashboard-as-code folder structure, and file-wins drift handling belong in `dashboard-provisioning`.
 
-Typical workflow:
+Start with the operational question and select the skill for the affected asset.
+Load supporting references only for the details the task needs.
+Cross-skill work does not require running every workflow above.
 
-1. Start with the operational question that needs an alert, dashboard, SLI, or SLO view.
-2. Use `promql` when the blocker is the query itself, including SLI or error-budget math.
-3. Use `prometheus-alert-rules` when the task is deciding what should fire.
-4. Use `alert-rule-testing` when the blocker is proving alert behavior stays correct.
-5. Use `alertmanager` when the blocker is routing or notification quality after the alert fires.
-6. Use `grafana-dashboards` when the blocker is how to present the signal.
-7. Use `dashboard-provisioning` when the blocker is how the dashboard is delivered and kept in sync from files.
-8. Application-framework-specific instrumentation concerns fall outside this plugin's scope.
+Asset authoring and read-only review do not authorize deployment, runtime changes, or publication.
+Each skill identifies its validation and runtime boundaries.
 
 ## Scope Boundaries
 

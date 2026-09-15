@@ -11,7 +11,7 @@ Actual `promtool test rules` file authoring belongs to the `alert-rule-testing` 
 
 ## When This Alert Likely Needs Regression Coverage
 
-Author regression test fixtures when any of these are true:
+Use these risks to select regression coverage, reusing existing fixtures where they already protect the affected behavior:
 
 - The alert gates paging, ticket creation, or another high-cost operator action.
 - The expression has threshold-edge behavior where `<` versus `<=` materially changes the result.
@@ -40,16 +40,18 @@ recording rule evaluates first
 
 ```
 
-## Test Coverage Matrix by Alert Type
+## Coverage Selection
 
-| Alert characteristic | Minimum test cases | Recommended test cases |
-| --- | --- | --- |
-| Simple threshold, no `for` | firing | below-threshold, firing |
-| With `for: 10m` | pending (before `for`), firing (after `for`) | below-threshold, pending, firing, resolved |
-| With `keep_firing_for` | firing, resolved (after hold-open) | below-threshold, pending, firing, during-hold-open, resolved |
-| Consumes recording rule | firing with recorded value check | all above + promql_expr_test on intermediate |
-| Multi-threshold tiered alerts | each tier's firing case | each tier's below/pending/firing/resolved |
-| Uses histogram_quantile | firing at boundary | boundary-exact, above-boundary, below-boundary |
+Select assertions for the changed contract rather than adding every lifecycle case for each alert type.
+
+| Changed behavior | Useful regression evidence |
+| --- | --- |
+| Threshold or comparison operator | Values on the relevant sides of the boundary, including equality when it matters |
+| `for` timing | Non-firing before the boundary and firing after sustained matching evaluations |
+| `keep_firing_for` | Continued firing during the hold-open window and resolution after it |
+| Recording-rule dependency | Evaluation order and the recorded value consumed by the alert |
+| Severity tiers or routing labels | The affected tier and its emitted label set |
+| Histogram boundary | Bucket fixtures around the threshold where interpolation could change the result |
 
 ## Alert-Authoring Handoff Notes
 
