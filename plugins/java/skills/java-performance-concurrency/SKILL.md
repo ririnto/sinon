@@ -1,8 +1,7 @@
 ---
 name: java-performance-concurrency
 description: >-
-  Review Java performance and concurrency decisions with evidence-driven profiling, classify bottlenecks as CPU, I/O, contention, or allocation, evaluate virtual-thread fit, and recommend the smallest measured change.
-  Use when interpreting profiling results, choosing between platform and virtual threads, evaluating lock contention or allocation churn, or deciding whether a concurrency change is justified by measured evidence.
+  Diagnose Java performance bottlenecks or evaluate concurrency and virtual-thread changes using measured evidence.
 ---
 
 # Java Performance Concurrency
@@ -26,13 +25,14 @@ It is identifying whether the bottleneck is CPU, blocking I/O, contention, or al
 - SHOULD treat `ScopedValue` as a version-sensitive alternative to broad `ThreadLocal` usage when immutable request context is the real problem.
   - It is preview on Java 21-24 and finalized in Java 25.
 
-## Procedure
+## Task Context
 
-1. Read the target code, hot path, and the nearest benchmark, trace, or diagnostic evidence.
-2. Identify whether the issue is latency, throughput, contention, or allocation.
-3. Profile or interpret measured evidence before recommending a concurrency or optimization change.
-4. Classify the workload shape before recommending any specific primitive.
-5. Prefer the smallest measured change that addresses the observed bottleneck.
+Read the relevant hot path and available benchmark, trace, or profile before choosing an optimization.
+Use [`virtual-threads.md`](./references/virtual-threads.md) for virtual-thread limits, `ScopedValue`, or pinning diagnosis.
+Use [`performance-patterns.md`](./references/performance-patterns.md) for profiling commands and evidence interpretation.
+Collect only the missing evidence needed for the decision.
+Confirm the target process and capture impact before live diagnostics.
+Diagnostic examples do not authorize production attachment, sensitive dump capture, or overwriting existing artifacts.
 
 ## First runnable commands
 
@@ -252,7 +252,7 @@ jhsdb jmap --binaryheap --dumpfile /tmp/heap.hprof --pid <pid>
 ## Edge cases
 
 - Live JVM incident triage is outside this skill's scope.
-  Collect the first evidence with the JFR recording and heap-dump capture commands in this file.
+  Use existing evidence or propose a bounded capture when the target or authority is unclear.
 - Public API or type-modeling decisions are outside this skill's scope.
   Use `java:java-language-design`.
 - JUnit structure or test-first workflow is outside this skill's scope.
@@ -262,29 +262,8 @@ jhsdb jmap --binaryheap --dumpfile /tmp/heap.hprof --pid <pid>
 - If discussing `synchronized` pinning, state whether the target runtime is Java 21-23 or Java 24+ before giving version-specific advice.
 - Standard JDK tool selection or packaging workflows are outside this skill's scope.
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The classified bottleneck type (CPU, I/O, contention, or allocation).
-2. The measured evidence that supports the classification.
-3. The recommended change tied to that evidence.
-4. What was intentionally deferred and why.
-
-## Support-file pointers
-
-| If the blocker is... | Open... |
-| --- | --- |
-| virtual-thread fit, limits, ScopedValue usage, pinning diagnosis | [`virtual-threads.md`](./references/virtual-threads.md) |
-| additional profiling commands, JFR attach patterns, evidence interpretation heuristics | [`performance-patterns.md`](./references/performance-patterns.md) |
-
-## Gotchas
-
-- Do not optimize before profiling.
-- Do not recommend virtual threads for CPU-bound work.
-- Do not repeat pre-JDK-24 pinning advice on a newer baseline without stating the version range.
-- Do not talk about throughput and latency as if they were the same goal.
-- Do not blame GC for allocation-heavy code without checking the hot path first.
+Tie the bottleneck classification and recommendation to measured evidence.
+For authorized optimization work, compare the affected workload before and after the change.
+State any missing evidence or unverified operational impact.

@@ -1,8 +1,7 @@
 ---
 name: java-dependency-versioning
 description: >-
-  Resolve Java dependency coordinates, keep reusable install guidance version-neutral, and verify current public releases only when online lookup is available.
-  Use when the user asks to find a Java artifact coordinate, prepare a Maven or Gradle dependency snippet, check Maven Central for a current release, or needs offline-safe dependency versioning guidance for Java projects.
+  Resolve Java artifact coordinates, prepare Maven or Gradle dependency snippets, or verify current Maven Central releases.
 ---
 
 # Java Dependency Versioning
@@ -23,15 +22,12 @@ When the user explicitly needs the current public release and network access is 
 - SHOULD prefer the smallest build-tool snippet that communicates the install shape clearly.
 - MUST separate artifact lookup guidance from repository-specific pinning policy.
 
-## Procedure
+## Task Context
 
-1. Identify the target library by `groupId` and `artifactId` before discussing versions.
-2. Check whether the repository already pins the version through a BOM, Gradle version catalog, Maven property, or existing dependency declaration.
-3. If no verified local version source is available, emit a version-neutral snippet using a placeholder such as `${verifiedVersion}` or the repository's version-reference style.
-4. If the user explicitly needs the current public release and network access is available, query Maven Central with a concrete request that can be re-run and checked with `curl`.
-5. Treat `response.docs[0].latestVersion` as a candidate value, then confirm the coordinate and artifact type before writing a version-specific snippet.
-6. Distinguish whether the artifact is a library, plugin, BOM, or platform dependency before suggesting syntax.
-7. Emit the smallest install shape for Maven or Gradle, then layer repository policy on top only if needed.
+Read the relevant dependency declaration and repository-managed version source.
+Use `${verifiedVersion}` or the repository's version-reference style when no verified version is available.
+Open [`maven-central.md`](./references/maven-central.md) for online lookup, response fields, pagination, or artifact-specific installation details.
+Dependency lookup does not itself authorize adding or upgrading a dependency.
 
 ## First runnable commands
 
@@ -159,28 +155,8 @@ curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a
 - Questions about performance and concurrency tradeoffs are outside this skill's scope.
   Use `java:java-performance-concurrency`.
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The resolved `groupId:artifactId` coordinate and either the verified version or an explicit placeholder/version-reference note.
-2. The copyable Maven or Gradle snippet matching the active build tool.
-3. The raw `curl` command used for verification when an online check was performed.
-4. Explicit note if the artifact kind (library, plugin, BOM) affects the install shape.
-
-## Support-file pointers
-
-| If the blocker is... | Open... |
-| --- | --- |
-| Online Maven Central verification, response field details, paginated search, BOM/plugin lookup patterns, or installation notes by artifact kind | [`maven-central.md`](./references/maven-central.md) |
-
-## Gotchas
-
-- Do not guess the version from memory.
-- Do not search by artifact name only.
-- Do not trust `latestVersion` as if it always means most recently released.
-- Do not hardcode the resolved version into reusable documentation.
-- Do not mix library coordinates with plugin/tool versions without stating the distinction.
+Return the verified coordinate and the snippet for the active build tool.
+Distinguish a locally managed version, placeholder, and live-verified release.
+Include the request used for any online verification and any artifact-kind caveat.

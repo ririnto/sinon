@@ -32,11 +32,9 @@ This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line
 - Live JVM incident triage belongs in the runtime diagnostics guidance.
 - Collector-specific pause analysis, GC-log reading, and GC tradeoff questions belong in the GC-focused guidance.
 
-Typical workflow:
-
-1. Start with tooling guidance for compile, packaging, module, and runtime-image questions.
-2. Move to runtime diagnostics when there is already stack-trace, thread-dump, JFR, or heap-pressure evidence.
-3. Escalate to GC-focused guidance only when the question is specifically about garbage collection, pause behavior, or collector choice.
+Select the skill for the current question.
+Tooling, runtime triage, and GC analysis are not mandatory sequential stages.
+Use existing evidence before starting a new capture.
 
 ## Runtime Model
 
@@ -68,7 +66,7 @@ plugins/jvm/
 ## Design Principles
 
 - Prefer one job per skill.
-- Keep `SKILL.md` concise and procedural.
+- Keep skill entrypoints concise and route references by the task.
 - Move dense material into `references/`.
 - Treat LTS boundaries as the default frame for version-specific JDK differences.
 - Prefer standard JDK and HotSpot tools before wrappers.

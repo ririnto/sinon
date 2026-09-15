@@ -1,10 +1,7 @@
 ---
 name: java-language-syntax
 description: >-
-  Explain Java syntax availability across LTS baselines.
-  Compare expression forms between Java versions, rewrite code for older or newer targets, and choose foundational java.base package families.
-  Use when the user asks about Java grammar, var, switch expressions, text blocks, unnamed patterns, or the syntax and baseline availability of records, sealed classes, and pattern matching.
-  Use when checking whether a syntax form compiles on a given Java baseline or migrating source between Java versions.
+  Check Java syntax compatibility, migrate source between Java baselines, or choose foundational java.base APIs.
 ---
 
 # Java Language Syntax
@@ -24,14 +21,12 @@ The common case is checking the target Java LTS baseline first, then choosing th
 - SHOULD focus on syntax and expression differences that materially affect code shape.
 - SHOULD prefer the smallest newer syntax that materially improves readability over mechanically replacing every older form.
 
-## Procedure
+## Task Context
 
-1. Identify the target Java LTS baseline from the project build configuration, or ask the user if ambiguous.
-2. Read the current code and classify the question: stable syntax, preview syntax, migration compatibility, or foundational `java.base` usage.
-3. Prefer stable language features by default and call out preview-only or withdrawn constructs explicitly.
-4. When the question reaches into `java.base`, anchor to foundational families such as collections, time, files, regex, or `Optional` before suggesting extra dependencies.
-5. Recommend the smallest syntax or library-shape change that improves clarity while remaining compatible with the target baseline.
-6. Keep fallback shapes visible for older baselines when the recommendation depends on `17`, `21`, or `25`.
+Read the relevant source and build configuration to establish the target baseline.
+Ask only when the baseline remains unclear and changes the recommendation.
+Use [`advanced-syntax-recipes.md`](./references/advanced-syntax-recipes.md) for exact LTS availability, migration, or later-LTS recipes.
+Use [`java-base-family-map.md`](./references/java-base-family-map.md) to select a foundational package family before adding dependencies.
 
 ### Version legend
 
@@ -40,7 +35,7 @@ The common case is checking the target Java LTS baseline first, then choosing th
 - `(JDK 17+)`, `(JDK 21+)`, `(JDK 25+)` mean an LTS-boundary upgrade, not a universal fallback.
 - If two examples solve the same problem, prefer the lowest-baseline version that still keeps the code clear.
 
-## First runnable commands
+## Syntax Examples
 
 Version-aware switch comparison `(JDK 17+)` vs fallback `(JDK 8+)`:
 
@@ -437,7 +432,7 @@ switch (status) {
 
 ## Edge cases
 
-- If the user does not specify a Java baseline, ask before recommending any version-sensitive syntax.
+- If repository evidence does not establish the required Java baseline, clarify it before recommending version-sensitive syntax.
 - Questions about API shape or type modeling are outside this skill's scope.
   Use `java:java-language-design`.
 - Questions about JUnit structure are outside this skill's scope.
@@ -449,30 +444,7 @@ switch (status) {
 - If a preview feature is requested, state the support cost and baseline requirement explicitly before including it in guidance.
 - If `java.base` drifts toward `jdk.*` tools, `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, or live JVM diagnostics, stop and clarify that those are outside this skill's scope.
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The target Java LTS baseline used for the recommendation.
-2. The recommended syntax form with version annotation.
-3. A compatible fallback form when the target baseline is older than the recommendation.
-4. Explicit note if any construct is preview or withdrawn on the target baseline.
-
-## Support-file pointers
-
-| If the blocker is... | Open... |
-| --- | --- |
-| exact LTS-boundary availability, migration heuristics, or later-LTS recipes | [`advanced-syntax-recipes.md`](./references/advanced-syntax-recipes.md) |
-| choosing a foundational `java.base` package family | [`java-base-family-map.md`](./references/java-base-family-map.md) |
-
-## Gotchas
-
-- Do not suggest syntax without naming the Java baseline.
-- Do not treat preview features as default modernization.
-- Do not treat string templates as a stable Java 25 feature.
-- Do not replace every old form with a new one mechanically.
-- Do not omit a fallback for older baselines.
-- Do not treat `java.base` as if it covered all `jdk.*` tools or every Java SE module.
+State the baseline, recommended syntax, and any relevant fallback or preview limitation.
+For source edits, verify compatibility with the repository's affected native compile or test task.

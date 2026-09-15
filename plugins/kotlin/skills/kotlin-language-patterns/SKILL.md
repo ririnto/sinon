@@ -1,8 +1,7 @@
 ---
 name: kotlin-language-patterns
 description: >-
-  Write idiomatic Kotlin with null safety, value types, extensions, collections, string handling, and standard-library boundary choices.
-  Triggers on `data class` vs `value class` tradeoffs, extension function design, collection operator selection, or standard-library alternative decisions for a Kotlin codebase.
+  Design or refactor Kotlin types, null handling, collections, extensions, Java interop, or stdlib boundaries.
 ---
 
 # Kotlin Language Patterns
@@ -51,13 +50,25 @@ Keep the common path focused on null safety, type modeling, extensions, collecti
   - This rule targets registered classes only; domain and protocol values keep explicit nullable flow.
 - SHOULD express optional behavior as explicit strategy implementations selected at composition time instead of a nullable or defaulted dependency.
 
-## Common-Path Procedure
+## Task Context
 
-1. Read the target type, function, or call site before changing syntax.
-2. Decide whether the main issue is null safety, type shape, extension placement, collection shape, text parsing, boundary error handling, Java interop, or a Kotlin-native boundary such as serialization, date-time, or filesystem paths.
-3. Start with the smallest Kotlin default: explicit nullable flow, direct collections, direct string helpers, and ordinary control flow.
-4. Upgrade only when the contract clearly needs a stronger construct such as a `value class`, sealed hierarchy, `Sequence`, `Regex`, or `Result` boundary.
-5. Open one blocker reference only when the remaining problem is deeper modeling ambiguity, null-and-scope-function cleanup, sequence tradeoffs, or an adjacent ecosystem boundary.
+Read the target declaration and relevant callers before changing its syntax or contract.
+Choose the smallest language construct that preserves behavior and the repository's Kotlin baseline.
+Use the reference table below for the modeling, collection, or platform boundary under change.
+
+## References
+
+Read the references that match the current decision.
+
+| Open when... | Read... |
+| --- | --- |
+| choosing among `value class`, `data class`, regular `class`, `object`, enum, and sealed modeling still feels ambiguous | `./references/language-modeling.md` |
+| cleaning up a null-heavy path or tangled scope-function chain is the real blocker | `./references/null-safety-and-scope-functions.md` |
+| deciding whether laziness is worth the cost or restructuring a pipeline around `Sequence` is the blocker | `./references/collections-and-sequences.md` |
+| implementing a JVM filesystem boundary needs exact `Path`, resource, or large-file handling code | `./references/path-filesystem.md` |
+| modeling a timestamp, date-only concept, or civil time needs exact conversion guidance | `./references/datetime-modeling.md` |
+| implementing Kotlin serialization needs exact `Json`, default-value, or contextual-serializer guidance | `./references/serialization-patterns.md` |
+| deciding whether a stdlib surface is common, JVM-only, experimental, or outside the normal path needs explicit caveats | `./references/stdlib-boundaries.md` |
 
 ## Core Decisions
 
@@ -525,49 +536,11 @@ class Example(private val value: String) {
 
 This follows the Kotlin coding-conventions expectation that class contents stay easy to scan instead of drifting into arbitrary order.
 
-## First Safe Default
+## Completion
 
-If the path is still unclear, start from one explicit nullable flow and one direct collection transformation.
-
-```kotlin
-@JvmInline
-value class UserId(val value: Long)
-
-data class User(val id: UserId, val active: Boolean)
-
-fun activeUserIds(users: List<User>): List<UserId> =
-    users.filter(User::active).map(User::id)
-```
-
-## Validate the Result
-
-Check these pass/fail conditions before you stop:
-
-- nullability is explicit and `!!` is not acting as a design shortcut
-- platform types (`T!`) are pinned at the Java interop boundary and never propagate inward
-- `val` is preferred.
-  - Every `var` has a documented reason (backing field, JavaBean, circular dependency)
-- argument validation uses `require`, state validation uses `check`, internal invariants use `assert`
-- public APIs expose read-only collection interfaces, not mutable variants
-- the chosen type shape matches the domain meaning instead of syntax fashion
-- data class `copy()` usage accounts for shallow-copy semantics
-- sealed types are consumed with exhaustive `when` expressions
-- extensions (functions and properties) improve the call site without hiding ownership rules.
-  - Polymorphic behavior lives in members
-- scope functions are readable in one pass with correct receiver/return semantics
-- generics use declaration-site variance where appropriate.
-  - `where` clauses constrain multiple bounds.
-  - Star projections hide unused variance
-- inline reification is used sparingly and only when reified access or measured performance justifies it
-- property delegation uses the right delegate for each job (`by lazy` with appropriate thread-safety mode, `Delegates.notNull`, `Delegates.observable`, `by`)
-- collection code stays eager unless laziness materially helps
-- direct string helpers were considered before `Regex`.
-  - Raw strings and template expressions are used appropriately
-- `Result` stays at boundaries rather than infecting ordinary business flow.
-  - `try/catch` is used when per-exception handling or resource cleanup is needed
-- Java callers are not surprised by hidden Kotlin assumptions (`@JvmOverloads`, `@JvmStatic`, `@JvmField`, `@file:JvmName`, `@Throws`)
-- serialization, date-time, and JVM path choices stay explicit instead of being silently pushed into unrelated plugins
-- member ordering still leaves one file easy to scan from top to bottom
+Explain the selected Kotlin shape and any material nullability, collection, parsing, or Java-interop consequence.
+For source edits, preserve the operating rules and verify affected behavior with the repository's native checks.
+Do not review unrelated language features merely to complete a checklist.
 
 ## Common Pitfalls
 
@@ -583,32 +556,6 @@ Check these pass/fail conditions before you stop:
 | using data class `copy()` expecting deep copy | `copy()` is shallow -- nested mutable objects are shared | use immutable nested types or deep clone explicitly |
 | letting platform types (`T!`) propagate from Java interop | null safety guarantees dissolve inward | declare explicit nullability at the interop edge |
 | relying on smart cast across lambda captures of `var` | compiler cannot prove the variable did not change between capture and use | capture the value in a local `val` before the lambda |
-
-## Output Contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen Kotlin shape and why it fits the job
-2. Any nullability, collection, or parsing decisions that affect behavior
-3. Any Java-interop caveats that still matter
-4. Any blocker references needed for deeper branches
-
-## References
-
-Open only the reference that matches the remaining blocker.
-
-| Open when... | Read... |
-| --- | --- |
-| choosing among `value class`, `data class`, regular `class`, `object`, enum, and sealed modeling still feels ambiguous | `./references/language-modeling.md` |
-| cleaning up a null-heavy path or tangled scope-function chain is the real blocker | `./references/null-safety-and-scope-functions.md` |
-| deciding whether laziness is worth the cost or restructuring a pipeline around `Sequence` is the blocker | `./references/collections-and-sequences.md` |
-| implementing a JVM filesystem boundary needs exact `Path`, resource, or large-file handling code | `./references/path-filesystem.md` |
-| modeling a timestamp, date-only concept, or civil time needs exact conversion guidance | `./references/datetime-modeling.md` |
-| implementing Kotlin serialization needs exact `Json`, default-value, or contextual-serializer guidance | `./references/serialization-patterns.md` |
-| deciding whether a stdlib surface is common, JVM-only, experimental, or outside the normal path needs explicit caveats | `./references/stdlib-boundaries.md` |
 
 ## Scope Boundaries
 

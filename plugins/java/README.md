@@ -22,7 +22,7 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 | --- | --- | --- |
 | `java-language-syntax` | Java grammar, LTS-boundary syntax differences, foundational `java.base` coverage | "explain Java syntax", "rewrite for Java X", "is this valid on Java 17" |
 | `java-language-design` | API shape, type modeling, immutability, exception contracts, collection exposure | "design a Java API", "review class structure", "records vs sealed classes" |
-| `java-test` | JUnit 5 TDD, Mockito boundaries, Awaitility async, build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
+| `java-test` | JUnit 5 tests, optional TDD, Mockito boundaries, Awaitility async, build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
 | `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
 | `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, and install snippets with live registry access for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
 
@@ -52,14 +52,12 @@ Start here when the Java work could fit more than one skill:
 - Use `java-dependency-versioning` for Maven coordinate lookup or current dependency-release checks.
 - Use `java-architect` when the task crosses several Java skill areas or needs an architecture-level decision before implementation.
 
-### Typical workflow
+### Applying the skills
 
-1. Confirm what the current Java LTS baseline allows before changing syntax or recommending newer foundational APIs with `java-language-syntax`.
-2. Shape the API or type model before broad refactors with `java-language-design`.
-3. Lock behavior with tests before or while changing implementation with `java-test`.
-4. Review concurrency and performance only after there is real evidence of a bottleneck with `java-performance-concurrency`.
-5. Check dependency coordinates and current releases before hardcoding version text with `java-dependency-versioning`.
-   - Current-release confirmation requires live registry access.
+Load only the skills needed for the current decision, not every skill in sequence.
+Establish the Java baseline for version-sensitive advice and use existing evidence for performance decisions.
+Choose native tests for acceptance criteria and regression risks, not a fixed test-layer budget.
+Current-release confirmation requires live registry access.
 
 ### Scope boundaries
 

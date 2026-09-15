@@ -7,6 +7,9 @@ description: >-
 
 Open this when declaring test dependencies, configuring the Gradle test task, or setting up a new module for testing.
 
+Reuse the existing native test harness and managed versions before considering dependency changes.
+The examples are alternatives for an authorized setup task, not a required library bundle.
+
 ## Core dependencies
 
 ```kotlin
@@ -22,10 +25,13 @@ dependencies {
 Optional libraries that may be added based on project needs: `kotest-runner-junit5`, `turbine`, `awaitility-kotlin`, `junit-jupiter` (Testcontainers).
 
 Pin versions through a `libs.versions.toml` catalog or the project's dependency management strategy.
-The raw coordinates above are directly usable.
+Check example versions against the project baseline before adoption.
 Update versions deliberately when the module's Kotlin baseline changes.
 
 ## Test task configuration
+
+Keep existing test-task settings unless execution setup is the blocker.
+The logging, heap, and parallelism values below are examples, not defaults to install in every project.
 
 ```kotlin
 tasks.test {

@@ -1,8 +1,7 @@
 ---
 name: jvm-runtime-diagnostics
 description: >-
-  Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence.
-  Use when diagnosing deadlocks, analyzing thread dumps, capturing JFR recordings, interpreting `jcmd` output, or classifying runtime symptoms as blocking, contention, memory pressure, or startup failure.
+  Diagnose JVM incidents from stack traces, thread dumps, JFR, jcmd output, or memory-pressure evidence.
 ---
 
 # JVM Runtime Diagnostics
@@ -18,12 +17,20 @@ Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this ski
 Treat JFR as the standard low-overhead path on JDK 11 and later.
 On JDK 8, do not assume JFR is ordinarily available: verify the exact Oracle JDK 8 commercial-feature and licensing posture before recommending `JFR.start` or `-XX:StartFlightRecording`, and prefer thread dumps plus other low-risk captures when that requirement is not clearly satisfied.
 
-## Common-Case Workflow
+## Task Context
 
-1. Read the evidence already on hand first: stack trace, logs, thread dump, JFR, or command output.
-2. Identify the dominant symptom: blocking, contention, startup failure, memory pressure, crash, or slow path.
-3. Start with `jcmd` to confirm the target JVM, the available commands, and the least invasive next capture.
-4. Use `jstack` or `jmap` only when you are on an older/legacy workflow or need a specific legacy shape, and use `jhsdb` when you need SA-style inspection, core-dump analysis, or attach alternatives beyond routine `jcmd` workflows.
+Start from the available traces, logs, dumps, or recordings and identify the symptom that needs explanation.
+Use [jcmd commands](./references/jcmd-commands.md) for live diagnostic command selection.
+Use [thread dumps and JFR](./references/thread-dumps-jfr.md) for snapshot comparison or time-based evidence.
+Use [legacy tools](./references/jdk8-legacy-tools.md) only for a JDK 8-era tool requirement.
+Use [jhsdb](./references/jhsdb.md) for core files or Serviceability Agent work.
+
+## Diagnostic Authority
+
+Confirm the target process, allowed capture scope, and command impact before live attachment.
+Continue authorized diagnostics without requesting approval for each command.
+Heap dumps, live Serviceability Agent attachment, remote debug servers, and runtime changes need authority covering their specific impact.
+When that authority is missing, analyze existing evidence and report the precise next capture needed.
 
 ## Minimal Setup
 
@@ -49,7 +56,7 @@ jcmd -l
 
 ## First Runnable Commands or Code Shape
 
-Start with the lowest-risk command sequence:
+Select the commands needed to identify the target and investigate the symptom:
 
 ```sh
 jcmd -l
@@ -171,25 +178,13 @@ jhsdb jmap --exe "$JAVA_HOME/bin/java" --core /path/to/private-diagnostics/core 
 
 Use when: the JVM has already crashed or you need core-file inspection rather than routine live attach.
 
-## Validate the Result
+## Completion
 
-Validate the common path with these checks:
-
-```sh
-jcmd <pid> help Thread.print
-jcmd <pid> JFR.check
-```
-
-- `Thread.print -l` completes and produces thread state plus lock detail.
-- `JFR.check` confirms the recording name and `(running)` status before claiming JFR is active.
-- `GC.class_histogram` reflects the expected process, not the wrong PID.
-- `VM.native_memory` confirmed Native Memory Tracking was enabled at startup.
-  - Comparing like-for-like captures.
-
-Tool-choice checks (decision rationale before deeper escalation):
-
-- `jstack` or `jmap` chosen with a specific reason not to use the `jcmd` equivalent.
-- `jhsdb` chosen for postmortem, core-based, or explicitly SA-oriented case, not normal live-process triage.
+Tie the diagnosis to the target process and captured evidence, and separate confirmed causes from hypotheses.
+Validate only the capture used: thread detail, recording name and status, or enabled Native Memory Tracking, as applicable.
+Explain any escalation beyond `jcmd` and any missing evidence that prevents a diagnosis.
+Finish the authorized investigation.
+Do not gather unrelated captures to fill a checklist.
 
 ## Format-Critical Output Shapes
 
@@ -309,15 +304,6 @@ Recording 1: name=baseline maxage=6 h (running)
 
 Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window.
 If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
-
-## References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| deciding which `jcmd` command family to use on a live JVM | `./references/jcmd-commands.md` |
-| deciding whether JDK 8-era `jstack` or `jmap` guidance is still justified | `./references/jdk8-legacy-tools.md` |
-| capturing repeated thread dumps, starting JFR, or deciding between snapshot and time-based evidence | `./references/thread-dumps-jfr.md` |
-| using Serviceability Agent tools such as `jhsdb` for core files or deeper attach workflows | `./references/jhsdb.md` |
 
 ## Invariants
 

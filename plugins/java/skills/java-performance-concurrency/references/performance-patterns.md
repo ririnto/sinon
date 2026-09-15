@@ -52,11 +52,8 @@ Thread dump with lock detail:
 jcmd <pid> Thread.print -l
 ```
 
-Run the dump three times 5 seconds apart, then compare for blocked threads:
-
-```sh
-for i in 1 2 3; do jcmd <pid> Thread.print -l > thread-$i.txt; sleep 5; done
-```
+Compare snapshots from the incident window when one dump cannot distinguish transient waiting from persistent contention.
+Collect additional snapshots only within the authorized capture scope.
 
 Throughput vs latency baseline:
 

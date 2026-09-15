@@ -1,8 +1,7 @@
 ---
 name: java-language-design
 description: >-
-  Design idiomatic Java APIs, review class structure for immutability and clarity, choose between records and sealed classes, decide checked vs unchecked exception boundaries, and shape public contracts with narrow surfaces and explicit value semantics.
-  Triggers on records vs sealed classes vs enums vs ordinary classes tradeoffs, immutable value type modeling, or exception boundary decisions for public APIs.
+  Design or review Java type models, public APIs, mutability, and exception contracts.
 ---
 
 # Java Language Design
@@ -28,16 +27,14 @@ The common case is choosing a clearer type shape, a narrower contract, and an un
 - SHOULD order top-level class members as: static fields, instance fields, constructors, static methods, overridden methods, instance methods, then inner static classes/records/enums.
 - SHOULD order members within each method group by visibility: `public`, `protected`, package-private, then `private`.
 
-## Procedure
+## Task Context
 
-1. Read the target class and the nearest related tests or callers first.
-2. Identify the Java baseline and whether the surface is internal or externally consumed.
-3. Choose the smallest design change that improves clarity while preserving the requested behavior.
-4. Make value semantics, exception contracts, and mutability boundaries explicit before adding extra abstraction.
-5. Verify collection-returning methods do not leak internal mutable state.
-6. Confirm checked exceptions remain only where callers can meaningfully recover.
+Read the target type and relevant callers or tests to establish its contract and Java baseline.
+Use [`language-features.md`](./references/language-features.md) for records, sealed types, and semantic modeling decisions.
+Use [`api-design.md`](./references/api-design.md) for mutability, visibility, collection exposure, and exception-contract review.
+Keep proposals distinct from authorized API changes.
 
-## First runnable commands
+## Contract Example
 
 Start from one explicit value carrier and one explicit capability interface:
 
@@ -203,28 +200,7 @@ public interface RetryStrategy {
 - If a type owns evolving state or identity-bearing behavior, a record may not fit even when the baseline supports it.
 - If the domain must remain extensible across package or module boundaries, prefer an open interface over a sealed hierarchy.
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The recommended type shape with Java baseline annotation.
-2. Explicit mutability and visibility decisions.
-3. Exception contract with recoverability rationale.
-4. Member ordering that follows the Operating rules ordering guidance.
-
-## Support-file pointers
-
-| If the blocker is... | Open... |
-| --- | --- |
-| records, sealed classes, and semantic modeling tradeoffs once the Java baseline is known | [`language-features.md`](./references/language-features.md) |
-| mutability, collection exposure, visibility, or exception-contract review | [`api-design.md`](./references/api-design.md) |
-
-## Gotchas
-
-- Do not return concrete mutable collections directly from public APIs.
-- Do not use inheritance when the model is just data or capability.
-- Do not throw checked exceptions for non-recoverable failures.
-- Do not hide invariants inside overloaded constructors.
+Explain the chosen type shape and material contract changes, with the Java baseline when relevant.
+For implementation tasks, complete the authorized change and verify affected callers and behavior.

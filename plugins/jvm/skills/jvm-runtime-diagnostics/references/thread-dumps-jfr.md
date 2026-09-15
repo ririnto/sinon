@@ -18,24 +18,14 @@ Use this reference when the issue needs either repeated snapshot comparison or t
 | unexplained latency spikes | JFR with latency events | time-based evidence shows where threads stall |
 | startup-only failures or very early regressions | startup-attached JFR | evidence begins before a later `jcmd` attach would be possible |
 
-## Three-Pass Comparison Technique
+## Snapshot Comparison
 
-When blocking or contention is suspected, capture three snapshots and compare:
+Compare existing snapshots from the incident window when one dump cannot distinguish transient waiting from persistent contention.
+Capture more only when needed and authorized, with a bounded window appropriate to the symptom.
+Do not infer permanent blocking from a fixed number of identical stacks alone.
 
-```sh
-for i in 1 2 3; do
-    jcmd $PID Thread.print -l > "/path/to/private-diagnostics/thread-$i.txt"
-    sleep 5
-done
-diff /path/to/private-diagnostics/thread-1.txt /path/to/private-diagnostics/thread-3.txt
-```
-
-What to look for in the diff:
-
-- Threads that appear in dump 1 but are gone in dump 3 (completed normally)
-- Threads stuck in the exact same stack frame across all three dumps (permanently blocked)
-- Threads that moved from RUNNABLE to BLOCKED between dumps (degradation in progress)
-- New threads appearing in pool patterns (thread creation under load)
+Look for completed threads, persistent waiting stacks, contested monitors, and thread creation under load.
+Correlate these observations with workload timing before naming a cause.
 
 ## JFR Analysis Commands
 

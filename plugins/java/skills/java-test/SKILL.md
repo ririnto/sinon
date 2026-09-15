@@ -1,23 +1,23 @@
 ---
 name: java-test
 description: >-
-  Write JUnit 5 tests, follow TDD red-green-refactor in Java, fix failing tests, configure Maven Surefire or Gradle test execution, and choose the smallest correct test scope.
-  Triggers on JUnit 5 test case authoring, unit vs integration scope decisions, Surefire or Failsafe plugin configuration, or Mockito and Awaitility introduction at collaboration boundaries.
+  Write or fix Java tests, choose test scope, and configure JUnit execution in Maven or Gradle.
 ---
 
 # Java Test
 
-Drive Java work through tests first, then implementation, then cleanup.
-The common case is writing the smallest failing JUnit 5 test, making the smallest production change, and keeping build-tool wiring separate from the test's behavioral intent.
+Prove the requested behavior with the smallest suitable test in the repository's existing native test harness.
+Use red-green-refactor when TDD is requested or a regression needs a reproducing test.
+Keep build-tool wiring separate from behavioral assertions.
 
 ## Operating rules
 
-- MUST write the smallest failing test that captures the requested behavior.
-- MUST use a unit test by default.
+- MUST select tests from acceptance criteria and regression risks, reusing existing coverage when sufficient.
+- SHOULD prefer a unit test when it can prove the behavior.
 - MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
 - MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
-- SHOULD treat roughly 60/30/10 as the default suite budget across unit/integration/end-to-end layers, choosing layers from the evidence each behavior needs.
-  Follow task, host, and dispatch requirements when they differ.
+- MUST NOT impose test-layer ratios or add every layer for each change.
+- MUST use the repository's native test runner without adding a task-specific execution wrapper.
 - MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD prefer one observable behavior per test.
 - MUST keep test names descriptive and scenario-based.
@@ -36,20 +36,18 @@ The common case is writing the smallest failing JUnit 5 test, making the smalles
 - Compare full serialized output after parsing structured formats into exact fields or elements.
   - Use containment only when membership itself is the observable contract.
 
-## Procedure
+## Task Context
 
-1. Read the target production code and the nearest related tests.
-2. Identify the requested behavior or bug before touching implementation.
-3. Start with the smallest failing unit test that captures that behavior.
-4. Move to an integration test only when the behavior cannot exist without a real boundary.
-5. Add an end-to-end test only when it covers a core user journey without duplicating lower-level coverage.
-6. Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later), and verify the returned exception message with `assertEquals` when the message matters.
-7. Use Mockito only for real collaboration boundaries and Awaitility only for genuinely asynchronous behavior.
-8. Wire the build tool (Maven Surefire or Gradle `useJUnitPlatform()`) only when execution setup is the actual blocker.
+Read the target production code and related tests to identify the observable contract and missing evidence.
+Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later).
+Verify the returned exception message with `assertEquals` when the message matters.
+Change Maven Surefire or Gradle `useJUnitPlatform()` wiring only when execution setup is the blocker.
+Use the templates below for the selected test shape, not as a checklist of tests to add.
+Open [`testing-core.md`](./references/testing-core.md) for assertion, lifecycle, mocking, or async verification details.
 
-## First runnable commands
+## Regression Example
 
-Start with one failing JUnit 5 test:
+Adapt this JUnit 5 exception-contract example to the target fixture:
 
 ```java
 import org.junit.jupiter.api.Test;
@@ -330,27 +328,8 @@ tasks.test {
 - If the behavior can be made deterministic without waiting, make it deterministic before reaching for Awaitility.
 - If using `assertTimeoutPreemptively`, warn that it runs work on a separate thread and may break `ThreadLocal`-sensitive code such as transaction-bound framework tests.
 
-## Output contract
+## Completion
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The failing test that captures one observable behavior.
-2. The minimal production change that makes the test pass.
-3. Build-tool wiring only if execution setup was the blocker.
-4. Explicit note if Mockito or Awaitility usage is justified at a real boundary.
-
-## Support-file pointers
-
-| If the blocker is... | Open... |
-| --- | --- |
-| assertion style, lifecycle hooks, parameterized JUnit 5 detail, mocking boundaries, or Awaitility-based async verification | [`testing-core.md`](./references/testing-core.md) |
-
-## Gotchas
-
-- Do not write several behaviors into one test.
-- Do not mock everything by default.
-- Do not use Awaitility to hide deterministic bugs.
-- Do not mix build-tool setup with behavior assertions.
+For test changes, run the affected native tests and fix failures caused by the change within scope.
+Report the behavior covered, exact command and result, and any unverified boundary.
+Do not stop after producing a failing test when the task also authorizes the fix.

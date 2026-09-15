@@ -39,14 +39,11 @@ Start here when Kotlin work could fit more than one skill:
 - When the question is "how should the async contract be shaped?", stay in coroutine guidance.
   - When it is "how do I verify that async behavior deterministically?", stay in testing guidance.
 
-### Typical workflow
+### Applying the skills
 
-1. Establish the type model, null-safety, and collection shape first with `kotlin-language-patterns`.
-2. Add coroutine and Flow guidance when async control flow, cancellation, or stream semantics matter with `kotlin-coroutines-flows`.
-3. Lock behavior with deterministic tests and the smallest correct scope with `kotlin-test`.
-4. Java syntax and JVM tooling questions are outside Kotlin guidance.
-5. Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior are
-   outside Kotlin guidance.
+Select the skill for the current decision instead of following a language, coroutine, and testing sequence.
+Use deterministic native tests when acceptance criteria or regression risks require new evidence.
+Keep Java, JVM, and Spring-specific behavior outside Kotlin guidance.
 
 ### Scope boundaries
 
