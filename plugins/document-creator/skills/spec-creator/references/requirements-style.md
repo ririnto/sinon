@@ -1,7 +1,6 @@
 # Requirements Style
 
-Use this reference when writing or reviewing individual requirements inside a `SPEC.md`.
-Open this reference when the spec structure is in place and you need to draft individual functional, non-functional, and acceptance requirements.
+Use this reference for requirement IDs, normative language, EARS patterns, and changes to existing requirements.
 
 ## Requirement IDs
 

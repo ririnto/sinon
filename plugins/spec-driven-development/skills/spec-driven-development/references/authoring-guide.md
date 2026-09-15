@@ -9,7 +9,7 @@ description: >-
 ## Purpose
 
 Use this guide for section-by-section `SPEC.md` authoring depth.
-Each section SHOULD be written at the correct workflow timing so requirements remain testable.
+Complete the required content before its gate; the authoring order is flexible.
 
 ## SPEC Placement and Naming
 
@@ -33,8 +33,7 @@ Naming MUST be ownership-oriented and MUST NOT use the following patterns:
 - repository-improvement names: meta-work that belongs outside `spec/`
 
 SPEC content MUST describe intended behavior, boundaries, and constraints.
-Requirements MUST NOT describe current implementation.
-Requirements MUST NOT be derived from inspecting existing code.
+Inspect existing code to understand evidence and constraints, not to turn accidental behavior into intended requirements.
 SPEC content SHOULD remain implementation-agnostic by default.
 Authors SHOULD avoid prescribing language, framework, library, or code-style policy unless the user explicitly requests those constraints or verified external constraints make them necessary.
 
@@ -128,8 +127,8 @@ How to write:
 - Verifiable language with objective acceptance criteria SHOULD be used.
 - Requirements SHOULD define observable outcomes, not internal details.
 - Each requirement SHOULD be exercised by at least one scenario.
-- Requirements MUST be derived from intended behavior and constraints, not from inspecting current implementation.
-- Requirement acceptance criteria MUST NOT describe how the code currently works.
+- Requirements MUST come from intended behavior and approved constraints, not reverse-justification of current code.
+- Acceptance criteria MUST describe the approved observable behavior, not internal code mechanics.
 
 ### Scenarios
 
@@ -186,7 +185,7 @@ Before marking `review` or higher:
   Reviewers assess the resulting document in context.
 - Manual numbered headings (`## 1. Something` form) MUST NOT be used.
   Reviewers assess heading style in `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
-- The packaged validator MUST be run per the `SKILL.md` Operating rules validator requirement, and failures MUST be resolved.
+- The packaged validator MUST be run per the `SKILL.md` Packaged Validator requirement, and failures MUST be resolved.
 
 ## Common Mistakes
 

@@ -4,7 +4,8 @@
 
 # Review Checklist
 
-Use this guide for the full Spec Review or Implementation Review worksheet.
+Use the applicable Spec Review or Implementation Review sections at the corresponding gate.
+Record unchanged passing evidence by reference rather than repeating unaffected checks.
 Use it to record each applicable item as `pass`, `fail`, or `n/a` with rationale in reviewer or agent output.
 
 Review output MUST record the review type, the reviewed artifact scope, and each applicable item as `pass`, `fail`, or `n/a` with rationale.
@@ -46,7 +47,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Research
 
-- [ ] `RESEARCH.md` exists when external behavior or version-sensitive behavior affects the SPEC
+- [ ] External unknowns that affect requirements are resolved through research or existing verified evidence
 - [ ] If `RESEARCH.md` exists, frontmatter captures the investigated subject and version, and `tag` is a YAML array of strings
 - [ ] If `RESEARCH.md` exists, it documents framework/library/topic behavior and is not project comparison, repository audits, implementation planning, migration sequencing, or task management
 - [ ] If `RESEARCH.md` exists, findings are current enough for this review
@@ -93,14 +94,14 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Formatting
 
-- [ ] No unnecessary bold emphasis
-- [ ] Headings used for emphasis instead
-- [ ] Quote rules followed, using `'` for single and `"` for double quotes
-- [ ] Table separator cells use at least 3 hyphens and MAY include leading or trailing alignment colons
-- [ ] A single space appears on both sides of cell content between pipe delimiters (for example, `| value |`)
-- [ ] When adjacent rows share the same first-column value, subsequent rows leave the first column empty (multi-row format)
-- [ ] When multiple items exist in one logical cell, each item is listed on a separate row with a `-` prefix
-- [ ] Table content is not omitted or summarized away
+- [ ] Authored Markdown and YAML follow applicable repository conventions
+- [ ] Tables preserve required contract detail and remain readable
+- [ ] No unresolved scaffold markers or placeholders remain
+
+### Validation
+
+- [ ] The packaged validator exits `0` for the reviewed tree or subtree when Bun is available
+- [ ] If Bun is unavailable, the runtime blocker and manual coverage of applicable items are recorded
 
 ## Implementation Review
 
@@ -119,4 +120,4 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] `spec/CHANGELOG.md` includes only behavior changes, configuration additions or changes, and contract changes
 - [ ] `spec/CHANGELOG.md` excludes research, initialization, planning, and future-reservation content
 - [ ] Frontmatter `call` updated if dependencies changed
-- [ ] Packaged validator re-run after the final spec sync per the `SKILL.md` Operating rules validator requirement
+- [ ] Packaged validator re-run after the final spec sync per the `SKILL.md` Packaged Validator requirement
