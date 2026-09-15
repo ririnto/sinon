@@ -1,8 +1,7 @@
 ---
 name: jvm-tooling-workflows
 description: >-
-  Guide JDK command-line toolchain workflows for compilation, documentation, dependency analysis, packaging, and custom runtime images.
-  Use when running `javac`, `javadoc`, `jdeps`, `jlink`, or `jpackage` directly, building custom runtime images, or choosing the smallest JDK tool sequence for a packaging or compilation task.
+  Use JDK tools for compilation, documentation, module analysis, runtime images, or application packaging.
 ---
 
 # JVM Tooling Workflows
@@ -10,8 +9,8 @@ description: >-
 ## Goal
 
 Guide tasks that depend on official JDK command-line tools and packaging flows.
-The common case is choosing the smallest standard tool sequence that produces a real deliverable without hiding behind build wrappers.
-Prefer direct JDK commands first, then layer repository-specific build glue on top only if needed.
+Use standard JDK tools without adding task-specific wrappers.
+Keep the repository's existing native build and test tasks when they already produce the requested deliverable.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and call out when a tool or packaging behavior changes across those releases.
 
@@ -19,12 +18,13 @@ Do not describe the full tooling surface as uniformly available across that whol
 In this skill's framing, `javac`, `java`, `javadoc`, and `jdeps` span the supported LTS line, `jshell` and `jlink` are JDK 9+ workflows, and `jpackage` is standard from JDK 16.
 JDK 14-15 shipped `jpackage` as an incubating tool (`jdk.incubator.jpackage`), so treat that era as a caveat rather than the normal production baseline.
 
-## Common-Case Workflow
+## Task Context
 
-1. Read the target outcome first: compile, run, `jshell` exploration, dependency analysis, documentation, runtime image, or installer.
-2. Choose the smallest official JDK tool that directly moves that outcome forward.
-3. Use `jdeps` before `jlink` when module boundaries or runtime dependencies are not yet explicit.
-4. Use `jpackage` only after the launcher/runtime image strategy is already stable.
+Choose the tool for the requested deliverable rather than running the whole toolchain.
+Use [the tool index](./references/jdk-tool-index.md) for availability and output interpretation.
+Use [modules and packaging](./references/modules-packaging.md) for module graphs, runtime images, or native packages.
+Use `jdeps` before `jlink` when module requirements are unknown.
+Resolve launcher and runtime-image requirements before packaging.
 
 ## Minimal Setup
 
@@ -143,11 +143,8 @@ Use when: the deliverable is documentation rather than packaging or runtime anal
 
 ## Validate the Result
 
-Use the smallest validation that matches the chosen tool:
-
-```sh
-java --list-modules | grep java.base
-```
+Use the smallest validation that matches the chosen deliverable.
+Run only the relevant checks below and report the command, result, and any unverified launch behavior.
 
 - After `javac`, confirm the class output exists and `java -cp` starts successfully.
 - After `jshell`, confirm the target classes are loadable from `--class-path` and the first expression evaluates successfully.
@@ -246,13 +243,6 @@ build/docs/
 Entry point is `index.html`.
 Verify generation succeeded when this file exists and contains the expected package/class listing.
 
-## References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| choosing among the wider JDK tool set before narrowing the command sequence, or reading tool output shapes | `./references/jdk-tool-index.md` |
-| module-aware slimming or native packaging details | `./references/modules-packaging.md` |
-
 ## Invariants
 
 - MUST prefer official JDK tools before extra wrappers.
@@ -270,7 +260,7 @@ Verify generation succeeded when this file exists and contains the expected pack
 | starting `jshell` without the real class path | the REPL cannot load the project classes you actually want to inspect | build or point at the compiled output first, then launch `jshell --class-path ...` |
 | starting with `jpackage` | packaging too early hides runtime and module problems | inspect with `jdeps` first, then build the runtime/image chain |
 | using `jlink` without explicit module knowledge | the image can miss required modules or stay larger than necessary | run `jdeps --print-module-deps` first |
-| treating build wrappers as the source of truth | you lose the standard-tool sequence underneath | describe the raw JDK command flow first |
+| adding a custom wrapper before using existing tools | duplicates the native toolchain | use existing build tasks or direct JDK tools |
 | ignoring target-platform packaging limits | native packages are platform-specific | call out platform scope before recommending `jpackage` |
 
 ## Scope Boundaries

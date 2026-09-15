@@ -1,8 +1,7 @@
 ---
 name: jvm-gc-diagnostics
 description: >-
-  Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence.
-  Use when reading GC logs, comparing Serial, Parallel, G1, or ZGC collector options, interpreting JFR GC events, or deciding whether GC is the actual bottleneck before tuning.
+  Interpret GC logs and JFR evidence, diagnose heap pressure, or compare JVM garbage collectors.
 ---
 
 # JVM GC Diagnostics
@@ -22,13 +21,20 @@ Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later.
 On JDK 8, verify the exact Oracle JDK 8 Flight Recorder availability, commercial-feature status, and licensing posture before recommending JFR commands.
 Otherwise prefer GC logs plus `jcmd` evidence first.
 
-## Common-Case Workflow
+## Task Context
 
-1. Start from the symptom: pauses, throughput loss, allocation spikes, memory growth, or startup footprint.
-2. Confirm the active collector and the deployed Java version or LTS baseline before discussing alternatives.
-3. Gather or read GC evidence first with `jcmd`, GC logs, or JFR.
-4. Compare collectors only after the evidence shows GC is the real bottleneck and the default or current collector is a mismatch.
-5. Check vendor and build reality before recommending Shenandoah or other non-default collectors.
+Confirm the deployed runtime, active collector, and pause, throughput, or footprint goal from available evidence.
+Collect additional evidence only when it can resolve a material uncertainty.
+Use [collector baselines](./references/collector-baselines.md) for availability and tradeoffs on the deployed JDK.
+Use [GC logging](./references/gc-logging.md) for log interpretation or configuration.
+Use [JFR GC events](./references/jfr-gc-events.md) for recording selection and event analysis.
+
+## Diagnostic Authority
+
+Confirm the target and authorized capture scope before attaching to a live JVM.
+Check command impact before histograms, heap dumps, recording changes, or launch-flag changes.
+Ask before actions outside that scope, not before each already-authorized capture.
+Use restricted diagnostic destinations and preserve existing artifacts.
 
 ## Minimal Setup
 
@@ -147,9 +153,9 @@ Collector comparison checklist:
 
 Use when: the user asks "Should we switch from G1 to ZGC?" or a similar collector-choice question.
 
-## Validate the Result
+## Completion
 
-Validate the common case with these checks:
+Check the conclusions relevant to the requested diagnosis or collector recommendation:
 
 - active collector known from runtime data, not assumption
 - Java version/LTS boundary known before collector availability discussed
@@ -157,6 +163,8 @@ Validate the common case with these checks:
 - collector flags checked against the actual runtime era
 - recommendation framed in pause/throughput/footprint, not collector branding
 - no collector switch until GC evidence shows default is a mismatch
+
+Report the evidence, recommendation, and any unresolved capture or rollout requirement.
 
 ## Format-Critical Output Shapes
 
@@ -260,14 +268,6 @@ Look for:
 - `jdk.GCPhasePause` - individual pause phases.
   - Check max duration
 - `jdk.ObjectAllocationInNewTLAB` count - very high counts indicate allocation pressure
-
-## References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| confirming which collectors exist on an LTS baseline, comparing defaults, or deciding between G1/ZGC/Shenandoah | `./references/collector-baselines.md` |
-| configuring GC logging for next deploy, interpreting GC log output, translating JDK 8 legacy flags to unified logging | `./references/gc-logging.md` |
-| analyzing JFR recordings for GC events, querying specific events, interpreting event output | `./references/jfr-gc-events.md` |
 
 ## Invariants
 

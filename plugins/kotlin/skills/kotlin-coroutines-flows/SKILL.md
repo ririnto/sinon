@@ -1,8 +1,7 @@
 ---
 name: kotlin-coroutines-flows
 description: >-
-  Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior.
-  Use when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
+  Design or review Kotlin suspend and Flow APIs, coroutine ownership, cancellation, or shared-state behavior.
 ---
 
 # Kotlin Coroutines Flows
@@ -32,14 +31,23 @@ Start with the smallest shape that matches the contract, then open a blocker ref
 - SHOULD use `MutableStateFlow.update { }` for atomic state transitions.
 - MUST avoid `GlobalScope`, `GlobalScope.launch`, and detached work unless explicitly about background ownership.
 
-## Common-Path Procedure
+## Task Context
 
-1. Decide whether the caller needs one result, a stream over time, or explicitly owned background work.
-2. Start with `suspend` for one-shot work and switch to `Flow` only if the contract is truly streaming.
-3. Make ownership visible by keeping child work inside the current suspend function or launching from an explicit parent scope.
-4. Keep cancellation and failure semantics boring by default: child failure cancels the structured parent unless supervision is intentionally required.
-5. Keep dispatcher changes at real blocking or CPU-heavy boundaries rather than scattering them across leaf code.
-6. Escalate to a blocker reference only when hot sharing, buffering, supervision, or shared mutable state is the actual hard part.
+Read the async contract and its callers to establish result shape, lifecycle owner, and cancellation behavior.
+Choose `suspend`, streaming, or explicitly owned background work from that contract.
+Use the reference table below when ownership, failure propagation, hot sharing, or concurrent mutation needs detail.
+
+## References
+
+Read the references that match the current decision.
+
+| Open this when... | Read... |
+| --- | --- |
+| you need `coroutineScope`, `supervisorScope`, explicit launch ownership, or dispatcher boundaries | `./references/scope-ownership-and-dispatchers.md` |
+| you are debugging cancellation, timeouts, failure propagation, or cleanup semantics | `./references/cancellation-timeouts-and-failures.md` |
+| you need to justify `Flow`, choose `StateFlow` or `SharedFlow`, or shape hot sharing and buffering | `./references/flow-selection-hot-sharing-and-buffering.md` |
+| you are coordinating mutable state across coroutines, or need fan-in/fan-out, Channel handoff, work queues, or `select` expressions | `./references/shared-state-and-concurrency.md` |
+| you are checking coroutine behavior from this skill and need a minimal testing bridge | `./references/testing.md` |
 
 ## Key Decisions
 
@@ -217,37 +225,11 @@ repository.observeOrders()
     .collect(::render)
 ```
 
-## First Safe Default
+## Completion
 
-If you are unsure, start here:
-
-```kotlin
-class OrderLoader(private val repository: OrderRepository) {
-    suspend fun load(orderId: OrderId): Order = repository.load(orderId)
-}
-```
-
-Only add `Flow`, extra scopes, sharing, or buffering when the contract clearly needs them.
-
-## Validate the Result
-
-Check these pass/fail conditions before you stop:
-
-- one-shot work uses `suspend` instead of a decorative stream
-- stream APIs describe real ongoing delivery rather than single-response work
-- `launch` is used for fire-and-forget and `async` only when the result is awaited
-- `GlobalScope` is not used anywhere
-- `CoroutineExceptionHandler` is installed only on a root coroutine context or root `launch` where uncaught exceptions are reported
-- code inside `flow { }` is sequential with no context-switching calls
-- `StateFlow` and `SharedFlow` are chosen for clear state or event semantics.
-  - When using `SharedFlow`, imports include `BufferOverflow`
-- scope ownership is visible and launched work is not detached by accident
-- blocking or CPU-heavy work is not hidden inside an apparently cheap async path
-- cancellation is preserved instead of swallowed in broad exception handling
-- Flow error handling uses `catch`/`retry` operators instead of wrapping `collect` in try/catch
-- Flow construction uses the right tool: `flowOf`/`asFlow`/`emptyFlow()` for constants, `flow {}` for custom logic, `callbackFlow` for callback bridging
-- side effects in Flow chains use `onEach`.
-  - Collection into external scopes uses `launchIn`
+Explain the async shape, ownership, cancellation, and any dispatcher or delivery tradeoff relevant to the task.
+For implementation work, verify changed behavior with affected native tests rather than testing every coroutine pattern.
+Report any unverified lifecycle or concurrency boundary.
 
 ## Common Pitfalls
 
@@ -264,30 +246,6 @@ Check these pass/fail conditions before you stop:
 | installing `CoroutineExceptionHandler` on child scope or expecting it to handle `async` failures | child handlers do not catch sibling failures, and `async` captures failures in `Deferred` | install handlers only at root contexts and handle `async` with `await` |
 | calling `withContext` inside `flow { }` | violates context-preservation invariant of Flow | move the context switch to `flowOn()` |
 | assuming `StateFlow` emits every value | `StateFlow` conflates fast updates and drops intermediate values | use `SharedFlow` if every value matters |
-
-## Output Contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen async shape and why it matches the contract
-2. The ownership and cancellation model
-3. Any dispatcher, sharing, or buffering decisions that affect behavior
-4. Any blocker references needed for deeper branches
-
-## References
-
-Open these only when the named blocker is the real issue.
-
-| Open this when... | Read... |
-| --- | --- |
-| you need `coroutineScope`, `supervisorScope`, explicit launch ownership, or dispatcher boundaries | `./references/scope-ownership-and-dispatchers.md` |
-| you are debugging cancellation, timeouts, failure propagation, or cleanup semantics | `./references/cancellation-timeouts-and-failures.md` |
-| you need to justify `Flow`, choose `StateFlow` or `SharedFlow`, or shape hot sharing and buffering | `./references/flow-selection-hot-sharing-and-buffering.md` |
-| you are coordinating mutable state across coroutines, or need fan-in/fan-out, Channel handoff, work queues, or `select` expressions | `./references/shared-state-and-concurrency.md` |
-| you are checking coroutine behavior from this skill and need a minimal testing bridge | `./references/testing.md` |
 
 ## Scope Boundaries
 

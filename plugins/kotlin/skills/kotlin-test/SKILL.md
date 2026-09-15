@@ -1,8 +1,7 @@
 ---
 name: kotlin-test
 description: >-
-  Write clear, deterministic Kotlin tests that prove one observable behavior with the smallest correct scope.
-  Use when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
+  Write or fix Kotlin JVM tests, including deterministic coroutine, Flow, and exception-contract tests.
 ---
 
 # Kotlin Test
@@ -11,21 +10,21 @@ description: >-
 
 Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works.
 
-Minimum Kotlin version: 2.1 -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+.
+Example baseline: Kotlin 2.1 -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+.
 All library versions are managed through the project's dependency catalog.
-Pin versions when adopting features from specific releases.
+Use existing library versions unless a required feature justifies an authorized dependency change.
 This skill covers JVM testing only -- for multiplatform targets, adapt assertions to `kotlin-test-js` or `kotlin-test-native`.
 Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions.
 Use blocker references only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
 
 ## Operating Rules
 
-- MUST choose the smallest test scope that proves the behavior.
-- MUST use a unit test by default.
+- MUST select tests from acceptance criteria and regression risks, reusing existing coverage when sufficient.
+- SHOULD prefer a unit test when it can prove the behavior.
 - MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
 - MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
-- SHOULD treat roughly 60/30/10 as the default suite budget across unit/integration/end-to-end layers, choosing layers from the evidence each behavior needs.
-  Follow task, host, and dispatch requirements when they differ.
+- MUST NOT impose test-layer ratios or add every layer for each change.
+- MUST use the repository's native test runner without adding a task-specific execution wrapper.
 - MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD keep one observable behavior per test.
 - SHOULD name tests as `verbCondition` or `subjectVerb` describing the observable behavior (e.g., `returnsCachedProfile`, `emitsLoadingThenData`, `rejectsInvalidInput`).
@@ -40,16 +39,27 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 - MUST avoid real sleeps when deterministic scheduler control can prove the same behavior.
 - SHOULD keep mocks at collaboration boundaries and keep simple values real.
 
-## Common-Path Procedure
+## Task Context
 
-1. Read the production behavior and the nearest related tests first.
-2. Start with a unit test for one observable contract.
-3. Use an integration test only when the behavior cannot exist without a real boundary.
-4. Add an end-to-end test only for a core user journey that lower-level tests do not duplicate.
-5. Add `runTest` only when the code under test uses `suspend`, delay, cancellation, or Flow collection, and confirm `kotlinx-coroutines-test` is available in test scope.
-6. Bound Flow collection to the exact items needed for the assertion.
-7. Layer JUnit 5 structure or other test libraries only when the suite already uses them.
-8. Open one blocker reference only when scheduler control, replay semantics, JUnit 5 structure, MockK, Kotest, or eventual-consistency helpers are the actual blocker.
+Read the production contract and related tests before choosing test scope.
+Reuse the suite's existing runner, assertions, and fixtures.
+Use `runTest` only when coroutine semantics matter and `kotlinx-coroutines-test` is available.
+Use the reference table below for the test behavior or execution problem under change.
+
+## References
+
+Read the references that match the current decision.
+
+| Open when... | Read... |
+| --- | --- |
+| step-by-step Flow inspection, cancellation verification, or error-terminal states are the blocker | `./references/turbine-flow-testing.md` |
+| setting up test dependencies, Gradle configuration, or choosing libraries is the blocker | `./references/gradle-dependencies-and-config.md` |
+| delay control, scheduler advancement, or dispatcher injection is the blocker | `./references/coroutine-test-determinism.md` |
+| Flow replay semantics or bounded collection shape is the blocker | `./references/flow-testing.md` |
+| JUnit 5 nested structure, grouped assertions, or timeout variants are the blocker | `./references/junit5-structure-and-timeouts.md` |
+| mocking boundaries or MockK collaboration checks are the blocker | `./references/mocking-boundaries-and-mockk.md` |
+| Kotest style, soft assertions, or exact exception checks are the blocker | `./references/kotest-style-and-exact-exceptions.md` |
+| eventual consistency requires Awaitility rather than scheduler control or bounded collection | `./references/eventual-consistency-and-awaitility.md` |
 
 ## Core Decisions
 
@@ -196,20 +206,12 @@ In suites that already use Kotest, use `shouldThrowExactly<T>()` for the same co
 Assert `error.message shouldBe "<exact expected text>"` plus the meaningful fields the exception declares, and use `shouldNotThrowAny { }` only when no-exception is itself the contract.
 Open the Kotest reference for the exact shapes and the `assertSoftly` interaction caveat.
 
-## First Safe Default
+## Completion
 
-If the path is still unclear, write one synchronous behavior test first, then add `runTest` or bounded Flow collection only if the production contract requires it.
-
-## Validate the Result
-
-Check these pass/fail conditions before you stop:
-
-- the test proves one observable behavior rather than internal choreography
-- coroutine tests use `runTest` instead of real sleeps
-- Flow tests collect only the amount needed for the assertion
-- exception assertions prove the exact contract that matters
-- mocks exist only at real collaboration boundaries
-- assertion choice matches the contract shape (equality vs content-equality vs containment)
+Run the affected native tests and fix failures caused by the authorized change.
+Report the behavior proved, command and result, and any unverified boundary.
+Review only relevant coroutine, Flow, exception, or mocking decisions.
+Do not require every pattern for each test.
 
 ## Common Pitfalls
 
@@ -221,33 +223,6 @@ Check these pass/fail conditions before you stop:
 | over-mocking simple values or pure helpers | fixtures become harder to read than the code under test | keep simple values real |
 | reaching for framework-specific helpers before a plain test works | the test shape becomes heavier than the behavior | start with `kotlin.test` and grow only when needed |
 | using `assertEquals` on lists when element order is unstable | structural comparison fails on reorderings | use `assertContains` or sort before `assertEquals` |
-
-## Output Contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen test scope and the behavior it proves
-2. Whether the test stays synchronous, uses `runTest`, or uses bounded Flow collection
-3. Any exception or mocking decisions that affect the contract
-4. Any blocker references needed for deeper branches
-
-## References
-
-Open only the reference that matches the remaining blocker.
-
-| Open when... | Read... |
-| --- | --- |
-| step-by-step Flow inspection, cancellation verification, or error-terminal states are the blocker | `./references/turbine-flow-testing.md` |
-| setting up test dependencies, Gradle configuration, or choosing libraries is the blocker | `./references/gradle-dependencies-and-config.md` |
-| delay control, scheduler advancement, or dispatcher injection is the blocker | `./references/coroutine-test-determinism.md` |
-| Flow replay semantics or bounded collection shape is the blocker | `./references/flow-testing.md` |
-| JUnit 5 nested structure, grouped assertions, or timeout variants are the blocker | `./references/junit5-structure-and-timeouts.md` |
-| mocking boundaries or MockK collaboration checks are the blocker | `./references/mocking-boundaries-and-mockk.md` |
-| Kotest style, soft assertions, or exact exception checks are the blocker | `./references/kotest-style-and-exact-exceptions.md` |
-| eventual consistency requires Awaitility rather than scheduler control or bounded collection | `./references/eventual-consistency-and-awaitility.md` |
 
 ## Scope Boundaries
 
