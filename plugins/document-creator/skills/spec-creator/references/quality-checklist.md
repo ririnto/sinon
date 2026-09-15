@@ -1,6 +1,7 @@
 # Quality Checklist
 
-Use this checklist before finalizing a generated `SPEC.md`.
+Use applicable checklist sections for the requested authoring or review scope.
+System-specific items apply only when that contract surface exists.
 Treat the checklist as a requirements-quality gate, not as an implementation test plan.
 Fix failures directly when possible.
 If revision requires human judgment, record a focused open question instead of guessing.
@@ -129,7 +130,8 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] The spec is self-contained enough for a future agent to use without guessing.
 - [ ] The spec clearly separates WHAT/WHY from HOW unless design is explicitly in scope.
 - [ ] The spec includes enough boundaries (limits, states, transitions) to prevent feature inflation during implementation.
-- [ ] The spec does not instruct an agent to mine repository-local docs (`ARCHITECTURE.md`, `README.md`, `WORKFLOW.md`, etc.) unless the user explicitly authorized that task.
+- [ ] The spec contains its required contract rather than delegating requirement discovery to other repository documents.
+- [ ] Repository evidence is distinguished from approved requirements and does not expand task authority.
 - [ ] The spec remains one standalone artifact.
   When it grows beyond ~10,000 words, large conditional details move to appendices inside the same `SPEC.md` and the main sections link to those internal headings.
 - [ ] Ambiguities are resolved.

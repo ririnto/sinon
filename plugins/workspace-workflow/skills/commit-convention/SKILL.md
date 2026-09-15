@@ -1,8 +1,6 @@
 ---
 name: commit-convention
-description: >-
-  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer.
-  Triggers on commit message text composition or review, commit type selection, breaking-change footer formatting, or message structure validation against the Conventional Commits spec.
+description: Draft or review Conventional Commit messages, including type, scope, breaking changes, and commit cohesion.
 ---
 
 # Commit Convention
@@ -18,18 +16,21 @@ A well-formed commit message makes history readable, enables automated tooling (
 This skill covers composing and validating commit message text only.
 It does not cover:
 
-- Staging or unstaging files (use `git add`, `git reset`, or other workflow tools).
+- Staging or unstaging files.
 - Interactive rebase, squashing, or rewriting history (separate workflow skill).
 - Merge conflict resolution.
 - Pushing commits to remote.
 
 ## Operating Rules
 
+- Draft from the requested diff or supplied evidence.
+  Inspect staged changes when composing the next commit and history when repository conventions are unclear.
+- Message drafting does not authorize staging, commits, history edits, or publication.
+- Keep rationale self-contained, with portable paths and no private environment details, external work-item identifiers, or review URLs.
 - Keep each commit to one logical change when the task and repository workflow support that split.
   - A logical change is a single feature, bug fix, documentation update, or refactor rather than a mix of independent concerns.
 - Keep the first line concise, imperative, and free of a trailing period.
-  - SHOULD be 50 characters or fewer.
-    - MUST NOT exceed 72 characters.
+  - Follow repository length policy; otherwise prefer 50 characters and keep within 72 when practical.
 - If a commit has a body, it MUST begin with a blank line after the subject.
 - Body lines SHOULD wrap at 72 characters to ensure readability in terminal and email contexts.
 - Commit messages SHOULD be written in English by default, or in the language specified by project documentation and team communication.
@@ -78,7 +79,7 @@ A Conventional Commit has the structure:
 | `perf` | Performance improvement |
 | `test` | Test additions or modifications (no feature/fix) |
 | `build` | Build system, dependencies, tooling (e.g., npm, webpack, docker) |
-| `ci` | CI/CD configuration or scripts (e.g., hosted service Actions, hosted service CI) |
+| `ci` | CI/CD configuration or scripts (e.g., GitHub Actions, GitLab CI) |
 | `chore` | Maintenance, cleanup, version bumps (no feature/fix/docs impact) |
 | `revert` | Revert a previous commit |
 
@@ -175,7 +176,8 @@ Independent concerns are changes that:
 - Fix different bugs.
 - Implement separate features.
 - Update documentation unrelated to code changes.
-- Include cleanup or refactoring alongside a feature (the cleanup should be separate).
+- Include unrelated cleanup or refactoring alongside a feature.
+  Keep changes needed for one complete behavior together.
 
 ### Signals to Split
 
@@ -187,14 +189,7 @@ Independent concerns are changes that:
 Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`.
 These SHOULD be split into two commits.
 
-```sh
-# Suggested split:
-git reset
-git add auth.js
-git commit -m "fix(auth): resolve token expiration bug"
-git add form.css
-git commit -m "style: align button spacing in form"
-```
+Return suggested split boundaries and messages; do not execute the split from a message-drafting request.
 
 ## Pitfalls
 
@@ -259,54 +254,17 @@ BREAKING CHANGE: /api/v1/users endpoint has been removed. Use
 /api/v2/users instead.
 ```
 
-## First Safe Commands
+## Evidence And Completion
 
-Inspect the repository state before authoring:
-
-```sh
-git status
-git diff --staged
-git log --oneline -n 10
-```
-
-Write a commit message:
+For a staged commit draft, inspect the staged diff and relevant history:
 
 ```sh
-git commit -m "feat(scope): subject line"
+git -C /path/to/repo status --short
+git -C /path/to/repo diff --staged
+git -C /path/to/repo log --oneline -n 10
 ```
 
-With a body, use an editor:
-
-```sh
-git commit -v
-```
-
-The `-v` flag shows `git diff --cached` in the editor for reference while you type.
-
-If staged changes include multiple concerns, unstage and split:
-
-```sh
-git reset
-git add <file1>
-git commit -m "type(scope): message for file1"
-git add <file2>
-git commit -m "type(scope): message for file2"
-```
-
-## Output Contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-A commit message typically includes:
-
-- Valid Conventional Commit format: type, optional scope, subject.
-- Imperative mood: verbs are commands ("add", "fix", "remove"), not past tense.
-- Concise subject: 50 chars or fewer preferred, max 72.
-- No trailing period on subject.
-- Blank line between subject and body (if body exists).
-- Wrapped body at 72 characters for readability.
-- One logical unit per commit.
-- Consistent language: English by default.
-  - If translated, keep the entire message consistent.
-  - Keep code identifiers in their original form.
+If nothing is staged, say so rather than describing unstaged work as the next commit.
+A supplied diff can still support a clearly scoped message draft.
+Return the message and material cohesion or breaking-change concerns.
+Do not add runtime tests for commit-message prose or repeat its format as an output checklist.

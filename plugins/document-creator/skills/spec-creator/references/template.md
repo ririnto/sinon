@@ -1,11 +1,111 @@
-# System-Scale `SPEC.md` Template
+# `SPEC.md` Templates
 
-Open this reference when authoring a system-scale `SPEC.md`.
-System-scale applies to services, daemons, protocol implementations, agent runtimes, multi-component pipelines, or anything requiring a state machine, reference algorithms, or a conformance matrix.
-For feature-scale specifications, use the feature-scale mini template.
+Use the feature template for a bounded feature without complex state, protocol, or conformance requirements.
+Use the system template for services, protocols, or workflows that need those details.
+Keep existing structure for focused updates unless the requested change requires restructuring.
 
-Copy the skeleton below, replace bracketed placeholders, and delete sections that do not apply.
-Keep sections in the numbered order shown; this order matches the Symphony specification structure and is optimized for reader understanding.
+Templates guide coverage; they do not require extra behavior, layers, or a fixed section order.
+Copy only applicable sections, replace placeholders, and preserve stable requirement IDs.
+Examples describe possible contracts, not authority to run commands, poll systems, or change resources.
+
+## Feature-Scale Template
+
+```markdown
+---
+status: draft
+created: [YYYY-MM-DD]
+updated: [YYYY-MM-DD]
+owners:
+  - "[person, team, or role]"
+---
+
+# [Feature Name] Specification
+
+## Normative Language
+
+The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHOULD`, `SHOULD NOT`, `RECOMMENDED`, `MAY`, and `OPTIONAL` are interpreted as described in RFC 2119.
+
+`Implementation-defined` means the contract does not prescribe one universal policy.
+Implementations MUST document the selected behavior.
+
+## Problem Statement
+
+[Describe the problem and available evidence.]
+
+## Goals
+
+- [Concrete outcome]
+
+## Non-Goals
+
+- [Explicit exclusion and reason]
+
+## Scope
+
+### In Scope
+
+- [Behavior, workflow, user group, or deliverable]
+
+### Out of Scope
+
+- [Exclusion not already covered by Non-Goals]
+
+## Users and Stakeholders
+
+- [Primary actor or consuming system]
+- [Other relevant stakeholder]
+
+## Functional Requirements
+
+- FR-001: WHEN [trigger], the system MUST [observable response].
+
+## Non-Functional Requirements
+
+- NFR-PERF-001: The system MUST [target with measurement method].
+- NFR-SEC-001: The system MUST [security or privacy requirement].
+
+## Scenarios
+
+### FR-001: [Requirement Title]
+
+#### Scenario: [Successful path]
+
+- GIVEN [precondition]
+- WHEN [action or event]
+- THEN [observable outcome]
+
+#### Scenario: [Negative or boundary path]
+
+- GIVEN [precondition]
+- WHEN [invalid or edge-case input]
+- THEN [observable failure handling]
+
+## Acceptance Criteria
+
+- AC-001-A: GIVEN [precondition], WHEN [action], THEN [observable outcome].
+
+## Edge Cases and Failure Modes
+
+| Case | Expected Behavior | Requirement |
+| --- | --- | --- |
+| [Boundary or failure] | [Expected outcome] | FR-001 |
+
+## Success Criteria
+
+- SC-001: [Measurable outcome and verification method].
+
+## Open Questions
+
+| Question | Owner | Needed By | Resolution |
+| --- | --- | --- | --- |
+| [Specific question] | [role] | [decision point] | [known status] |
+```
+
+## System-Scale Template
+
+The system catalog covers domain fields, configuration, state, scheduling, safety, integration, failure, and conformance.
+Include each topic when it affects the contract.
+Keep problem and scope before solution details, and renumber retained sections if useful for internal references.
 
 ````markdown
 ---

@@ -11,7 +11,7 @@ It covers isolated worktree work, working-tree discipline, history integration (
 ## Purpose
 
 - Provide reusable guidance for managing parallel development using git worktrees without switching HEAD.
-- Establish hygiene discipline for clean working-tree state before any merge, rebase, commit, or review step.
+- Preserve working-tree and staging intent with operation-specific checks rather than requiring a clean tree for every task.
 - Document merge and rebase strategies with concrete commands, decision tables, and conflict-handling procedures.
 - Standardize commit messages with Conventional Commits and align change description bodies across Git repositories.
 - Coordinate decisions across these skills through focused workspace agents.
@@ -21,13 +21,14 @@ It covers isolated worktree work, working-tree discipline, history integration (
 | Skill | Job | Trigger |
 | --- | --- | --- |
 | git-worktree-management | Create, list, remove, and repair isolated git worktrees for parallel branch work | "create a worktree", "work on multiple branches at once", "remove a stale worktree" |
-| working-tree-hygiene | Inspect, stash, and maintain clean working-tree state before starting work or integrateing | "check if the tree is clean", "stash changes", "verify branch sync", "prepare to push" |
+| working-tree-hygiene | Inspect, stash, and maintain clean working-tree state before starting work or publishing | "check if the tree is clean", "stash changes", "verify branch sync", "prepare to push" |
 | git-merge-strategies | Choose and execute merge mode (fast-forward, no-ff, squash, octopus) with conflict and rerere patterns | "merge a feature branch", "resolve a merge conflict", "decide between ff and no-ff" |
 | git-rebase-strategies | Run interactive rebase, autosquash, and `--onto` reapplication while protecting shared history | "squash commits", "reorder history", "rebase onto a new base", "recover a failed rebase" |
 | commit-convention | Author Conventional Commits messages with type, scope, body, footer, and split decisions | "write a commit message", "normalize history", "split a change into commits" |
 | change-description | Compose Git-contained change descriptions with rationale, validation, review focus, and merge handoff | "describe a change", "write review context", "prepare a merge handoff" |
 
-These skills compose into the everyday loop: prepare a clean working tree (optionally inside a fresh worktree), shape commits with `commit-convention`, describe the change with `change-description`, and integrate with the right `git-merge-strategies` or `git-rebase-strategies` mode.
+Load the skill for the requested Git operation.
+Compose skills only when the task needs several operations, preserving existing work and each action's authorization boundary.
 
 ## Included Agents
 
@@ -36,7 +37,7 @@ These skills compose into the everyday loop: prepare a clean working tree (optio
 - change-description-architect: drafts Git-contained change descriptions that state real change intent and merge context.
 
 All three agents are read-only leaves for workspace decisions.
-They may load workspace skills but do not delegate, mutate Git state, or integrate.
+They may load workspace skills but do not delegate, mutate Git state, or publish.
 
 ## Runtime Model
 
@@ -77,10 +78,10 @@ plugins/workspace-workflow/
 
 - Prefer one coherent user job per skill.
   - Route cross-skill decisions through `workspace-architect`.
-- Keep the common path self-sufficient inside each `SKILL.md` with concrete commands, invariants, and decision tables.
+- Keep each `SKILL.md` focused on its operation, authority boundaries, relevant command choices, and completion evidence.
 - Derive guidance from real Git behavior and repository state rather than generic tutorials.
 - Keep change descriptions self-contained and derive review and merge context from repository evidence.
-- Treat shared history as a contract: rebasing or force-pushing integrateed branches requires explicit, team-acknowledged intent.
+- Treat shared history as a contract: rebasing or force-pushing published branches requires explicit, team-acknowledged intent.
 - Keep `plugin.json` thin and let the skills and agents carry the reusable substance.
 
 ## Installation

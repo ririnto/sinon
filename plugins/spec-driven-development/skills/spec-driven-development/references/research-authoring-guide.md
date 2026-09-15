@@ -137,7 +137,7 @@ Before using research in SPEC decisions:
 - The validator hand-checks these fields at runtime.
 - TODO markers MUST NOT remain.
 - Unresolved placeholders MUST NOT remain.
-- The packaged validator MUST be run per the `SKILL.md` Operating rules validator requirement, and failures MUST be resolved.
+- The packaged validator MUST be run per the `SKILL.md` Packaged Validator requirement, and failures MUST be resolved.
 
 ## Refresh Rules
 

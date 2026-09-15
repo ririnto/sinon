@@ -77,7 +77,9 @@ plugins/spec-driven-development/
 
 ## Design Principles
 
-- Keep the common path self-sufficient inside `SKILL.md` and move only additive depth into `references/`.
+- Keep `SKILL.md` as the task router and load references for the active lifecycle stage.
+- Keep gate semantics in `references/workflow.md` and review items in `references/review-checklist.md`.
+- Reuse current approval and unaffected check evidence when resuming approved work.
 - Derive spec content from requirements, not from implementation.
 
 ## Offline-Capable Runtime

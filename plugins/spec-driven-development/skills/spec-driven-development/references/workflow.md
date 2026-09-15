@@ -7,7 +7,8 @@ description: >-
 
 ## Overview
 
-Use this guide for full lifecycle semantics beyond the ordinary workflow.
+Use the sections for the current lifecycle stage.
+Resume from approval and verification evidence that still covers the current artifacts.
 This workflow is iterative.
 Any review MAY return the work to an earlier stage.
 `SPEC.md` remains the source of truth for scope and intended behavior.
@@ -31,15 +32,14 @@ Any review MAY return the work to an earlier stage.
 
 ## Fast Path
 
-The ordinary offline-capable path covers the default lifecycle.
-This section keeps only a compact lifecycle summary.
+This sequence defines the gated lifecycle, not a requirement to repeat completed stages.
 
 1. Use Research only when external framework, library, or topic behavior is unclear.
 2. Create or revise `SPEC.md`, obtain Gate 1 approval, then link outbound `call` dependencies.
 3. Add optional contract artifacts only when they improve review clarity.
-4. Run Spec Review with the inline checklist and the packaged validator per the `SKILL.md` Operating rules.
+4. Run Spec Review with the review checklist and the packaged validator per the `SKILL.md` Packaged Validator.
 5. Start implementation only after the approved artifact set is explicit.
-6. Finish with Implementation Review, final spec sync, and validator re-run per the same Operating rules.
+6. Finish with Implementation Review, final spec sync, and validator re-run per the same Packaged Validator requirement.
 
 ## Status Lifecycle
 
@@ -58,14 +58,19 @@ Gates are explicit checkpoints that block forward progress until their condition
 
 Passes when the user has explicitly approved the scope, primary requirements, and scenario direction of the current `SPEC.md` draft.
 
-The agent MUST present a scope summary and request explicit approval before advancing to Document Linking.
+If current approval is missing, present a scope summary and request explicit approval before advancing to Document Linking.
+Do not ask again when explicit approval still covers the current draft.
+Material changes to scope, primary requirements, or scenario direction require renewed approval.
 
 ### Gate 2 - Spec Review Passed
 
 Passes when both of the following conditions are met:
 
-- Every applicable inline checklist item is recorded as `pass` or `n/a` (zero `fail` items remain).
-- The validator condition from `SKILL.md` Operating rules is satisfied.
+- Every applicable review checklist item is recorded as `pass` or `n/a` (zero `fail` items remain).
+- The validator condition from `SKILL.md` Packaged Validator is satisfied.
+
+The [review checklist](review-checklist.md) owns the review items.
+Gate 2 is a review outcome, not another user approval request for unchanged approved scope.
 
 ## Research
 
@@ -122,7 +127,7 @@ Exit:
 
 - Gate 1 applies here.
 - The user MUST approve scope, primary requirements, and scenario direction before the workflow continues.
-- If an agent authored the draft, the user MUST review it before the next stage.
+- Approval MUST cover the current draft, including material revisions made by an agent.
 
 ## Document Linking
 
@@ -180,14 +185,15 @@ Optional contract artifacts exist only when the previous stage was used.
 
 Activities:
 
-1. The inline review checklist MUST be applied.
+1. The review checklist MUST be applied.
 2. Review evidence MUST follow the contract in [Review Evidence Contract](#review-evidence-contract).
-3. If subagent review is available, a separate review agent SHOULD be used.
+3. Use independent review only when uncertainty or consequences justify it and delegation is authorized.
+   A leaf agent performs its own review or returns a required independent review to the orchestrator.
 4. Frontmatter completeness and status transitions MUST be checked.
 5. Outbound links and inbound query integrity MUST be verified.
 6. If `RESEARCH.md` is relevant, its findings MUST be current enough for this review.
 7. If `CONTRACT.md` or `openapi.yaml` exists, those artifacts MUST be checked against SPEC requirements and scenarios.
-8. The packaged validator MUST be run per the `SKILL.md` Operating rules validator requirement.
+8. The packaged validator MUST be run per the `SKILL.md` Packaged Validator requirement.
 9. When review passes, `SPEC.md` status MUST be updated to `approved` and `last_updated` MUST be refreshed.
 
 Exit:
@@ -210,6 +216,8 @@ Activities:
 4. Implementation MUST remain aligned to the approved `SPEC.md`.
 5. If implementation discovers a spec gap, the relevant spec artifacts MUST be updated first, then Spec Review MUST run again before implementation continues.
    - Spec artifacts describe intended capability, behavior, and constraints.
+   - Return to Gate 1 only if the gap changes the approved scope, primary requirements, or scenario direction.
+   - Reuse unaffected review evidence when rerunning Spec Review.
    - Requirements MUST NOT be derived from current implementation.
    - SPECs SHOULD avoid introducing unnecessary language, framework, library, or code-style constraints unless they were explicitly requested or are materially required.
 
@@ -224,9 +232,10 @@ Implementation is complete and the current artifacts still describe the work.
 
 Activities:
 
-1. The inline review checklist MUST be applied.
+1. The review checklist MUST be applied.
 2. Review evidence MUST follow the contract in [Review Evidence Contract](#review-evidence-contract).
-3. If subagent review is available, a separate review agent SHOULD be used.
+3. Use independent review only when uncertainty or consequences justify it and delegation is authorized.
+   A leaf agent performs its own review or returns a required independent review to the orchestrator.
 4. Every Functional Requirement MUST map to implementation or to explicit justification in `SPEC.md`.
 5. Dependency changes MUST update frontmatter `call` before review closes.
 6. Relevant `RESEARCH.md` artifacts MUST remain synchronized with the implemented state.
@@ -235,7 +244,7 @@ Activities:
    - Research, initialization, planning, and future-reservation content MUST be excluded.
    - Entries MUST keep the latest date first.
 8. When review passes, `SPEC.md` status MUST be updated to the correct post-implementation state and `last_updated` MUST be refreshed.
-9. The packaged validator MUST be re-run after the final spec sync per the `SKILL.md` Operating rules validator requirement.
+9. The packaged validator MUST be re-run after the final spec sync per the `SKILL.md` Packaged Validator requirement.
 
 Exit:
 
@@ -245,7 +254,7 @@ Exit:
 
 ## Review Evidence Contract
 
-For v1, reviews MUST be recorded in reviewer or agent output.
+Reviews MUST be recorded in reviewer or agent output.
 The workflow MUST NOT require a repo-tracked `REVIEW.md`.
 
 Each review record MUST include:
@@ -258,12 +267,13 @@ Each review record MUST include:
 
 ## Subagent Invocation Pattern
 
-When subagent review is available, review work SHOULD use a separate agent with read-only intent.
+When authorized independent review is needed, provide a bounded read-only task to the reviewer.
+This section does not authorize a leaf agent to delegate.
 
 The review agent MUST receive:
 
 - The current `SPEC.md`.
 - Any relevant `RESEARCH.md`.
 - Any relevant `CONTRACT.md` or `openapi.yaml`.
-- The inline review checklist.
+- The review checklist.
 - The required review output format from [Review Evidence Contract](#review-evidence-contract).

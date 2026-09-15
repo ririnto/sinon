@@ -1,7 +1,6 @@
 # Scenarios and Acceptance
 
-Use this reference when converting requirements into testable scenarios, acceptance criteria, success criteria, and conformance tests.
-Open this reference after functional and non-functional requirements are drafted.
+Use this reference for scenarios, acceptance criteria, recovery, state transitions, and conformance profiles.
 
 ## Scenario Format
 

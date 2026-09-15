@@ -1,351 +1,79 @@
 ---
 name: git-worktree-management
-description: >-
-  Create and manage isolated git worktrees to work on multiple branches in parallel without switching HEAD.
-  Use when adding, listing, pruning, or removing worktrees, checking branch-to-worktree bindings, or reasoning about worktree isolation before parallel task setup.
+description: Add, inspect, remove, or repair Git worktrees and check branch bindings for isolated parallel work.
 ---
 
 # Git Worktree Management
 
-## Goal
+Use a worktree when the task needs a separate checkout, not as a prerequisite for every edit.
+Each worktree has its own working tree, index, and HEAD.
+All linked worktrees share the repository's objects and refs.
+A commit or branch update is therefore visible across worktrees even though uncommitted files remain isolated.
 
-Create isolated working directories tied to separate branches, allowing parallel development without changing the main repository HEAD.
-Each linked worktree is a separate working directory with its own working tree, index (staging area), and HEAD, while sharing the object database and the ref store of the base repository.
-A worktree is not a clone: the `.git` of a linked worktree is a file that points back into the base repository's `.git/worktrees/`, so commits and refs are common to every worktree.
+## Boundaries
 
-## Common-Case Workflow
+- Inspect existing paths, branch bindings, and relevant local changes before mutation.
+- Keep one active worktree per branch; do not bypass that protection with `--force`.
+- Keep worktrees outside each other's directories, using sibling paths or the repository's approved external location.
+- An unrelated dirty worktree does not block creating an isolated one.
+  Preserve its files and do not move its checked-out branch.
+- Worktree creation does not authorize commits, publication, branch deletion, or changes in another task's checkout.
+- Remove only an authorized worktree after checking tracked, untracked, and ignored files for retained work.
+  Do not force-remove a dirty or locked worktree to finish cleanup.
 
-1. List existing worktrees to see which branches are currently active.
-2. Decide whether to create a new worktree or reuse an existing one.
-3. Create a worktree tied to a specific branch or commit.
-4. Verify the new worktree is correctly bound and isolated.
-5. Work inside the worktree directory independently from the base repository.
-6. Remove or repair worktrees when work is complete or cleanup is needed.
-
-## Operating Rules
-
-The following invariants govern safe worktree use:
-
-- Keep one worktree per branch: do not check out the same branch in two worktrees or in the base repository at once.
-  - This avoids HEAD pointer conflicts and data loss.
-- Keep the base repository valid: the repository where `git worktree add` ran remains a normal working tree.
-- Share objects and refs: worktrees in one repository share the object database and ref store.
-  - Removing a worktree does not remove its commits or branch refs.
-- Preserve per-worktree isolation: each worktree has its own working tree, index, and HEAD.
-  - Uncommitted and staged changes stay local to that worktree.
-  - Commits become visible to other worktrees immediately.
-- Keep worktrees as siblings rather than nesting them in another worktree or the base repository.
-
-## Procedure: Create an Isolated Worktree
-
-### Setup: First-time worktree structure (optional convention)
-
-Create a `worktrees/` directory at the repository root to co-locate all worktrees:
+## Inspect Or Reuse
 
 ```sh
-mkdir -p worktrees
+git -C /path/to/repo worktree list --porcelain
+git -C /path/to/worktree status --short --branch
 ```
 
-This is a recommended convention but not required.
-Worktrees can live anywhere.
+Use an existing worktree only when its ownership and state fit the task.
+Do not remove another worktree merely because its branch is already checked out.
+Choose a different authorized branch or report the ownership conflict.
 
-### Create a new worktree from a branch
+## Create The Needed Checkout
 
-To create a worktree for an existing local branch:
+Resolve the repository, destination, branch, and base before selecting a command.
+These portable paths represent sibling directories, not real local environment paths.
+
+| Need | Command |
+| --- | --- |
+| Existing local branch | `git -C /path/to/repo worktree add /path/to/worktree <branch>` |
+| New local branch | `git -C /path/to/repo worktree add -b <new-branch> /path/to/worktree <base>` |
+| New tracking branch | `git -C /path/to/repo worktree add --track -b <branch> /path/to/worktree <remote>/<branch>` |
+| Inspect a commit without a branch | `git -C /path/to/repo worktree add --detach /path/to/worktree <commit>` |
+
+Confirm success from the exit result and resulting worktree/HEAD state, not silence alone.
+Use `git -C` to target the intended checkout rather than relying on a prior shell's working directory.
+
+## Remove Or Repair
+
+Run removal outside the target worktree after verifying that its data is preserved and cleanup is authorized:
 
 ```sh
-git worktree add worktrees/<branch-name> <branch-name>
+git -C /path/to/worktree status --short --ignored
+git -C /path/to/repo worktree remove /path/to/worktree
 ```
 
-Example:
+Removal deletes the checkout and its administrative record, not the branch or commits.
+Branch cleanup is a separate Git action.
+
+For missing worktree directories, inspect before pruning:
 
 ```sh
-git worktree add worktrees/feat-auth feat-auth
+git -C /path/to/repo worktree prune --dry-run
 ```
 
-### Create a worktree from a remote-tracking branch
-
-If the branch exists only on the remote:
-
-```sh
-git worktree add worktrees/<branch-name> <remote>/<branch-name>
-```
-
-Example:
-
-```sh
-git worktree add worktrees/feat-ui origin/feat-ui
-```
-
-### Create a worktree with automatic branch tracking
-
-Use the `--track` flag to set up tracking to the remote:
-
-```sh
-git worktree add --track worktrees/<branch-name> <remote>/<branch-name>
-```
-
-### Create a worktree from a commit (detached HEAD)
-
-To work in a worktree on a specific commit without a branch:
-
-```sh
-git worktree add --detach worktrees/<worktree-name> <commit-sha>
-```
-
-### Create a worktree with a new branch
-
-To create both a worktree and a new branch in one step:
-
-```sh
-git worktree add worktrees/<new-branch> -b <new-branch> <base-commit>
-```
-
-Example:
-
-```sh
-git worktree add worktrees/hotfix-123 -b hotfix-123 main
-```
-
-### First-time verification
-
-After creating a worktree, verify the isolation:
-
-```sh
-git worktree list
-cd worktrees/<branch-name>
-git status
-git branch -v
-```
-
-Expected output: the worktree is on the target branch, the working tree is clean or shows only local changes, and the branch list shows correct tracking.
-
-## Procedure: Inspect Active Worktrees
-
-List all worktrees including the main repository:
-
-```sh
-git worktree list
-```
-
-Example output:
-
-```text
-/path/to/repo              abcdef1 [main]
-/path/to/repo/worktrees/feat-auth  1a2b3c4 [feat-auth]
-/path/to/repo/worktrees/hotfix-123  5e6f7a8 [hotfix-123]
-```
-
-Columns:
-
-- Path to worktree directory
-- Current HEAD commit SHA
-- Current branch name (in brackets) or detach status
-- Extra metadata (branch lock, detach reason, etc.)
-
-## Procedure: Remove a Worktree
-
-### Safe removal sequence
-
-1. Navigate out of the worktree directory.
-2. Ensure all changes in the worktree are committed or stashed.
-3. Remove the worktree:
-
-    ```sh
-    git worktree remove worktrees/<branch-name>
-    ```
-
-### What `remove` does
-
-- Deletes the worktree directory from the filesystem.
-- Clears the internal worktree reference.
-- Does not delete the branch itself or any commits.
-
-### Restoring the branch after worktree removal
-
-If you removed the worktree but want to keep working on the branch, recreate the worktree:
-
-```sh
-git worktree add worktrees/<branch-name> <branch-name>
-```
-
-## Procedure: Repair Stale Worktree References
-
-Over time, orphaned worktree metadata may accumulate (e.g., if a worktree directory was deleted without using `git worktree remove`).
-
-Prune stale references:
-
-```sh
-git worktree prune
-```
-
-This removes internal worktree references whose directories no longer exist.
-
-Verify cleanup:
-
-```sh
-git worktree list
-```
-
-Expected: only paths that exist on disk are listed.
-
-## Procedure: Verify No Branch Conflicts
-
-Before starting work in a new worktree, confirm that the target branch is not already checked out elsewhere:
-
-```sh
-git worktree list | grep <branch-name>
-```
-
-Expected: no matching line when creating a new worktree for that branch.
-One line only when intentionally reusing an existing worktree.
-
-If the same branch appears twice, the second `git worktree add` will fail with an error.
-Remove the old worktree first or use a different branch.
-
-## Common Patterns
-
-### Pattern: Parallel feature work
-
-1. Create a worktree for each feature branch:
-
-    ```sh
-    git worktree add worktrees/feat-a feat-a
-    git worktree add worktrees/feat-b feat-b
-    ```
-
-1. Work independently in each worktree:
-
-    ```sh
-    cd worktrees/feat-a
-    # Make changes, commit, test
-    cd ../feat-b
-    # Make different changes, commit, test
-    ```
-
-1. Push each branch independently:
-
-    ```sh
-    cd worktrees/feat-a && git push
-    cd ../feat-b && git push
-    ```
-
-1. Clean up when done:
-
-    ```sh
-    cd ../../
-    git worktree remove worktrees/feat-a
-    git worktree remove worktrees/feat-b
-    ```
-
-### Pattern: Spike + main branch isolation
-
-Keep the main branch untouched while spiking in a worktree:
-
-```sh
-git worktree add worktrees/spike-new-api -b spike-new-api main
-cd worktrees/spike-new-api
-# Experiment freely; main branch remains clean
-cd ../../
-git worktree remove worktrees/spike-new-api
-```
-
-### Pattern: Hotfix while feature work is in progress
-
-1. Feature work ongoing:
-
-    ```sh
-    cd worktrees/feat-main-work
-    # Long-running feature development
-    ```
-
-1. Hotfix urgent production issue in a separate worktree:
-
-    ```sh
-    # From another terminal or after exiting the feature worktree
-    git worktree add worktrees/hotfix-prod-bug -b hotfix-prod-bug main
-    cd worktrees/hotfix-prod-bug
-    # Fix, test, commit
-    git push
-    # Then hand off the committed change for review
-    cd ../../
-    ```
-
-1. Resume feature work:
-
-    ```sh
-    cd worktrees/feat-main-work
-    # Continue where you left off
-    ```
-
-## Pitfalls
-
-- Same branch in two worktrees: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "fatal: '{{branch}}' is already used by worktree at '{{path}}'".
-  - Use `git worktree list` before adding.
-- Forgetting to exit the worktree before removing: If you try to remove a worktree while inside it, removal fails.
-  - Always `cd` out first.
-- Stale worktree metadata: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains.
-  - Use `git worktree prune` to clean up.
-- Nested worktrees: Do not create a worktree inside another worktree's directory.
-  - Keep worktrees as siblings in a flat structure (e.g., `worktrees/branch-a`, `worktrees/branch-b`).
-- Base repository as a second-class worktree: The base repository is a full worktree and can be used for development.
-  - Do not treat it as "reserved for listing only".
-- Assuming commits stay local to a worktree: Uncommitted working-tree and staged changes are isolated to that worktree, but once you commit, the new commit and any branch update are shared across all worktrees of the same repository immediately.
-  - `git push` and `git fetch` move objects and refs between different repositories (local and remote), not between worktrees of one repository.
-
-## First Safe Commands
-
-Before creating or managing worktrees, verify the current state:
-
-```sh
-git status
-git worktree list
-```
-
-Create a worktree with tracking:
-
-```sh
-git worktree add worktrees/<branch-name> <branch-name>
-```
-
-Remove a worktree safely:
-
-```sh
-git worktree remove worktrees/<branch-name>
-```
-
-## Output Contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-### `git worktree list` output shape
-
-```text
-<path>  <sha>  [<branch>]  (<metadata>)
-```
-
-- Each line represents one worktree with its absolute path, current HEAD commit hash, branch name in brackets (or detach status), and optional lock/detach metadata.
-
-### `git worktree add` success output
-
-Git prints `Preparing worktree (...)` followed by `HEAD is now at <sha> <commit-message>`.
-If no output appears, the worktree was created successfully.
-
-### `git worktree add` failure output
-
-```text
-fatal: '<branch>' is already used by worktree at '<path>'
-```
-
-This means the branch is already active in another worktree or the base repository.
-Choose a different branch or remove the conflicting worktree first.
-
-### `git worktree remove` output
-
-No output on success.
-On failure:
-
-```text
-fatal: <path> is not a worktree
-```
+An unavailable removable drive is not proof that a worktree is obsolete.
+Prune confirmed stale metadata only when authorized.
+For moved worktrees, prefer `git worktree repair <path>` when repair matches the known move.
+Do not edit `.git/worktrees/` records by hand.
+
+## Completion
+
+Verify the requested path and branch binding, or removal/repair result.
+Report the action, preserved work, and unresolved ownership or cleanup blockers.
+Run project checks only if the task also changes project content or requires runtime verification.
+Use repository-relative paths and portable examples in committed descriptions.
+Do not expose private worktree locations, external work-item identifiers, or review URLs.

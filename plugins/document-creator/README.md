@@ -54,7 +54,8 @@ plugins/document-creator/
 ## Design Principles
 
 - Prefer one coherent user job per skill.
-- Keep the common path self-sufficient inside `SKILL.md` and move only additive depth into `references/`.
+- Keep the contract and task routing in `SKILL.md`.
+- Load templates and authoring references only when the requested document or review needs them.
 
 ## Installation
 
