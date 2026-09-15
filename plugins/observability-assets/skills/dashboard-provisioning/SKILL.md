@@ -1,14 +1,12 @@
 ---
 name: dashboard-provisioning
 description: >-
-  Author Grafana dashboard provisioning with version-controlled provider YAML files and dashboard JSON source organization.
-  Use when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, or managing UI-edit versus file-source-of-truth workflows.
+  Use for Grafana dashboard provider YAML, folder and source-file mapping, file/UI drift, or dashboard delivery ownership.
 ---
 
 # Dashboard Provisioning
 
 Provision Grafana dashboards as reviewed files instead of relying on long-lived manual UI state.
-The common case is one provider YAML file, one deliberate dashboard source directory, one folder strategy, and one review path that keeps file content as the source of truth when Grafana and Git disagree.
 
 ## Official Baseline
 
@@ -16,16 +14,18 @@ The common case is one provider YAML file, one deliberate dashboard source direc
 - Verified against the Grafana 13.2.1 GitHub release on 2026-09-02.
 - Provider YAML facts here are an authored summary of that documentation, not a verbatim copy.
 
-## Common-Case Workflow
+## Task Focus
 
-1. Start from the dashboard files that should become the reviewed source of truth.
-2. Define one provider YAML with a clear `name`, one dashboard path, and one folder strategy.
-3. Decide how each environment applies the same dashboard source: shared provider path, separate provider files, or environment-specific directories with the same review rules.
-4. Decide whether the path maps to a fixed folder or to `foldersFromFilesStructure`.
-5. Keep `allowUiUpdates` and `updateIntervalSeconds` deliberate so operators understand whether UI edits are temporary or part of the delivery path.
-6. Review the raw dashboard JSON source files for stable `uid`, deliberate `title`, expected `schemaVersion`, and instance-specific cleanup such as removing or nulling `id` before the file becomes Git-owned source.
-7. Place the provider YAML where Grafana actually loads provisioning config for the target environment, and ensure the referenced dashboard path is mounted or copied into the Grafana runtime before expecting the dashboards to appear.
-8. Check the provider YAML and dashboard source files themselves for path, folder strategy, environment application, and file-wins behavior before treating the dashboard delivery workflow as ready.
+- Inspect the existing provider, dashboard source, target Grafana version, and delivery owner.
+- Keep the provider name, source path, environment mapping, and folder strategy explicit.
+- Review `allowUiUpdates`, `disableDeletion`, and `updateIntervalSeconds` when the task changes drift, deletion, or sync behavior.
+- Preserve dashboard identity and the documented raw, wrapped, or resource file shape.
+- Verify the intended provisioning directory and runtime mount or copy path from the deployment configuration.
+  Preparing those files does not authorize installing them into a running environment.
+
+Use the existing delivery owner, such as provider files, Git Sync, Terraform, or Helm, instead of adding competing API writes.
+Obtain explicit authorization for the target before applying files, enabling sync, reloading Grafana, or making API writes.
+Confirm overwrite and deletion effects before changing a watched provider path.
 
 ## Grafana Config File Locations
 
@@ -99,7 +99,8 @@ Use when: you need one stable provider file for dashboard JSON already tracked i
 
 ## First Runnable Commands or Code Shape
 
-Start by validating the provider YAML structure:
+Validate provider YAML syntax with an existing repository parser.
+The following example resolves PyYAML through `uv`, so use it only when dependency resolution is already authorized:
 
 ```sh
 uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafana/provisioning/dashboards.yaml'))"
@@ -399,7 +400,7 @@ Use when: the blocker is understanding what happens when dashboard files are add
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Review the affected provider and source-file relationships with these checks:
 
 - the provider YAML points at the actual dashboard file path that will ship
 - folder strategy is explicit and consistent with the file layout
@@ -413,6 +414,10 @@ Validate the common case with these checks:
 - dashboard JSON files stay reviewable instead of opaque exports dropped into the tree
 - the provider YAML is internally consistent about path, folder mapping, and update behavior
 - environment variables in provider YAML use only supported Grafana substitution syntax: `$ENV_VAR`, `${ENV_VAR}`, and `$$`
+
+Report local syntax and path checks separately from runtime discovery and sync evidence.
+Use existing deployment checks when rollout is authorized, and state any runtime behavior that remains unverified.
+A valid YAML file alone does not prove Grafana loaded the provider or synchronized its dashboards.
 
 ## Output contract
 
@@ -443,7 +448,6 @@ Return:
 - Dashboard `id` SHOULD be removed or set to `null` before a source file is reused across Grafana instances.
 - `options.path` MUST resolve to a readable directory at Grafana runtime.
 - `allowUiUpdates: true` MUST be accompanied by a documented merge-back workflow.
-- The ordinary dashboard provisioning path MUST remain understandable from this file alone.
 - Dashboard source paths MUST be explicit and consistent across the provider config and the actual filesystem layout.
 - File content SHOULD remain the reviewable source of truth over UI state.
 - Drift behavior SHOULD be obvious before enabling UI edits.

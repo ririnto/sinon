@@ -1,29 +1,27 @@
 ---
 name: alert-rule-testing
 description: >-
-  Test Prometheus alert rules against time-series fixtures and compare outputs for correctness and readiness.
-  Use when validating alert rule firing behavior against captured or synthetic metric series before deploying changes to a Prometheus instance, or protecting alert regressions via promtool test cases.
+  Use for promtool test rules fixtures, alert lifecycle timing, expected labels and annotations, and alert regression review.
 ---
 
 # Alert Rule Testing
 
 Write and review `promtool test rules` files that lock alert behavior before a rule ships.
-The common case is one test file that points at the real rule file, defines a small set of `input_series`, and proves the alert stays non-firing, becomes pending, fires after the `for` window, and resolves when the signal recovers.
+Use the real rule file and fixtures that protect the behavior under change.
 
 ## Official Baseline
 
 - Use the official Prometheus testing documentation for release 3.14.0, read on 2026-09-13: [Test your rules](https://prometheus.io/docs/prometheus/3.14/configuration/unit_testing_rules/).
 - Schema facts were also checked against the `promtool` test-rule parser in the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
 
-## Common-Case Workflow
+## Task Focus
 
-1. Start from the real alert rule file that must stay stable.
-2. Add the smallest `input_series` set that proves normal, pending, firing, and recovery behavior.
-3. Pick `eval_time` values that sit clearly before and after the alert `for` window.
-4. Assert expected labels and annotations only for the alert state you actually need to protect.
-5. Keep the test small enough to explain one behavior change at a time.
-6. Run `promtool test rules` on the real test file before treating the rule change as safe.
-7. On failure: check that `input_series` values align with the rule expression, verify `eval_time` placement against the `for` window, confirm `exp_labels` match the actual alert label set, then revise and re-run.
+- Inspect the real rule and existing tests before adding fixtures.
+- Select normal, pending, firing, recovery, or label-contract coverage according to the changed behavior and regression risk.
+- Choose `input_series` and `eval_time` values that demonstrate the intended state around relevant `for` and `keep_firing_for` boundaries.
+- For each firing assertion, include the full emitted label and annotation maps.
+- Extend focused existing tests instead of duplicating coverage or adding a full lifecycle fixture for every edit.
+- Investigate failures against the intended rule behavior before changing fixtures or expected results.
 
 ## Test File Schema
 
@@ -491,7 +489,7 @@ Use when: the annotation template itself must stay stable alongside the firing c
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Review the affected assertions with these checks:
 
 - The test file points at the actual rule file under review.
 - `input_series` values make the intended state transition obvious.
@@ -501,6 +499,9 @@ Validate the common case with these checks:
 - `promtool test rules` passes on the test file you intend to ship.
 - Each test case has a descriptive `name` field for filtered execution.
 - `eval_time` values are multiples of the test's `interval` (non-multiples cause confusing failures).
+
+Local fixture execution does not deploy rules or prove live alert delivery.
+Report the tested behaviors and the exact command result before claiming those behaviors are verified.
 
 ## Output contract
 
@@ -523,7 +524,6 @@ Return:
 
 ## Invariants
 
-- MUST keep the ordinary alert-rule test authoring path understandable from this file alone.
 - MUST test the real rule file, not a disconnected copy.
 - MUST choose `eval_time` values deliberately.
 - SHOULD keep fixtures small enough to explain one behavior at a time.

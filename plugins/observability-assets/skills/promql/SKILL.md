@@ -1,8 +1,7 @@
 ---
 name: promql
 description: >-
-  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule).
-  Triggers on range or instant query composition, aggregation operator selection, recording rule construction for dashboards, or alert expression logic validation.
+  Use for PromQL query authoring, aggregation, vector matching, SLI math, or query review for alerts, dashboards, and recording rules.
 ---
 
 # PromQL
@@ -17,14 +16,14 @@ This file keeps the authoring workflow, function-choice baseline, common templat
 
 Exact language syntax, operator and function tables, vector matching detail, staleness, and HTTP API shapes live in [`./references/language-reference.md`](./references/language-reference.md).
 
-## Common-Case Workflow
+## Task Focus
 
-1. Start from the operator question the query must answer.
-2. Choose the metric and label matchers deliberately instead of broad selectors that happen to work in one environment.
-3. Decide whether the expression should start from an instant vector or a range vector.
-4. Apply aggregation, binary operators, or matching rules only after the label set and output shape are clear.
-5. Choose functions that fit the consumer: prefer `rate()` for alerts and recording rules, and use `irate()` only when fast-moving dashboard visualization is the goal.
-6. Review the final label set, units, and readability before reusing the query in an alert or dashboard.
+- Establish the operator question, metric type, expected labels, units, and consumer from the available query and metric evidence.
+- Change selectors, aggregation, or matching only after the intended output shape is clear.
+- Prefer `rate()` for alerts and recording rules.
+  Use `irate()` when fast-moving dashboard visualization is the goal.
+- Use the matching reference for syntax, complex joins, histograms, or experimental features instead of loading the full language catalog.
+- Preserve the consumer's label and unit contract when simplifying an existing expression.
 
 ## Core Language Facts
 
@@ -132,7 +131,7 @@ Use when: the query should return a signal only when the expected series is miss
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Review the affected query behavior with these checks:
 
 - selectors and label matchers target the intended series set without accidental overreach
 - the query uses the right vector type for the chosen function (instant vs range)
@@ -142,6 +141,11 @@ Validate the common case with these checks:
 - `rate()` versus `irate()` matches the consumer context
 - counter functions (`rate`, `irate`, `increase`) are applied before aggregation so resets are detected correctly
 - the final expression is readable enough that another operator can review it quickly
+
+Use existing query checks or relevant fixtures to verify changed values, labels, or matching behavior.
+For live read-only queries, bound selectors, time range, step, and timeout to the question.
+Report observed results separately from reasoning, and state missing data or tooling that limits verification.
+Query inspection does not authorize server configuration changes, feature-flag changes, or publishing rules and dashboards.
 
 ## Output contract
 
@@ -167,7 +171,6 @@ Return:
 ## Invariants
 
 - MUST choose selectors and label matchers deliberately.
-- MUST keep the ordinary PromQL authoring path understandable from this file alone.
 - MUST use the correct vector type for the chosen function.
 - MUST place `offset` and `@` modifiers immediately after the selector, before any wrapping aggregation or function.
 - SHOULD prefer `rate()` over `irate()` for alerts and recording rules.

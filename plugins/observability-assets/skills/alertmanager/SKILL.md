@@ -1,14 +1,12 @@
 ---
 name: alertmanager
 description: >-
-  Configure AlertManager routing, grouping, silencing, and notification flow.
-  Triggers on Alertmanager route tree design, receiver mapping, group batching and notification timing, inhibition or mute schedule implementation, notification channel setup, or alert routing quality and template-driven notification content.
+  Use for Alertmanager configuration: route trees, receivers, grouping timers, inhibition, mute schedules, and notification templates.
 ---
 
 # Alertmanager
 
 Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications.
-The common case is one root route, one small set of child routes, one deliberate receiver mapping, and one timing policy that batches related alerts without hiding urgent signal.
 
 ## Official Baseline
 
@@ -18,15 +16,14 @@ The common case is one root route, one small set of child routes, one deliberate
 - Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes.
   Write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.
 
-## Common-Case Workflow
+## Task Focus
 
-1. Start from the alert-routing intent: who should receive which alerts, and which alerts should stay grouped together.
-2. Define one root route with a safe default receiver.
-3. Add child routes only where labels, severity, team ownership, or environment justify a branch.
-4. Tune `group_wait`, `group_interval`, and `repeat_interval` deliberately so related alerts batch together without hiding urgent changes.
-5. Keep receiver definitions explicit, and verify routing labels from Prometheus alerts match the route tree you wrote.
-6. Add inhibition or mute windows only when they remove known noise without suppressing the primary symptom.
-   Keep inhibition in top-level `inhibit_rules` and attach mute windows only to the routes they should affect.
+- Inspect the affected config and upstream alert labels against the intended recipients and grouping behavior.
+- Preserve a safe root receiver and add branches only for real label, severity, ownership, or environment differences.
+- Adjust `group_wait`, `group_interval`, and `repeat_interval` only where the routing task needs different notification timing.
+- Keep receiver mappings explicit and match labels that upstream alerts actually emit.
+- Add inhibition or mute windows only to remove known noise without suppressing the primary symptom.
+  Keep inhibition in top-level `inhibit_rules` and attach mute windows only to the affected routes.
 
 ## Minimal Setup
 
@@ -190,7 +187,10 @@ Alertmanager stops notifications through three mechanisms:
 - Silences (runtime): created through the Alertmanager API (`POST /api/v2/silences`) or `amtool silence add`, matched by label matchers with a start and end time, and stored in Alertmanager state that is replicated across the HA cluster.
 
 This skill owns the two config-time mechanisms.
-Runtime silences are operational state outside config authoring: create, list, and expire them through the API or `amtool`, never by editing the config file.
+Runtime silences are operational state outside config authoring.
+Inspect them through the API or `amtool`, never by editing the config file.
+Read-only inspection and local `amtool check-config` validation do not authorize runtime changes.
+Obtain explicit authorization for the target before reloading config, sending test notifications, or creating or expiring silences.
 
 ## Inhibition Rules
 
@@ -371,7 +371,7 @@ If the downstream service needs a different payload shape, put that transformati
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Review the changed config and its affected routes with these checks:
 
 - the root route has a deliberate default receiver
 - the root route has no matchers, no mute_time_intervals, no active_time_intervals, and no `continue: true`
@@ -384,6 +384,9 @@ Validate the common case with these checks:
 - `*_file` fields reference files that exist and are readable by the Alertmanager process
 - paired credential fields (e.g., `token` vs `token_file`) do not both contain values
 - `amtool check-config` passes on the shipped config file
+
+Report the command result separately from routing or delivery evidence.
+A syntax and schema pass does not prove notifications reach their intended recipients.
 
 ## Output contract
 
@@ -411,7 +414,6 @@ Return:
 ## Invariants
 
 - MUST keep a deliberate default receiver at the root route.
-- MUST keep the ordinary Alertmanager authoring path understandable from this file alone.
 - MUST make matcher and receiver relationships explicit.
 - MUST use `matchers` (modern syntax) over deprecated `match`/`match_re`.
 - MUST ensure receiver names are unique across the entire config.

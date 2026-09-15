@@ -1,8 +1,7 @@
 ---
 name: grafana-dashboards
 description: >-
-  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout.
-  Triggers on Grafana dashboard creation or review, classic dashboard JSON editing, panel or query configuration, variables, transformations, field config, thresholds, overrides, value mappings, uid stabilization, USE/RED/Golden Signals layout, or Grafana mixin and Jsonnet generation workflows.
+  Use for Grafana dashboard JSON, panel and query configuration, variables, field settings, stable identity, or Jsonnet and mixin generation.
 ---
 
 # Grafana Dashboards
@@ -16,25 +15,17 @@ Author and review Grafana dashboards as version-controlled assets while keeping 
 - The classic dashboard JSON model (`schemaVersion`, `panels`, `templating`) and the Grafana 13 V2 Resource model differ; check the target instance before copying examples.
 - Schema details in the references are authored summaries of the official documentation at [grafana.com/docs](https://grafana.com/docs/), not verbatim copies.
 
-The common case: one dashboard with a stable `uid`, a deliberate title, explicit datasource handling, a default time range no broader than the last 30 minutes, and a panel layout that answers a real operator question instead of becoming a generic metric scrapbook.
+Select the supporting reference for the affected dashboard fields or generation path from References below.
 
-Detailed JSON schemas live in package-local references, not in this file:
+## Task Focus
 
-- Complete panel-type schemas: [`./references/panel-types.md`](./references/panel-types.md)
-- Variable types, syntax, global variables, and repeat fields: [`./references/variables.md`](./references/variables.md)
-- Field config, overrides, value mappings, data links, and the unit catalog: [`./references/field-config.md`](./references/field-config.md)
-- Grafana mixin configuration and Jsonnet generation: [`./references/grafana-mixin.md`](./references/grafana-mixin.md)
-- Export cleanup decisions and ownership boundaries after UI edits or rendering: [`./references/structure.md`](./references/structure.md)
-
-## Common-Case Workflow
-
-1. Start from the operator question the dashboard must answer.
-2. Keep one stable dashboard identity with a deliberate `uid` and title.
-3. Choose the datasource and queries deliberately, then shape the dashboard around the returned data rather than copying an arbitrary UI export.
-4. Pick the right panel type for each question (see Panel Type Decision Guide below).
-5. Add variables, repeated panels, transformations, field config, units, thresholds, and legends only when they improve operator readability for the main question.
-6. Keep links, annotations, and layout aligned to one narrative flow such as saturation, errors, and latency.
-7. Default the dashboard time range to the last 30 minutes or less, and widen it only when the operator question needs more history.
+- Inspect the dashboard source, target Grafana model, and operator question before editing.
+- Preserve the stable `uid`, title, and datasource contract unless the task requires a deliberate change.
+- Shape affected panels around query results and the operator question, using the Panel Type Decision Guide when needed.
+- Add variables, repeats, transformations, field settings, and navigation only when they improve the intended view.
+- Default the dashboard time range to the last 30 minutes or less.
+  Widen it only when the operator question needs more history.
+- Change Jsonnet or mixin source when it owns the dashboard, then review the affected rendered output.
 
 Default to Grafana's V2 Resource model when the task is about Grafana 13 Observability as Code or the newer `/apis` dashboard flow.
 Keep classic dashboard JSON for file provisioning, UI export cleanup, grafana.com dashboard sharing, or repositories that already store classic dashboard files.
@@ -258,19 +249,6 @@ Google's SRE framework: Latency, Traffic, Errors, and Saturation.
 | Errors | How many are failing? | Error rate, failure percentage |
 | Saturation | How close to capacity? | CPU, memory, disk, connection pool usage |
 
-### Dashboard Maturity Model
-
-Progressive levels of dashboard quality.
-Aim for Level 3 minimum for production dashboards.
-
-| Level | Characteristics |
-| --- | --- |
-| 1 | Basic metrics visible, no structure, no thresholds, copied from export |
-| 2 | Panels answer questions, stable UID, explicit datasource, basic thresholds |
-| 3 | Follows USE/RED/Golden Signals, consistent units, meaningful titles, variables used deliberately |
-| 4 | Includes runbook links, alert annotations, drill-down paths, self-documenting layout |
-| 5 | Automated testing, versioned alongside code, reviewed on every change, part of on-call rotation |
-
 ## Time Picker and Repeat Behavior
 
 Dashboard-level time controls:
@@ -304,6 +282,8 @@ adjacent but separate concern: provisioning file that points at this dashboard
 
 Dashboard authoring belongs here.
 Provisioning configuration and rollout concerns stay in the adjacent delivery domain.
+Read-only API inspection and local authoring do not authorize imports, API writes, or publication to a Grafana instance.
+Obtain explicit authorization for the target before changing live dashboards.
 
 Direct dashboard asset layout -- keep the repository path explicit:
 
@@ -319,7 +299,7 @@ For export cleanup decisions and ownership boundaries after UI edits or renderin
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Review the affected dashboard fields with these checks:
 
 - dashboard JSON is syntactically valid
 - the dashboard has a stable `uid` and explicit title
@@ -334,6 +314,10 @@ Validate the common case with these checks:
 - overrides target the correct fields with appropriate matchers
 - value mappings handle edge cases (null, NaN, empty) explicitly
 - JSON model ownership is explicit: either the dashboard JSON is reviewed directly, or a generated workflow is clearly documented
+
+Run the existing JSON or renderer checks for the changed source.
+Use available query or rendering evidence when panel behavior changes, and state what remains unverified.
+JSON parsing proves syntax, not datasource access or correct rendering in the target Grafana instance.
 
 ## Output contract
 
@@ -362,7 +346,6 @@ Return:
 - MUST keep dashboard identity stable with an explicit `uid`.
 - MUST validate edited JSON before claiming the dashboard is ready.
 - MUST keep the default dashboard time range within 30 minutes unless a wider window is explicitly justified.
-- MUST keep ordinary dashboard authoring and review understandable from this file alone.
 - MUST keep datasource references explicit.
 - MUST NOT include unstable runtime-only fields in Git-owned dashboard JSON.
 - SHOULD keep panels organized around one operator story rather than a random metric collection.

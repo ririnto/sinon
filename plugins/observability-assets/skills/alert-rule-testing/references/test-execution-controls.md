@@ -79,7 +79,7 @@ If the target repository runs an older `promtool`, verify support before relying
 `promtool test rules` runs every test group in the files you pass by default.
 Use `--run <regex>` to run only test groups whose `name` matches the regular expression.
 The flag is repeatable.
-To focus on a single group during iteration, either pass `--run` with that group name or split the group into its own file.
+Use `--run` with the existing group name during iteration instead of splitting files only to filter execution.
 
 ```sh
 promtool test rules alerts/api-errors.test.yaml
@@ -201,6 +201,6 @@ The timestamp lands just before a spring-forward transition.
 
 - Does the test really need a custom timestamp or would relative time be clearer?
 - Is fuzzy comparison hiding a real query regression?
-- Would a smaller targeted test be clearer than relying on `--run`?
+- Does the selected test protect the changed behavior without duplicating an existing fixture?
 - Are all `eval_time` values clean multiples of the effective interval?
 - Does the `group_eval_order` match the actual dependency graph between rule groups?
