@@ -1,8 +1,7 @@
 ---
 name: spring-kafka
 description: >-
-  Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, share consumers, and embedded Kafka tests.
-  Use when configuring producer or consumer factories, setting up concurrent listener containers, implementing retry and DLQ routing, building share consumer listeners, or writing embedded Kafka integration tests.
+  Implement or test Spring Kafka producers, listeners, acknowledgment, retries, dead-letter handling, transactions, and share consumers.
 ---
 
 # Spring for Apache Kafka
@@ -14,16 +13,6 @@ Use `spring-kafka` for Kafka producers, consumers, listener containers, offsets,
 - RabbitMQ or Pulsar semantics and client APIs are outside this skill's scope.
 - Keep transport concerns in producer and listener boundaries.
   - Domain logic should not know about offsets or Kafka headers.
-
-## Common path
-
-The ordinary Spring Kafka job is:
-
-1. Define the topic names, key strategy, and consumer group first.
-2. Add Spring Kafka and keep serialization format explicit.
-3. Publish through `KafkaTemplate` and consume through `@KafkaListener`, defaulting to container-managed acknowledgment unless offset control requires a manual strategy.
-4. Decide retry and dead-letter behavior before production rollout.
-5. Add an embedded Kafka or equivalent integration test that proves producer and consumer agreement.
 
 ## Core decisions
 
@@ -101,7 +90,7 @@ spring:
 4. Keep listeners idempotent because retries and rebalances can re-deliver records.
 5. Choose retry topics or dead-letter topics before enabling concurrency at scale.
 6. Decide between consumer groups (partition-exclusive) and share groups (cooperative, record-level distribution) based on whether listeners need partition isolation or cooperative consumption.
-7. Test both successful handling and one representative retry or dead-letter path.
+7. For listener delivery changes, test successful handling and affected retry or dead-letter paths.
 
 ## Failure classification
 
@@ -268,13 +257,6 @@ class PaymentFlowTests {
 
 ## Output and configuration shapes
 
-Return these artifacts for the ordinary path:
-
-1. One producer or gateway entry point
-2. One listener or listener-container configuration path
-3. One explicit retry or DLT policy
-4. One integration test that proves producer, broker, and listener agreement
-
 ### Topic name shape
 
 ```text
@@ -296,6 +278,9 @@ billing
 ```
 
 ## Testing checklist
+
+Select checks for the changed contract and regression risks.
+Use the existing native test setup.
 
 - Verify producers write to the intended topic with the expected key.
 - Verify listeners deserialize the record shape that producers send.

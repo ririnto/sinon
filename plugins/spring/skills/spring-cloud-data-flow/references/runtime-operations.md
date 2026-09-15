@@ -4,7 +4,8 @@ Open this reference when the ordinary register-create-deploy/launch path is not 
 
 ## Post-change verification flow
 
-After any topology or deployment change, inspect registered apps, deployed runtime apps, task executions, and logs or metrics.
+After an authorized topology or deployment change, inspect the affected apps, executions, and runtime signals.
+Use the matching commands below rather than inspecting unrelated stream and task state.
 
 ```text
 dataflow:>app list
@@ -19,7 +20,6 @@ Use runtime inspection to verify deployed stream apps, instance count, and curre
 ```text
 dataflow:>stream list
 dataflow:>runtime apps
-dataflow:>stream undeploy --name http-log
 ```
 
 ## Stream update and rollback blocker
@@ -53,7 +53,8 @@ Use SCDF runtime views together with the target platform logs or metrics to conf
 
 ## Update and destroy blocker
 
-Treat update, undeploy, and destroy actions as explicit operational transitions.
+Update, rollback, undeploy, and destroy require a grant for the target operation.
+The examples below do not authorize these transitions.
 
 ```text
 dataflow:>stream undeploy --name http-log
@@ -66,7 +67,7 @@ dataflow:>task destroy --name import-customers
 | Situation | First check |
 | --- | --- |
 | Deploy succeeded but nothing is running | inspect `runtime apps` and platform logs |
-| Stream misbehaves after a deploy-time property change | use `stream rollback` and verify the current Skipper package version |
+| Stream misbehaves after a deploy-time property change | inspect the current Skipper package version before any authorized rollback |
 | Task launched but state is unclear | inspect task execution history |
 | Topology changed unexpectedly | verify registered app versions and current definitions |
 | Cleanup is required | undeploy first, then destroy deliberately |

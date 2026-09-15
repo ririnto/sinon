@@ -1,8 +1,7 @@
 ---
 name: spring-batch
 description: >-
-  Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns.
-  Use when defining job flows, choosing between chunk and tasklet steps, configuring skip or retry logic, or setting up partitioning and multi-threaded step execution.
+  Design or troubleshoot Spring Batch jobs, steps, restartability, readers, writers, fault tolerance, and scaling.
 ---
 
 # Spring Batch
@@ -16,16 +15,11 @@ Use `spring-batch` for scheduled or launched batch jobs, chunk and tasklet steps
 - Keep domain logic in readers, processors, writers, tasklets, or delegated services.
   - Batch configuration should orchestrate steps, not embed the business model.
 
-## Common path
+## Task scope
 
-The ordinary Spring Batch job is:
-
-1. Decide the job name, step names, metadata repository, and parameter identity before writing business code.
-2. Start with one linear chunk step unless the work is naturally one-shot and better expressed as a tasklet.
-3. Wire reader, optional processor, and writer with restart assumptions explicit.
-4. Add late binding with `@StepScope` or `@JobScope` only when parameters or execution context must resolve at runtime.
-5. Add skip, retry, listener, and transaction tuning only for concrete failure modes.
-6. Prove the happy path and one restart or failure path in tests before adding scaling or remote execution.
+Preserve existing job identity and restart contracts unless changing them is in scope.
+For a new job, define names, parameter identity, metadata storage, and restart expectations before choosing its step model.
+Use the sections and references for the affected processing, fault-tolerance, or scaling concern.
 
 ## Dependency baseline
 
@@ -235,14 +229,15 @@ Choose the smallest scaling model that solves throughput before reaching for rem
 | input can be split into isolated slices | partitioning |
 | work must cross process boundaries | remote chunking or remote step execution |
 
-Open the scaling reference only after the single-step path is correct and measured.
+Open the scaling reference when throughput or distribution requirements need a different execution model.
+Use measurements and restart evidence to justify scaling an existing job.
 
 ## Minimal testing posture
 
 Start with unit tests for processors, policies, and transition logic.
 Use a Spring Batch integration test only when job repository state, step wiring, restart behavior, or the real job runtime defines the behavior.
 Reserve an end-to-end job journey for a distinct production-critical flow that lower-level tests do not prove.
-Treat roughly 60/30/10 as the default suite budget, not a requirement to add all three layers for each feature.
+Choose tests for acceptance criteria and regression risks, not a fixed ratio of test layers.
 Review prose guidance directly instead of testing its wording or file layout.
 
 ```java
@@ -261,9 +256,9 @@ class ImportJobTests {
 }
 ```
 
-- Verify the job reaches the intended exit status with representative parameters.
-- Verify one representative restart, skip, retry, or late-binding path.
-- Verify restart-sensitive steps do not duplicate already committed work.
+- For changed job behavior, verify the intended exit status with representative parameters.
+- Cover affected restart, skip, retry, or late-binding behavior when it defines an acceptance criterion or regression risk.
+- Verify changed restart-sensitive steps do not duplicate already committed work.
 
 ## Production guardrails
 

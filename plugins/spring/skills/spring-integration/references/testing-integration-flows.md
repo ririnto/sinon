@@ -35,7 +35,8 @@ mockIntegrationContext.resetBeans();
 
 ## Testing rules
 
-- Keep one graph-level test for the ordinary path and one failure-path test for discard or error routing.
+- Use graph-level tests when the changed contract depends on message routing.
+  Cover affected discard and error paths as well as successful delivery.
 - Use `noAutoStartup` when inbound adapters or pollers would otherwise start background work during tests.
 - Substitute sources or handlers only at the boundary being isolated.
   - Leave the rest of the graph intact.

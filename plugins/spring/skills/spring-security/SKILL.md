@@ -1,8 +1,7 @@
 ---
 name: spring-security
 description: >-
-  Secure Spring applications with `SecurityFilterChain`, authentication and authorization rules, bearer-token resource servers, method security, session and CSRF policy, and Spring Security tests.
-  Use when configuring password storage, JWT verification, opaque-token introspection, CORS policy, security headers, or logout behavior in a servlet or reactive Spring application.
+  Configure or test Spring Security access rules, authentication, bearer-token validation, filter chains, and browser-session protections.
 ---
 
 # Spring Security
@@ -19,19 +18,7 @@ Use `spring-security` for application-side authentication, authorization, filter
 This skill validates and enforces tokens issued by another system.
 Token issuance, signing-key ownership, client registration, provider metadata, and consent are a distinct authorization-server job.
 
-## Common path
-
-The ordinary Spring Security job is:
-
-1. Start with one explicit `SecurityFilterChain` instead of relying on hidden defaults.
-2. Define public endpoints, authenticated endpoints, and authority-based rules explicitly.
-3. Choose the authentication style deliberately, such as form login, HTTP basic, or resource-server JWT.
-4. Keep CORS, CSRF, and session policy explicit so browser flows and API flows do not accidentally share the wrong defaults.
-5. Keep password encoding, JWT claim mapping, and principal extraction explicit.
-6. Keep logout behavior, security headers, and 401 versus 403 handling explicit.
-7. Add security-focused tests that prove both allowed and denied access.
-
-### Branch selector
+## Branch selector
 
 - Stay in `SKILL.md` for the ordinary servlet path: one main `SecurityFilterChain`, explicit authorization rules, password encoding, basic CORS and CSRF policy, session policy, logout behavior, JWT resource-server validation, method security, and allow or deny tests.
 - Open [references/reactive-webflux-security.md](references/reactive-webflux-security.md) only when the application is reactive end to end and uses `SecurityWebFilterChain`.
@@ -311,14 +298,6 @@ Open [references/delegated-login-and-oauth2-client.md](references/delegated-logi
 9. Rely on Spring Security's default security headers unless the application has a concrete need for custom CSP, frame, or HSTS behavior.
 10. Test both successful access and denial paths for representative endpoints.
 
-## TDD loop
-
-1. Start with one endpoint that should stay public and one endpoint that must stay protected.
-2. Write one allowed-access test and one denied-access test before broadening the rule set.
-3. Add method-security assertions only after request-level access rules are stable.
-4. Add CORS, CSRF, session, logout, or JWT claim-mapping rules only after the basic allow or deny path is verified.
-5. Add custom exception handling tests only when the contract requires a specific 401 or 403 response body.
-
 ## Implementation examples
 
 ### Method security
@@ -445,21 +424,10 @@ SCOPE_invoices:write
 .logout(logout -> logout.logoutSuccessUrl("/login?logout"))
 ```
 
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen servlet security shape and authentication style
-2. The main authorization rules, including any method-security boundary
-3. The CORS, CSRF, session, logout, and security-header decisions
-4. The JWT validation and claim-mapping strategy, or the opaque-token introspection and principal-mapping strategy, when bearer tokens are involved
-5. The test shape proving allowed and denied access
-6. Any blocker that requires a reactive, delegated-login, LDAP, SAML2, multi-chain, advanced session, advanced headers, advanced JWT, opaque-token, or custom exception-handling branch
-
 ## Testing checklist
+
+Test the changed security boundary with both permitted and rejected requests.
+Select additional checks for affected client flows, token rules, and regression risks.
 
 - Verify public endpoints remain accessible without authentication.
 - Verify protected endpoints deny unauthenticated requests and reject insufficient authority with the expected 401 or 403 status.

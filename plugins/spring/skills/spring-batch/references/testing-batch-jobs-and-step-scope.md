@@ -32,8 +32,7 @@ assertEquals(1, count);
 
 ## Restart and failure blocker
 
-Do not stop at the happy path.
-Add one restart, skip, retry, or failure classification test.
+Cover restart, skip, retry, and failure classification when the changed behavior depends on those contracts.
 
 ```java
 assertEquals(BatchStatus.FAILED, execution.getStatus());
@@ -52,7 +51,8 @@ Assert on `ExitStatus`, `BatchStatus`, read counts, write counts, skip counts, a
 
 ## Verification rule
 
-Verify one scoped component test resolves late-bound parameters and one restart test proves already committed work is not written twice.
+For late-binding changes, verify that scoped components resolve the intended parameters.
+For restart-sensitive changes, verify that a restart does not write already committed work twice.
 
 ## Decision points
 

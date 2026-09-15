@@ -1,8 +1,7 @@
 ---
 name: spring-session
 description: >-
-  Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers.
-  Use when selecting a session repository (Redis, JDBC), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout.
+  Configure or test Spring Session stores, session ID transport, expiration, and Security/WebFlux/WebSocket integration.
 ---
 
 # Spring Session
@@ -34,18 +33,7 @@ Minimum requirements:
 Spring Boot 4.1 applications use the newer Framework 7, Servlet 6.1, and managed Redis client baselines supplied by that Boot line.
 Do not present those platform choices as Spring Session's library minimums.
 
-## Common path
-
-The ordinary Spring Session job is:
-
-1. Choose the runtime model first: servlet `HttpSession` or reactive `WebSession`.
-2. Choose the session store and timeout policy.
-3. Add the smallest matching dependency set.
-4. Configure session persistence, repository behavior, and session id transport.
-5. Integrate indexed lookup with security or messaging only where needed.
-6. Add a focused integration test that proves session creation, reuse, expiration, and principal lookup.
-
-### Branch selector
+## Branch selector
 
 - Stay in `SKILL.md` for the ordinary servlet path: Redis-backed servlet sessions, explicit timeout and namespace, cookie or header transport choice, indexed-versus-default Redis repository choice, cookie customization, JSON serializer awareness, principal lookup, and store-backed tests.
 - Open [references/jdbc-store.md](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
@@ -174,8 +162,8 @@ Switch to JSON serialization when multiple applications, rolling upgrades, or pa
 4. For Redis, choose the repository type explicitly: default for ordinary storage, indexed when principal lookup or session events are required.
 5. Decide how clients carry the session id: cookie for browsers, header for API clients, or a custom resolver only when an existing contract requires it.
 6. Add serializer and cookie policy customization where cross-subdomain login, `SameSite`, JSON payload compatibility, or rolling upgrades matter.
-7. Integrate with Spring Security, WebSocket, or session administration only after store-backed session creation and reuse work in isolation.
-8. Add a store-backed integration test that proves session reuse across requests and verifies expiration or indexed lookup.
+7. Use the matching reference when the task affects Spring Security, WebSocket, or session administration integration.
+8. Use store-backed tests when the changed contract depends on reuse, expiration, serialization, or indexed lookup.
 
 ## Session events and listener boundary
 
@@ -248,21 +236,9 @@ class SessionFlowTest {
 }
 ```
 
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen runtime model, session store, and transport strategy
-2. The main configuration shape, including timeout, namespace or table name, and cookie or header policy
-3. The chosen Redis repository variant when Redis is selected
-4. The integration point with security, messaging, or administration, if one is required
-5. The test shape proving session creation, reuse, expiration, and any indexed lookup requirement
-6. Any blocker that requires the JDBC, WebFlux, WebSocket, Redis advanced, or alternative-repository references
-
 ## Testing checklist
+
+Select checks for affected contracts and regression risks, including session or access protections where applicable.
 
 - Verify the second request reuses the same session id and sees state written by the first request.
 - Verify expiration behavior with the configured timeout instead of assuming the store default.

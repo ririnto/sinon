@@ -1,8 +1,7 @@
 ---
 name: spring-authorization-server
 description: >-
-  Build OAuth 2.1 and OpenID Connect providers with Spring Security authorization-server support, registered clients, PKCE, token issuance, signing keys, consent, and protocol endpoints.
-  Use when an application must issue access or ID tokens, publish authorization-server metadata or JWKs, manage OAuth clients, or implement PAR, device authorization, introspection, revocation, and extension grants.
+  Configure or test Spring OAuth/OIDC token issuance, registered clients, signing keys, consent, and authorization-server endpoints.
 ---
 
 # Spring Authorization Server
@@ -17,14 +16,13 @@ Spring Authorization Server 1.5.8 is the final standalone generation.
 Active authorization-server development continues in Spring Security 7, where `spring-security-oauth2-authorization-server` shares Spring Security's version and BOM line.
 The examples below use the Spring Boot 4.1 managed path.
 
-## Common path
+## Task scope
 
-1. Add the Boot authorization-server starter and fix the issuer URL first.
-2. Define one authorization-server `SecurityFilterChain` and one login `SecurityFilterChain` for user authentication.
-3. Register one user, one public client, one signing key source, one `JwtDecoder`, and one `AuthorizationServerSettings` bean.
-4. Use authorization code with PKCE as the first interactive flow.
-5. Verify the issuer, metadata, authorization, token, and JWK endpoints before changing persistence or protocol surface.
-6. Add OIDC, confidential clients, PAR, device authorization, introspection, revocation, federation, or extension grants only when the client contract requires them.
+Identify the issuer, client type, and protocol contract under change.
+Use authorization code with PKCE for public interactive clients.
+Add protocol surfaces only when the client contract requires them.
+Use the matching references below.
+The local-development examples are not a prerequisite for changing an existing provider.
 
 ## Dependency baseline
 
@@ -206,6 +204,8 @@ Do not publish any of them until the concrete client protocol requires them and 
 
 ## Validation checklist
 
+Apply these checks to affected protocol and deployment contracts, including success and rejection paths.
+
 - Verify metadata reports the intended issuer and endpoint URLs.
 - Verify the registered redirect URI succeeds and an unregistered URI fails.
 - Verify the public client must present a valid PKCE verifier.
@@ -220,18 +220,6 @@ Do not publish any of them until the concrete client protocol requires them and 
 - Persist registered clients, authorizations, and consent when restart continuity matters.
 - Provision redirect URIs, scopes, grant types, and client authentication methods explicitly.
 - Treat endpoint behavior, token claims, consent, and discovery metadata as client compatibility surfaces.
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The issuer, client, grant, scope, and endpoint contract
-2. The filter-chain, client repository, signing-key, decoder, and settings configuration
-3. The successful flow and rejected-request validation shape
-4. Any persistence, key-rotation, proxy, OIDC, or advanced-protocol blocker
 
 ## References
 

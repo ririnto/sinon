@@ -35,11 +35,8 @@ Pass platform-specific settings as deployment properties instead of baking them 
 
 ## Verification after account selection
 
-After choosing an account:
-
-1. Deploy or launch the workload.
-2. Inspect runtime state from SCDF.
-3. Verify the target platform actually received the deployment in the expected namespace, space, or cluster context.
+Account selection does not authorize deployment or launch.
+After an authorized operation, inspect SCDF runtime state and confirm the workload reached the expected namespace, space, or cluster.
 
 ## Decision points
 

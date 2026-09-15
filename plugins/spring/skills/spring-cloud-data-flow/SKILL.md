@@ -1,8 +1,7 @@
 ---
 name: spring-cloud-data-flow
 description: >-
-  Operate Spring Cloud Data Flow stream and task estates with app registration, stream DSL, task launch, schedules, platform accounts, runtime operations, and troubleshooting.
-  Use when maintaining existing SCDF servers, Skipper packages, registered apps, composed tasks, platform accounts, or scheduled task launches.
+  Maintain or troubleshoot existing Spring Cloud Data Flow stream/task estates, app registrations, schedules, and platform operations.
 ---
 
 # Spring Cloud Data Flow
@@ -22,14 +21,14 @@ Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new applica
 > Future releases are commercial-only and available only to Tanzu Spring customers.
 > Keep guidance on the final open-source lines.
 
-## Common path
+## Authority and completion
 
-1. Verify the SCDF server, Skipper server, and target platform are reachable from the same operational context.
-2. Register stream or task applications with explicit coordinates and version names.
-3. Add metadata only when the registered app supplies or needs it for option or deployment-property discovery.
-4. Create stream or task definitions only after platform accounts and runtime properties are known.
-5. Launch, schedule, update, or roll back definitions through SCDF runtime operations.
-6. Verify deployed application state with SCDF views and the target platform logs or metrics.
+Confirm the target server, platform account, and requested operation before changing runtime state.
+Inspection and preparation do not authorize registration, deployment, launch, scheduling, rollback, or deletion.
+Continue operations within an explicit grant without asking again for each authorized step.
+After a change, verify the affected runtime state and report observed results or a precise blocker.
+
+## Registration and launch example
 
 Register every app a topology needs before creating and deploying or launching its definition.
 Metadata is optional and is only needed when operators must inspect app options or deployment properties.
@@ -70,15 +69,3 @@ dataflow:>app list
 dataflow:>stream list
 dataflow:>task list
 ```
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The SCDF operation or configuration shape
-2. The affected stream, task, app registration, schedule, or platform account
-3. Verification commands and observed runtime state
-4. Remaining platform, version, or deployment risks

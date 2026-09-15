@@ -1,8 +1,7 @@
 ---
 name: spring-rest-docs
 description: >-
-  Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor.
-  Use when writing `MockMvc` or `WebTestClient` test cases that produce documentation snippets, configuring snippet template customization, or assembling published API references with Asciidoctor.
+  Generate Spring REST Docs snippets from MockMvc/WebTestClient tests and assemble API documentation with Asciidoctor.
 ---
 
 # Spring REST Docs
@@ -18,15 +17,11 @@ Use `spring-rest-docs` for test-driven request and response documentation, gener
 - Keep hypermedia representation design and link-model construction outside this skill's scope.
 - Keep this skill focused on proving and publishing the API contract from tests, not on controller design in general.
 
-## Common path
+## Task scope
 
-The ordinary Spring REST Docs job is:
-
-1. Pick the test surface already used by the project: MockMvc for servlet tests or WebTestClient for reactive tests.
-2. Add the matching REST Docs test dependency and wire snippet generation into tests.
-3. Document the exact request and response fields, parameters, headers, and status codes the endpoint returns.
-4. Publish snippets through Asciidoctor includes.
-5. Keep documentation generation in CI so snippets fail when the endpoint contract changes.
+Use the project's existing MockMvc or WebTestClient surface and document the affected endpoint contract.
+Generate snippets and build the referenced Asciidoctor output before declaring documentation changes complete.
+Preparing documentation does not authorize publishing it to an external site or service.
 
 ## Surface map
 
@@ -198,7 +193,7 @@ tasks.asciidoctor {
 
 ## Coding procedure
 
-1. Start from one representative endpoint and make the generated snippets pass before documenting the rest of the API.
+1. Update the documentation tests for the endpoints in scope rather than rebuilding unrelated API documentation.
 2. Keep snippet names stable and endpoint-oriented, such as `orders-create` or `orders-get`.
 3. Document every contract element the client depends on: fields, parameters, headers, cookies, links, and multipart parts where relevant.
 4. Use preprocessors to pretty-print payloads and mask volatile data before writing snippets.
@@ -274,18 +269,6 @@ build/generated-snippets/orders-create/
 ```adoc
 operation::orders-create[snippets='http-request,http-response,response-fields']
 ```
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen test surface and snippet strategy
-2. The documented request or response descriptors
-3. The publishing path, including the Asciidoctor include shape
-4. Any remaining blockers around alternate test surfaces or custom snippets
 
 ## Testing checklist
 

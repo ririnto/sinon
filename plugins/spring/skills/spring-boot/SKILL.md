@@ -1,8 +1,7 @@
 ---
 name: spring-boot
 description: >-
-  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging.
-  Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, or applying Spring Boot 4.1 changes.
+  Configure Spring Boot starters, properties, profiles, test slices, Actuator, and packaging, including Boot version migrations.
 ---
 
 # Spring Boot
@@ -14,18 +13,11 @@ Use `spring-boot` for Boot application structure, starter selection, auto-config
 - Use narrower Spring skills for deep API details of MVC, Security, Data, Messaging, or other specialized projects once Boot wiring is already clear.
 - Keep this skill focused on Boot-level composition, lifecycle, and operations rather than every Spring API surface.
 
-## Common path
+## Task scope
 
-The ordinary Spring Boot job is:
-
-1. Start with the smallest starter set that matches the application type and deployment shape.
-2. Keep bootstrap and runtime lifecycle explicit with one entrypoint, one local run command, and predictable startup behavior.
-3. Keep externalized configuration explicit, make profiles intentional, and bind durable settings with `@ConfigurationProperties`.
-4. Follow simple Boot wiring conventions: one entrypoint, constructor injection, explicit runners for startup work, and no scattered `@Value` usage for durable settings.
-5. Choose the narrowest test slice that proves the feature before escalating to `@SpringBootTest`.
-6. Enable only the Actuator endpoints and operational signals the deployment actually needs.
-7. Default to an executable jar first.
-   - Treat OCI images, war packaging, and native-image constraints as conditional branches.
+Use the sections and references for the Boot behavior under change.
+For new applications, choose the smallest starter set and default to an executable jar unless deployment requirements differ.
+Existing applications do not need new bootstrap, testing, Actuator, or packaging work unless the task affects those concerns.
 
 ## Dependency baseline
 
@@ -200,18 +192,6 @@ Open [references/application-context-runner.md](references/application-context-r
 - Expose only the Actuator endpoints the operations team actually needs.
 - Keep profile, config import, Docker Compose, and deployment assumptions explicit.
 - Make startup, packaging, and local service assumptions reproducible across local and deployment environments.
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The concrete configuration, code shape, or command for the stated Spring Boot feature.
-2. The specific file or path changes if an implementation is required.
-3. Any named reference to open when the path hits a blocker.
-4. Explicit risks or version-sensitive behaviors that cannot be assumed backward-compatible.
 
 ## References
 
