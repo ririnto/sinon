@@ -1,8 +1,7 @@
 ---
 name: spring-pulsar
 description: >-
-  Build Apache Pulsar producers, consumers, and readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, and DLQ patterns.
-  Use when choosing subscription types, configuring customizers or transactions, writing Pulsar-focused tests, or performing Pulsar administration tasks within a Spring application.
+  Configure or test Spring Pulsar producers, listeners, schemas, subscriptions, acknowledgment, replay, and dead-letter handling.
 ---
 
 # Spring for Apache Pulsar
@@ -23,17 +22,6 @@ Use `spring-pulsar` for Pulsar producer and consumer code, listeners, readers, t
 - Kafka or RabbitMQ producer and consumer semantics are outside this skill's scope.
 - Keep transport concerns in Pulsar-facing services and listeners.
   - Domain logic should not know about subscriptions or topic partitions.
-
-## Common path
-
-The ordinary Spring Pulsar job is:
-
-1. Define the topic name, subscription name, and subscription mode first.
-2. Add the Pulsar starter and keep message format explicit.
-3. Choose the schema strategy before the first producer and listener are written.
-4. Publish through `PulsarTemplate` and consume through `@PulsarListener`.
-5. Decide concurrency, retry, and dead-letter behavior before production rollout.
-6. Add an integration test that proves the producer, listener, and topic configuration agree on payload shape and delivery behavior.
 
 ## Dependency baseline
 
@@ -86,7 +74,7 @@ Add tenant or namespace abstraction only when the deployment truly requires it.
 7. Add producer or consumer customizers only when properties are not enough.
 8. Choose acknowledgment mode (BATCH, RECORD, MANUAL) based on whether the listener needs per-message or per-batch ack control.
 9. Use PulsarConsumerErrorHandler for Spring-native DLQ with non-Shared subscriptions, and it is also valid with Shared subscriptions when Spring-native recovery is preferred.
-10. Test both happy-path delivery and one representative failure path with the same schema and subscription settings used in production.
+10. For delivery changes, test success and affected failure paths with the production schema and subscription settings.
 
 ## Implementation examples
 
@@ -192,18 +180,6 @@ DeadLetterPolicy.builder()
     .build();
 ```
 
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The producer, listener, and schema or subscription choice
-2. Any topic, subscription, retry, or DLQ settings that must be configured
-3. The validation path used, including the integration-test approach
-4. Any remaining operational risks around redelivery, concurrency, or schema compatibility
-
 ## Integration test shape
 
 ```java
@@ -246,6 +222,8 @@ The example pins the broker image to the Spring Boot 4.1 managed Pulsar client l
 Change the image only when the test must prove compatibility with another supported Pulsar line.
 
 ## Testing checklist
+
+Select checks for affected delivery contracts and regression risks.
 
 - Verify producer and consumer agree on topic name and payload shape.
 - Verify subscription behavior matches the intended processing model and concurrency setting.

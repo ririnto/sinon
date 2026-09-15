@@ -1,8 +1,7 @@
 ---
 name: spring-integration
 description: >-
-  Build message-driven application flows with Spring Integration channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters.
-  Use when designing integration flows with the Java DSL or XML namespace, configuring channel types, wiring file, HTTP, or JMS adapters, or applying content-based routing and aggregation patterns.
+  Design or troubleshoot Spring Integration message flows, channels, routers, gateways, pollers, and protocol adapters.
 ---
 
 # Spring Integration
@@ -15,17 +14,6 @@ Use `spring-integration` for Enterprise Integration Patterns inside or at the ed
 - Distributed-system infrastructure such as Config, Gateway, or general service-to-service wiring is outside this skill's scope.
 - Keep domain logic out of the flow graph.
   - Flows should orchestrate message movement, routing, and adaptation.
-
-## Common path
-
-The ordinary Spring Integration job is:
-
-1. Draw the flow as source -> channel -> endpoint -> channel -> sink before coding.
-2. Choose the smallest set of EIP components that expresses the routing and transformation need.
-3. Use gateways for request-reply boundaries and adapters for one-way boundaries, whether the caller is application code or an external system.
-4. Choose channel semantics, poller behavior, and error-channel routing before the flow goes live.
-5. Put idempotency, retries, transactions, and persistent stores only where restart or remote failure semantics require them.
-6. Add one graph-level test that proves the intended message path and one failure-path test that proves error routing.
 
 ## Core flow decisions
 
@@ -221,7 +209,7 @@ Open [references/error-handling-and-retry-patterns.md](references/error-handling
 4. Add persistent stores only when idempotency, aggregation, resequencing, or poller state must survive restarts.
 5. Use Java DSL for new code unless the surrounding application already standardized on another style.
 6. Add runtime flow registration, reactive channels, or adapter-specific modules only when the ordinary direct flow is not enough.
-7. Test both the happy path and one representative error or discard path.
+7. For flow changes, test the intended message path and affected error or discard behavior.
 
 ## Basic DSL verbs
 
@@ -299,13 +287,6 @@ Pollers.fixedDelay(Duration.ofSeconds(5)).maxMessagesPerPoll(10)
 
 ## Output and configuration shapes
 
-Return these artifacts for the ordinary path:
-
-1. One gateway or explicit entry channel
-2. One IntegrationFlow configuration class
-3. One adapter or transport boundary configuration when the flow leaves the process
-4. One graph-level test plus one failure-path test
-
 ### Flow sketch shape
 
 ```text
@@ -325,6 +306,9 @@ Pollers.fixedDelay(Duration.ofSeconds(5))
 ```
 
 ## Testing checklist
+
+Select checks for the changed contract and regression risks.
+Use the existing native test setup.
 
 - Verify the intended message path through the graph.
 - Verify discard, error-channel, or retry behavior on one representative failure path.

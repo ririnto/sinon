@@ -70,14 +70,9 @@ It may load Spring skills but does not delegate to other agents.
 - SCDF stream/task estate operations belong in `spring-cloud-data-flow` guidance.
 - Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-web-flow` guidance.
 
-Typical workflow:
-
-1. Establish the application and container shape first using `spring-boot` and `spring-framework`.
-2. Add Spring-aware tests when behavior needs to be locked with framework context.
-3. Bring in `spring-security` guidance when authentication, authorization, or filter-chain concerns are in scope.
-4. Add Spring messaging guidance when consistency crosses Integration, Kafka, AMQP, or Pulsar boundaries.
-5. Choose the concrete `spring-web`, data, messaging, or cloud guidance for the active subsystem.
-6. Java syntax, JVM diagnostics, and JDK packaging questions belong in Java- or JVM-focused guidance.
+Select the skill for the active subsystem rather than loading Boot and Framework for every Spring task.
+Use their configuration and test guidance when Boot wiring or container behavior affects the result.
+Load additional Spring skills only for integration boundaries the task crosses.
 
 Testing boundary:
 

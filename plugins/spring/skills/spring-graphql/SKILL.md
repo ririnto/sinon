@@ -1,8 +1,7 @@
 ---
 name: spring-graphql
 description: >-
-  Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
-  Use when defining schema-first or annotation-first resolvers, configuring DataLoader batching, wiring WebSocket, SSE, or RSocket transports, or writing integration tests with `GraphQlTester`.
+  Implement or test Spring GraphQL schemas, resolvers, batching, subscriptions, transports, and error handling.
 ---
 
 # Spring for GraphQL
@@ -16,19 +15,6 @@ Keep GraphQL schema, resolver, transport, batching, and tester decisions at the 
   - Domain services should not depend on GraphQL-specific annotations or response shapes.
 - Keep federation out of the ordinary path.
   - Open the federation reference only when the graph is intentionally split across several services.
-
-## Common path
-
-The ordinary Spring GraphQL job is:
-
-1. Define the GraphQL schema first and keep field names stable.
-2. Map root fields with `@QueryMapping` or `@MutationMapping` and nested fields with `@SchemaMapping` or `@BatchMapping` only when needed.
-3. Use `@BatchMapping` or DataLoader when the resolver shape would otherwise cause N+1 access patterns.
-4. Keep GraphQL error categories intentional so validation, authorization, and execution failures stay distinguishable.
-5. Add a `GraphQlTester` test that proves the query shape, response path, and error behavior.
-6. Keep one canonical transport, usually HTTP, unless the application truly needs subscriptions or another protocol.
-   - SSE over HTTP is the simplest subscription transport.
-   - WebSocket supports bidirectional use on a single connection.
 
 ## Surface map
 
@@ -142,8 +128,8 @@ Add WebSocket, SSE, or RSocket transports only when the API really needs them.
 ./gradlew bootRun
 ```
 
-Run the server on the ordinary HTTP path first.
-Add WebSocket, SSE, or RSocket verification only after the base schema and resolver path is stable.
+Run only the transport path needed for the task.
+Use focused resolver tests when a live server adds no evidence.
 
 ## Mapping and batching decisions
 
@@ -170,7 +156,7 @@ Use this when the query shape maps directly to a repository method and no additi
 4. Prefer `@BatchMapping` first, then reach for explicit DataLoader registration when batching needs custom loader composition.
 5. Keep authorization and context propagation explicit at the GraphQL boundary.
 6. Make validation, authorization, and execution failures observable as distinct GraphQL error categories.
-7. Test both the happy path and at least one invalid-input or authorization failure path.
+7. For API changes, test successful execution and affected validation or authorization failure paths.
 
 ## 2.0 notable features
 
@@ -355,6 +341,8 @@ bookById.title
 
 ## Testing checklist
 
+Select checks for affected API, transport, and security contracts and their regression risks.
+
 - Verify the schema field names and resolver paths match what the client queries.
 - Verify GraphQlTester assertions cover both data paths and expected errors.
 - Verify nested field resolution does not accidentally create N+1 access patterns.
@@ -374,21 +362,6 @@ bookById.title
 - Keep GraphQL error shapes intentional so client handling stays predictable.
 - Do not expose subscriptions or alternate transports unless clients really need them.
 - Treat GraphQL schema and tester assertions as part of the API compatibility surface.
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen schema and controller mapping shape for the operation
-2. The batching strategy, including whether `@BatchMapping` or explicit DataLoader registration is used
-3. The selected transport path and any transport-specific configuration
-4. The GraphQlTester or integration test shape proving the response and error behavior
-5. The intended GraphQL error categories and context-propagation approach
-6. Any blocker that requires subscriptions, custom DataLoader wiring, security interception, or federation
-7. Any security CVE patches applied to the Spring GraphQL version in use
 
 ## References
 

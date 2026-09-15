@@ -1,8 +1,7 @@
 ---
 name: spring-framework
 description: >-
-  Apply core Spring Framework APIs for container configuration, bean lifecycle, transactions, events, validation, scheduling, async execution, resilience, JDBC, and TestContext support.
-  Use when configuring `@Configuration` classes, managing scopes and lifecycle callbacks, setting transaction boundaries, enabling resilient methods, registering beans programmatically, or wiring framework infrastructure without Boot autoconfiguration.
+  Configure or debug Spring container wiring, lifecycle, transactions, events, validation, scheduling, resilience, JDBC, and TestContext integration.
 ---
 
 # Spring Framework
@@ -44,19 +43,16 @@ Spring Framework 7.0 replacement targets:
 - Jackson 2.x support (use Jackson 3.x)
 - Kotlin script templating (JSR 223 removal planned by Kotlin)
 
-## Common path
+## Task scope
 
-The ordinary Spring Framework job is:
-
-1. Choose the smallest Spring modules that match the needed capability.
-2. Define the application wiring with Java configuration and explicit beans.
-3. Control the environment, profiles, and externalized configuration explicitly.
-4. Keep bean lifecycle, events, transactions, conversion, validation, and scheduling behavior explicit.
-5. Add a focused TestContext-based or plain Spring test that proves the framework integration works.
+Use the section for the affected container, transaction, event, scheduling, JDBC, or testing boundary.
+Keep module selection and bean wiring limited to the required capability.
 
 ## First safe commands
 
-Start with the narrowest local TestContext-backed test that proves the wiring you are changing.
+For wiring changes, use the narrowest existing TestContext-backed test that proves the affected integration.
+The following commands illustrate test selection.
+Use the target repository's native build command.
 
 ```sh
 ./mvnw test -Dtest=AppConfigTests
@@ -694,6 +690,9 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 ```
 
 ## Testing checklist
+
+Select checks for affected framework contracts and regression risks.
+Do not require unrelated lifecycle, transaction, and validation tests for every change.
 
 - Verify the application context loads with the intended bean graph.
 - Verify transaction boundaries wrap the intended unit of work.

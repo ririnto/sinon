@@ -1,8 +1,7 @@
 ---
 name: spring-data
 description: >-
-  Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules.
-  Use when writing derived or `@Query` repository methods, choosing between JPA, MongoDB, Redis, JDBC, or R2DBC modules, configuring auditing, or implementing projections and DTO mappings.
+  Design or test Spring Data repositories, queries, projections, auditing, pagination, and store-module selection.
 ---
 
 # Spring Data
@@ -15,17 +14,6 @@ Use `spring-data` for repository abstraction, derived query methods, projections
 - Keep this skill focused on what is shared across Spring Data modules rather than store-specific query languages or transaction mechanics.
 - The concrete repository examples in this common path assume imperative repository contracts.
   Reactive execution details belong in the matching store-specific reactive path.
-
-## Common path
-
-The ordinary Spring Data job is:
-
-1. Start from the repository boundary and the aggregate or document shape the application needs.
-2. Use the smallest repository abstraction that fits the use case.
-3. Prefer derived queries and projections for straightforward access paths.
-4. Keep null handling, paging, and scrolling explicit in repository contracts.
-5. Add auditing and mapping callbacks only where the domain actually benefits from them.
-6. Add a repository-focused test slice that proves the query and mapping behavior.
 
 ## Dependency baseline
 
@@ -366,6 +354,9 @@ Instant createdAt;
 ```
 
 ## Testing checklist
+
+Select checks for the changed contract and regression risks.
+Use the existing native test setup.
 
 - Verify repository methods map to the intended query behavior.
 - Verify projections expose only the fields callers need.

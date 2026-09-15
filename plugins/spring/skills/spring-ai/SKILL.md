@@ -1,8 +1,7 @@
 ---
 name: spring-ai
 description: >-
-  Build Spring AI application features with ChatClient, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, RAG, and MCP integration.
-  Use when configuring chat models, wiring vector store backends, designing RAG pipelines, or integrating AI tool calling into Spring services.
+  Implement Spring AI model calls, structured output, tools, memory, retrieval, vector stores, and MCP integration.
 ---
 
 # Spring AI
@@ -38,18 +37,11 @@ Use this map to keep the official Spring AI surface visible without pushing the 
 | Local development infra | You need Docker Model Runner, development-time services, Testcontainers, local models, vector stores, or containerized dev services | Local model runtime is the blocker in [development services and infra](references/development-services-and-local-infra.md), local vector store provisioning is the blocker in [local vector store setup](references/local-vector-store-dev.md), or full containerized bootstrap is the blocker in [containerized development environment](references/containerized-dev-environment.md) |
 | Upgrade and migration | Version changes alter starters, APIs, defaults, or provider behavior | Upgrade mechanics are the blocker in [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) |
 
-## Common path
+## Task scope
 
-The ordinary Spring AI job is:
-
-1. Pin one Spring AI BOM version and add only the starters needed for the first production use case.
-2. Start with one provider-neutral `ChatClient` seam around an application service.
-3. Use prompt templates and structured output before adding tools, memory, or retrieval.
-4. Expose only narrow, side-effect-safe tools when the plain prompt path is already correct.
-5. Add advisors or chat memory only when the use case needs request decoration or multi-turn continuity.
-6. Add RAG only after the non-RAG path is testable and the retrieval boundary is explicit.
-7. Add image, audio, moderation, MCP, or effective-agent workflows only for concrete blockers, not by default.
-8. Validate prompt assembly, output mapping, tool safety, conversation scoping, retrieval behavior, token usage, and production telemetry before rollout.
+Choose the model, tool, memory, retrieval, or media surface required by the feature.
+Do not build a plain-chat or non-RAG workflow as a prerequisite for a retrieval-only or tool-focused task.
+Keep external calls and tool side effects within the task's authority and data-handling constraints.
 
 ## Dependency baseline
 
@@ -118,7 +110,7 @@ Do not let controllers or domain code depend directly on a provider SDK.
 
 ## Prompt templating and structured output
 
-Use prompt templates before introducing tools, memory, or retrieval.
+Use prompt templates when reusable instructions or parameterized input are needed.
 Keep variables explicit and keep prompt text reviewable in code.
 
 ```java
@@ -241,7 +233,7 @@ class KnowledgeSearchService {
 
 - Keep the conversation identifier explicit at the call site.
 - Use in-memory chat memory only for demos, tests, or single-instance transient flows.
-- Add RAG only after the non-RAG path is correct and testable.
+- Use RAG when the answer requires retrieved context, with explicit retrieval and empty-context behavior.
 - Keep `EmbeddingModel` as the portable seam for vector generation and treat the concrete `VectorStore` implementation as a deployment decision.
 - Open [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) when advisor ordering, persistent memory repositories, token buffering, or conversation isolation becomes the blocker.
 - Open [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) when chunking, embeddings, metadata filters, vector-store choice, or advanced retrieval tuning is the blocker.
@@ -270,7 +262,9 @@ Treat token accounting as part of the application contract, not as an afterthoug
 
 ## Minimal validation
 
-Verify the first Spring AI path before expanding scope.
+Select checks for the model-facing behavior under change and its regression risks.
+Prefer deterministic local checks.
+Use live-provider evaluation only when the required evidence and authority justify it.
 
 - Verify prompt assembly without a live provider where possible.
 - Verify structured-output mapping for one valid and one invalid response shape.

@@ -1,8 +1,7 @@
 ---
 name: spring-amqp
 description: >-
-  Build RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, retry, and dead-letter handling.
-  Use when declaring queues and exchanges, configuring message converters, setting up retry or DLQ policies, or writing listener container configuration.
+  Configure or test Spring AMQP messaging, RabbitMQ topology, listeners, conversion, retries, and dead-letter handling.
 ---
 
 # Spring AMQP
@@ -38,18 +37,6 @@ Use this map to keep the official Spring AMQP 4.x surface visible without pushin
 | Generic AMQP 1.0 | RabbitMQ-specific API is not needed or the peer uses AMQP 1.0 natively | Generic AMQP 1.0 client, `@AmqpListener`, and `AmqpClient` are the blocker in [references/generic-amqp10-support.md](references/generic-amqp10-support.md) |
 | Testing | The contract needs broker-focused or listener-focused verification | Test harness depth is the blocker in [references/testing-support-and-listener-harnesses.md](references/testing-support-and-listener-harnesses.md) |
 | Observability and debugging | Delivery behavior must be measured or diagnosed in production | Listener metrics are the blocker in [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md), tracing is the blocker in [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md), or delivery diagnosis is the blocker in [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) |
-
-## Common path
-
-The ordinary Spring AMQP job is:
-
-1. Fix queue, exchange, binding, and routing-key names first.
-2. Add the AMQP starter and choose one message format, usually JSON, for the module.
-3. Declare the broker topology in Spring so publisher and consumer code share the same contract.
-4. Publish through `RabbitTemplate` and consume through `@RabbitListener`.
-5. Set one baseline listener container configuration and one retry or dead-letter policy before production rollout.
-6. Prove the payload shape, delivery path, and one representative failure path with tests.
-7. Add batching, request-reply, streams, or multiple brokers only when the ordinary queue path is already correct.
 
 ## Dependency baseline
 
@@ -98,8 +85,8 @@ Use the Boot starter for application code and the Rabbit test module for listene
 ./gradlew bootRun
 ```
 
-Run the ordinary queue path first.
-Add broker confirms, request-reply, streams, or multiple brokers only after the base send/receive flow is stable.
+Run only the application path needed to verify the task, using an authorized local broker.
+Choose confirms, request-reply, streams, or multiple brokers when the delivery contract requires them.
 
 ## AMQP topology basics
 
@@ -282,7 +269,7 @@ Open [references/retry-recovery-and-transactions.md](references/retry-recovery-a
 
 ## Minimal testing shape
 
-Verify the first Spring AMQP path with one delivery test and one failure-path test.
+For delivery changes, verify the affected payload, routing, and failure contracts with the existing native test setup.
 
 ```java
 @SpringRabbitTest
@@ -350,19 +337,6 @@ Declare these beans to customize the auto-configured defaults without replacing 
 | `RabbitListenerRetrySettingsCustomizer` | Programmatic retry customization for listeners |
 | `RabbitTemplateObservationConvention` | Custom observation naming for template operations |
 | `RabbitListenerObservationConvention` | Custom observation naming for listener operations |
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The queue, exchange, binding, and routing-key contract
-2. The publish and consume shape, including converter strategy
-3. The chosen listener container and retry or dead-letter policy
-4. The focused test shape proving one delivery path and one failure path
-5. Any blocker that requires request-reply, streams, batching, async returns, or multiple brokers
 
 ## Production guardrails
 

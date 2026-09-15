@@ -1,8 +1,7 @@
 ---
 name: spring-grpc
 description: >-
-  Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection.
-  Use when generating protobuf stubs, configuring managed channels, applying server or client interceptors, or setting up gRPC health checking and reflection.
+  Implement or test Spring gRPC services, protobuf stubs, channels, deadlines, interceptors, health checks, and reflection.
 ---
 
 # Spring gRPC
@@ -18,18 +17,7 @@ Use `spring-grpc` for gRPC transport, generated protobuf stubs, Spring-managed g
 - Keep business logic outside the gRPC transport class.
   - Service implementations should translate between protobuf contracts and application services.
 
-## Common path
-
-The ordinary Spring gRPC job is:
-
-1. Define the `.proto` contract first and generate Java stubs before writing Spring code.
-2. Add only the server or client starter needed by the application, then decide explicitly whether the server starter's default reflection exposure fits the deployment.
-3. Register client stubs with `@ImportGrpcClients` for the ordinary path, and fall back to explicit `@Bean` stub creation only when the channel or stub needs custom construction.
-4. Implement a Spring-managed gRPC service that maps protobuf messages to application inputs and outputs.
-5. Configure deadlines, metadata, and interceptors at the client or server boundary.
-6. Add an integration test that proves the generated contract, server binding, and client call all agree.
-
-### Branch selector
+## Branch selector
 
 | Situation | Stay here or open a branch |
 | --- | --- |
@@ -449,6 +437,8 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 ```
 
 ## Testing checklist
+
+Select checks for affected API, transport, and security contracts and their regression risks.
 
 - Verify `.proto` compilation produces the generated stubs used by the server and client code.
 - Verify generated stubs and the checked-in `.proto` contract stay aligned.

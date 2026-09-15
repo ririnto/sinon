@@ -1,8 +1,7 @@
 ---
 name: spring-modulith
 description: >-
-  Structure Spring Boot applications as explicit application modules with boundary verification, published module events, and module-interaction tests via Spring Modulith.
-  Use when defining module boundaries, verifying encapsulation with the Modulith test runner, publishing events across modules, or configuring event publication mode.
+  Define or verify Spring Modulith boundaries, named interfaces, cross-module events, publication durability, and module interactions.
 ---
 
 # Spring Modulith
@@ -13,16 +12,6 @@ Use `spring-modulith` for package-level application module boundaries, named int
 
 - Use plain package refactoring or Java language guidance when the task is only about naming or moving classes without a module-boundary policy.
 - Keep this skill focused on modular monolith structure inside one deployable application, not on splitting services across repositories.
-
-## Common path
-
-The ordinary Spring Modulith job is:
-
-1. Identify the application modules and their public named interfaces first.
-2. Keep dependencies flowing only through allowed module boundaries.
-3. Publish application events for cross-module collaboration instead of direct internal calls where decoupling matters.
-4. Add a verification test that fails when the module structure drifts.
-5. Add at least one module-focused integration test for a meaningful interaction path.
 
 ## Module decisions
 
@@ -182,7 +171,7 @@ spring.modulith.detection-strategy=explicitly-annotated
 
 Or provide a custom `ApplicationModuleDetectionStrategy` implementation.
 
-Start by making verification pass before adding richer module test scenarios.
+Use boundary verification for structural changes and module tests for interactions that need a Spring runtime.
 
 ## Coding procedure
 
@@ -190,7 +179,7 @@ Start by making verification pass before adding richer module test scenarios.
 2. Keep non-exported types package-private wherever practical so module boundaries are reinforced by code structure.
 3. Use named interfaces to expose only the entry points other modules are allowed to depend on.
 4. Publish application events when one module should react after another module completes work.
-5. Add `@ApplicationModuleTest` only after ordinary boundary verification is already clean.
+5. Use `@ApplicationModuleTest` when the changed interaction needs module-scoped integration coverage.
 6. Treat boundary violations as architecture regressions, not optional warnings.
 
 ## Module test decisions
@@ -332,10 +321,12 @@ Output goes to `spring-modulith-docs` in the build folder by default.
 
 ## Testing checklist
 
+Select checks for affected module boundaries, interactions, and regression risks.
+
 - Verify module verification runs in CI and fails on illegal dependencies.
 - Verify public entry points are the only paths other modules use.
 - Verify cross-module collaboration works through the intended event or named interface.
-- Verify at least one module-focused integration test covers a real interaction path.
+- Cover changed module interactions with integration tests when lower-level checks cannot prove the contract.
 - Verify boundary tests stay green after refactors that move packages or listeners.
 
 ## Production checklist
@@ -344,7 +335,8 @@ Output goes to `spring-modulith-docs` in the build folder by default.
 - Avoid leaking internal packages as informal public APIs.
 - Keep cross-module synchronous calls rare and intentional.
 - Treat verification failures as release blockers for architecture-sensitive applications.
-- Use documentation generation or runtime inspection only after the underlying boundaries are already correct.
+- Generate module documentation from verified boundaries.
+- Use runtime inspection when diagnosing module structure or startup behavior.
 
 ## References
 

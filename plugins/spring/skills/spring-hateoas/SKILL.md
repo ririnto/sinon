@@ -1,8 +1,7 @@
 ---
 name: spring-hateoas
 description: >-
-  Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models.
-  Use when constructing `EntityModel` or `CollectionModel` responses, writing representation model assemblers, adding affordances or templated links, or producing HAL or HAL-FORMS output.
+  Build or test Spring HATEOAS representations, links, assemblers, HAL/HAL-FORMS affordances, and page navigation.
 ---
 
 # Spring HATEOAS
@@ -14,16 +13,6 @@ Use `spring-hateoas` for link modeling, representation assembly, hypermedia medi
 - Use narrower guidance when the task is about publishing API documentation from tests.
 - Keep transport controllers thin.
   - Hypermedia shape should live in assemblers or representation processors, not spread through controller methods.
-
-## Common path
-
-The ordinary Spring HATEOAS job is:
-
-1. Start from the resource representation the client should see, not from the persistence entity.
-2. Build links through an assembler so link rules stay consistent across endpoints.
-3. Expose collection and page-level links separately from item-level links.
-4. Pick one hypermedia media type, usually HAL, and keep it stable for the module.
-5. Add a test that proves the response contains the required `_links` and embedded data shape.
 
 ## Surface map
 
@@ -115,7 +104,7 @@ Default to HAL unless the project already committed to another hypermedia format
 3. Build links from controller methods rather than hand-written paths wherever practical.
 4. Add affordances only when clients will actually act on them.
 5. Keep link relation names stable once clients depend on them.
-6. Test both single-resource and collection-resource responses for the expected link set.
+6. Test changed representation contracts for the expected link set, including affected item and collection responses.
 
 ## Link building
 
@@ -361,6 +350,8 @@ orders
 
 ## Testing checklist
 
+Select checks for affected representations, links, media types, and access-dependent affordances.
+
 - Verify item responses include the required `self` link and any collection or action links the client expects.
 - Verify collection and paged responses include navigation links and page metadata where applicable.
 - Verify link relations remain stable across refactors.
@@ -380,20 +371,6 @@ orders
 - Keep one canonical hypermedia media type per module to reduce client ambiguity.
 - Ensure reverse proxy or base-path configuration does not break generated links.
 - Treat assembler tests as part of the API compatibility surface.
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen representation type and why it fits the endpoint contract
-2. The assembler or processor shape that owns link generation
-3. The stable link relations clients depend on
-4. The selected hypermedia media type and any affordance or HAL-FORMS decision
-5. The test shape proving the required `_links` and embedded data
-6. Any blocker that requires paged navigation, entity links, processor-based enrichment, or proxy-aware link rewriting
 
 ## References
 

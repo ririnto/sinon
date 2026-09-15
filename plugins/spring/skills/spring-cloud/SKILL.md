@@ -1,8 +1,7 @@
 ---
 name: spring-cloud
 description: >-
-  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries.
-  Use when configuring Spring Cloud Config client or server, registering services with Eureka or Consul, wiring load-balanced `RestClient` or `WebClient`, applying circuit-breaker patterns with Resilience4J.
+  Configure Spring Cloud release trains, external configuration, discovery, load-balanced clients, circuit breakers, and related Cloud integrations.
 ---
 
 # Spring Cloud
@@ -39,28 +38,11 @@ Use `spring-cloud` for release-train-aligned distributed application wiring, ext
 | Stream binders | the service actually publishes to or consumes from a broker | open [references/stream-binders.md](references/stream-binders.md) |
 | Function catalog | the task is specifically about function beans or composition | open [references/function-catalog.md](references/function-catalog.md) |
 
-## Common path
+## Task routing
 
-### Distributed-system wiring
-
-The ordinary Spring Cloud job is:
-
-1. Align the application with one Spring Cloud release train.
-2. Add only the starters the service actually needs for ConfigData, service discovery, load balancing, or resilience.
-3. Keep service names, config import locations, and logical service ids explicit.
-4. Wire one discovery-backed downstream client and add resilience only where the remote call justifies it.
-5. Test one healthy path and one representative downstream-failure path end to end.
-
-### Data Flow orchestration
-
-The ordinary Spring Cloud Data Flow job is:
-
-1. Decide whether the workload is a long-running stream or a launchable task.
-2. Register the source, processor, sink, or task applications with explicit coordinates.
-3. Create the stream or task definition and add only the deployment properties actually needed.
-4. Deploy or launch it and inspect status, logs, and metrics.
-5. For streams, verify the Skipper package state before updating or rolling back a deployed definition.
-6. Keep the topology, app versions, and platform account assumptions explicit.
+Use the surface map for the affected configuration, discovery, client, or resilience boundary.
+For existing SCDF estate operations, use [spring-cloud-data-flow](../spring-cloud-data-flow/SKILL.md).
+The SCDF command examples here illustrate application handoff, not authorization to change a running platform.
 
 ## Dependency baseline
 
@@ -315,7 +297,7 @@ This task-app shape assumes a Spring Cloud Task application and therefore keeps 
 4. Use logical service ids consistently across discovery-backed and load-balanced calls.
 5. Add retries and circuit breakers only around genuine remote boundaries.
 6. Keep gateway policy and downstream client policy separate so each remains understandable.
-7. Test both the healthy path and one representative downstream-failure path.
+7. For remote-call changes, test successful calls and affected downstream-failure behavior.
 
 ### Data Flow orchestration
 
@@ -512,6 +494,9 @@ task execution list
 ```
 
 ## Testing checklist
+
+Select checks for changed contracts and regression risks.
+Runtime verification applies after authorized operations, not as a reason to deploy during an application-code task.
 
 ### Distributed-system wiring
 

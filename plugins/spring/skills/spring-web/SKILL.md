@@ -1,8 +1,7 @@
 ---
 name: spring-web
 description: >-
-  Build servlet MVC and reactive WebFlux HTTP applications with Spring Framework, annotated controllers, centralized errors, API versioning, RestClient, WebClient, and focused web tests.
-  Use when choosing MVC versus WebFlux, implementing REST endpoints, registering HTTP interface clients, configuring message codecs, or testing HTTP semantics without relying on Boot autoconfiguration.
+  Implement or test Spring MVC/WebFlux endpoints, HTTP clients, codecs, error responses, and API versioning.
 ---
 
 # Spring Web
@@ -16,14 +15,10 @@ Authentication, authorization, filter chains, CSRF, and bearer-token enforcement
 The examples target Spring Framework 7.
 This line requires JDK 17+, Jakarta EE 11 for servlet applications, and Netty 4.2 when the reactive runtime uses Reactor Netty.
 
-## Common path
+## Stack selection
 
-1. Choose servlet MVC for blocking request handling or WebFlux for an end-to-end non-blocking stack.
-2. Add only `spring-webmvc` or `spring-webflux` plus the shared test module.
-3. Define thin controllers that delegate to application services.
-4. Centralize validation failures and exception-to-response mapping.
-5. Register one shared HTTP client with its base URL, headers, codecs, and error policy.
-6. Add a narrow `MockMvc` or `WebTestClient` test that proves status, headers, and body shape.
+Choose servlet MVC for blocking request handling or WebFlux for an end-to-end non-blocking server stack.
+Use the server, client, codec, or testing section that matches the task without adding unrelated HTTP infrastructure.
 
 Do not combine MVC and WebFlux in one application merely to use `WebClient`.
 A servlet application can use `WebClient` as an outbound client without adopting a reactive server stack.
@@ -328,18 +323,6 @@ class ItemControllerTests {
 
 Keep web tests focused on HTTP semantics.
 Test service-level business behavior without the web infrastructure.
-
-## Output contract
-
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The selected MVC or WebFlux server model and required modules
-2. The controller, validation, and error-response contract
-3. The RestClient, WebClient, or HTTP-interface client configuration
-4. The focused HTTP test and any codec, versioning, or transport blocker
 
 ## Production checklist
 
