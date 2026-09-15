@@ -19,6 +19,10 @@ Preserve existing named top-level components, each with one documented responsib
 Adding, removing, or moving a component MUST update its architecture, dependencies, consumers, and relevant documentation.
 Do not add legacy parallel surfaces or compatibility shims without an external contract.
 
+## Authoring
+
+Write all repository guidance and agent-to-agent communication in English.
+
 ## Task References
 
 Use the relevant sections of [repository conventions](docs/agent-references/repository-conventions.md) for shell, source, documentation, or configuration edits.

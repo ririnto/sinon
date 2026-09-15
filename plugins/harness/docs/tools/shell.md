@@ -49,11 +49,12 @@ Per-file directives such as `# shellcheck shell=bash` are for generated or multi
 ## CI Behavior
 
 The GitHub catalog `ci/github/shell.yaml` and GitLab catalog `ci/gitlab/shell.gitlab-ci.yaml` install the two tools from the system package repository and run the same two commands.
+The GitLab catalog uses the versioned `debian:13-slim` Debian 13 baseline.
 The GitLab job declares `stage: validate`; add that stage to the target's pipeline stages when it does not exist.
 No working-directory adjustment exists for this profile; the file list is repository-wide by design.
 
 ## Known Limitations
 
 - Package-manager versions of ShellCheck and shfmt lag upstream releases; the checks remain valid, but new checks appear only after a runner image update.
-- The Ubuntu and Debian archives carry old releases: Ubuntu 24.04 gives shfmt 3.8.0 and ShellCheck 0.9.0; Debian stable gives shfmt 3.8.0 and ShellCheck 0.10.0, versus upstream 3.14 and 0.11.
-- `debian:stable-slim` pins the GitLab job's tool versions to the Debian release; rebuild freshness follows the image, and a target needing exact pins must install release archives instead.
+- The Ubuntu and Debian archives carry older releases: Ubuntu 24.04 gives shfmt 3.8.0 and ShellCheck 0.9.0; Debian 13 gives shfmt 3.8.0 and ShellCheck 0.10.0, versus upstream 3.14 and 0.11.
+- `debian:13-slim` selects the Debian 13 release line; rebuild freshness follows the image, and a target needing exact pins must install release archives instead.
