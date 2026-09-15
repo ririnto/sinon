@@ -1,8 +1,7 @@
 ---
 name: reactor-scheduling
 description: >-
-  Design Reactor execution context with explicit scheduler choice, publishOn/subscribeOn placement, and blocking-boundary decisions.
-  Use when choosing between `Schedulers.parallel()`, `boundedElastic()`, `single()`, or `immediate()`, diagnosing thread hops, or isolating blocking boundaries in a reactive pipeline.
+  Choose Reactor schedulers, place publishOn/subscribeOn, offload blocking work, or diagnose thread hops.
 ---
 
 # Reactor Scheduling
@@ -64,34 +63,12 @@ Do not activate for:
 - Treat `Context` as subscription metadata, not as a ThreadLocal replacement by itself.
 - Prefer the fewest scheduler hops that preserve correctness.
 
-## Decision path
+## Task Context
 
-1. Start with the default model.
-   - If no scheduler is introduced, work stays on the subscription thread.
-2. Choose the workload fit.
-   - CPU-bound and non-blocking: `Schedulers.parallel()`.
-   - Blocking I/O or thread-affine bridge: `Schedulers.boundedElastic()`.
-   - Single-thread affinity: `Schedulers.single()` or a dedicated custom scheduler.
-   - No-op handoff or test immediacy: `Schedulers.immediate()`.
-3. Choose the placement.
-   - Upstream source or blocking bridge must move: `subscribeOn(...)`.
-   - Downstream section must move: `publishOn(...)`.
-   - Both are valid only when upstream and downstream need different contexts.
-4. Check ThreadLocal assumptions.
-   - If logic depends on request metadata, move it through `Context` rather than thread locals.
-5. Debug locally first.
-   - Use `log(...)`, named `checkpoint(...)`, and explicit thread logging before reaching for global hooks.
-6. Open a reference only when the blocker is custom scheduler design, automatic context propagation, or global diagnostics.
-
-## Ordinary workflow
-
-1. State which part of the pipeline must move and why.
-2. Pick the narrowest scheduler that matches the workload.
-3. Place `subscribeOn(...)` at the source if the source or blocking bridge must move.
-4. Add `publishOn(...)` only where downstream affinity truly changes.
-5. Keep blocking work wrapped once and offloaded explicitly.
-6. If request metadata must survive thread hops, keep it in `Context`.
-7. Verify actual thread placement with local diagnostics before adding deeper tooling.
+Read the affected source, scheduler placement, and available execution evidence before adding a thread hop.
+Identify which work must move and whether it is CPU-bound, blocking, or thread-affine.
+Use the [reference table](#references) for custom capacity, ThreadLocal bridging, or global diagnostics when needed.
+Shared scheduler or global-hook changes require authority covering all affected consumers.
 
 ## Scheduler quick reference
 
@@ -185,16 +162,11 @@ final class ContextAcrossThreads {
 | using `Schedulers.immediate()` in production code | runs on the caller thread with no isolation | reserve for test code or when you explicitly want caller-thread execution |
 | placing `contextWrite(...)` before the operator that reads the context | `contextWrite` affects upstream operators, so the reader cannot see a write placed before it | place `contextWrite` downstream of the reader, as in the example above |
 
-## Validation checklist
+## Completion
 
-- [ ] The ordinary path explains the default execution model before any scheduler is introduced.
-- [ ] Scheduler choice matches workload type and blocking behavior.
-- [ ] `publishOn(...)` and `subscribeOn(...)` are used for the correct direction of influence.
-- [ ] Blocking work is wrapped once and offloaded explicitly.
-- [ ] `Context` is described as subscription metadata rather than ThreadLocal state.
-- [ ] Local diagnostics are enough to verify ordinary thread placement.
-- [ ] Advanced scheduler customization, automatic context propagation, and global debugging are routed to references.
-- [ ] The ordinary path is understandable from this file alone.
+For implementation work, verify affected thread placement, blocking isolation, and context behavior with existing native tests or bounded diagnostics.
+Virtual-time tests do not prove real thread affinity.
+Use existing execution evidence when sufficient, and add global instrumentation only when the remaining uncertainty requires it.
 
 ## References
 
@@ -204,14 +176,7 @@ final class ContextAcrossThreads {
 | `ThreadLocal`-backed data must cross scheduler boundaries or automatic context propagation becomes the blocker | [ThreadLocal Context Bridging](references/threadlocal-context-bridging.md) |
 | local `log(...)` and `checkpoint(...)` are not enough and you need global debugging hooks or assembly tracing | [Debugging and Hooks](references/debugging-and-hooks.md) |
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The workload-to-scheduler choice.
-2. The chosen `publishOn(...)` / `subscribeOn(...)` placement and why it changes execution correctly.
-3. Any blocking boundary or `Context` rule that changes runtime behavior.
-4. Any blocker that requires opening exactly one reference.
+Complete the authorized change and explain the workload, scheduler placement, and any ownership or context consequence.
+Report the checks run and any unverified capacity or runtime behavior.

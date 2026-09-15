@@ -1,10 +1,7 @@
 ---
 name: reactor-core
 description: >-
-  Author Reactor pipelines with Flux and Mono.
-  Use when designing or reviewing Flux/Mono source creation, operator composition, combination,
-  empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project
-  Reactor.
+  Design or review Reactor Flux/Mono sources, operator composition, empty/error behavior, demand, and Context.
 ---
 
 # Reactor Core
@@ -75,49 +72,12 @@ Do not activate for:
 - Use `Context` for cross-cutting metadata, not for primary business payload.
 - Treat advanced source creation, sink-driven emission, scheduler tuning, and test-only APIs as separate blockers.
 
-## Decision path
+## Task Context
 
-1. Choose the sequence type.
-   - Use `Mono<T>` for one result, empty, or error.
-   - Use `Flux<T>` when multiple values may arrive.
-2. Choose the source boundary.
-   - Fixed value: `just`, `justOrEmpty`, `empty`, `error`.
-   - Collection or range: `fromIterable`, `range`.
-   - Lazy single value: `fromSupplier`, `fromCallable`.
-   - Future bridge: `fromFuture`.
-   - Subscription-time choice: `defer`.
-3. Compose the main business path.
-   - Transform: `map`, `flatMap`, `concatMap`, `switchMap`, `handle`.
-   - Flatten Mono-to-Flux: `flatMapMany` (or `flatMapIterable` for Iterable sources).
-   - Filter or gate: `filter`, `take`, `skip`, `distinct`.
-   - Aggregate: `collectList`, `reduce`, `count`.
-4. Choose the combination behavior explicitly.
-   - Sequential: `concat`, `concatWith`.
-   - Concurrent/interleaved: `merge`, `mergeWith`.
-   - Positional pairing: `zip`, `zipWith`.
-   - Latest-state recompute: `combineLatest`.
-   - Completion dependency only: `then`, `thenMany`.
-5. Make terminal behavior explicit.
-   - Empty fallback: `defaultIfEmpty` (eager static value), `switchIfEmpty` (lazy alternative publisher).
-   - Error recovery: `onErrorReturn`, `onErrorResume`, `onErrorMap`.
-   - Time bound: `timeout(Duration, fallback)` for a delayed fallback on silence.
-   - Completion-side repeat: `repeat(...)` or `repeatWhen(...)` for re-subscription loops.
-   - Cleanup: `doFinally`.
-   - Bounded retry: `retry(n)` or `retryWhen(...)` with a deliberate policy.
-6. Check demand and metadata.
-   - Keep natural demand when the source is already bounded.
-   - Add `limitRate(...)` or an explicit overflow policy only when mismatch is real.
-   - Use `contextWrite(...)` and `deferContextual(...)` when metadata must survive async boundaries.
-
-## Ordinary workflow
-
-1. State the contract as cardinality, empty behavior, and error behavior.
-2. Pick the smallest source factory that still reflects the real boundary.
-3. Compose the operator chain in this order: source, business transform, combination, empty behavior, error behavior, cleanup.
-4. If one blocking call exists, isolate it once with `Mono.fromCallable(...)` and keep the rest of the chain reactive.
-5. Add an ordinary backpressure policy only when the source can outrun downstream.
-6. If metadata must cross async boundaries, write it into `Context` and read it where needed.
-7. Open a reference only when a named blocker appears.
+Read the affected source, pipeline, subscribers, and tests to establish cardinality, ordering, and terminal behavior.
+Change only the operators needed for the requested contract.
+Use the [reference table](#references) when demand, creation, retry, sharing, batching, blocking, or Context needs detail.
+Operator order follows the required signal and subscription semantics, not a fixed template.
 
 ## Reactor quick reference
 
@@ -315,16 +275,11 @@ Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted 
 | using programmatic creation for ordinary values | makes the source harder to reason about | stay with factory methods until a blocker exists |
 | using `switchMap(...)` when all inner results matter | cancels previous inners before they complete | use `flatMap(...)` or `concatMap(...)` instead |
 
-## Validation checklist
+## Completion
 
-- [ ] `Flux` vs `Mono` matches the real cardinality contract.
-- [ ] Source creation reflects the true boundary: eager, lazy, async, future, or one blocking call.
-- [ ] Operator choice matches sync vs async work and ordering requirements (including `switchMap` for cancellation-aware fan-out).
-- [ ] Empty behavior, error behavior, timeout bounds, repeat policy, and cleanup are explicit.
-- [ ] Ordinary backpressure decisions are explicit only when mismatch is real.
-- [ ] `Context` carries metadata, not primary payload.
-- [ ] Any advanced blocker is routed to exactly one reference.
-- [ ] The ordinary path is understandable from this file alone.
+Verify the changed publisher contract with affected native tests and reuse existing coverage when sufficient.
+Review the relevant cardinality, ordering, empty/error, cancellation, cleanup, demand, and Context behavior.
+Do not require every operator pattern or exactly one reference for each task.
 
 ## References
 
@@ -341,14 +296,7 @@ Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted 
 | signal-level inspection (per-signal Context, conditional value inspection, tap observer) is needed | [Signal-Level Diagnostics](references/debugging-and-observability.md) |
 | assembly tracing, global hooks, or thread-hop debugging is the real blocker | Open the `reactor-scheduling` skill. |
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen sequence type and source boundary.
-2. The operator chain with ordering, empty, and error decisions.
-3. Any demand, blocking, or `Context` decision that changes runtime behavior.
-4. Any blocker that requires opening exactly one reference first.
+Complete the authorized change and explain the source, operator, and runtime decisions that affect its contract.
+Report the checks run and any unresolved demand, lifecycle, or integration boundary.

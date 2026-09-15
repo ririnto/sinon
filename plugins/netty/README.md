@@ -25,13 +25,9 @@ Netty is a shared, skill-first plugin for Netty core API and Reactor Netty react
 - Reactive HTTP servers/clients, TCP/UDP with reactive streams, Mono/Flux transformation,
   and Project Reactor integration belong in Reactor Netty guidance.
 
-Typical workflow:
-
-1. Establish the core Netty application structure first.
-2. Add reactive behavior when stream processing or backpressure is required.
-3. Use Netty core guidance for low-level channel and pipeline concerns.
-4. Use Reactor Netty guidance for HTTP/WebSocket with reactive patterns.
-5. When the blocker is not Netty or Reactor Netty behavior, stop at Scope Boundaries.
+Select the skill for the API under change, not a sequence from core Netty to reactive transport.
+Use low-level guidance only when channel, pipeline, codec, or buffer ownership behavior requires it.
+Each skill owns its resource rules and task-specific verification.
 
 ## Scope Boundaries
 

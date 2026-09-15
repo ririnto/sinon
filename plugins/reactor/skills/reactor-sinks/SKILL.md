@@ -1,8 +1,7 @@
 ---
 name: reactor-sinks
 description: >-
-  Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling.
-  Use when choosing between `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, handling `EmitResult` or `EmitFailureHandler` outcomes, or deciding between unicast, multicast, and replay behavior for multiple subscribers.
+  Design Reactor manual or hot sources, choose Sinks and replay/multicast policies, and handle emission failures.
 ---
 
 # Reactor Sinks
@@ -66,37 +65,12 @@ Do not activate for:
 - If you only need to share or replay an existing cold source, prefer ConnectableFlux-style operators over a new sink.
 - Treat `Sinks.unsafe()` as an internal optimization boundary, not an ordinary default.
 
-## Decision path
+## Task Context
 
-1. Decide whether you need programmatic emission.
-   - If values come from imperative callbacks or external producers, use Sinks.
-   - If you only need to share an existing cold source, consider `publish()`, `replay()`, `autoConnect(...)`, or `refCount(...)` instead.
-2. Choose the sink shape.
-   - Single result: `Sinks.one()`.
-   - Terminal-only signal: `Sinks.empty()`.
-   - Multiple values: `Sinks.many()`.
-3. Choose the subscriber model for `Sinks.many()`.
-   - One subscriber with buffering: `unicast()`.
-   - Many live subscribers: `multicast()` with the right delivery strategy.
-   - Late subscribers need history: `replay()` with the right retention rule.
-4. Choose the emission style.
-   - Immediate result and explicit branching: `tryEmitNext(...)`, `tryEmitEmpty()`, or `tryEmitError(...)`.
-   - Controlled retry policy: `emitNext(...)`, `emitEmpty(...)`, or `emitError(...)` with a failure handler.
-5. Check backpressure and late-subscriber behavior before returning the publisher view.
-6. Open a reference only when the blocker is failure handling, connection lifecycle, or concurrent internal emission.
-
-## Ordinary workflow
-
-1. State whether the design is manual emission or shared cold-source conversion.
-2. Pick the narrowest sink type that matches the real contract.
-3. Choose unicast, multicast, or replay based on subscriber count and history needs.
-4. Expose the sink as `Mono` or `Flux` through `asMono()` or `asFlux()`.
-   - Use `asMono()` for `Sinks.one()` and `Sinks.empty()` -- matches the 0..1 cardinality contract.
-   - Use `asFlux()` for `Sinks.many()` -- exposes the multi-value surface.
-   - Calling `asMono()` on a `Sinks.many()` works but signals a cardinality mismatch.
-     - Prefer `asFlux()`.
-5. Pick `tryEmit*` or `emit*` deliberately and make failure behavior explicit.
-6. Verify backpressure and late-subscriber behavior before finalizing the API.
+Read the producers, subscribers, and tests to establish emission ownership, demand, and late-subscriber requirements.
+Prefer sharing an existing cold source when manual emission is not required.
+Expose `Sinks.one()` and `Sinks.empty()` through `asMono()`, and `Sinks.many()` through `asFlux()`.
+Use the [reference table](#references) for emission failures, connection lifecycle, or concurrent and unsafe emission.
 
 ## Sinks quick reference
 
@@ -241,15 +215,10 @@ Use it when the downstream consumer is known to be singular (e.g., a dedicated p
 | using replay with no limit by default | cached history can grow without bound | choose a size or time limit deliberately |
 | assuming safe sinks serialize every producer intention automatically | concurrent calls can still return `FAIL_NON_SERIALIZED` | handle contention or move to a coordinated emission strategy |
 
-## Validation checklist
+## Completion
 
-- [ ] The ordinary path explains when Sinks are preferable to ConnectableFlux-style sharing.
-- [ ] Sink choice matches the real contract: one value, terminal-only, or many values.
-- [ ] Unicast, multicast, or replay behavior matches subscriber count and history needs.
-- [ ] `tryEmit*` vs `emit*` is a deliberate API choice.
-- [ ] Backpressure and replay behavior are explicit.
-- [ ] Advanced failure handling, connection lifecycle, and unsafe/concurrent emission are routed to references.
-- [ ] The ordinary path is understandable from this file alone.
+Verify the changed delivery contract with affected native tests, including demand, late subscribers, cancellation, or concurrent emission when relevant.
+Keep retention and emission-failure policy explicit without requiring every sink variant in each test suite.
 
 ## References
 
@@ -259,14 +228,7 @@ Use it when the downstream consumer is known to be singular (e.g., a dedicated p
 | the real problem is connect, disconnect, replay, or subscriber rendezvous for a shared cold source | [Connectable Flux Patterns](references/connectable-patterns.md) |
 | contention, external synchronization, or `Sinks.unsafe()` is the blocker | [Concurrent and Unsafe Emission](references/concurrent-and-unsafe-emission.md) |
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen sink or connectable pattern and why it fits the hot-source design.
-2. The chosen subscriber model: unicast, multicast, replay, or shared cold-source conversion.
-3. The emission API choice and any backpressure or replay rule that changes runtime behavior.
-4. Any blocker that requires opening exactly one reference.
+Complete the authorized change and explain the sink or sharing choice, subscriber model, and emission policy.
+Report the checks run and any unverified retention, lifecycle, or concurrency boundary.
