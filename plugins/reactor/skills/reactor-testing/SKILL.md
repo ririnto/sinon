@@ -1,8 +1,7 @@
 ---
 name: reactor-testing
 description: >-
-  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe.
-  Triggers on `StepVerifier` assertion authoring for `Flux` or `Mono`, time-based operator verification with virtual time, upstream emission control with `TestPublisher`, or alternate branch subscription checks with `PublisherProbe`.
+  Write or fix Reactor publisher tests with StepVerifier, virtual time, TestPublisher, or PublisherProbe.
 ---
 
 # Reactor Testing
@@ -57,6 +56,8 @@ Do not activate for:
 
 ## Operating rules
 
+- Reuse sufficient existing coverage rather than imposing test-layer ratios or adding every layer for each change.
+- Do not add task-specific test wrappers or test prose instructions when review is sufficient.
 - Start with `StepVerifier.create(...)` unless time control is required.
 - Use `withVirtualTime(...)` for delayed or interval-based publishers.
 - Build the publisher lazily inside the virtual-time supplier.
@@ -66,31 +67,12 @@ Do not activate for:
 - Use `verifyThenAssertThat()` when dropped or discarded signals matter after execution.
 - Keep framework-specific test clients out of this skill.
 
-## Decision path
+## Task Context
 
-1. Choose the test tool.
-   - Ordinary publisher verification: `StepVerifier`.
-   - Manual upstream control: `TestPublisher`.
-   - Branch/subscription-path verification: `PublisherProbe`.
-2. Choose the timing model.
-   - No timers: `StepVerifier.create(...)`.
-   - Time-based operators: `StepVerifier.withVirtualTime(...)`.
-3. Choose the expectation type.
-   - Values: `expectNext(...)`, `expectNextCount(...)`, `assertNext(...)`.
-   - Empty completion: `expectComplete()`.
-   - Error: `expectError*`.
-   - Request/cancel: initial request, `thenRequest(...)`, `thenCancel()`.
-4. Add post-verification checks if dropped or discarded elements matter.
-5. Open a reference only when the blocker is advanced verifier configuration or unusual edge-case behavior.
-
-## Ordinary workflow
-
-1. State whether the test is about values, timing, request flow, manual upstream control, or execution path.
-2. Create the publisher under test.
-3. Build the verifier with the correct timing model.
-4. Encode the expected signals in order.
-5. Trigger verification.
-6. Add post-verification assertions only if the scenario needs them.
+Read the publisher contract and related tests to identify the behavior that needs proof.
+Reuse the repository's native runner, assertions, managed dependencies, and fixtures.
+Choose signal, timing, demand, cancellation, or subscription assertions from acceptance criteria and regression risks.
+Use the [reference table](#references) for advanced verifier options, timing edge cases, or deliberately noncompliant publishers.
 
 ## reactor-test quick reference
 
@@ -295,15 +277,11 @@ The second test creates the `delayElement` publisher inside the supplier, allowi
 | using `StepVerifier` when the real question is branch selection | signal assertions miss subscription-path intent | use `PublisherProbe` |
 | asserting complicated upstream timing without control | behavior stays nondeterministic | use `TestPublisher` |
 
-## Validation checklist
+## Completion
 
-- [ ] The ordinary path covers `StepVerifier`, virtual time, `TestPublisher`, and `PublisherProbe`.
-- [ ] Success, empty, and error expectations are explicit.
-- [ ] Virtual time is shown with a lazy supplier.
-- [ ] Request and cancellation assertions are described in the ordinary path.
-- [ ] Post-verification assertions are available without opening a reference.
-- [ ] Advanced verifier options and edge cases are routed to references.
-- [ ] The ordinary path is understandable from this file alone.
+Run the affected native tests and fix failures caused by the authorized change.
+Confirm each verifier executes and terminates with the expected completion, error, or cancellation.
+Test only the relevant signal, time, request, branch, or discard contract, not every reactor-test API.
 
 ## References
 
@@ -313,14 +291,7 @@ The second test creates the `delayElement` publisher inside the supplier, allowi
 | the blocker is timeout behavior or virtual-time failure cases | [Testing Errors and Edge Cases](references/errors-and-edge-cases.md) |
 | the blocker is a noncompliant `TestPublisher` or deliberate spec-edge behavior | [Noncompliant TestPublishers](references/noncompliant-testpublisher.md) |
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The chosen reactor-test tool and why it matches the test intent.
-2. The signal, timing, request, or branch expectations encoded in the verifier.
-3. Any post-verification assertion that matters after execution.
-4. Any blocker that requires opening exactly one reference.
+Report the behavior proved, exact command and result, and any unverified scheduler or integration boundary.
+Do not stop at a failing test when the task also authorizes the fix.

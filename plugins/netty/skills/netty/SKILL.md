@@ -1,8 +1,7 @@
 ---
 name: netty
 description: >-
-  Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics.
-  Use when configuring server or client bootstraps, assembling channel pipelines, managing ByteBuf ownership and reference counting, or writing custom codecs and frame decoders.
+  Build or debug Netty bootstraps, channel pipelines, ByteBuf ownership, framing, and codecs.
 ---
 
 # Netty
@@ -15,7 +14,7 @@ description: >-
   - Verified against `io.netty:netty-bom` 4.1.138.Final in Maven Central and GitHub release `netty-4.1.138.Final`.
 - Treat Netty 5 as a development line until the official Netty project marks it stable.
 
-Build one Netty 4.x application path end to end: choose transport, configure bootstrap, assemble the pipeline, handle lifecycle events, and keep buffer ownership correct.
+Complete the requested Netty 4.x change while preserving transport, pipeline, lifecycle, and buffer ownership contracts.
 
 ## Operating rules
 
@@ -40,27 +39,12 @@ Use this skill for:
 Do not use this skill as the common path for builder-driven reactive transport work.
 If the task is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, or `UdpClient`, keep the answer on that higher-level reactive transport surface instead of low-level pipeline APIs.
 
-## Common-path workflow
+## Task Context
 
-1. Choose transport and channel class.
-   - TCP server: `NioServerSocketChannel`
-   - TCP client: `NioSocketChannel`
-   - UDP: `NioDatagramChannel`
-2. Create the required `EventLoopGroup` instances.
-   - Server: boss group accepts connections, worker group handles accepted channels
-   - Client or UDP: one group is usually enough
-3. Configure `ServerBootstrap` or `Bootstrap` with `group(...)`, `channel(...)`, options, and a `ChannelInitializer`.
-4. Build the `ChannelPipeline` in the order bytes should be transformed.
-   - framing / decoder
-   - inbound business handler
-   - encoder / outbound handler
-   - keep server socket options on `option(...)` and accepted child-channel options on `childOption(...)`
-5. Bind or connect and wait on the resulting `ChannelFuture`.
-6. Keep lifecycle handling explicit.
-   - `channelActive` / `channelInactive`
-   - `exceptionCaught`
-   - close future for application shutdown
-7. Shut down all event loops gracefully.
+Read the affected bootstrap, pipeline, and tests to establish the transport, message ownership, and lifecycle owner.
+Keep existing resource wiring unless the task requires changing it.
+Use the [reference table](#references) for the topic under change, without reading every transport or codec example.
+Examples do not authorize binding public listeners, connecting to external services, or changing deployed resources.
 
 ## Core model
 
@@ -377,7 +361,11 @@ TCP and UDP imply different Netty shapes:
 | message model | stream-oriented, so framing is usually required | packet-oriented, so each `DatagramPacket` already carries message boundaries |
 | pipeline concern | framing and codec ordering matter early | sender and recipient handling matter more than stream framing |
 
-## Validation checklist
+## Completion
+
+Verify the changed contract with the existing native tests.
+Use `EmbeddedChannel` for handler or codec behavior that does not require a real transport.
+Check only the relevant invariants below, including resource cleanup on changed error and cancellation paths.
 
 - [ ] bootstrap uses the right channel class for the chosen transport
 - [ ] server bootstrap uses `option(...)` for the listening socket and `childOption(...)` for accepted channels when socket tuning is needed
@@ -413,14 +401,7 @@ Open these only when the common path is no longer enough:
 | TLS or SSL pipeline setup | [tls-ssl.md](./references/tls-ssl.md) |
 | heartbeat, timeout, or stale connection handling | [idle-handling.md](./references/idle-handling.md) |
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The requested Netty server, client, handler, or codec code
-2. The chosen transport and pipeline shape
-3. The ownership and shutdown reasoning
-4. Any blocker references still required
+Complete the authorized change and report its transport, pipeline, ownership, or shutdown consequences.
+State the checks run and any unverified network or lifecycle behavior.

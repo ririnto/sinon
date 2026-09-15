@@ -77,13 +77,11 @@ These patterns keep one primary skill while naming the Reactor concern that may 
 | Error handling with retry backoff | Retry policy + scheduler interaction | reactor-core | reactor-scheduling (if retry involves scheduling) |
 | Context across async boundaries | Context survival through thread hops | reactor-core | reactor-scheduling (context propagation reference) |
 
-## Typical workflow
+## Applying the Skills
 
-1. Start with `reactor-core` to define data sources and transformation pipelines.
-2. Apply error handling patterns from `reactor-core` for robust pipelines.
-3. Use `reactor-scheduling` to control threading and execution context when the default model is insufficient.
-4. Use `reactor-sinks` when imperative emission or hot publishing is needed.
-5. Validate everything with `reactor-testing` patterns.
+Select the primary skill for the current decision and load secondary guidance only when it changes the answer.
+Composition, scheduling, hot sources, and testing are not mandatory sequential stages.
+Use existing native tests to prove changed behavior and acceptance criteria, not every Reactor pattern.
 
 ## Scope Boundaries
 

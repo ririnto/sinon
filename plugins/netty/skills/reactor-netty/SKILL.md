@@ -1,8 +1,7 @@
 ---
 name: reactor-netty
 description: >-
-  Build Reactor Netty HTTP, TCP, UDP, or QUIC clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown.
-  Use when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, `UdpClient`, `QuicServer`, or `QuicClient` rather than low-level Netty pipeline APIs.
+  Build or debug Reactor Netty HTTP, TCP, UDP, or QUIC clients and servers, including lifecycle and resource management.
 ---
 
 # Reactor Netty
@@ -17,7 +16,7 @@ description: >-
 - Confirm the target project's resolved Reactor Netty version before using version-sensitive APIs.
 - Keep HTTP, TCP, UDP, and QUIC aligned with the Reactor Netty reference guide chapters for the same release line.
 
-Build one Reactor Netty application path end to end: pick the transport, configure the builder, compose inbound and outbound flow, and shut resources down cleanly without dropping into low-level Netty internals.
+Complete the requested Reactor Netty change through its builder and reactive flow, preserving resource ownership and shutdown behavior.
 
 ## Goal
 
@@ -45,27 +44,12 @@ Keep low-level Netty concerns out of this common path:
 - `ByteBuf` ownership and manual `release()`
 - custom Netty codecs and frame decoders
 
-## Common-path workflow
+## Task Context
 
-1. Add the Reactor BOM and the module you actually need.
-   - `reactor-netty-http` for HTTP and WebSocket work
-   - `reactor-netty-core` for TCP or UDP work
-2. Choose the builder that matches the transport.
-   - `HttpServer` / `HttpClient`
-   - `TcpServer` / `TcpClient`
-   - `UdpServer` / `UdpClient`
-3. Configure host, port, warmup needs, and the common handler entrypoint.
-   - HTTP server: `.route(...)` or `.handle(...)`
-   - HTTP client: request + body send/receive + status inspection
-   - TCP or UDP: `.handle((inbound, outbound) -> ...)`
-   - QUIC: `handleStream(...)` for stream handling.
-4. Bind or connect.
-   - server: `bindNow()` returns `DisposableServer`
-   - client: `connectNow()` returns `Connection`
-5. Keep lifecycle hooks explicit when needed.
-   - server: `doOnBind`, `doOnBound`, `doOnConnection`, `doOnUnbound`
-   - client: `doOnConnect`, `doOnConnected`, `doOnDisconnected`
-6. Shut down with `onDispose().block()` or explicit disposal.
+Read the affected builder, handler, resource owner, and tests before changing transport or lifecycle behavior.
+Reuse the project's dependency management and shared resources unless the task requires an authorized change.
+Use the [reference table](#references) for resource, timeout, TLS, observability, or WebSocket details relevant to the task.
+Examples do not authorize public listeners, external connections, deployed resource changes, or sensitive traffic capture.
 
 ## Core model
 
@@ -175,7 +159,7 @@ Reactive errors travel through the error channel, not Java exceptions.
 
 - Use `.secure(...)` when the common path must switch to TLS.
 - Use `.responseTimeout(...)` or channel options when a client must fail fast.
-- Use `.wiretap(true)` first for traffic-level troubleshooting.
+- Use wiretap only when traffic evidence is needed and the capture scope permits sensitive headers or payloads.
 - Use `.metrics(true)` only when the application already has a metrics strategy.
 - Open the blocker references when these concerns stop being one-line builder configuration.
 
@@ -317,7 +301,10 @@ HttpServer.create()
 | simple lifecycle vs operational tuning | start with bind/connect + dispose | open [`timeouts-and-pool-tuning.md`](./references/timeouts-and-pool-tuning.md) or [`metrics-and-observability.md`](./references/metrics-and-observability.md) when production tuning appears |
 | plain HTTP/TCP/UDP vs WebSocket | keep HTTP/TCP/UDP in the common path | open [`websocket.md`](./references/websocket.md) for WebSocket upgrade flow |
 
-## Validation checklist
+## Completion
+
+Verify the affected behavior with the existing native tests, using real transport only when the contract requires it.
+Check the relevant invariants below rather than testing every builder and protocol.
 
 - [ ] selected builder matches the protocol being implemented
 - [ ] bind/connect and disposal flow are explicit
@@ -350,14 +337,7 @@ Open these only when the common path is no longer enough:
 | wiretap, metrics, or access logging | [metrics-and-observability.md](./references/metrics-and-observability.md) |
 | WebSocket client or server flow | [websocket.md](./references/websocket.md) |
 
-## Output contract
+## Result
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The requested Reactor Netty server, client, or handler code
-2. The chosen builder and lifecycle hooks
-3. The resource and shutdown reasoning
-4. Any blocker references still required
+Complete the authorized change and explain its builder, response, resource, or shutdown consequences.
+Report the checks run and any unverified transport or operational behavior.
