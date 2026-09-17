@@ -2,6 +2,8 @@
 
 Use the target build's declared Java toolchain and release as the compatibility boundary.
 Keep source changes compatible with that release unless the project explicitly upgrades it.
+The [shared rules](../rules.md) apply alongside these Java-only invariants.
+The [Gradle tool reference](../tools/gradle.md) and the [Maven tool reference](../tools/maven.md) own commands and configuration.
 
 ## Public declarations
 

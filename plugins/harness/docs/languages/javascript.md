@@ -1,6 +1,8 @@
 # JavaScript
 
 Use the JavaScript language rules for `.js`, `.jsx`, `.mjs`, and `.cjs` files.
+The [shared rules](../rules.md) apply alongside these JavaScript-only invariants.
+The [Bun tool reference](../tools/bun.md) owns commands and configuration.
 
 ## Documentation
 
