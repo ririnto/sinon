@@ -1,8 +1,8 @@
 # TypeScript Rules
 
-These rules extend the common rules in `../rules.md` for TypeScript files.
+These rules extend the [common rules](../rules.md) for TypeScript files.
 Read them together with that document.
-The `bun` tool reference owns TypeScript project detection, Oxc configuration, and native commands.
+The [Bun tool reference](../tools/bun.md) owns TypeScript project detection, Oxc configuration, and native commands.
 
 ## Exports And TSDoc
 

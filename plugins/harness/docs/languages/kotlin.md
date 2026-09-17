@@ -1,7 +1,8 @@
 # Kotlin Rules
 
-These rules extend the common rules in `../rules.md` for Kotlin files.
+These rules extend the [common rules](../rules.md) for Kotlin files.
 Read them together with that document.
+The [Gradle tool reference](../tools/gradle.md) owns commands and configuration.
 
 ## Effective Visibility And Documentation Comments
 
