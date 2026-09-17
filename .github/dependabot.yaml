@@ -33,6 +33,7 @@ updates:
           - "com.pinterest.ktlint:ktlint-rule-engine"
           - "com.pinterest.ktlint:ktlint-rule-engine-core"
           - "com.pinterest.ktlint:ktlint-test"
+          - "org.slf4j:slf4j-simple"
           - "org.jetbrains.kotlin:kotlin-test-junit5"
         update-types:
           - minor
