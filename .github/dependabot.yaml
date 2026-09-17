@@ -8,6 +8,13 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
+    groups:
+      bun-development-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: gradle
     directory: /plugins/harness/tooling/kotlin-ktlint
     schedule:
