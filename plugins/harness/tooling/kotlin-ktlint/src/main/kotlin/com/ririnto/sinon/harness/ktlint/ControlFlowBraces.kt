@@ -52,26 +52,26 @@ class ControlFlowBraces :
         }
 
         override fun visitForExpression(expression: KtForExpression) {
-            expression.body
-                ?.takeIf { body -> body !is KtBlockExpression }
-                ?.let { body -> wrap(body, "for") }
-                ?: emit(expression.textOffset, "wrap the `for` body in `{ ... }`", false)
+            val body = expression.body
+            if (body !== null && body !is KtBlockExpression) {
+                wrap(body, "for")
+            }
             super.visitForExpression(expression)
         }
 
         override fun visitWhileExpression(expression: KtWhileExpression) {
-            expression.body
-                ?.takeIf { body -> body !is KtBlockExpression }
-                ?.let { body -> wrap(body, "while") }
-                ?: emit(expression.textOffset, "wrap the `while` body in `{ ... }`", false)
+            val body = expression.body
+            if (body !== null && body !is KtBlockExpression) {
+                wrap(body, "while")
+            }
             super.visitWhileExpression(expression)
         }
 
         override fun visitDoWhileExpression(expression: KtDoWhileExpression) {
-            expression.body
-                ?.takeIf { body -> body !is KtBlockExpression }
-                ?.let { body -> wrap(body, "do-while") }
-                ?: emit(expression.textOffset, "wrap the `do-while` body in `{ ... }`", false)
+            val body = expression.body
+            if (body !== null && body !is KtBlockExpression) {
+                wrap(body, "do-while")
+            }
             super.visitDoWhileExpression(expression)
         }
 

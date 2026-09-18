@@ -126,10 +126,9 @@ class ImplicitLambdaIt :
             }
             val whitespace = body.takeWhile { character -> character.isWhitespace() }
             val parameter =
-                if ('\n' in whitespace) {
-                    "$whitespace$parameterName ->\n${whitespace.substringAfterLast('\n')}"
-                } else {
-                    "$whitespace$parameterName -> "
+                when ('\n' in whitespace) {
+                    true -> "$whitespace$parameterName ->\n${whitespace.substringAfterLast('\n')}"
+                    false -> "$whitespace$parameterName -> "
                 }
             lambdaExpression.node.replaceWith(
                 KtPsiFactory

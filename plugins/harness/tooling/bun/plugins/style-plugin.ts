@@ -41,25 +41,20 @@ const noInlineCommentsRule = {
   create(context: RuleContext) {
     const reportedOffsets = new Set<number>();
     const inspectFunction = (node: Node): void => {
-      if (!isFunctionNode(node)) {
-        return;
-      }
-      const { body } = node;
-      if (!body || body.type !== "BlockStatement") {
-        return;
-      }
-      const forbiddenComments = context.sourceCode
-        .getCommentsInside(body)
-        .filter(
-          ({ type, value }) =>
-            type === "Line" || (type === "Block" && !value.startsWith("*"))
-        );
-      for (const { start } of forbiddenComments) {
-        if (reportedOffsets.has(start)) {
-          continue;
+      if (isFunctionNode(node) && node.body?.type === "BlockStatement") {
+        const { body } = node;
+        const forbiddenComments = context.sourceCode
+          .getCommentsInside(body)
+          .filter(
+            ({ type, value }) =>
+              type === "Line" || (type === "Block" && !value.startsWith("*"))
+          );
+        for (const { start } of forbiddenComments) {
+          if (!reportedOffsets.has(start)) {
+            reportedOffsets.add(start);
+            context.report({ messageId: "noInlineComments", node });
+          }
         }
-        reportedOffsets.add(start);
-        context.report({ messageId: "noInlineComments", node });
       }
     };
     return {
@@ -83,52 +78,48 @@ const noBlankLinesRule = {
   create(context: RuleContext) {
     const reportedOffsets = new Set<number>();
     const inspectFunction = (node: Node): void => {
-      if (!isFunctionNode(node)) {
-        return;
-      }
-      const { body } = node;
-      if (!body || body.type !== "BlockStatement") {
-        return;
-      }
-      const tokens = context.sourceCode.getTokens(body);
-      const comments = context.sourceCode.getCommentsInside(body);
-      const isProtected = (offset: number): boolean =>
-        tokens.some(({ start, end }) => start <= offset && offset < end) ||
-        comments.some(({ start, end }) => start <= offset && offset < end);
-      const firstStatementIndex = body.body.findIndex(
-        (element) =>
-          !("directive" in element && typeof element.directive === "string")
-      );
-      const exemptionStart =
-        firstStatementIndex > 0
-          ? body.body[firstStatementIndex - 1]?.end
-          : undefined;
-      const exemptionEnd =
-        firstStatementIndex > 0
-          ? body.body[firstStatementIndex]?.start
-          : undefined;
-      const isExempted = (offset: number): boolean =>
-        exemptionStart !== undefined &&
-        exemptionEnd !== undefined &&
-        exemptionStart <= offset &&
-        offset < exemptionEnd;
-      const bodyText = context.sourceCode.text.slice(body.start, body.end);
-      const blankLineOffsets = Array.from(
-        bodyText.matchAll(/^[^\S\r\n\u2028\u2029]*$/gmu),
-        ({ index }) => index
-      )
-        .filter((index): index is number => index !== undefined)
-        .filter(
-          (index) => !(bodyText[index - 1] === "\r" && bodyText[index] === "\n")
+      if (isFunctionNode(node) && node.body?.type === "BlockStatement") {
+        const { body } = node;
+        const tokens = context.sourceCode.getTokens(body);
+        const comments = context.sourceCode.getCommentsInside(body);
+        const isProtected = (offset: number): boolean =>
+          tokens.some(({ start, end }) => start <= offset && offset < end) ||
+          comments.some(({ start, end }) => start <= offset && offset < end);
+        const firstStatementIndex = body.body.findIndex(
+          (element) =>
+            !("directive" in element && typeof element.directive === "string")
+        );
+        const exemptionStart =
+          firstStatementIndex > 0
+            ? body.body[firstStatementIndex - 1]?.end
+            : undefined;
+        const exemptionEnd =
+          firstStatementIndex > 0
+            ? body.body[firstStatementIndex]?.start
+            : undefined;
+        const isExempted = (offset: number): boolean =>
+          exemptionStart !== undefined &&
+          exemptionEnd !== undefined &&
+          exemptionStart <= offset &&
+          offset < exemptionEnd;
+        const bodyText = context.sourceCode.text.slice(body.start, body.end);
+        const blankLineOffsets = Array.from(
+          bodyText.matchAll(/^[^\S\r\n\u2028\u2029]*$/gmu),
+          ({ index }) => index
         )
-        .map((index) => index + body.start)
-        .filter((offset) => !isProtected(offset) && !isExempted(offset));
-      for (const offset of blankLineOffsets) {
-        if (reportedOffsets.has(offset)) {
-          continue;
+          .filter((index): index is number => index !== undefined)
+          .filter(
+            (index) =>
+              !(bodyText[index - 1] === "\r" && bodyText[index] === "\n")
+          )
+          .map((index) => index + body.start)
+          .filter((offset) => !isProtected(offset) && !isExempted(offset));
+        for (const offset of blankLineOffsets) {
+          if (!reportedOffsets.has(offset)) {
+            reportedOffsets.add(offset);
+            context.report({ messageId: "noBlankLines", node });
+          }
         }
-        reportedOffsets.add(offset);
-        context.report({ messageId: "noBlankLines", node });
       }
     };
     return {

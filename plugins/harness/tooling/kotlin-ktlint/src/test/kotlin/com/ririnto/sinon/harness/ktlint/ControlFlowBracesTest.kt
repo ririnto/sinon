@@ -1,6 +1,9 @@
+@file:Suppress("ktlint:harness:explicit-property-type")
+
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
+import com.pinterest.ktlint.test.LintViolation
 import org.junit.jupiter.api.Test
 
 class ControlFlowBracesTest {
@@ -28,10 +31,8 @@ class ControlFlowBracesTest {
             """.trimIndent() + "\n"
         assertThat(source)
             .hasLintViolations(
-                com.pinterest.ktlint.test
-                    .LintViolation(2, 16, "wrap the `if` branch in `{ ... }`"),
-                com.pinterest.ktlint.test
-                    .LintViolation(3, 10, "wrap the `else` branch in `{ ... }`")
+                LintViolation(2, 16, "wrap the `if` branch in `{ ... }`"),
+                LintViolation(3, 10, "wrap the `else` branch in `{ ... }`")
             ).isFormattedAs(expected)
     }
 
@@ -61,12 +62,9 @@ class ControlFlowBracesTest {
             """.trimIndent() + "\n"
         assertThat(source)
             .hasLintViolations(
-                com.pinterest.ktlint.test
-                    .LintViolation(2, 25, "wrap the `for` body in `{ ... }`"),
-                com.pinterest.ktlint.test
-                    .LintViolation(3, 19, "wrap the `while` body in `{ ... }`"),
-                com.pinterest.ktlint.test
-                    .LintViolation(4, 8, "wrap the `do-while` body in `{ ... }`")
+                LintViolation(2, 25, "wrap the `for` body in `{ ... }`"),
+                LintViolation(3, 19, "wrap the `while` body in `{ ... }`"),
+                LintViolation(4, 8, "wrap the `do-while` body in `{ ... }`")
             ).isFormattedAs(expected)
     }
 

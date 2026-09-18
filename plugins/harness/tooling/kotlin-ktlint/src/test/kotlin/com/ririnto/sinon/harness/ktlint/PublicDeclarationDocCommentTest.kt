@@ -1,6 +1,9 @@
+@file:Suppress("ktlint:harness:explicit-property-type")
+
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
+import com.pinterest.ktlint.test.LintViolation
 import org.junit.jupiter.api.Test
 
 class PublicDeclarationDocCommentTest {
@@ -17,8 +20,7 @@ class PublicDeclarationDocCommentTest {
         assertThat(source)
             .withEditorConfigOverride(PublicDeclarationDocComment.DOC_COMMENT_MODE to "on")
             .hasLintViolations(
-                com.pinterest.ktlint.test
-                    .LintViolation(1, 7, "add a documentation comment to public declaration `Service`", false)
+                LintViolation(1, 7, "add a documentation comment to public declaration `Service`", false)
             )
     }
 
@@ -33,10 +35,8 @@ class PublicDeclarationDocCommentTest {
         assertThat(source)
             .withEditorConfigOverride(PublicDeclarationDocComment.DOC_COMMENT_MODE to "on")
             .hasLintViolations(
-                com.pinterest.ktlint.test
-                    .LintViolation(1, 11, "add a documentation comment to public declaration `Repository`", false),
-                com.pinterest.ktlint.test
-                    .LintViolation(2, 9, "add a documentation comment to public declaration `find`", false)
+                LintViolation(1, 11, "add a documentation comment to public declaration `Repository`", false),
+                LintViolation(2, 9, "add a documentation comment to public declaration `find`", false)
             )
     }
 

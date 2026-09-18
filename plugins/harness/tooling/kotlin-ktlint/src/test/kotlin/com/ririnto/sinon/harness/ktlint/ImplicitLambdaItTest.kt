@@ -1,6 +1,9 @@
+@file:Suppress("ktlint:harness:explicit-property-type")
+
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
+import com.pinterest.ktlint.test.LintViolation
 import org.junit.jupiter.api.Test
 
 class ImplicitLambdaItTest {
@@ -65,10 +68,8 @@ class ImplicitLambdaItTest {
         val itOffset = source.indexOf("it", source.indexOf('{'))
         assertThat(source)
             .hasLintViolations(
-                com.pinterest.ktlint.test
-                    .LintViolation(1, itOffset + 1, "use an explicit name for the implicit `it` lambda parameter", true),
-                com.pinterest.ktlint.test
-                    .LintViolation(1, source.lastIndexOf("it") + 1, "use an explicit name for the implicit `it` lambda parameter", true)
+                LintViolation(1, itOffset + 1, "use an explicit name for the implicit `it` lambda parameter", true),
+                LintViolation(1, source.lastIndexOf("it") + 1, "use an explicit name for the implicit `it` lambda parameter", true)
             ).isFormattedAs(expected)
     }
 

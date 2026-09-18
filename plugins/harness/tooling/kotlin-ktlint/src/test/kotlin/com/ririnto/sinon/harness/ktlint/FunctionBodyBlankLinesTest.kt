@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:harness:explicit-property-type")
+
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule

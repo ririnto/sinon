@@ -15,8 +15,11 @@
     "code-block-style": {
       "style": "fenced"
     },
-    "no-emphasis-as-heading": true
+    "no-emphasis-as-heading": true,
+    "docs/no-box-drawing": true,
+    "docs/table-separators": true
   },
+  "customRules": ["./rules/no-box-drawing.ts", "./rules/table-separators.ts"],
   "gitignore": ".gitignore",
   "ignores": ["**/node_modules/**"],
   "globs": ["**/*.md"]
