@@ -10,11 +10,29 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleSetId
 class RuleSetProvider : RuleSetProviderV3(RuleSetId("harness")) {
     override fun getRuleProviders(): Set<RuleProvider> =
         setOf(
+            RuleProvider { CompanionObjectPosition() },
+            RuleProvider { ComparisonDirection() },
             RuleProvider { ControlFlowBraces() },
+            RuleProvider { ExplicitFunctionReturnType() },
+            RuleProvider { ExplicitPropertyType() },
+            RuleProvider { ExplicitUnitBranch() },
             RuleProvider { FunctionBodyBlankLines() },
-            RuleProvider { FunctionBodyComments() },
             RuleProvider { ImplicitLambdaIt() },
+            RuleProvider { ImportOverFqn() },
+            RuleProvider { KotlinTopLevelDeclarationCount() },
+            RuleProvider { LeadingUnderscore() },
             RuleProvider { MultilineKdoc() },
-            RuleProvider { PublicDeclarationDocComment() }
+            RuleProvider { NestedDataClassLast() },
+            RuleProvider { NoImportAlias() },
+            RuleProvider { NoJavaPathApi() },
+            RuleProvider { NoLineComment() },
+            RuleProvider { NonNullAssertion() },
+            RuleProvider { NullableElvisReturn() },
+            RuleProvider { PublicDeclarationDocComment() },
+            RuleProvider { RegexConstructor() },
+            RuleProvider { SlfDirectLogging() },
+            RuleProvider { TerminalBranchWhen() },
+            RuleProvider { UncheckedCastSuppression() },
+            RuleProvider { UnstructuredLogging() }
         )
 }

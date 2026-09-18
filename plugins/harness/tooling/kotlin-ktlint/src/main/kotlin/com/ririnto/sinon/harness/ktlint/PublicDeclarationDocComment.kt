@@ -35,7 +35,7 @@ class PublicDeclarationDocComment :
     ),
     RuleAutocorrectApproveHandler {
     companion object {
-        val DOC_COMMENT_MODE =
+        val DOC_COMMENT_MODE: EditorConfigProperty<String> =
             EditorConfigProperty(
                 type =
                     PropertyType(
@@ -45,10 +45,11 @@ class PublicDeclarationDocComment :
                     ),
                 defaultValue = "off"
             )
-        val NON_PUBLIC_VISIBILITIES = setOf(KtTokens.PRIVATE_KEYWORD, KtTokens.INTERNAL_KEYWORD)
+        val NON_PUBLIC_VISIBILITIES: Set<KtKeywordToken> =
+            setOf(KtTokens.PRIVATE_KEYWORD, KtTokens.INTERNAL_KEYWORD)
     }
 
-    private var enabled = false
+    private var enabled: Boolean = false
 
     override fun beforeFirstNode(editorConfig: EditorConfig) {
         enabled = editorConfig[DOC_COMMENT_MODE] == "on"
@@ -132,6 +133,7 @@ class PublicDeclarationDocComment :
         private fun isEnclosedByNonPublic(declaration: PsiElement): Boolean =
             generateSequence(declaration.parent) { parent -> parent.parent }
                 .filterIsInstance<KtModifierListOwner>()
-                .any { owner -> owner.visibilityModifierType() in NON_PUBLIC_VISIBILITIES }
+                .mapNotNull { owner -> owner.visibilityModifierType() }
+                .any { token -> token in NON_PUBLIC_VISIBILITIES }
     }
 }

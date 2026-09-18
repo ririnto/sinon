@@ -31,7 +31,7 @@ class FunctionBodyBlankLines :
     ) {
         if (
             node.elementType == WHITE_SPACE &&
-            node.text.count { character -> character == '\n' } > 1 &&
+            1 < node.text.count { character -> character == '\n' } &&
             node.psi.parent is KtBlockExpression &&
             node.treePrev?.psi !is KtNamedFunction &&
             node.treeNext?.psi !is KtNamedFunction &&

@@ -40,21 +40,19 @@ interface RuleContext {
  * @param key Property key node from a class method definition.
  * @returns The identifier or literal key name, or undefined for computed keys.
  */
-const propertyKeyName = (key: PropertyKey): string | undefined => {
-  if ("name" in key && typeof key.name === "string") {
-    return key.name;
-  }
-  if (
-    "value" in key &&
-    (typeof key.value === "string" ||
-      typeof key.value === "number" ||
-      typeof key.value === "boolean" ||
-      typeof key.value === "bigint")
-  ) {
-    return String(key.value);
-  }
-  return undefined;
-};
+const literalKeyName = (key: PropertyKey): string | undefined =>
+  "value" in key &&
+  (typeof key.value === "string" ||
+    typeof key.value === "number" ||
+    typeof key.value === "boolean" ||
+    typeof key.value === "bigint")
+    ? String(key.value)
+    : undefined;
+
+const propertyKeyName = (key: PropertyKey): string | undefined =>
+  "name" in key && typeof key.name === "string"
+    ? key.name
+    : literalKeyName(key);
 
 /**
  * Extract the display name for a declaration or method node.
@@ -66,10 +64,9 @@ const nodeName = (node: Class | MethodDefinition | OxcFunction): string => {
   if ("id" in node && node.id?.name) {
     return node.id.name;
   }
-  if ("key" in node) {
-    return propertyKeyName(node.key) ?? "[anonymous]";
-  }
-  return "[anonymous]";
+  return "key" in node
+    ? (propertyKeyName(node.key) ?? "[anonymous]")
+    : "[anonymous]";
 };
 
 /**
@@ -124,16 +121,12 @@ const isClassDeclaration = (
  * @param node Variable declaration node to inspect.
  * @returns The first binding identifier name, or a generic declaration label.
  */
-const variableName = (node: VariableDeclaration): string => {
-  if (
-    node.declarations[0]?.id &&
-    "name" in node.declarations[0].id &&
-    typeof node.declarations[0].id.name === "string"
-  ) {
-    return node.declarations[0].id.name;
-  }
-  return "variable declaration";
-};
+const variableName = (node: VariableDeclaration): string =>
+  node.declarations[0]?.id &&
+  "name" in node.declarations[0].id &&
+  typeof node.declarations[0].id.name === "string"
+    ? node.declarations[0].id.name
+    : "variable declaration";
 
 /**
  * Require TSDoc on exported TypeScript public API declarations.
@@ -150,27 +143,19 @@ const exportTsdocRule = {
      * @param node AST node to inspect.
      * @returns True when a directly preceding block comment starts with `*`.
      */
-    const hasTsdoc = (node: Node): boolean => {
-      if (
+    const hasTsdoc = (node: Node): boolean =>
+      sourceCode
+        .getCommentsBefore(node)
+        .some(
+          (comment) => comment.type === "Block" && comment.value.startsWith("*")
+        ) ||
+      (node.parent?.type.startsWith("Export") === true &&
         sourceCode
-          .getCommentsBefore(node)
-          .some(
-            (comment) =>
-              comment.type === "Block" && comment.value.startsWith("*")
-          )
-      ) {
-        return true;
-      }
-      if (node.parent?.type.startsWith("Export")) {
-        return sourceCode
           .getCommentsBefore(node.parent)
           .some(
             (comment) =>
               comment.type === "Block" && comment.value.startsWith("*")
-          );
-      }
-      return false;
-    };
+          ));
     /**
      * Report a missing-TSDoc diagnostic unless the node is already documented.
      *
@@ -180,14 +165,13 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const report = (node: Node, kind: string, name: string): void => {
-      if (hasTsdoc(node)) {
-        return;
+      if (!hasTsdoc(node)) {
+        context.report({
+          data: { kind, name },
+          messageId: "missingTsdoc",
+          node
+        });
       }
-      context.report({
-        data: { kind, name },
-        messageId: "missingTsdoc",
-        node
-      });
     };
     /**
      * Validate TSDoc on an exported class and its public methods.
@@ -217,13 +201,9 @@ const exportTsdocRule = {
       }
       if (isFunctionDeclaration(node)) {
         report(node, "function", nodeName(node));
-        return;
-      }
-      if (isVariableDeclaration(node)) {
+      } else if (isVariableDeclaration(node)) {
         report(node, "variable", variableName(node));
-        return;
-      }
-      if (isClassDeclaration(node)) {
+      } else if (isClassDeclaration(node)) {
         validateExportedClass(node);
       }
     };
