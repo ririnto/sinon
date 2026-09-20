@@ -3,16 +3,16 @@
   "private": true,
   "workspaces": {
     "catalog": {
-      "@oxc-project/types": "^0.149.0",
+      "@oxc-project/types": "^0.150.0",
       "@tsconfig/node-lts": "^24.0.1",
       "bun-types": "^1.4.2",
       "markdownlint": "^0.41.1",
-      "markdownlint-cli2": "^0.23.2",
+      "markdownlint-cli2": "^0.23.3",
       "npm-run-all2": "^9.0.3",
-      "oxfmt": "^0.67.0",
-      "oxlint": "^1.82.0",
+      "oxfmt": "^0.68.0",
+      "oxlint": "^1.83.0",
       "typescript": "^7.0.2",
-      "ultracite": "^7.11.1"
+      "ultracite": "^7.12.0"
     }
   },
   "type": "module",

@@ -83,7 +83,7 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Version And Source Record
 
-The source profile was checked against the repository's available Bun `1.3.14`, Oxc `1.82.0`, Oxfmt `0.67.0`, Ultracite `7.11.1`, Markdownlint CLI2 `0.23.2`, and `@oxc-project/types` `0.149.0` packages on 2026-09-13.
+The source profile was checked against the repository's available Bun `1.3.14`, Oxc `1.83.0`, Oxfmt `0.68.0`, Ultracite `7.12.0`, Markdownlint CLI2 `0.23.3`, and `@oxc-project/types` `0.150.0` packages on 2026-09-21.
 The target owns final dependency versions through its manifest and lockfile.
 The listed versions are source-profile evidence, not mandatory target pins.
 Bun lockfile behavior and installation options were read from `https://bun.com/docs/pm/cli/install` on 2026-09-13.

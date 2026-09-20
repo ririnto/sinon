@@ -15,8 +15,8 @@ For a new empty target, report the initialization gap and run only `uv init` whe
 
 - uv: install through the [official standalone installer](https://docs.astral.sh/uv/getting-started/installation/); any currently maintained version works, because uv resolves its own Python.
 - Python: the target's `requires-python` field stays authoritative.
-- Ruff: `>= 0.16,<0.17` through the `dev` dependency group.
-- pre-commit: `>= 4.2,<5` through the `dev` dependency group, hooks only when explicitly selected.
+- Ruff: `>= 0.16.8,<0.17` through the `dev` dependency group.
+- pre-commit: `>= 4.6.2,<5` through the `dev` dependency group, hooks only when explicitly selected; this pre-commit line requires Python >= 3.10 in the target environment (4.2.x required >= 3.9).
 
 The installer records these same-major bounds at authoring time.
 Honor a newer target-pinned version instead of downgrading it.

@@ -15,7 +15,7 @@ The `go` toolchain in `PATH` provides build and test support; golangci-lint and 
 
 - Go: use the version declared by the target's `go.mod` `go` directive; install a matching toolchain when missing.
 - golangci-lint: v2.13.2 (pinned at authoring time from upstream releases).
-- NilAway: pinned pseudo-version `v0.0.0-20260910170248-571480214735` from the upstream default branch.
+- NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
 - Task: not required. Direct native commands below provide the same checks the historical Taskfile bundled, so this profile adds no Task dependency.
 
 ## Native Configuration Sources
@@ -46,9 +46,11 @@ Tool installation for local runs and CI uses a build-local `GOBIN`, for example:
 ```sh
 export GOBIN="$(pwd)/.bin"
 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
-go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260910170248-571480214735
+GOTOOLCHAIN=auto go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260918162853-acb8859b9031
 export PATH="${GOBIN}:${PATH}"
 ```
+
+`GOTOOLCHAIN=auto` applies only to the NilAway install; analysis and project commands use the target's declared Go toolchain.
 
 ## CI Behavior
 

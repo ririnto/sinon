@@ -7,7 +7,7 @@ golangci-lint:
       mkdir -p "${install_dir}"
       export GOBIN="${install_dir}"
       go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
-      go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260910170248-571480214735
+      GOTOOLCHAIN=auto go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260918162853-acb8859b9031
   script:
     - export PATH="${CI_PROJECT_DIR}/.bin:${PATH}"
     - golangci-lint run
