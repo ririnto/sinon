@@ -34,6 +34,7 @@ Read supporting references when their subject applies, not as a prerequisite to 
 Make the smallest complete change that meets the acceptance criteria.
 Continue through implementation, relevant proof, and proportional diff review.
 Preserve unrelated work and report a precise blocker when required evidence or authority is missing.
+When guidance blocks progress, name its file, quote the relevant instruction, and distinguish the requirement from your interpretation.
 Use the existing TypeScript and Bun commands.
 Choose checks for changed behavior and explicit acceptance criteria; reuse passing evidence for unaffected checks.
 Run `bun install` after authorized dependency changes.
@@ -42,6 +43,7 @@ Report exact commands, exit codes, and any required check that could not run.
 
 ## Authority And Publication
 
+Explicit user instructions override this guidance within system, safety, and tool constraints.
 Read-only inspection does not authorize changing the inspected resource.
 Continue authorized edits and checks without asking again for each step.
 The user-facing root session owns integration and publication, and grants any delegated Git actions explicitly.

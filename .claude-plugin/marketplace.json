@@ -28,7 +28,7 @@
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness",
-      "version": "2026.09.20.00"
+      "version": "2026.09.20.01"
     },
     {
       "author": {
@@ -116,7 +116,7 @@
       "license": "MIT",
       "name": "spring",
       "source": "./plugins/spring",
-      "version": "2026.09.15.01"
+      "version": "2026.09.20.00"
     },
     {
       "author": {
@@ -141,7 +141,7 @@
       "license": "Apache-2.0",
       "name": "workspace-workflow",
       "source": "./plugins/workspace-workflow",
-      "version": "2026.09.15.01"
+      "version": "2026.09.20.00"
     }
   ]
 }

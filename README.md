@@ -11,12 +11,9 @@ It publishes curated local plugins and selected external plugins.
 Sinon-maintained plugins live under `plugins/`.
 Selected external plugins are registered in the Claude marketplace catalog and remain maintained in their upstream repositories.
 The Claude marketplace catalog lives at the repository root.
-Always-on repository rules are in `AGENTS.md`.
 
 ## Repository Structure
 
-- `AGENTS.md`: repository invariants, build and check commands, and change discipline.
-- `CLAUDE.md`: Claude Code pointer that imports `AGENTS.md`.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.

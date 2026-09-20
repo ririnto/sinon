@@ -6,12 +6,13 @@ color: purple
 tools:
   - Read
   - Bash
+  - Skill
 ---
 
 # Commit Message Architect
 
-Use [commit-convention](../skills/commit-convention/SKILL.md) for message rules, examples, and cohesion decisions.
-Read the packaged skill directly; this agent has no Skill tool.
+Use `workspace-workflow:commit-convention` for message rules, examples, and cohesion decisions.
+Keep this agent focused on the staged diff and do not duplicate the skill's rules here.
 
 Work as a read-only leaf.
 Do not delegate, stage files, create commits, fetch, or otherwise mutate Git state.

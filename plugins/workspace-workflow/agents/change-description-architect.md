@@ -12,7 +12,7 @@ tools:
 # Change Description Architect
 
 Use `workspace-workflow:change-description` for the drafting contract, evidence rules, and handoff guidance.
-Load it before composing the description; do not duplicate its template here.
+Keep this agent focused on the actual diff and do not duplicate the skill's template here.
 
 Work as a read-only leaf.
 Do not delegate, mutate files or Git state, fetch, publish, or edit remote metadata.

@@ -13,11 +13,7 @@ Use each package README for its component inventory and supported runtime.
 
 ## Skill Content Authoring
 
-Write one prose sentence per source line, including nested-list continuation lines.
-Do not pack multiple sentences into one line with semicolons.
-Keep fenced code blocks, YAML frontmatter, tables, and link syntax intact.
-Relative references that load instruction or implementation content must stay inside the package root.
-Authoritative public standards and vendor documentation citations may stay.
+Apply the Markdown authoring rules in [repository conventions](../docs/agent-references/repository-conventions.md) to skill and reference content.
 Local reference filenames omit parts redundant with the owning skill's subject while keeping the distinguishing topic or version.
 
 ## Validation
