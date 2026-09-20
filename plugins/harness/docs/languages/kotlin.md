@@ -45,3 +45,8 @@ Do not add factories, DSLs, or layers for appearance.
 
 Use raw strings (`"""`) for regular expressions and JSON fixtures.
 Know whether the trailing newline before the closing delimiter is part of the value, and match the exact target.
+
+## KtLint Suppression Placement
+
+For the inferred `assertThatRule` test helper property, ktlint 1.8.0 does not honor a class-level `@Suppress` placed after the `package` directive.
+The test sources use `@file:Suppress("ktlint:harness:explicit-property-type")` before the `package` line as the working module-level form.
