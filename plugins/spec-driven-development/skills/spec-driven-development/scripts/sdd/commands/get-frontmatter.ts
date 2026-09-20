@@ -44,13 +44,13 @@ const outputValue = (
     fail("FAIL: --format value requires --fields with exactly one field");
     return 1;
   }
-  const field = fields[0] ?? "";
+  const [field] = fields;
   const value = field in entry.record ? entry.record[field] : outputData[field];
-  if (Array.isArray(value) || isRecord(value)) {
-    process.stdout.write(JSON.stringify(value));
-  } else {
-    process.stdout.write(`${String(value ?? "")}\n`);
-  }
+  process.stdout.write(
+    Array.isArray(value) || isRecord(value)
+      ? JSON.stringify(value)
+      : `${String(value ?? "")}\n`
+  );
   return 0;
 };
 
@@ -124,17 +124,16 @@ export const cmdGetFrontmatter = (args: ParsedArgs): number => {
   if ("tag" in outputData || "tags" in outputData) {
     outputData["tag"] = normalizeTag(outputData["tag"] ?? outputData["tags"]);
   }
+  const fields = parseFields(optionString(args, "fields"));
   switch (format) {
     case "yaml": {
       console.log(entry.yamlBody);
       return 0;
     }
     case "value": {
-      const fields = parseFields(optionString(args, "fields"));
       return outputValue(entry, outputData, fields);
     }
     default: {
-      const fields = parseFields(optionString(args, "fields"));
       return outputJson(args, entry, outputData, docPath, kind, format, fields);
     }
   }

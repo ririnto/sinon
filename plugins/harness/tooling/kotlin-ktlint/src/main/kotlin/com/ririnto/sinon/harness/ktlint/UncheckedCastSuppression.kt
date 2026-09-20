@@ -69,7 +69,7 @@ class UncheckedCastSuppression :
         (node.psi as? KtFile)?.accept(SuppressAnnotationVisitor(forbiddenTokens - allowedTokens, emit))
     }
 
-    private fun String.parseTokens(): Set<String> = split(",").map { token -> token.trim() }.filter { token -> token.isNotEmpty() }.toSet()
+    private fun String.parseTokens(): Set<String> = split(",").map(String::trim).filter(String::isNotEmpty).toSet()
 
     private class SuppressAnnotationVisitor(
         private val forbiddenTokens: Set<String>,

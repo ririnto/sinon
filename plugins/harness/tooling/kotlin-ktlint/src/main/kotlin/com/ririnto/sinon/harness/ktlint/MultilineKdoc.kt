@@ -37,10 +37,15 @@ class MultilineKdoc :
             super.visitDeclaration(declaration)
             declaration.docComment?.takeIf { comment -> !comment.text.contains('\n') }?.let { comment ->
                 if (emit(comment.textOffset, "use multiline KDoc for this declaration", true) == AutocorrectDecision.ALLOW_AUTOCORRECT) {
+                    val documentedText = comment.text.substring(3, comment.text.length - 2).trim()
+                    val multilineComment =
+                        """/**
+ * $documentedText
+ */"""
                     comment.node.replaceWith(
                         KtPsiFactory
                             .contextual(declaration)
-                            .createComment("/**\n * ${comment.text.substring(3, comment.text.length - 2).trim()}\n */")
+                            .createComment(multilineComment)
                             .node
                     )
                 }

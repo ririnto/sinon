@@ -165,12 +165,14 @@ is_compatible_lombok_version() {
 #
 # @return 0 if Lombok usage is detected anywhere in the project, 1 otherwise.
 project_uses_lombok() {
-  contains_lombok_dependency "${project_root}/pom.xml" && return 0
-  contains_lombok_dependency "${project_root}/build.gradle" && return 0
-  contains_lombok_dependency "${project_root}/build.gradle.kts" && return 0
-  contains_lombok_dependency "${project_root}/gradle/libs.versions.toml" && return 0
-  contains_lombok_dependency "${project_root}/.classpath" && return 0
-  contains_lombok_dependency "${project_root}/.factorypath" && return 0
+  if contains_lombok_dependency "${project_root}/pom.xml" ||
+    contains_lombok_dependency "${project_root}/build.gradle" ||
+    contains_lombok_dependency "${project_root}/build.gradle.kts" ||
+    contains_lombok_dependency "${project_root}/gradle/libs.versions.toml" ||
+    contains_lombok_dependency "${project_root}/.classpath" ||
+    contains_lombok_dependency "${project_root}/.factorypath"; then
+    return 0
+  fi
   while IFS= read -r candidate_file; do
     if contains_lombok_dependency "${candidate_file}"; then
       return 0

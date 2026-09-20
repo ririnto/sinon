@@ -53,16 +53,17 @@ class ExplicitPropertyType :
                 ).ifAutocorrectAllowed {
                     val nameIdentifier = property.nameIdentifier
                     if (typeName !== null && nameIdentifier !== null) {
-                        val currentText = property.text
-                        val nameEnd = (nameIdentifier.node.startOffset - property.node.startOffset) + nameIdentifier.text.length
-                        property.node.replaceWith(
-                            KtPsiFactory
-                                .contextual(
-                                    property,
-                                    false
-                                ).createProperty(currentText.substring(0, nameEnd) + ": $typeName" + currentText.substring(nameEnd))
-                                .node
-                        )
+                        property.text.run {
+                            val nameEnd = (nameIdentifier.node.startOffset - property.node.startOffset) + nameIdentifier.text.length
+                            property.node.replaceWith(
+                                KtPsiFactory
+                                    .contextual(
+                                        property,
+                                        false
+                                    ).createProperty(substring(0, nameEnd) + ": $typeName" + substring(nameEnd))
+                                    .node
+                            )
+                        }
                     }
                 }
             }

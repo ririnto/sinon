@@ -46,7 +46,7 @@ class ImportOverFqn :
                             directive.importPath?.pathStr?.let { path -> name to path }
                         }
                     }.groupBy({ pair -> pair.first }, { pair -> pair.second })
-            val aliasNames: Set<String> = imports.mapNotNull { directive -> directive.aliasName }.toSet()
+            val aliasNames: Set<String> = imports.mapNotNull(KtImportDirective::aliasName).toSet()
             val aliasedImportPaths: Set<String> =
                 imports
                     .filter { directive -> directive.aliasName !== null }

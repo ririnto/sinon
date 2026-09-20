@@ -22,7 +22,6 @@ internal object LiteralTypeInference {
             }
 
             is KtConstantExpression -> {
-                val text = text
                 when (node.elementType) {
                     ElementType.BOOLEAN_CONSTANT -> {
                         Boolean::class.simpleName

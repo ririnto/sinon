@@ -73,12 +73,12 @@ class NestedDataClassLast :
                                     ) -
                                         classOrObject.node.startOffset +
                                         1
-                                ) + "\n" +
-                                    declarations
-                                        .partition { candidate -> candidate !is KtClass || !candidate.isData() }
-                                        .let { (nonData, data) -> nonData + data }
-                                        .map { declaration -> declaration.blockText() }
-                                        .joinToString("\n\n") + "\n}"
+                                ) + """
+${declarations
+                                    .partition { candidate -> candidate !is KtClass || !candidate.isData() }
+                                    .let { (nonData, data) -> nonData + data }
+                                    .joinToString("\n\n") { declaration -> declaration.blockText() }}
+}"""
                             classOrObject.node.replaceWith(
                                 KtPsiFactory
                                     .contextual(classOrObject, false)

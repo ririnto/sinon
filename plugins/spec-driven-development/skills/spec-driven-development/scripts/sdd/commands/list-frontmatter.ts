@@ -166,12 +166,11 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
     return 1;
   }
   const jsonl = optionBool(args, "jsonl");
-  let includeYaml = optionBool(args, "include-yaml");
+  const includeYaml = optionBool(args, "include-yaml");
   if (includeYaml && !jsonl) {
     warn(
       "--include-yaml is ignored unless --jsonl is set (continuing in table mode)"
     );
-    includeYaml = false;
   }
   if (!existsSync(specPath) || !statSync(specPath).isDirectory()) {
     fail(`FAIL: Path is not a directory: ${specPath}`);
@@ -207,29 +206,27 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
       if (!optionBool(args, "best-effort")) {
         return 1;
       }
-      continue;
+    } else if (
+      result.kind === "entry" &&
+      matchesFilters(result.entry.record, result.entry.data, filters)
+    ) {
+      if (inboundOf) {
+        output.push(
+          ...collectInboundRows(
+            result.entry,
+            filePath,
+            inboundOf,
+            targetCandidates,
+            includeYaml,
+            jsonl
+          )
+        );
+      } else {
+        output.push(
+          formatStandardRow(result.entry, filePath, fields, jsonl, includeYaml)
+        );
+      }
     }
-    if (result.kind === "missing") {
-      continue;
-    }
-    const { entry } = result;
-    if (!matchesFilters(entry.record, entry.data, filters)) {
-      continue;
-    }
-    if (inboundOf) {
-      output.push(
-        ...collectInboundRows(
-          entry,
-          filePath,
-          inboundOf,
-          targetCandidates,
-          includeYaml,
-          jsonl
-        )
-      );
-      continue;
-    }
-    output.push(formatStandardRow(entry, filePath, fields, jsonl, includeYaml));
   }
   console.log(output.join("\n"));
   if (failures > 0 && optionBool(args, "best-effort")) {

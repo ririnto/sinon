@@ -49,7 +49,7 @@ export const resolveTargetPaths = (
   value: string,
   baseDir: string
 ): Set<string> => {
-  const stripped = value.split("#", 1)[0]?.trim() ?? "";
+  const stripped = value.split("#", 1)[0].trim();
   const resolved = new Set<string>();
   if (!stripped || URL_SCHEME_RE.test(stripped)) {
     return resolved;
@@ -109,7 +109,7 @@ export const extractLinkTargets = (
   const result: LinkTarget[] = [];
   for (const rawCall of rawCalls) {
     const text = extractCallPath(rawCall).trim();
-    const stripped = text.split("#", 1)[0]?.trim() ?? "";
+    const stripped = text.split("#", 1)[0].trim();
     if (
       !stripped ||
       URL_SCHEME_RE.test(stripped) ||

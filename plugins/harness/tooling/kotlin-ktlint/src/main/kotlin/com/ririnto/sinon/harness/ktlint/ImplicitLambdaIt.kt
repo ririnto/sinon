@@ -39,24 +39,23 @@ class ImplicitLambdaIt :
     ) : KtTreeVisitorVoid() {
         override fun visitLambdaExpression(lambdaExpression: KtLambdaExpression) {
             super.visitLambdaExpression(lambdaExpression)
-            if (lambdaExpression.functionLiteral.hasParameterSpecification()) {
-                return
-            }
-            val implicitItReferences =
-                lambdaExpression.bodyExpression
-                    ?.collectDescendantsOfType<KtNameReferenceExpression>()
-                    ?.filter { reference ->
-                        reference.getReferencedName() == "it" && reference.resolvesTo(lambdaExpression)
-                    }.orEmpty()
-            implicitItReferences.firstOrNull()?.let { reference ->
-                val parameterName = findParameterName(lambdaExpression)
-                emit(
-                    reference.textOffset,
-                    "use an explicit name for the implicit `it` lambda parameter",
-                    parameterName != null
-                ).ifAutocorrectAllowed {
-                    parameterName?.let { name ->
-                        replaceImplicitParameter(lambdaExpression, implicitItReferences, name)
+            if (!lambdaExpression.functionLiteral.hasParameterSpecification()) {
+                val implicitItReferences =
+                    lambdaExpression.bodyExpression
+                        ?.collectDescendantsOfType<KtNameReferenceExpression>()
+                        ?.filter { reference ->
+                            reference.getReferencedName() == "it" && reference.resolvesTo(lambdaExpression)
+                        }.orEmpty()
+                implicitItReferences.firstOrNull()?.let { reference ->
+                    val parameterName = findParameterName(lambdaExpression)
+                    emit(
+                        reference.textOffset,
+                        "use an explicit name for the implicit `it` lambda parameter",
+                        parameterName != null
+                    ).ifAutocorrectAllowed {
+                        parameterName?.let { name ->
+                            replaceImplicitParameter(lambdaExpression, implicitItReferences, name)
+                        }
                     }
                 }
             }
@@ -108,34 +107,35 @@ class ImplicitLambdaIt :
             references: List<KtNameReferenceExpression>,
             parameterName: String
         ) {
-            val lambdaText = lambdaExpression.text
-            val leftBraceOffset = lambdaText.indexOf('{')
-            if (leftBraceOffset < 0) {
-                return
-            }
-            val rewrittenText =
-                references
-                    .map { reference -> reference.textOffset - lambdaExpression.textOffset to reference.textLength }
-                    .sortedByDescending { (offset, _) -> offset }
-                    .fold(lambdaText) { currentText, (offset, length) ->
-                        currentText.replaceRange(offset, offset + length, parameterName)
+            lambdaExpression.text.run {
+                val leftBraceOffset = indexOf('{')
+                if (0 <= leftBraceOffset) {
+                    val rewrittenText =
+                        references
+                            .map { reference -> reference.textOffset - lambdaExpression.textOffset to reference.textLength }
+                            .sortedByDescending { (offset, _) -> offset }
+                            .fold(this) { currentText, (offset, length) ->
+                                currentText.replaceRange(offset, offset + length, parameterName)
+                            }
+                    val body = rewrittenText.substring(leftBraceOffset + 1)
+                    if (body.isNotEmpty()) {
+                        val whitespace = body.takeWhile(Char::isWhitespace)
+                        val parameter =
+                            when ('\n' in whitespace) {
+                                true -> """$whitespace$parameterName ->
+${whitespace.substringAfterLast('\n')}"""
+
+                                false -> "$whitespace$parameterName -> "
+                            }
+                        lambdaExpression.node.replaceWith(
+                            KtPsiFactory
+                                .contextual(lambdaExpression, false)
+                                .createExpression("{$parameter${body.substring(whitespace.length)}")
+                                .node
+                        )
                     }
-            val body = rewrittenText.substring(leftBraceOffset + 1)
-            if (body.isEmpty()) {
-                return
-            }
-            val whitespace = body.takeWhile { character -> character.isWhitespace() }
-            val parameter =
-                when ('\n' in whitespace) {
-                    true -> "$whitespace$parameterName ->\n${whitespace.substringAfterLast('\n')}"
-                    false -> "$whitespace$parameterName -> "
                 }
-            lambdaExpression.node.replaceWith(
-                KtPsiFactory
-                    .contextual(lambdaExpression, false)
-                    .createExpression("{$parameter${body.substring(whitespace.length)}")
-                    .node
-            )
+            }
         }
     }
 }

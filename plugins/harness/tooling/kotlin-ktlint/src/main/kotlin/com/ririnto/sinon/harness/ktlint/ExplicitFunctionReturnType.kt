@@ -75,18 +75,19 @@ class ExplicitFunctionReturnType :
                                         typeName?.let { type ->
                                             val eqNode = function.node.findChildByType(KtTokens.EQ)
                                             if (eqNode !== null) {
-                                                val currentText = function.text
-                                                val eqIndex = eqNode.startOffset - function.node.startOffset
-                                                function.node.replaceWith(
-                                                    KtPsiFactory
-                                                        .contextual(function, false)
-                                                        .createFunction(
-                                                            "${currentText.substring(
-                                                                0,
-                                                                currentText.findInsertionPosition(eqIndex)
-                                                            )}: $type ${currentText.substring(eqIndex)}"
-                                                        ).node
-                                                )
+                                                function.text.run {
+                                                    val eqIndex = eqNode.startOffset - function.node.startOffset
+                                                    function.node.replaceWith(
+                                                        KtPsiFactory
+                                                            .contextual(function, false)
+                                                            .createFunction(
+                                                                "${substring(
+                                                                    0,
+                                                                    findInsertionPosition(eqIndex)
+                                                                )}: $type ${substring(eqIndex)}"
+                                                            ).node
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -132,7 +133,7 @@ class ExplicitFunctionReturnType :
                 collected
             }
 
-            text.all { character -> character.isWhitespace() } -> {
+            text.all(Char::isWhitespace) -> {
                 treePrev.collectWhitespaceNodes(collected + this)
             }
 

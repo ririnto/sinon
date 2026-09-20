@@ -22,12 +22,12 @@ export const extractFrontmatterFromText = (
   text: string
 ): FrontmatterBlock | undefined => {
   const lines = text.split(/\r?\n/u);
-  const first = (lines[0] ?? "").replace(/^\uFEFF/u, "").trim();
+  const first = lines[0].replace(/^\uFEFF/u, "").trim();
   if (first !== "---") {
     return undefined;
   }
   for (let index = 1; index < lines.length; index += 1) {
-    if (FRONTMATTER_DELIMITER_RE.test(lines[index] ?? "")) {
+    if (FRONTMATTER_DELIMITER_RE.test(lines[index])) {
       return { endLine: index + 1, yaml: lines.slice(1, index).join("\n") };
     }
   }
