@@ -12,6 +12,8 @@ Open this when the project already uses Kotest and the remaining blocker is keep
 - keep Kotest examples inside the suite's existing style.
   Do not mix styles.
 - use `assertSoftly` when several assertions describe one observable behavior
+- in an unambiguous receiver lambda, call `shouldBe(expected)` rather than writing `this shouldBe expected`
+  - keep an explicit receiver when multiple receivers make omission ambiguous
 - use `shouldThrowExactly<T>()` when the exact exception type matters
 - assert the caught exception's `message` with `shouldBe` against the exact expected text, and check the meaningful fields it declares
 - use `shouldNotThrowAny` when the no-exception property itself is the contract
@@ -24,6 +26,12 @@ Open this when the project already uses Kotest and the remaining blocker is keep
 Choose the style the project already uses.
 
 ```kotlin
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+
 class ProfileServiceTest : FunSpec({
     test("returns cached profile") {
         service.loadProfile("user-1") shouldBe Profile("user-1")
@@ -41,7 +49,7 @@ class CartTest : BehaviorSpec({
     given("an empty cart") {
         `when`("an item is added") {
             then("size becomes 1") {
-                cart.size shouldBe 1
+                cart shouldHaveSize 1
             }
         }
     }
@@ -80,6 +88,11 @@ val parsed = shouldNotThrowAny {
 ## Soft assertions
 
 ```kotlin
+import io.kotest.assertions.assertSoftly
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.shouldBe
+
 class ProfileServiceKotestTest : FunSpec({
     test("returns cached profile with correct fields") {
         assertSoftly(service.loadProfile("user-1")) { profile ->
@@ -146,6 +159,9 @@ class LegacyConfigKotestTest : FunSpec({
 ## Lifecycle listeners
 
 ```kotlin
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+
 class DatabaseRepositoryTest : FunSpec({
     lateinit var repo: Repository
 
