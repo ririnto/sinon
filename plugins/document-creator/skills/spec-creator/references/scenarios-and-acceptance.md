@@ -269,9 +269,9 @@ Example:
 
 ```markdown
 - Real Tracker Integration (Linear API)
-  - Fetch candidate issues from a real Linear project
-  - Verify issue fields are normalized correctly
-  - Verify pagination handles > 50 issues
+  - Fetch candidate work items from a real Linear project
+  - Verify work-item fields are normalized correctly
+  - Verify pagination handles > 50 work items
 ```
 
 Example matrix:
@@ -306,9 +306,9 @@ Example matrix:
 ### Real Integration Profile
 
 - Linear Tracker Integration
-  - Test: Fetch issues from real Linear project
-  - Test: Verify all issue fields normalize correctly
-  - Test: Pagination works for > 50 issues
+  - Test: Fetch work items from real Linear project
+  - Test: Verify all work-item fields normalize correctly
+  - Test: Pagination works for > 50 work items
 ```
 
 ## Open Questions Template

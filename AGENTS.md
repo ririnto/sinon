@@ -55,4 +55,6 @@ Keep general orchestration profiles out of plugins.
 Do not edit credentials, local configuration, caches, or vendored files unless the task names them.
 Keep task rationale and evidence self-contained in Git, without work-item identifiers, review URLs, or local environment details.
 Use repository-relative paths and portable examples in committed content and messages.
+Use branch names for work tracking, handoffs, and GitHub tracking content.
+Do not base tracking documents or links on fixed commit, file, or content hashes.
 Review changes that cross command, filesystem, network, credential, or publication boundaries for safety risks.

@@ -885,7 +885,7 @@ receivers:
 
 ## jira_configs
 
-Creates Jira issues from alerts (Jira Cloud or Data Center).
+Creates Jira work items from alerts (Jira Cloud or Data Center).
 
 ```yaml
 receivers:
@@ -904,15 +904,15 @@ receivers:
 | `api_url` | URL | yes* | global `jira_api_url` | Jira Cloud/Data Center API base URL |
 | `api_type` | string | no | `"auto"` | API type: `"auto"`, `"cloud"`, or `"datacenter"` |
 | `project` | string | yes | -- | Jira project key |
-| `summary` | JiraFieldConfig | no | (template) | Issue summary field |
-| `description` | JiraFieldConfig | no | (template) | Issue description field |
+| `summary` | JiraFieldConfig | no | (template) | Summary field for the created work item |
+| `description` | JiraFieldConfig | no | (template) | Description field for the created work item |
 | `labels` | list of string | no | -- | Labels to apply |
 | `priority` | string | no | (template) | Priority field value |
-| `issue_type` | string | yes | -- | Issue type name |
-| `reopen_transition` | string | no | -- | Transition name for reopening resolved issues |
-| `resolve_transition` | string | no | -- | Transition name for resolving open issues |
+| `issue_type` | string | yes | -- | Type name of the created work item |
+| `reopen_transition` | string | no | -- | Transition name for reopening resolved work items |
+| `resolve_transition` | string | no | -- | Transition name for resolving open work items |
 | `wont_fix_resolution` | string | no | -- | Resolution name for wont-fix |
-| `reopen_duration` | duration | no | -- | Duration after which resolved issues can be reopened |
+| `reopen_duration` | duration | no | -- | Duration after which resolved work items can be reopened |
 | `fields` | map[string]any | no | -- | Custom/additional Jira fields |
 
 \* Required globally or locally.
@@ -922,7 +922,7 @@ receivers:
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `template` | string | -- | Go template string for rendering the field value |
-| `enable_update` | bool* | true | Whether to include this field when updating existing issues |
+| `enable_update` | bool* | true | Whether to include this field when updating existing work items |
 
 \* Omitting `enable_update` defaults to `true`.
 Set to `false` to skip updates.
@@ -956,8 +956,8 @@ receivers:
         labels:
           - prometheus
           - auto-created
-        reopen_transition: Reopen Issue
-        resolve_transition: Resolve Issue
+        reopen_transition: Reopen
+        resolve_transition: Resolve
         reopen_duration: 72h
         fields:
           components:

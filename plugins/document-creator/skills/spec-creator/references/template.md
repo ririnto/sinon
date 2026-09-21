@@ -717,7 +717,7 @@ Situations requiring human action:
 
 ### 22.1 Trust Boundary
 
-[Statement of what is trusted and what is not. Example: "The system trusts the WORKFLOW.md file checked into the repository and the configured issue tracker API. It does not trust agent output when executing file operations outside the workspace."]
+[Statement of what is trusted and what is not. Example: "The system trusts the WORKFLOW.md file checked into the repository and the configured work-item tracker API. It does not trust agent output when executing file operations outside the workspace."]
 
 ### 22.2 Filesystem Safety
 

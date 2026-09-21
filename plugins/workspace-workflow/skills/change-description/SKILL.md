@@ -20,7 +20,7 @@ This is a drafting skill, not an implementation lifecycle or authorization to in
   Mark required checks with missing evidence as pending or unverified.
 - Keep rationale, proof, and handoff self-contained in Git.
   Use repository-relative paths and portable examples.
-  Do not include external Issue/PR numbers, work-item identifiers, review URLs, or private local environment details.
+  Do not include external work-item identifiers, review URLs, or private local environment details.
 - Do not publish, change remote metadata, assign responsibility, or mutate Git state without a separate applicable grant.
 
 For a resolved branch comparison, inspect only the evidence needed:

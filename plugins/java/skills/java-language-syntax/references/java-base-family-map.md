@@ -45,7 +45,7 @@ List<String> roles = List.of("reader", "writer");
 ```java
 import java.util.regex.Pattern;
 
-Pattern issuePattern = Pattern.compile("([A-Z]+)-(\\d+)");
+Pattern referencePattern = Pattern.compile("([A-Z]+)-(\\d+)");
 ```
 
 ### Time and date

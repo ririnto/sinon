@@ -163,7 +163,7 @@ Use extensions when they make call sites clearer without hiding ownership or dis
 Remember that members win over extensions and that extension dispatch is static.
 
 ```kotlin
-fun String.normalizedIssueKey(): String = trim().uppercase()
+fun String.normalizedReferenceKey(): String = trim().uppercase()
 ```
 
 Member dispatch is virtual.
@@ -367,7 +367,7 @@ Write `${'$'}` when the content needs a literal dollar sign.
 A trailing newline before the closing delimiter remains part of a multi-line value, so account for it in exact comparisons.
 
 ```kotlin
-private val issuePattern = Regex("""([A-Z]+)-(\d+)""")
+private val referencePattern = Regex("""([A-Z]+)-(\d+)""")
 ```
 
 Use `trimIndent()` to strip leading whitespace from multi-line raw strings, and `trimMargin()` when you want custom prefix-based stripping:
@@ -396,11 +396,11 @@ val mathResult = "Sum: ${a + b}, Product: ${a * b}"
 Combine `Regex` with string helpers to extract structured data:
 
 ```kotlin
-class IssueKeyParser {
-    private val issuePattern = Regex("""([A-Z]+)-(\d+)""")
+class ReferenceKeyParser {
+    private val referencePattern = Regex("""([A-Z]+)-(\d+)""")
 
     fun parse(input: String): Pair<String, Int>? {
-        val match = issuePattern.matchEntire(input.substringBefore('?').trim())
+        val match = referencePattern.matchEntire(input.substringBefore('?').trim())
         return match?.destructured?.let { (project, number) -> project to number.toInt() }
     }
 }
