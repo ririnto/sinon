@@ -39,9 +39,4 @@ Use custom session-fixation handling only when the authorization flow explicitly
 - Do not disable session protections without confirming the exact authorization-flow requirement.
 - Re-run authorization, token, and consent-path tests after every filter-chain migration change.
 
-## Official documentation
-
-The filter-chain sample follows the Spring Security `7.1.x` authorization-server getting-started configuration.
-
-- [Getting started](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
+The filter-chain sample uses the Spring Security 7.1.x authorization-server configuration path.

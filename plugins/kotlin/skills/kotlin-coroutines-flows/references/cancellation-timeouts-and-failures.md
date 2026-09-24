@@ -115,15 +115,16 @@ suspend fun heavyComputation(data: List<Data>): Result {
 Decision: Use `ensureActive()` when you only need to check cancellation without yielding.
 Use `yield()` when you want to both check cancellation AND allow other coroutines to run.
 
-Selective cancellation -- use `cancelChildren()` to cancel all child coroutines without cancelling the parent scope itself, and `Job.join()` to wait for a specific child coroutine to finish:
+Use `cancelChildren()` to cancel the scope's children without cancelling the parent scope.
+Pass the child `Job` to `join()` when shutdown must wait for that child's cancellation cleanup:
 
 ```kotlin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 
-suspend fun gracefulShutdown(scope: CoroutineScope) {
-    scope.cancelChildren()
+suspend fun gracefulShutdown(scope: CoroutineScope, cleanupJob: Job) {
+    scope.coroutineContext.cancelChildren()
     cleanupJob.join()
 }
 ```

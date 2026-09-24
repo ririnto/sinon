@@ -40,6 +40,9 @@ jcmd <pid> GC.class_histogram -all
 jcmd <pid> GC.heap_dump /path/to/private-diagnostics/heap.hprof
 ```
 
+`GC.heap_dump` requests a full GC unless `-all` is specified.
+With `-all`, the dump includes unreachable objects and does not request that full GC.
+
 > [!WARNING]
 >
 > Heap dumps are highly sensitive artifacts.

@@ -54,7 +54,7 @@ val request = HttpRequest().apply {
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| chaining nullable scope functions until the receiver becomes unclear | readers must mentally reconstruct the object flow | use a named local or early return |
+| chaining nullable scope functions until the receiver becomes unclear | readers lose track of the object flow | use a named local or early return |
 | using `!!` to avoid making absence explicit | failure moves to runtime | keep the API nullable or validate at the boundary |
 | using `also` or `apply` when the return value matters more than the receiver | the chosen scope function hides intent | pick the scope function by intent, not habit |
 

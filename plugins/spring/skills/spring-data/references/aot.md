@@ -84,7 +84,3 @@ Treat generated repository fragments and metadata as internal build output, not 
 ## Verification rule
 
 Verify one AOT build emits the expected repository artifacts under the generated output root and that the application still starts with the same repository set enabled.
-
-## Source
-
-This feature list follows the official [Spring Data JPA 4.1 AOT reference](https://docs.spring.io/spring-data/jpa/reference/jpa/aot.html).

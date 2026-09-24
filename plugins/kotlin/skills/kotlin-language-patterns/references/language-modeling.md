@@ -5,10 +5,7 @@ description: >-
 
 # Type Shape Decisions
 
-Use this reference when the job is to choose the right Kotlin type shape for an ambiguous model.
-This reference should be sufficient on its own to finish that modeling decision.
-
-Choose the narrowest construct that matches the domain meaning:
+Choose the narrowest Kotlin type that matches the domain meaning:
 
 - `value class` for a single wrapped value whose domain meaning should be stronger than a raw primitive or `String`
 - `data class` for immutable value carriers with meaningful structural equality
@@ -31,13 +28,6 @@ Decision checklist:
    - Use a regular class and keep state transitions explicit.
 
 Prefer public API shapes that read clearly from both Kotlin and Java when interop matters.
-
-Use this file to finish one of these jobs:
-
-- decide whether a single wrapped concept should become a `value class`
-- choose between `data class`, regular `class`, and `object`
-- decide whether a variant set is truly closed enough for sealed modeling
-- make a Java-facing public model read clearly without Kotlin-only surprises
 
 ## Operator Conventions
 

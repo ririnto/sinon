@@ -16,7 +16,7 @@ Start with the smallest matching rule that preserves the intended label set.
 3. `on (...)` when only a few labels should be used as the join key
 4. `group_left` or `group_right` only when one-to-many or many-to-one output is truly required
 
-Use this order when the blocker is deciding whether a binary operation really needs advanced matching.
+Use this order when the blocker is deciding whether a binary operation needs advanced matching.
 
 ## Label-Set Review
 

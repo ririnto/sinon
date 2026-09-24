@@ -210,9 +210,4 @@ Verify that they are enabled only when needed and exercised in deployment tests.
 | Multiple instances produce different JWK sets | use a shared key store or custom shared `JWKSource` instead of per-node in-memory keys |
 | Registered clients, authorization state, or consent lost after restart | see [jpa-persistence.md](jpa-persistence.md) or [redis-persistence.md](redis-persistence.md) |
 
-## Official documentation
-
-The `spring.security.oauth2.authorizationserver.issuer` property and `JWKSource` setup match the Spring Boot `4.1.1` auto-configuration and the Spring Security `7.1.x` reference.
-
-- [Getting started](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
+The `spring.security.oauth2.authorizationserver.issuer` property and `JWKSource` use the Boot 4.1.1 and Spring Security 7.1.x configuration path.

@@ -2,7 +2,7 @@
 
 Open this reference when the ordinary password, JSON, or value read-write path is not enough and the blocker is advanced credential usage such as interpolation, certificate generation, permissions or info APIs, or less-common credential families.
 
-The current stable Spring CredHub line is 4.0.x, and these APIs remain additive to the ordinary starter-backed service path.
+The examples target Spring CredHub 4.0.x and use APIs beyond the starter-backed service path.
 
 ## Interpolation blocker
 

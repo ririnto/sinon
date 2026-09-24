@@ -53,7 +53,3 @@ registrationProvider.setClientRegistrationConverter(customClientRegistrationConv
 | --- | --- |
 | External clients self-register | Enable DCR endpoint and gate it with an initial access token |
 | Custom client metadata must round-trip | Customize the official registration converters on the registration providers |
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

@@ -9,7 +9,7 @@ Problem: a version upgrade changes endpoint behavior, JWK handling, claims, or r
 Solution: treat the dependency upgrade as a compatibility review across issuer, keys, claims, and registered-client data.
 
 Spring Authorization Server `1.5.8` is the final standalone generation.
-The current active line is `7.1.x`, where authorization-server work continues under Spring Security 7.
+The documented Spring Security `7.1.x` line includes authorization-server modules.
 
 ```xml
 <dependency>
@@ -39,9 +39,7 @@ The current active line is `7.1.x`, where authorization-server work continues un
 - Do not remove old signing keys before tokens signed with them have expired.
 - Do not mix Spring Security OAuth assumptions into the Spring Authorization Server component model without an explicit mapping plan.
 
-## Official documentation
+## Version migration
 
-Spring Authorization Server moved to Spring Security 7.0, and the `1.5.x` branch is the last standalone generation per the project README (verified against the `1.5.8` tag and the Spring Security `7.1.x` branch).
-
-- [Spring Authorization Server](https://docs.spring.io/spring-authorization-server/reference/)
-- [Getting started](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html)
+Spring Authorization Server moved to Spring Security 7.0.
+The 1.5.x branch is the last standalone generation.

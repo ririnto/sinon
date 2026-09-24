@@ -8,17 +8,17 @@ description: >-
 
 Resolve Java dependency coordinates without hardcoding stale version numbers into durable guidance.
 The common case is confirming `groupId` and `artifactId` from the user's project, then emitting the smallest Maven or Gradle snippet with a repository-managed version reference or placeholder.
-When the user explicitly needs the current public release and network access is available, verify it from Maven Central as a separate online branch.
+Before recommending a new literal version, check Maven Central for the latest stable release compatible with the project's platform.
 
 ## Operating rules
 
 - MUST identify `groupId` and `artifactId` before recommending a release.
 - MUST keep the ordinary path offline-safe and version-neutral.
-- MUST verify the current release from a concrete Maven Central request path only when network access is available and version specificity matters.
+- MUST check the latest stable compatible release for the exact artifact on Maven Central when recommending a new literal version and network access is available.
 - MUST treat `latestVersion` as a candidate that still needs coordinate and artifact-type validation.
 - MUST keep durable skill content version-neutral.
 - SHOULD distinguish library dependency versions from plugin or tool versions.
-- SHOULD prefer an existing repository-managed version source such as a BOM, Gradle version catalog, or Maven property before introducing a literal version.
+- MUST preserve an existing BOM, Gradle version catalog, Maven property, or pin unless the task authorizes changing it.
 - SHOULD prefer the smallest build-tool snippet that communicates the install shape clearly.
 - MUST separate artifact lookup guidance from repository-specific pinning policy.
 
@@ -126,7 +126,8 @@ implementation(platform("io.quarkus:quarkus-bom:${verifiedVersion}"))
 
 ## Online verification branch
 
-Open this branch only when the user explicitly needs a current public release and network access is available.
+Open this branch when recommending a new literal version and network access is available.
+Reject preview or milestone releases and verify compatibility with the project's framework and managed versions.
 Keep the ordinary path version-neutral when those conditions are not met.
 
 ### Coordinate verification request

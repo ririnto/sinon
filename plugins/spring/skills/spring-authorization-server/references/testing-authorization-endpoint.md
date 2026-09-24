@@ -14,8 +14,3 @@ void authorizationRequestWithPkceSucceeds() {
     assertAll(() -> assertNotNull(request.getAttribute(PkceParameterNames.CODE_VERIFIER)), () -> assertEquals("S256", request.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD)));
 }
 ```
-
-## Official documentation
-
-- [Getting started](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html)
-- [Authorization code grant and PKCE](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-pkce.html)

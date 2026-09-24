@@ -1,4 +1,18 @@
 ---
+metadata:
+  reference:
+    Project Reactor Core:
+      version: 3.8.7
+      url: https://projectreactor.io/docs/core/3.8.7/reference/aboutDoc.html
+    Project Reactor Test:
+      version: 3.8.7
+      url:
+        - https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.7/reactor-test-3.8.7.pom
+        - https://projectreactor.io/docs/test/3.8.7/api/reactor/test/StepVerifierOptions.html
+        - https://projectreactor.io/docs/test/3.8.7/api/reactor/test/publisher/TestPublisher.Violation.html
+    Project Reactor BOM:
+      version: 2025.0.7
+      url: https://repo.maven.apache.org/maven2/io/projectreactor/reactor-bom/2025.0.7/reactor-bom-2025.0.7.pom
 name: reactor-testing
 description: >-
   Write or fix Reactor publisher tests with StepVerifier, virtual time, TestPublisher, or PublisherProbe.
@@ -9,9 +23,10 @@ description: >-
 ## Official Baseline
 
 - Use the official Project Reactor 3.8.x testing reference for this skill.
-  - Verified against `reactor-test` 3.8.6.
-- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
+  - Reviewed against `reactor-test` 3.8.7 and `reactor-bom` 2025.0.7.
+  These versions are documentation baselines, not dependency pins.
+- Before adding or upgrading Reactor dependencies, check `io.projectreactor:reactor-bom` and `io.projectreactor:reactor-test` in Maven Central for the latest stable compatible release.
+  Honor the project's existing platform, BOM, or pins and keep Reactor modules on the same managed release train.
 
 Test Reactor publishers with the ordinary `reactor-test` path.
 
@@ -30,7 +45,7 @@ Activate this skill for:
 - verifying value order, completion, emptiness, or errors
 - testing time-based operators without waiting for real time
 - controlling upstream emission manually with `TestPublisher`
-- checking whether a fallback or alternate branch was actually subscribed with `PublisherProbe`
+- checking whether a fallback or alternate branch was subscribed with `PublisherProbe`
 - asserting request, cancellation, or dropped/discarded signal behavior after verification
 
 Do not activate for:
@@ -63,7 +78,7 @@ Do not activate for:
 - Build the publisher lazily inside the virtual-time supplier.
 - Make completion, emptiness, and error behavior explicit in the verifier.
 - Use `TestPublisher` when the test must control upstream signals directly.
-- Use `PublisherProbe` when the test is really about which branch was subscribed.
+- Use `PublisherProbe` when the test concerns which branch was subscribed.
 - Use `verifyThenAssertThat()` when dropped or discarded signals matter after execution.
 - Keep framework-specific test clients out of this skill.
 

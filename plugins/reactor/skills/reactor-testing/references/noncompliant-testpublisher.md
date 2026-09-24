@@ -13,7 +13,7 @@ Open this when ordinary `TestPublisher.create()` is not enough because the test 
 | --- | --- |
 | `REQUEST_OVERFLOW` | emit more elements than requested (tests operator backpressure handling) |
 | `ALLOW_NULL` | emit null values (tests operator null tolerance) |
-| `CLEANUP_ON_TERMINATE` | emit after onComplete/onError (tests operator cleanup robustness) |
+| `CLEANUP_ON_TERMINATE` | send more than one termination signal (tests duplicate terminal handling) |
 | `DEFER_CANCELLATION` | continue emitting after cancellation as if cancellation lost a race |
 
 Pass one required violation followed by any additional violations as varargs:
@@ -31,6 +31,7 @@ TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(
 ```java
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
+import reactor.test.StepVerifierOptions;
 import reactor.test.publisher.TestPublisher;
 class NoncompliantPublisherTest {
     @Test
@@ -38,14 +39,19 @@ class NoncompliantPublisherTest {
         TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(
             TestPublisher.Violation.REQUEST_OVERFLOW
         );
-        StepVerifier.create(publisher.flux(), 0)
+        StepVerifier.create(publisher.flux(), StepVerifierOptions.create()
+                .initialRequest(0)
+                .checkUnderRequesting(false))
             .then(() -> publisher.next(1))
+            .thenRequest(1)
             .expectNext(1)
             .thenCancel()
             .verify();
     }
 }
 ```
+
+The verifier's under-requesting check is disabled because this test intentionally begins with zero demand.
 
 ## Deferred cancellation example
 

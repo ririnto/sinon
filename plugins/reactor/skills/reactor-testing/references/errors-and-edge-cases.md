@@ -95,8 +95,8 @@ class RetryAndTimeoutTest {
 }
 ```
 
-`expectTimeout(duration)` asserts that the publisher does not terminate within the specified window and that the verifier times out by cancelling the subscription.
-Per the StepVerifier Javadoc, this is equivalent to appending `timeout(duration)`, expecting a `TimeoutException`, and waiting long enough to detect unexpected signals.
+`expectTimeout(duration)` expects the publisher to time out after the duration, producing a `TimeoutException` error signal and cancelling the source.
+The verifier also waits to detect unexpected signals; this is distinct from a verifier-side timeout such as `verify(Duration)`.
 
 ## Virtual-time failure modes
 

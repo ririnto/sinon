@@ -43,6 +43,8 @@ Broken - raw UI export with unstable fields:
 ```
 
 Better - cleaned, Git-owned JSON with stable identity:
+The example's `"schemaVersion": 41` is illustrative.
+Preserve or regenerate it from the target Grafana instance.
 
 ```json
 {

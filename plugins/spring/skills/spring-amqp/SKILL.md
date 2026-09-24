@@ -6,7 +6,7 @@ description: >-
 
 # Spring AMQP
 
-The latest released Spring AMQP line is 4.1.x.
+The examples target the Spring AMQP 4.1.x line.
 
 ## Boundaries
 
@@ -39,6 +39,9 @@ Use this map to keep the official Spring AMQP 4.x surface visible without pushin
 | Observability and debugging | Delivery behavior must be measured or diagnosed in production | Listener metrics are the blocker in [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md), tracing is the blocker in [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md), or delivery diagnosis is the blocker in [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) |
 
 ## Dependency baseline
+
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
 
 Use the Boot starter for application code and the Rabbit test module for listener and broker-focused tests.
 
@@ -218,7 +221,7 @@ Keep request-reply timeout explicit whenever the caller truly needs synchronous 
 rabbitTemplate.setReplyTimeout(5000);
 ```
 
-Open [references/request-reply.md](references/request-reply.md) when the producer-consumer contract is genuinely request-reply rather than an event flow.
+Open [references/request-reply.md](references/request-reply.md) when the producer-consumer contract is request-reply rather than an event flow.
 
 ## Listener container baseline
 

@@ -1,6 +1,6 @@
 ---
 description: >-
-  Open this when Kotest style, soft assertions, or exact exception checks are the blocker.
+  Use this reference for Kotest style, soft assertions, and exact exception checks.
 ---
 
 # Kotest Style and Exact Exceptions
@@ -11,78 +11,43 @@ Open this when the project already uses Kotest and the remaining blocker is keep
 
 - keep Kotest examples inside the suite's existing style.
   Do not mix styles.
-- use `assertSoftly` when several assertions describe one observable behavior
+- use `assertSoftly` only when several independent assertions must continue after earlier failures
+- use direct matchers for one assertion, a dependent assertion chain, or exception assertions
 - in an unambiguous receiver lambda, call `shouldBe(expected)` rather than writing `this shouldBe expected`
   - keep an explicit receiver when multiple receivers make omission ambiguous
-- use `shouldThrowExactly<T>()` when the exact exception type matters
-- assert the caught exception's `message` with `shouldBe` against the exact expected text, and check the meaningful fields it declares
-- use `shouldNotThrowAny` when the no-exception property itself is the contract
-- do not place `shouldThrowExactly`, `shouldThrowAny`, or other throwing assertions inside `assertSoftly`.
+- use `shouldThrowExactly<T>()` for exception assertions to require the exact type
+- capture the returned exception and assert its exact stable message or meaningful contract field
+- use `shouldNotThrowAny` only when the no-exception property itself is the contract
+- do not place `shouldThrowExactly` or another throwing assertion inside `assertSoftly`.
   They abort the soft block immediately, so later assertions never run.
 - place lifecycle hooks at the spec level
 
-## Spec styles
+## Exact matchers and null boundaries
 
-Choose the style the project already uses.
-
-```kotlin
-import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.shouldBe
-
-class ProfileServiceTest : FunSpec({
-    test("returns cached profile") {
-        service.loadProfile("user-1") shouldBe Profile("user-1")
-    }
-})
-
-class OrderServiceTest : DescribeSpec({
-    describe("checkout") {
-        it("calculates total") { }
-        it("applies discount") { }
-    }
-})
-
-class CartTest : BehaviorSpec({
-    given("an empty cart") {
-        `when`("an item is added") {
-            then("size becomes 1") {
-                cart shouldHaveSize 1
-            }
-        }
-    }
-})
-```
-
-## Common matchers
+Prefer `shouldBeTrue()`, `shouldBeFalse()`, `shouldBeNull()`, and `shouldNotBeNull()` for boolean and null contracts.
+Use `shouldBeEmpty()` for an empty collection, `shouldHaveSize(n)` for a nonzero size contract, and `shouldContainExactly` for exact ordered contents.
+Assert the non-null boundary before checking a nullable value's properties.
 
 ```kotlin
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.types.shouldBeInstanceOf
 
-result shouldBe expected
-result shouldNotBe unexpected
-list shouldContain item
-list shouldHaveSize 3
-value shouldBeInstanceOf<String>()
-nullable.shouldBeNull()
-message shouldContain "error"
-shouldThrowExactly<RetryException> {
-    service.run()
-}.message shouldBe "retry budget exhausted"
-val parsed = shouldNotThrowAny {
-    parser.parse(raw)
-}
+class LookupTest : FunSpec({
+    test("reports a found profile") {
+        repository.lookup("user-1").shouldNotBeNull().id shouldBe "user-1"
+    }
+
+    test("has no pending updates") {
+        assertSoftly(repository) {
+            pendingUpdates().shouldBeEmpty()
+            isUpdating().shouldBeFalse()
+        }
+    }
+})
 ```
 
 ## Soft assertions
@@ -95,7 +60,7 @@ import io.kotest.matchers.shouldBe
 
 class ProfileServiceKotestTest : FunSpec({
     test("returns cached profile with correct fields") {
-        assertSoftly(service.loadProfile("user-1")) { profile ->
+        assertSoftly(service.loadProfile("user-1")) {
             shouldBe(Profile("user-1"))
             id shouldBe "user-1"
             isActive.shouldBeTrue()
@@ -111,37 +76,40 @@ It returns the caught exception, so the message and fields stay available for ex
 Import it from `io.kotest.assertions.throwables.shouldThrowExactly`.
 
 ```kotlin
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-class RetryBudgetException(message: String, val attemptedBudget: Int) :
-    RuntimeException(message)
-
 class RetryPolicyKotestTest : FunSpec({
     test("rejects invalid retry budget") {
-        val error = shouldThrowExactly<RetryBudgetException> {
+        assertSoftly(shouldThrowExactly<RetryBudgetException> {
             service.configure(RetryPolicy(budget = -1))
+        }) {
+            message shouldBe "retry budget must be positive, got -1"
+            attemptedBudget shouldBe -1
         }
-        error.message shouldBe "retry budget must be positive, got -1"
-        error.attemptedBudget shouldBe -1
     }
-})
+}) {
+    companion object {
+        private class RetryBudgetException(message: String, val attemptedBudget: Int) : RuntimeException(message)
+    }
+}
 ```
 
 The `RetryBudgetException` declaration above shows the assumed application-owned exception type.
-Assert only the fields the exception actually declares, and copy the real message format from its construction site so the expectation stays deterministic across library upgrades.
+Assert fields declared on the exception, and copy the message format from its construction site.
 
 ## No-exception contract
 
 `shouldNotThrowAny` proves that a block completes without throwing.
 Use it only when the no-exception property itself is the observable contract, such as a parsing edge case that must succeed or a migration that must tolerate legacy input.
-Do not wrap ordinary happy-path code in it just to mirror the implementation, and do not wrap assertions from other libraries in it merely as a formality.
+Reserve `shouldNotThrowAny` for a no-exception contract.
+Assert values or outcomes in ordinary happy-path tests.
 
 ```kotlin
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 
 class LegacyConfigKotestTest : FunSpec({
     test("parses a config with an empty optional section") {
@@ -151,7 +119,7 @@ class LegacyConfigKotestTest : FunSpec({
                 name = app
                 [optional-section-may-be-empty]
             """.trimIndent())
-        }.name shouldBe "app"
+        }
     }
 })
 ```
@@ -164,7 +132,6 @@ import io.kotest.matchers.shouldBe
 
 class DatabaseRepositoryTest : FunSpec({
     lateinit var repo: Repository
-
     beforeTest {
         repo = InMemoryRepository()
     }

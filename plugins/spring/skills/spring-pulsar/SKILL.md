@@ -1,4 +1,17 @@
 ---
+metadata:
+  reference:
+    Spring Pulsar:
+      version: 2.0.7
+      url: https://repo.maven.apache.org/maven2/org/springframework/pulsar/spring-pulsar/2.0.7/spring-pulsar-2.0.7.pom
+    Spring Boot Dependency BOM:
+      version: 4.0.8
+      url: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.0.8/spring-boot-dependencies-4.0.8.pom
+    Pulsar Docker Image:
+      version: 4.1.3
+      url: https://hub.docker.com/r/apachepulsar/pulsar/tags?name=4.1.3
+    Spring Pulsar Compatibility Matrix:
+      url: https://docs.spring.io/spring-pulsar/reference/appendix/version-compatibility.html
 name: spring-pulsar
 description: >-
   Configure or test Spring Pulsar producers, listeners, schemas, subscriptions, acknowledgment, replay, and dead-letter handling.
@@ -6,14 +19,18 @@ description: >-
 
 # Spring for Apache Pulsar
 
-## System requirements
+## Documented compatibility example
+
+The following versions illustrate one Boot-managed pairing, not a new-install version choice:
 
 - Java 17 or later
-- Spring Boot 4.1.x for the latest managed path
-- Spring for Apache Pulsar 2.0.6
-- Apache Pulsar Java Client 4.2.2 when managed by Spring Boot 4.1
+- Spring Boot 4.0.8
+- Spring for Apache Pulsar 2.0.7
+- Apache Pulsar Java Client 4.1.3, managed by Spring Boot 4.0.8
 
-See the [version compatibility matrix](https://docs.spring.io/spring-pulsar/reference/appendix/version-compatibility.html) for the full matrix.
+The Spring Pulsar 2.0.x compatibility matrix lists Spring Boot 4.0.x with Pulsar clients 4.1.x, 4.0.x, or 3.3.x.
+The Spring Boot 4.0.8 BOM manages Spring Pulsar 2.0.7 and Pulsar client 4.1.3, which fit that documented pairing.
+Do not treat a BOM-managed combination as supported unless the compatibility matrix lists its release lines.
 
 ## Boundaries
 
@@ -24,6 +41,9 @@ Use `spring-pulsar` for Pulsar producer and consumer code, listeners, readers, t
   - Domain logic should not know about subscriptions or topic partitions.
 
 ## Dependency baseline
+
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
 
 Use the Boot starter for ordinary Pulsar application code.
 
@@ -70,7 +90,7 @@ Add tenant or namespace abstraction only when the deployment truly requires it.
 3. Pick the subscription type deliberately because it changes concurrency, ordering, and DLQ behavior.
 4. Keep listener methods idempotent because redelivery can occur.
 5. Decide dead-letter, retry, and redelivery policy before increasing listener parallelism.
-6. Use readers only when the use case is genuinely cursor-style replay or audit traversal rather than normal subscription consumption.
+6. Use readers only when the use case is cursor-style replay or audit traversal rather than normal subscription consumption.
 7. Add producer or consumer customizers only when properties are not enough.
 8. Choose acknowledgment mode (BATCH, RECORD, MANUAL) based on whether the listener needs per-message or per-batch ack control.
 9. Use PulsarConsumerErrorHandler for Spring-native DLQ with non-Shared subscriptions, and it is also valid with Shared subscriptions when Spring-native recovery is preferred.
@@ -182,6 +202,9 @@ DeadLetterPolicy.builder()
 
 ## Integration test shape
 
+The `4.1.3` broker image below illustrates the documented Boot 4.0.8 and Pulsar client pairing.
+Before selecting a different image tag, check the image registry and Spring Pulsar compatibility matrix.
+
 ```java
 @SpringBootTest
 @Testcontainers
@@ -190,7 +213,7 @@ class ShipmentFlowTest {
     static AtomicReference<ShipmentEvent> received = new AtomicReference<>();
 
     @Container
-    static PulsarContainer pulsar = new PulsarContainer("apachepulsar/pulsar:4.2.2");
+    static PulsarContainer pulsar = new PulsarContainer("apachepulsar/pulsar:4.1.3");
 
     @DynamicPropertySource
     static void pulsarProperties(DynamicPropertyRegistry registry) {
@@ -218,8 +241,8 @@ class ShipmentFlowTest {
 }
 ```
 
-The example pins the broker image to the Spring Boot 4.1 managed Pulsar client line.
-Change the image only when the test must prove compatibility with another supported Pulsar line.
+The example pins the broker image to the Spring Boot 4.0.8 managed Pulsar client line.
+Change the image only when the test must prove compatibility with another client line listed by the Spring Pulsar matrix.
 
 ## Testing checklist
 

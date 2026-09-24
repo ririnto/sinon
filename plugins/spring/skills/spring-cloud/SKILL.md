@@ -1,4 +1,29 @@
 ---
+metadata:
+  reference:
+    Spring Cloud Release:
+      url: https://docs.spring.io/spring-cloud-release/reference/index.html
+    Spring Cloud Supported Versions:
+      url: https://github.com/spring-cloud/spring-cloud-release/wiki/Supported-Versions
+    Spring Cloud BOM:
+      - version: 2025.1.3
+        url: https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/2025.1.3/spring-cloud-dependencies-2025.1.3.pom
+      - version: 2025.0.3
+        url: https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/2025.0.3/spring-cloud-dependencies-2025.0.3.pom
+    Spring Cloud Config Advisories:
+      - tag: CVE-2026-40982
+        url: https://spring.io/security/cve-2026-40982
+      - tag: CVE-2026-40981
+        url: https://spring.io/security/cve-2026-40981
+      - tag: CVE-2026-41002
+        url: https://spring.io/security/cve-2026-41002
+      - tag: CVE-2026-41004
+        url: https://spring.io/security/cve-2026-41004
+      - tag: CVE-2026-22739
+        url: https://spring.io/security/cve-2026-22739
+    Spring Cloud Gateway Advisory:
+      tag: CVE-2026-47825
+      url: https://spring.io/security/cve-2026-47825
 name: spring-cloud
 description: >-
   Configure Spring Cloud release trains, external configuration, discovery, load-balanced clients, circuit breakers, and related Cloud integrations.
@@ -6,13 +31,13 @@ description: >-
 
 # Spring Cloud
 
-The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood).
-The latest service release is 2025.1.2. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement.
-The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
+Spring Cloud 2025.1.3 (Oakwood) is a documented stable release train.
+Spring Cloud 2025.0.3 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement.
+Use the documented 2025.1.x examples only when the project's exact Boot release supports that train.
 
 | Release Train | Boot Generation | Notes |
 | --- | --- | --- |
-| 2025.1.x (Oakwood) | 4.0.x, 4.1.x | Current GA line; Jackson 3, JSpecify, Spring Framework 7 |
+| 2025.1.x (Oakwood) | 4.0.x | Documented GA line; Jackson 3, JSpecify, Spring Framework 7 |
 | 2025.0.x (Northfields) | 3.5.x | Parallel GA line; Gateway artifact rename |
 | 2024.0.x (Moorgate) | 3.4.x | Supported until Boot 3.4.x EOL |
 | 2023.0.x (Leyton) | 3.3.x, 3.2.x | Supported until Boot 3.3.x EOL |
@@ -47,6 +72,9 @@ The SCDF command examples here illustrate application handoff, not authorization
 ## Dependency baseline
 
 Import the Spring Cloud BOM once and keep Spring Cloud modules versionless underneath it.
+The `2025.1.3` BOM below illustrates the documented release train, not automatic support for Boot 4.1.x.
+For a new BOM, check `org.springframework.cloud:spring-cloud-dependencies` on Maven Central and verify the stable train against the project's exact Boot release.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <dependencyManagement>
@@ -54,7 +82,7 @@ Import the Spring Cloud BOM once and keep Spring Cloud modules versionless under
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>
-            <version>2025.1.2</version>
+            <version>2025.1.3</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -121,7 +149,8 @@ Keep the discovery implementation starter, Gateway starter, OpenFeign starter, a
 
 #### Register applications
 
-These examples follow the official `rabbitmq-maven-latest` SCDF catalog coordinates.
+The `3.2.1` registrations below illustrate one catalog snapshot.
+Use the project's curated SCDF app catalog or check each artifact on Maven Central for its latest stable compatible release before registration.
 
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
@@ -318,7 +347,7 @@ This task-app shape assumes a Spring Cloud Task application and therefore keeps 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>
-            <version>2025.1.2</version>
+            <version>2025.1.3</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -398,7 +427,8 @@ class InventoryGatewayIntegrationTests {
 
 #### Stream definition and inspection
 
-These examples follow the official `rabbitmq-maven-latest` SCDF catalog coordinates.
+The `3.2.1` registrations below illustrate one catalog snapshot.
+Use the project's curated SCDF app catalog or check each artifact on Maven Central for its latest stable compatible release before registration.
 
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
@@ -527,7 +557,9 @@ Runtime verification applies after authorized operations, not as a reason to dep
 | CVE-2026-22739 | Medium | Config 5.0.2 | Earlier Config security fix |
 | CVE-2026-47825 | High | Gateway 5.0.2 | Untrusted proxy `X-Forwarded-For`/`Forwarded` forwarded |
 
-All CVEs are covered by Spring Cloud 2025.1.2, which manages Spring Cloud Config 5.0.4. Upgrade from any earlier 2025.1.x release is strongly recommended.
+Spring Cloud 2025.1.2 includes the listed fixes and manages Spring Cloud Config 5.0.4.
+Spring Cloud 2025.1.3 followed that security baseline.
+Use the latest compatible stable train and verify current advisories before upgrading.
 
 ### Distributed-system wiring
 

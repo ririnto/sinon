@@ -52,7 +52,7 @@ For one bounded use case, prefer a dedicated scheduler instance instead.
 
 > [!NOTE]
 >
-> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.8.6, but Reactor's scheduler guide discourages it when an `ExecutorService` is available.
+> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.8.7, but Reactor's scheduler guide discourages it when an `ExecutorService` is available.
 > Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
 
 ## Dedicated scheduler factory methods
@@ -120,7 +120,7 @@ final class SchedulerLifecycle {
 
 ## Graceful shutdown with `disposeGracefully(...)`
 
-For application shutdown scenarios where in-flight tasks should complete before the scheduler stops, use `disposeGracefully(...)` instead of `dispose()`.
+For application shutdown, use `disposeGracefully()` when the scheduler should attempt to finish scheduled tasks before disposal.
 
 ```java
 import reactor.core.publisher.Flux;
@@ -137,9 +137,9 @@ final class GracefulShutdown {
 }
 ```
 
-`disposeGracefully()` returns a `Mono<Void>` that completes when all scheduled tasks have finished.
-Use it in application lifecycle hooks where graceful degradation is required.
-`dispose()` is immediate and drops in-flight work.
+`disposeGracefully()` returns a lazy `Mono<Void>` that completes when graceful disposal completes.
+Subscribe to it and apply a timeout if shutdown must be bounded.
+`dispose()` requests immediate disposal and does not guarantee that in-flight tasks finish.
 
 ## Tuning guardrails
 

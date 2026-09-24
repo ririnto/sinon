@@ -47,6 +47,9 @@ Optional fields:
 Guidance:
 
 - Concrete version values SHOULD be used (for example, `1.15.2`, `2025-11`, or `LTS-3`).
+- For a library version decision, check its package registry for the latest stable release compatible with the target's runtime, lockfile, BOM, or version catalog.
+  Record the version investigated in `subject.version`.
+  Treat older research as history, not a current release recommendation.
 - `subject.name` SHOULD identify the investigated external subject rather than the local project or repository.
 - `subject.url` SHOULD be kept only when a stable, useful reference is available.
 - Repository-specific implementation planning, migration sequencing, or task management MUST NOT be added in frontmatter.

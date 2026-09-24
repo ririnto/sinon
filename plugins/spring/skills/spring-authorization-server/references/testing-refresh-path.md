@@ -18,8 +18,3 @@ void refreshTokenGrantRejectsUnknownRefreshToken() {
 ```
 
 Verify one representative refresh success path and one representative refresh rejection path for the registered client that actually enables the refresh-token grant.
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)

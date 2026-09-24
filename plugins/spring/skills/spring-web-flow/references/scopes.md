@@ -16,7 +16,7 @@ Prefer the narrowest scope that preserves the required state.
 
 - Use `flowScope` for the ordinary multi-step form object.
 - Use `viewScope` when the data belongs only to the current rendered page.
-- Use `conversationScope` only when nested flows or a longer conversation genuinely share state.
+- Use `conversationScope` only when nested flows or a longer conversation share state.
 
 ## Concrete scope example
 

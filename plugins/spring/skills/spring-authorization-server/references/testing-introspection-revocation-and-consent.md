@@ -20,7 +20,3 @@ void revocationAcceptsKnownToken() {
 - Verify introspection only for the enabled endpoint and caller contract.
 - Verify revocation behavior against the same token lifecycle policy used in production.
 - Verify remembered consent and requested scopes against the registered-client settings.
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

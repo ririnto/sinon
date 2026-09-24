@@ -82,8 +82,26 @@ final class FutureBridge {
 }
 ```
 
-If the future-completing thread is a blocking caller, add `subscribeOn(boundedElastic())` after `fromFuture`.
-If the future is completed by a non-blocking async client, no additional scheduler is needed.
+`subscribeOn(...)` after `fromFuture(future)` schedules subscription to that existing future.
+It does not move work already running in the future to another executor.
+If future creation blocks, defer and offload the factory call.
+Otherwise configure the future's executor to isolate blocking completion work.
+
+```java
+import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+final class OffloadedFutureBridge {
+    Mono<String> loadAsync(String key) {
+        return Mono.fromFuture(() -> asyncLookup(key))
+            .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    private CompletableFuture<String> asyncLookup(String key) {
+        return CompletableFuture.completedFuture("value:" + key);
+    }
+}
+```
 
 ## Terminal bridge cautions
 

@@ -19,4 +19,4 @@ void handleBatch(List<ShipmentEvent> events) {
 
 ## Decision point
 
-Use batch listeners only when the consumer logic or downstream API genuinely works in batches rather than forcing single-message logic into grouped delivery.
+Use batch listeners only when the consumer logic or downstream API works in batches rather than forcing single-message logic into grouped delivery.

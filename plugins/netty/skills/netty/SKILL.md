@@ -1,4 +1,27 @@
 ---
+metadata:
+  reference:
+    Netty:
+      version: 4.2.18.Final
+      url:
+        - https://github.com/netty/netty/releases/tag/netty-4.2.18.Final
+        - https://github.com/netty/netty/blob/netty-4.2.18.Final/transport-native-io_uring/README.md
+    Netty BOM:
+      url: https://repo.maven.apache.org/maven2/io/netty/netty-bom/maven-metadata.xml
+    Netty native transports:
+      url: https://netty.io/wiki/native-transports.html
+    Netty API:
+      version: 4.2
+      url:
+        - https://netty.io/4.2/api/io/netty/channel/uring/IoUringServerSocketChannel.html
+        - https://netty.io/4.2/api/io/netty/channel/epoll/EpollEventLoopGroup.html
+        - https://netty.io/4.2/api/io/netty/channel/MultiThreadIoEventLoopGroup.html
+    Netty maintenance:
+      version: 4.1.138.Final
+      url: https://github.com/netty/netty/releases/tag/netty-4.1.138.Final
+    Netty development branch:
+      version: "5.0"
+      url: https://github.com/netty/netty/tree/5.0
 name: netty
 description: >-
   Build or debug Netty bootstraps, channel pipelines, ByteBuf ownership, framing, and codecs.
@@ -8,10 +31,13 @@ description: >-
 
 ## Official Baseline
 
-- Use the official Netty 4.2.x.Final line for new work.
-  - Verified against `io.netty:netty-bom` 4.2.18.Final in Maven Central and GitHub release `netty-4.2.18.Final`.
-- Treat Netty 4.1.x.Final as the stable maintenance line for existing deployments.
-  - Verified against `io.netty:netty-bom` 4.1.138.Final in Maven Central and GitHub release `netty-4.1.138.Final`.
+- These examples target the official Netty 4.2.x.Final line.
+  The 4.2.18.Final release is this guide's reviewed baseline, not a dependency pin.
+- For existing Netty 4.1.x.Final deployments, check the project's managed version and Netty's current support status before upgrading.
+  The 4.1.138.Final release is this guide's reviewed maintenance baseline.
+- Before adding or upgrading Netty, check `io.netty:netty-bom` in Maven Central for the latest stable release compatible with the project's Java version and Netty line.
+  Honor an existing platform, BOM, or project pin, and keep Netty modules and native transports aligned with it.
+  Set `${netty.version}` to the selected release only when the build does not manage it.
 - Treat Netty 5 as a development line until the official Netty project marks it stable.
 
 Complete the requested Netty 4.x change while preserving transport, pipeline, lifecycle, and buffer ownership contracts.
@@ -110,8 +136,9 @@ Examples do not authorize binding public listeners, connecting to external servi
 Dependency entrypoint:
 
 Use `netty-all` for development convenience or individual modules for production.
-Prefer 4.2.x.Final for new work.
-4.1.x.Final remains supported for existing deployments and is largely binary-compatible except for the changes listed in the Netty 4.2 migration guide.
+For new work, use the current stable Netty line compatible with the project's Java version and dependency platform.
+Use these 4.2.x.Final examples only when the selected version supports their APIs.
+Keep existing 4.1.x.Final deployments on their managed line and consult the Netty 4.2 migration guide before moving them.
 
 ```xml
 <dependency>

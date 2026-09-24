@@ -1,4 +1,22 @@
 ---
+metadata:
+  reference:
+    kotlinx.coroutines changelog:
+      - version: 1.7.0
+        url: https://github.com/Kotlin/kotlinx.coroutines/blob/1.7.0/CHANGES.md
+      - version: 1.9.0
+        url: https://github.com/Kotlin/kotlinx.coroutines/blob/1.9.0/CHANGES.md
+    kotlinx.coroutines API:
+      version: 1.11.0
+      url:
+        - https://github.com/Kotlin/kotlinx.coroutines/blob/1.11.0/kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt
+        - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/coroutine-scope.html
+        - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/supervisor-scope.html
+        - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel-children.html
+        - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-job/join.html
+    Kotest test coroutine dispatcher:
+      version: 6.2
+      url: https://kotest.io/docs/framework/coroutines/test-coroutine-dispatcher.html
 name: kotlin-coroutines-flows
 description: >-
   Design or review Kotlin suspend and Flow APIs, coroutine ownership, cancellation, or shared-state behavior.
@@ -10,9 +28,11 @@ description: >-
 
 Design Kotlin coroutine and Flow code with honest async semantics, explicit ownership, and cancellation-safe behavior.
 
-Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs (Flow API stable since 1.3, `callbackFlow` since 1.5, and `limitedParallelism` since 1.6) and `kotlinx.coroutines.test` APIs (`runTest`, `TestDispatcher` stable since 1.7).
-The `kotlinx-coroutines` library version is managed through the project's dependency catalog.
-Use 1.11.0 or later for full API coverage shown here.
+Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs (Flow stable since 1.3, `callbackFlow` since 1.5, and `limitedParallelism` stable since 1.9).
+Use the project's managed `kotlinx-coroutines` version when it supports the APIs shown here.
+For a new dependency or required upgrade, check Maven Central for the latest stable release compatible with the project's Kotlin version before updating its catalog.
+The referenced 1.11.0 source describes these examples.
+Do not use its version as a standing install target.
 Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
 
 ## Operating Rules

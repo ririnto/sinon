@@ -1,3 +1,23 @@
+---
+metadata:
+  reference:
+    Spotless Maven Plugin:
+      version: 3.10.2
+      url: https://github.com/diffplug/spotless/blob/maven/3.10.2/plugin-maven/README.md
+    Spotless Releases:
+      url: https://github.com/diffplug/spotless/releases
+    Palantir Java Format:
+      version: 2.98.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.98.0
+    Checkstyle:
+      version: 14.1.0
+      url: https://github.com/checkstyle/checkstyle/releases/tag/checkstyle-14.1.0
+    Maven Checkstyle Plugin:
+      url: https://maven.apache.org/plugins/maven-checkstyle-plugin/
+    Checkstyle Checks:
+      url: https://checkstyle.org/checks.html
+---
+
 # Maven
 
 Use this profile for an existing Maven project with Java sources.
@@ -7,7 +27,10 @@ In a monorepo, repeat the profile for each independent Maven root.
 ## Native setup
 
 Add the Spotless Maven plugin only when the target has no existing formatter with overlapping Java ownership.
-Use `com.diffplug.spotless:spotless-maven-plugin` version `3.10.2` and pin `palantir-java-format` version `2.98.0` in existing Maven properties or dependency management.
+The fragment selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.2` and `palantir-java-format` `2.98.0` as profile baselines.
+They do not establish current releases.
+Before adding or upgrading Spotless, Palantir Java Format, or Checkstyle, check Maven Central for the latest stable compatible versions against the target's Java baseline, parent POM, BOM, and dependency management.
+Use the checked versions for a new integration, and keep compatible target-managed versions unless the task authorizes changing them.
 Use the existing repositories and plugin-management policy.
 
 Add the following plugin configuration to the existing `<build><plugins>` section, preserving all coordinates and existing plugins:
@@ -91,13 +114,8 @@ If the target's Java baseline is older, retain compatible existing tools or obta
 
 This profile does not create Git hooks.
 Preserve existing hooks and configure a native hook only when the target explicitly selects one.
+The GitLab catalog's `maven:3.9.16-eclipse-temurin-25` image records a profile baseline, not the current stable runtime.
+Before adopting it, check the official Maven and JDK image releases against the target's wrapper and Java baseline.
 The CI catalog assumes that the target contains a checked-in `./mvnw` wrapper.
 For a non-root Maven module, add `working-directory: <existing-root>` to the GitHub run step and run `cd <existing-root> && ./mvnw verify` in GitLab.
 Replace `<existing-root>` with a real target-owned path before activating the catalog.
-
-## Sources
-
-The Spotless Maven configuration is adapted from the official [Maven plugin README](https://raw.githubusercontent.com/diffplug/spotless/main/plugin-maven/README.md), read 2026-09-13.
-The selected Spotless Maven plugin version `3.10.2` is from the official [diffplug/spotless release page](https://github.com/diffplug/spotless/releases), read 2026-09-13.
-The selected Palantir Java Format version `2.98.0` is from the official [release page](https://github.com/palantir/palantir-java-format/releases/latest), read 2026-09-13.
-The Checkstyle configuration follows the official [Maven Checkstyle plugin documentation](https://maven.apache.org/plugins/maven-checkstyle-plugin/) and [Checkstyle checks documentation](https://checkstyle.org/checks.html), read 2026-09-13.

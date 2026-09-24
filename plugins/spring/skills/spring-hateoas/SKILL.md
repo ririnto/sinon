@@ -39,6 +39,9 @@ Keep link relation names stable and model the representation type the client act
 
 ## Dependency baseline
 
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+
 Use the Boot starter for ordinary HATEOAS work.
 
 ```xml

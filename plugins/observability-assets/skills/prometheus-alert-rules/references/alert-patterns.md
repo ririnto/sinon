@@ -86,15 +86,15 @@ Use this reference for pattern choice, not for ordinary rule anatomy.
 
 ## Multi-Group Layout Patterns
 
-### Separate Recording and Alert Groups
+### Dependent Recording and Alert Rules
 
-Keep recording rules in their own group so they evaluate independently from alerts that consume them:
+Keep recording rules and alerts that consume them in the same group when the alert needs their results.
 
-Place the recording-rule group first so the alert group reads already-computed series from the earlier evaluation step.
+Rules within a group run sequentially, so the alert reads the recording-rule series computed earlier in that group.
 
 ```yaml
 groups:
-  - name: api-recording
+  - name: api-rules
     interval: 30s
     rules:
       - record: job:http_requests:rate5m
@@ -103,10 +103,6 @@ groups:
       - record: job:http_errors:rate5m
         expr: >-
           sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))
-
-  - name: api-alerts
-    interval: 1m
-    rules:
       - alert: Api5xxRatioAbove5Percent
         expr: |-
           5 < 100 * job:http_errors:rate5m{job="api"}

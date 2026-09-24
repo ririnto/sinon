@@ -39,7 +39,7 @@ this.webTestClient.get().uri("/orders/{id}", 42)
 
 ## Gotchas
 
-- Do not move a servlet-only module to WebTestClient unless it is genuinely reactive.
+- Do not move a servlet-only module to WebTestClient unless it is reactive.
 - Do not document one endpoint with MockMvc and another with WebTestClient in the same module unless the runtime split is real.
 
 ## Validation rule

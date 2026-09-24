@@ -21,7 +21,7 @@ Kotlin is a shared, skill-first plugin for Kotlin application and library work i
 | --- | --- | --- |
 | `kotlin-language-patterns` | Idiomatic Kotlin syntax, null safety, value modeling, collections, Java interoperability decisions | "Kotlin idioms", "null-safety design", "value types", "Java interop" |
 | `kotlin-coroutines-flows` | Structured concurrency, `suspend` vs `Flow`, cancellation, scope ownership, async boundary design | "coroutine design", "Flow semantics", "async boundaries", "cancellation handling" |
-| `kotlin-test` | Kotlin test scope, coroutine-aware testing, mocking boundaries, deterministic test structure | "Kotlin unit tests", "coroutine testing", "test scope", "deterministic async" |
+| `kotest` | Kotlin test scope, coroutine-aware testing, mocking boundaries, deterministic test structure | "Kotlin unit tests", "coroutine testing", "test scope", "deterministic async" |
 
 ## Included Agents
 
@@ -35,7 +35,7 @@ Start here when Kotlin work could fit more than one skill:
 
 - Use `kotlin-language-patterns` for idiomatic API shape, null-safety, and value modeling decisions.
 - Use `kotlin-coroutines-flows` when the question concerns async contract, `suspend`, `Flow`, cancellation, or scope ownership.
-- Use `kotlin-test` for Kotlin unit-test structure, coroutine-aware testing, or test-scope decisions.
+- Use `kotest` for Kotlin unit-test structure, coroutine-aware testing, or test-scope decisions.
 - When the question is "how should the async contract be shaped?", stay in coroutine guidance.
   - When it is "how do I verify that async behavior deterministically?", stay in testing guidance.
 
@@ -86,7 +86,7 @@ plugins/kotlin/
 +-- skills/
     +-- kotlin-coroutines-flows/
     +-- kotlin-language-patterns/
-    +-- kotlin-test/
+    +-- kotest/
 ```
 
 ## Shipped Surfaces

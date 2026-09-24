@@ -11,8 +11,9 @@ description: >-
 Use this skill for guided browser conversations that need explicit states, transitions, flow-scoped models, backtracking, validation timing, recovery states, and flow execution tests.
 Ordinary stateless MVC controllers, reactive HTTP handlers, outbound HTTP clients, container wiring, and transaction design are separate web or framework concerns.
 
-The current public Spring Web Flow line is 4.0.x.
-The dependency baseline below pins the current 4.0.1 artifact.
+Spring Web Flow 4.0.1 is the documented example baseline.
+For a new dependency, check `org.springframework.webflow:spring-webflow` on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ## Task scope
 

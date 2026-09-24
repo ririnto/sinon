@@ -26,18 +26,19 @@ final class CheckpointedPipeline {
     Flux<Integer> values() {
         return Flux.range(1, 3)
             .map(value -> value * 2)
-            .checkpoint("after-doubling")
             .map(value -> {
                 if (value == 4) {
                     throw new IllegalStateException("bad value");
                 }
                 return value;
-            });
+            })
+            .checkpoint("after-failure");
     }
 }
 ```
 
-When an error occurs downstream, the checkpoint label appears in the stack trace, identifying which stage produced or last touched the failing value.
+A checkpoint adds a traceback marker to errors that pass through it.
+Place it after the stage whose failures you need to locate.
 
 ## `log(...)` for full signal visibility
 

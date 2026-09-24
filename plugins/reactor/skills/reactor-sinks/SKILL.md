@@ -1,4 +1,15 @@
 ---
+metadata:
+  reference:
+    Project Reactor Core:
+      version: 3.8.7
+      url:
+        - https://projectreactor.io/docs/core/3.8.7/reference/aboutDoc.html
+        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/publisher/Sinks.MulticastSpec.html
+        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/publisher/Sinks.MulticastReplaySpec.html
+    Project Reactor BOM:
+      version: 2025.0.7
+      url: https://repo.maven.apache.org/maven2/io/projectreactor/reactor-bom/2025.0.7/reactor-bom-2025.0.7.pom
 name: reactor-sinks
 description: >-
   Design Reactor manual or hot sources, choose Sinks and replay/multicast policies, and handle emission failures.
@@ -9,9 +20,10 @@ description: >-
 ## Official Baseline
 
 - Use the official Project Reactor 3.8.x sinks reference for this skill.
-  - Verified against `reactor-core` 3.8.6.
-- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
+  - Reviewed against `reactor-core` 3.8.7 and `reactor-bom` 2025.0.7.
+  These versions are documentation baselines, not dependency pins.
+- Before adding or upgrading Reactor dependencies, check `io.projectreactor:reactor-bom` and `io.projectreactor:reactor-core` in Maven Central for the latest stable compatible release.
+  Honor the project's existing platform, BOM, or pins and keep Reactor modules on the same managed release train.
 
 Author Reactor hot sources deliberately.
 
@@ -82,7 +94,7 @@ Use the [reference table](#references) for emission failures, connection lifecyc
 | live fan-out with retained backlog | `Sinks.many().multicast().onBackpressureBuffer()` | broadcast current signals and buffer by demand |
 | live fan-out where all subscribers move together | `Sinks.many().multicast().directAllOrNothing()` | drop for everyone if one subscriber has no demand |
 | live fan-out where only slow subscribers fall behind | `Sinks.many().multicast().directBestEffort()` | keep fast subscribers flowing |
-| live fan-out that errors on overflow | `Sinks.many().multicast().onBackpressureError()` | fail fast when downstream cannot keep up |
+| report lack of demand to the producer | `directAllOrNothing()` with `tryEmitNext(...)` | returns `FAIL_OVERFLOW` when any subscriber lacks demand |
 | replay all retained history | `Sinks.many().replay().all()` | late subscribers receive full retained history |
 | replay only the latest signal | `Sinks.many().replay().latest()` | late subscribers see current state only |
 | replay bounded history | `Sinks.many().replay().limit(...)` | retains selected size or time window |
@@ -97,9 +109,9 @@ Use the [reference table](#references) for emission failures, connection lifecyc
 | every active subscriber to stay aligned | `directAllOrNothing()` | one slow subscriber can cause drops for all |
 | fast subscribers to keep flowing while slow ones miss values | `directBestEffort()` | delivery diverges across subscribers |
 | demand-aware buffering for subscribers | `onBackpressureBuffer()` | retains elements in memory |
-| fail immediately on downstream overflow | `onBackpressureError()` | propagates error to upstream producer |
+| detect a no-demand overflow at the producer boundary | `tryEmitNext(...)` with `directAllOrNothing()` | inspect `FAIL_OVERFLOW` and choose the caller's response |
 | late subscribers to see the full retained stream | `replay().all()` | retention grows unless bounded externally |
-| late subscribers to see only the current state | `replay().latest()` | Emits the last signal after the first emission. `replay().limit(1)` replays even the first signal immediately. |
+| late subscribers to see only the current state | `replay().latest()` | retains the latest emitted value; `replay().latestOrDefault(default)` supplies a value before the first emission, while `replay().limit(1)` and `replay().latest()` replay the same latest value after emission |
 | late subscribers to see bounded recent history | `replay().limit(...)` | history is explicit by size or time |
 
 ## Ready-to-adapt examples
@@ -209,7 +221,7 @@ Use it when the downstream consumer is known to be singular (e.g., a dedicated p
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| creating a sink just to share an existing cold source | adds manual-emission complexity without need | use `publish()`, `replay()`, or `refCount(...)` |
+| creating a sink to share an existing cold source | adds manual-emission complexity without need | use `publish()`, `replay()`, or `refCount(...)` |
 | using multicast when late subscribers need history | late subscribers only see future values | use replay |
 | ignoring `EmitResult` from `tryEmit*` | failures become invisible | branch on the result or switch to `emit*` |
 | using replay with no limit by default | cached history can grow without bound | choose a size or time limit deliberately |

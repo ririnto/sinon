@@ -12,8 +12,3 @@ void jwkSetContainsExpectedKeyType() {
 ```
 
 Verify one successful token path, one rejected token path, and one metadata or JWK exposure path for the same issuer setup.
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Getting started](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html)

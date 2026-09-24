@@ -1,4 +1,26 @@
 ---
+metadata:
+  reference:
+    JEP 505:
+      version: JDK 25
+      url: https://openjdk.org/jeps/505
+    JEP 525:
+      version: JDK 26
+      url: https://openjdk.org/jeps/525
+    JEP 533:
+      version: JDK 27
+      url: https://openjdk.org/jeps/533
+    StructuredTaskScope:
+      version: Java SE 27
+      url: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html
+    JDK release status:
+      version: JDK 27
+      url: https://openjdk.org/projects/jdk/27/
+    jcmd:
+      - version: JDK 25
+        url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+      - version: JDK 27
+        url: https://docs.oracle.com/en/java/javase/27/docs/specs/man/jcmd.html
 name: java-performance-concurrency
 description: >-
   Diagnose Java performance bottlenecks or evaluate concurrency and virtual-thread changes using measured evidence.
@@ -77,6 +99,10 @@ public class ParserBenchmark {
     }
 }
 ```
+
+For a new JMH version, check `org.openjdk.jmh:jmh-core` and `org.openjdk.jmh:jmh-generator-annprocess` on Maven Central for the latest stable compatible release.
+Keep the project's BOM, version catalog, or existing pin unless the task authorizes changing it.
+Use the same verified JMH version for both artifacts.
 
 Maven dependency:
 

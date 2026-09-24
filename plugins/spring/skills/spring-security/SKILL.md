@@ -1,4 +1,13 @@
 ---
+metadata:
+  reference:
+    Spring Security BOM:
+      - version: 7.1.1
+        url: https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-bom/7.1.1/spring-security-bom-7.1.1.pom
+      - version: 7.2.0-M1
+        url: https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-bom/7.2.0-M1/spring-security-bom-7.2.0-M1.pom
+    Spring Security Guide:
+      url: https://docs.spring.io/spring-security/reference/index.html
 name: spring-security
 description: >-
   Configure or test Spring Security access rules, authentication, bearer-token validation, filter chains, and browser-session protections.
@@ -36,7 +45,10 @@ Token issuance, signing-key ownership, client registration, provider metadata, a
 
 ### Core starter and test support
 
-The standalone examples in this section pin the current stable Spring Security BOM, 7.1.0.
+Spring Security BOM 7.1.1 is a documented stable baseline.
+For a new standalone BOM, check `org.springframework.security:spring-security-bom` on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
+Spring Security 7.2.0-M1 is a milestone, not a stable release.
 
 #### Spring Boot-managed path
 
@@ -65,7 +77,7 @@ Use this path when the build must target the standalone Spring Security BOM inst
 ```xml
 <dependencyManagement>
     <dependencies>
-        <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-bom</artifactId><version>7.1.0</version><type>pom</type><scope>import</scope></dependency>
+        <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-bom</artifactId><version>7.1.1</version><type>pom</type><scope>import</scope></dependency>
     </dependencies>
 </dependencyManagement>
 ```

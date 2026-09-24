@@ -31,9 +31,12 @@ Add pollers only for sources that do not naturally push messages.
 
 ## Dependency baseline
 
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
-For the current stable line, use Spring Integration 7.1.x.
+The examples target Spring Integration 7.1.x.
 Spring Boot 4.1.x manages that line.
 Boot 3.5.x applications manage the Spring Integration 6.5.x line and therefore remain a separate compatibility branch.
 

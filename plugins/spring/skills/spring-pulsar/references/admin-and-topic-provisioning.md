@@ -16,7 +16,7 @@ PulsarTopic shipmentsTopic(PulsarTopicBuilder topicBuilder) {
 
 ## Provisioning rules
 
-- Provision topics in startup code only when the service genuinely owns those topics.
+- Provision topics in startup code only when the service owns those topics.
 - Keep tenant, namespace, partition count, and retention rules explicit in code or configuration.
 - Separate admin privileges from ordinary producer and consumer credentials when possible.
 

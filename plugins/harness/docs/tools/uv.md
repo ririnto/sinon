@@ -1,3 +1,10 @@
+---
+metadata:
+  reference:
+    Dependabot:
+      url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+---
+
 # uv Tool Reference
 
 This document owns the `uv` profile commands, dependencies, and target integration rules for Python targets.
@@ -13,14 +20,15 @@ For a new empty target, report the initialization gap and run only `uv init` whe
 
 ## Toolchain
 
-- uv: install through the [official standalone installer](https://docs.astral.sh/uv/getting-started/installation/); any currently maintained version works, because uv resolves its own Python.
+- uv: check the official releases for the latest stable version compatible with the target, then use the [official standalone installer](https://docs.astral.sh/uv/getting-started/installation/).
 - Python: the target's `requires-python` field stays authoritative.
 - Ruff: `>= 0.16.8,<0.17` through the `dev` dependency group.
 - pre-commit: `>= 4.6.2,<5` through the `dev` dependency group, hooks only when explicitly selected; this pre-commit line requires Python >= 3.10 in the target environment (4.2.x required >= 3.9).
 
-The installer records these same-major bounds at authoring time.
+These bounds record the source profile's selected versions, not the latest PyPI releases.
+Before adding or upgrading Ruff or pre-commit, check PyPI for the latest stable version compatible with the target's `requires-python` and existing constraints.
 Honor a newer target-pinned version instead of downgrading it.
-A `0.x` minor update is not assumed compatible; review the target manifest and lockfile before widening the bound.
+Review the target manifest and lockfile before widening a `0.x` minor bound.
 Dependabot does not scan arbitrary fragments, so the target's merged `pyproject.toml` remains the native update manifest.
 Do not install global Python toolchains to fill a local gap; name the gap instead.
 
@@ -56,6 +64,8 @@ There is no bundled Python test runner; use the target's own test command when i
 ## CI Behavior
 
 The GitHub catalog `ci/github/uv.yaml` and GitLab catalog `ci/gitlab/uv.gitlab-ci.yaml` run the same two checks in one job against the project root.
+Before adopting catalog action or image versions, check their official releases against the target's Python baseline and CI policy.
+Keep compatible target pins.
 A working-directory adjustment is required when the project is not at the repository root; set the job's working directory instead of changing the commands.
 The GitLab job declares `stage: validate`; add that stage to the target's pipeline stages when it does not exist.
 
@@ -64,7 +74,3 @@ The GitLab job declares `stage: validate`; add that stage to the target's pipeli
 - A local run needs the uv executable; when it is missing, report the gap and run nothing in its place.
 - pre-commit hooks execute third-party and local programs at commit time; review them before activation and never activate them silently.
 - `uv.lock` is generated output; never copy it from this plugin.
-
-## Sources
-
-The Dependabot manifest and directory behavior follows the official [configuration options](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file), read 2026-09-14.

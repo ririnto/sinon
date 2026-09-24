@@ -58,6 +58,10 @@ Read the relevant code, tests, configuration, and type definitions directly befo
 Verify the premise before building on it.
 Fix the root cause: before changing a shared function, check every caller and fix the shared path rather than patching one caller.
 Reuse existing helpers, patterns, and installed dependencies before adding new ones.
+Before adding or upgrading a library or tool, check its registry for the latest stable version compatible with the target's runtime and dependency constraints.
+Use npm, Maven Central, PyPI, crates.io, or the tool's release registry as appropriate.
+Do not treat a documented example as a current release.
+Honor the target's lockfile, parent POM, BOM, version catalog, and existing pins.
 Preserve behavior outside the requested change.
 Remove replaced code, fallbacks, and obsolete paths in the same change.
 No legacy compatibility surfaces.

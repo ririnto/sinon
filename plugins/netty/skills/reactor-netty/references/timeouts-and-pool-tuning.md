@@ -42,7 +42,7 @@ HttpClient client = HttpClient.create(provider);
 ## Retry with backoff
 
 ```java
-Mono<String> body = HttpClient.create()
+Flux<String> body = HttpClient.create()
     .get()
     .uri("http://localhost:8080/hello")
     .responseContent()

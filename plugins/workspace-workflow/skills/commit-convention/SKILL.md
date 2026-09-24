@@ -1,14 +1,20 @@
 ---
 name: commit-convention
 description: Draft or review Conventional Commit messages, including type, scope, breaking changes, and commit cohesion.
+metadata:
+  reference:
+    Conventional Commits:
+      version: 1.0.0
+      url: https://www.conventionalcommits.org/en/v1.0.0/
 ---
 
 # Commit Convention
 
 ## Goal
 
-Establish clear, machine-parseable commit messages following the Conventional Commits 1.0.0 specification, read on 2026-09-13: [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/).
-The spec is licensed CC BY 3.0; the format summary here is an authored condensation, not a verbatim copy.
+Establish clear, machine-parseable commit messages following the Conventional Commits 1.0.0 specification.
+The spec is licensed CC BY 3.0.
+The format summary here is an authored condensation, not a verbatim copy.
 A well-formed commit message makes history readable, enables automated tooling (version bumping, changelog generation), and provides future developers with both what changed and why.
 
 ## Scope
@@ -30,7 +36,8 @@ It does not cover:
 - Keep each commit to one logical change when the task and repository workflow support that split.
   - A logical change is a single feature, bug fix, documentation update, or refactor rather than a mix of independent concerns.
 - Keep the first line concise, imperative, and free of a trailing period.
-  - Follow repository length policy; otherwise prefer 50 characters and keep within 72 when practical.
+  - Follow repository length policy.
+    Otherwise prefer 50 characters and keep within 72 when practical.
 - If a commit has a body, it MUST begin with a blank line after the subject.
 - Body lines SHOULD wrap at 72 characters to ensure readability in terminal and email contexts.
 - Commit messages SHOULD be written in English by default, or in the language specified by project documentation and team communication.
@@ -189,7 +196,8 @@ Independent concerns are changes that:
 Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`.
 These SHOULD be split into two commits.
 
-Return suggested split boundaries and messages; do not execute the split from a message-drafting request.
+Return suggested split boundaries and messages.
+Do not execute the split from a message-drafting request.
 
 ## Pitfalls
 

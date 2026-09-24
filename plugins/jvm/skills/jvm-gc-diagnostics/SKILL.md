@@ -1,4 +1,14 @@
 ---
+metadata:
+  reference:
+    jcmd:
+      version: JDK 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+    JFR presets:
+      version: JDK 25
+      url:
+        - https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/default.jfc
+        - https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/profile.jfc
 name: jvm-gc-diagnostics
 description: >-
   Interpret GC logs and JFR evidence, diagnose heap pressure, or compare JVM garbage collectors.
@@ -14,8 +24,6 @@ It is proving whether GC is actually the bottleneck, then comparing realistic co
 Focus on pauses, throughput, allocation pressure, heap behavior, and what is actually available on the running JDK before touching tuning folklore.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and anchor collector guidance to the actual deployed runtime instead of assuming the newest LTS behavior.
-
-Collector availability and JEP claims in this skill were verified against the official JDK documentation and JEP index at `openjdk.org` and `docs.oracle.com`, read on 2026-09-13.
 
 Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later.
 On JDK 8, verify the exact Oracle JDK 8 Flight Recorder availability, commercial-feature status, and licensing posture before recommending JFR commands.
@@ -289,7 +297,7 @@ Look for:
 | recommending Shenandoah without checking the vendor build | some distributions do not ship it at all | confirm the actual JDK vendor or distribution before suggesting it |
 | recommending `-Xlog:gc` for a JDK 8 runtime | unified logging is not available there | use legacy GC logging flags on JDK 8 and earlier |
 | recommending CMS on a modern runtime | CMS was removed and old guidance may no longer apply | treat CMS as a legacy JDK 8-era option only |
-| tuning flags before proving GC is the bottleneck | the real issue may be allocation rate, leaks, or non-GC runtime behavior | verify that the symptom is genuinely GC-driven |
+| tuning flags before proving GC is the bottleneck | the real issue may be allocation rate, leaks, or non-GC runtime behavior | verify that the symptom is GC-driven |
 | reading GC symptoms without stating the workload goal | pause, throughput, and footprint recommendations diverge | name the dominant operational goal explicitly |
 
 ## Scope Boundaries

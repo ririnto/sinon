@@ -1,4 +1,11 @@
 ---
+metadata:
+  reference:
+    Spring REST Docs:
+      - version: 4.0.1
+        url: https://repo.maven.apache.org/maven2/org/springframework/restdocs/spring-restdocs-mockmvc/4.0.1/spring-restdocs-mockmvc-4.0.1.pom
+      - version: 4.0.0
+        url: https://docs.spring.io/spring-restdocs/reference/
 name: spring-rest-docs
 description: >-
   Generate Spring REST Docs snippets from MockMvc/WebTestClient tests and assemble API documentation with Asciidoctor.
@@ -38,6 +45,9 @@ Preparing documentation does not authorize publishing it to an external site or 
 ## Dependency baseline
 
 Use only the test module that matches the chosen test surface.
+The `4.0.1` versions below illustrate the documented Spring REST Docs baseline.
+For new dependencies, check each `org.springframework.restdocs` artifact on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <dependencies>

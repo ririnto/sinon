@@ -1,4 +1,16 @@
 ---
+metadata:
+  reference:
+    Spring Boot:
+      version: 4.1.1
+      url:
+        - https://docs.spring.io/spring-boot/reference/
+        - https://docs.spring.io/spring-boot/reference/features/external-config.html
+        - https://docs.spring.io/spring-boot/4.1.1/reference/testing/testcontainers.html
+        - https://docs.spring.io/spring-boot/appendix/application-properties/index.html
+        - https://docs.spring.io/spring-boot/appendix/deprecated-application-properties/index.html
+        - https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes
+        - https://github.com/spring-projects/spring-boot/tree/v4.1.1
 name: spring-boot
 description: >-
   Configure Spring Boot starters, properties, profiles, test slices, Actuator, and packaging, including Boot version migrations.
@@ -22,12 +34,15 @@ Existing applications do not need new bootstrap, testing, Actuator, or packaging
 ## Dependency baseline
 
 Use Boot dependency management and only the starters the application actually needs.
+The `4.1.1` parent below illustrates the documented baseline.
+For a new parent, check `org.springframework.boot:spring-boot-starter-parent` on Maven Central for the latest stable release compatible with the project.
+Keep an existing parent, BOM, or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+    <version>4.1.1</version>
     <relativePath/>
 </parent>
 

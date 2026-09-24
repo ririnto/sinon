@@ -1,4 +1,9 @@
 ---
+metadata:
+  reference:
+    Spring Modulith:
+      version: 2.1.1
+      url: https://docs.spring.io/spring-modulith/reference/
 name: spring-modulith
 description: >-
   Define or verify Spring Modulith boundaries, named interfaces, cross-module events, publication durability, and module interactions.
@@ -35,8 +40,9 @@ When one module may depend on only specific neighbors, make that dependency rule
 
 Import the BOM and use the core and test starters for the common path.
 
-The current GA Spring Modulith BOM is `2.1.0`.
-It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
+Spring Modulith BOM `2.1.1` is a documented GA baseline compiled and tested against Spring Boot 4.1.x.
+For a new BOM, check `org.springframework.modulith:spring-modulith-bom` on Maven Central for the latest stable release compatible with the project's Boot line.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <dependencyManagement>
@@ -44,7 +50,7 @@ It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-bom</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -72,7 +78,7 @@ It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
 ```groovy
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.modulith:spring-modulith-bom:2.1.0'
+        mavenBom 'org.springframework.modulith:spring-modulith-bom:2.1.1'
     }
 }
 

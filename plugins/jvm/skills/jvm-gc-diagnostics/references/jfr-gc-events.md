@@ -35,6 +35,8 @@ jcmd <pid> JFR.start name=gc-detail settings=profile disk=true maxage=1h
 ```
 
 The `profile` preset adds allocation and CPU events useful for correlating GC pressure with application behavior.
+The JDK 25 `default` and `profile` presets disable `jdk.ObjectAllocationInNewTLAB` and enable sampled allocation instead.
+Use `jdk.ObjectAllocationSample` with these presets, or enable TLAB events in custom settings before querying them.
 
 ### Startup-Attached GC Recording
 
@@ -145,7 +147,7 @@ jfr print --json --events "jdk.GCPhasePause" /path/to/private-diagnostics/record
 Which call sites trigger the most allocation:
 
 ```sh
-jfr print --events "jdk.ObjectAllocationInNewTLAB" \
+jfr print --events "jdk.ObjectAllocationSample" \
   --stack-depth 5 /path/to/private-diagnostics/recording.jfr
 ```
 
@@ -212,6 +214,8 @@ Use `jdk.GCHeapMemoryUsage` when you need `used`, `committed`, and `max` heap me
 
 ### `jdk.ObjectAllocationInNewTLAB` Output (top allocations)
 
+With custom settings that enable this event, output can look like:
+
 ```text
 jdk.ObjectAllocationInNewTLAB {
   startTime = 200.123 s
@@ -237,6 +241,6 @@ Repeated events with the same stack indicate an allocation hot spot driving GC p
 | What collector is running? | `jdk.GCConfiguration` + `jcmd VM.flags` | `jfr print --events jdk.GCConfiguration` |
 | How long do pauses last? | `jdk.GCPhasePause` + GC logs | `jfr print --events jdk.GCPhasePause` |
 | Is the heap filling up? | `jdk.GCHeapSummary` trend | `jfr print --events jdk.GCHeapSummary` |
-| What allocates the most? | `jdk.ObjectAllocationInNewTLAB` | `jfr print --events jdk.ObjectAllocationInNewTLAB --stack-depth 5` |
+| What allocates the most? | `jdk.ObjectAllocationSample` for standard presets | `jfr print --events jdk.ObjectAllocationSample --stack-depth 5` |
 | Is GC causing CPU saturation? | `jdk.CPULoad` + `jdk.GarbageCollection` timing | Cross-reference timestamps |
 | Are objects dying young or being promoted? | `jdk.TenuringDistribution` | `jfr print --events jdk.TenuringDistribution` |

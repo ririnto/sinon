@@ -1,4 +1,9 @@
 ---
+metadata:
+  reference:
+    Spring Statemachine:
+      version: 4.0.2
+      url: https://docs.spring.io/spring-statemachine/docs/current/reference/
 name: spring-statemachine
 description: >-
   Model or troubleshoot Spring Statemachine states, events, guards, actions, factories, persistence, and lifecycle tests.
@@ -6,14 +11,11 @@ description: >-
 
 # Spring Statemachine
 
-The current stable Spring Statemachine line is 4.0.x.
+The official Spring Statemachine reference documents version 4.0.2.
+The `4.0.2` BOM below illustrates the documented Statemachine pairing.
+For a new BOM, check `org.springframework.statemachine:spring-statemachine-bom` on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
-
-> [!WARNING]
->
-> Spring Statemachine ended open-source development after the 4.0.x line, alongside Spring Cloud Data Flow and Spring Cloud Deployer.
-> Future releases are commercial-only and available only to Tanzu Spring customers.
-> 4.0.2 is the last open-source release.
 
 Spring Statemachine 4.0.2 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
 
@@ -126,7 +128,7 @@ Add factories, persistence, pseudo states, or regions only when the workflow tru
 ## Implementation guidance
 
 - Keep state and event names business-meaningful and stable.
-- Use external transitions for ordinary lifecycle movement and reserve pseudo states for genuinely branching or hierarchical lifecycle semantics.
+- Use external transitions for ordinary lifecycle movement and reserve pseudo states for branching or hierarchical lifecycle semantics.
 - Put eligibility checks in guards instead of burying them in actions.
 - Keep actions idempotent when retries or duplicate events are possible.
 - Keep extended state small and explicit so guards and actions can reason about it safely.

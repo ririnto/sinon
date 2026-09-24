@@ -1,6 +1,6 @@
 ---
 description: >-
-  Open this when folder mapping, file layout, provider-level folderUid targeting, foldersFromFilesStructure constraints, or no-nested-folders behavior is the blocker.
+  Open this when folder mapping, file layout, provider-level folderUid targeting, or foldersFromFilesStructure depth limits are the blocker.
 ---
 
 # Dashboard Provisioning Folder Organization
@@ -100,10 +100,9 @@ providers:
 
 ```
 
-## No nested folder support (one level only)
+## Nested folder support
 
-Only the first level of subdirectories under `options.path` maps to Grafana folders.
-Deeper nesting is ignored -- files in sub-subdirectories are not provisioned and produce no error or warning.
+Grafana recreates the directory hierarchy under `options.path` as folders, up to four levels deep.
 
 Tree that works correctly:
 
@@ -117,13 +116,13 @@ dashboards/
 
 ```
 
-Tree with ignored nesting:
+Nested tree:
 
 ```text
 dashboards/
   team-a/
     subproject/
-      dashboard-3.json      --> NOT provisioned (too deep)
+      dashboard-3.json      --> Grafana folders "team-a/subproject"
     dashboard-1.json        --> Grafana folder "team-a" (this one works)
 
 ```
@@ -176,6 +175,8 @@ Use when: the folder name might change but the UID must remain stable across dep
 Those are separate from raw dashboard JSON files stored under a provider path.
 
 Representative API payload:
+`"schemaVersion": 41` is an example export value.
+Use the target Grafana instance's schema version for a real payload.
 
 ```json
 {
@@ -198,7 +199,7 @@ Keep the chosen file shape documented so reviewers know whether folder placement
 
 ## Review Questions
 
-- does the repository tree communicate ownership clearly
+- does the repository tree identify the owning team
 - would folder mirroring create confusing names or unstable placement
 - are nested directories being mistaken for nested Grafana folders
 - is `folder` or `folderUid` still set when `foldersFromFilesStructure: true`

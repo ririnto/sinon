@@ -18,10 +18,8 @@ Appears in `global.http_config` and in each receiver type's local `http_config` 
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `authorization` | Authorization | -- | Bearer/basic authentication credentials |
+| `authorization` | Authorization | -- | HTTP Authorization header, including Bearer credentials |
 | `oauth2` | OAuth2 | -- | OAuth2 client credentials grant configuration |
-| `bearer_token` | Secret | -- | Bearer token for authentication (shorthand) |
-| `bearer_token_file` | string | -- | Path to file containing bearer token |
 | `tls_config` | TLSConfig | -- | TLS/client certificate configuration |
 | `basic_auth` | BasicAuth | -- | Basic authentication (username + password) |
 | `proxy_url` | URL | -- | Proxy server URL for outgoing requests |
@@ -30,13 +28,24 @@ Appears in `global.http_config` and in each receiver type's local `http_config` 
 | `proxy_connect_header` | map[string]map[string]string | -- | Headers to send to proxy during CONNECT |
 | `follow_redirects` | bool | true | Follow HTTP 30x redirects |
 | `enable_http2` | bool | true | Enable HTTP/2 support |
+| `http_headers` | map[string]HTTPHeader | -- | Additional headers keyed by header name |
 | `keep_alives` | bool | true | Enable TCP keep-alives |
+
+### http_header
+
+Each header name maps to these fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `values` | list of string | Plain header values |
+| `secrets` | list of secret | Secret header values |
+| `files` | list of string | Paths to files containing header values |
 
 ### Validation Rules
 
-- At most one of `authorization`, `basic_auth`, `bearer_token`, and `bearer_token_file`.
-  - These are mutually exclusive auth mechanisms.
-- If both `bearer_token` and `bearer_token_file` are set, validation fails.
+- `authorization` and `basic_auth` are mutually exclusive.
+- `oauth2` cannot be combined with `authorization` or `basic_auth`.
+- Use `authorization.credentials` or `authorization.credentials_file` for Bearer authorization.
 - When set at receiver level, completely replaces global `http_config` (not a merge).
 
 ### Complete Example
@@ -178,26 +187,23 @@ Set at the top level as `tracing:`.
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `client_type` | string | -- | Tracing backend: `"GRPC"`, `""` (disabled) |
-| `endpoint` | string | -- | Collector endpoint (e.g., OTLP gRPC endpoint) |
-| `sampling_fraction` | float64 | -- | Fraction of traces to sample (0.0 to 1.0) |
-| `insecure` | bool | false | Skip TLS verification for tracing connection |
-| `tls_config` | TLSConfig | -- | TLS config for the tracing connection |
+| `client_type` | string | `"grpc"` | Tracing backend: `"grpc"` or `"http"` |
+| `endpoint` | string | -- | Collector endpoint |
+| `sampling_fraction` | float64 | 0.0 | Fraction of traces to sample (0.0 to 1.0) |
+| `insecure` | bool | false | Disable TLS for the tracing connection |
+| `tls_config` | TLSConfig | -- | TLS config for the tracing connection when TLS is enabled |
+| `http_headers` | map[string]HTTPHeader | -- | Additional headers keyed by header name |
+| `compression` | string | `"gzip"` | Compression type |
+| `timeout` | duration | `0s` | Timeout for the tracing connection |
 
 ### Example
 
 ```yaml
 tracing:
-  client_type: GRPC
+  client_type: grpc
   endpoint: otel-collector:4317
   sampling_fraction: 0.5
   tls_config:
     insecure_skip_verify: true
 
 ```
-
-## Official documentation
-
-Schemas were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
-The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`, `docs/configuration.md`, sections `<http_config>` and `<tls_config>`) and the `github.com/prometheus/common/config` package.
-The field tables here are a condensed authored summary, not a verbatim copy.

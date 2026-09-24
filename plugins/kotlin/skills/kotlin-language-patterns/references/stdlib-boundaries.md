@@ -5,13 +5,11 @@ description: >-
 
 # Platform and Experimental Stdlib Boundaries
 
-Use this reference when the job is to recommend a Kotlin stdlib API responsibly, with the right platform and stability caveats.
-This reference should be sufficient on its own for that decision.
+Check platform and stability requirements before recommending a Kotlin stdlib API.
 
-Stability and platform claims were verified against the official Kotlin stdlib API reference (`kotlinlang.org/api/core/kotlin-stdlib/`, Kotlin 2.4 docs, read on 2026-09-13) and the Kotlin release notes for 2.2, 2.3, and 2.4.
-The Kotlin compiler and standard library are licensed under the Apache License 2.0.
+The Kotlin compiler and standard library use the Apache License 2.0.
 
-Use this file to finish one of these jobs:
+Choose a boundary:
 
 - decide whether an API is common, JVM-only, or platform-filtered
 - decide whether an API is experimental enough to require an inline warning
@@ -32,7 +30,7 @@ Best-practice rules:
   - Or raise the baseline to 2.3+ for the stdlib type.
 - `kotlin.uuid` graduated to stable in Kotlin 2.4 (experimental since 2.0).
   - The exceptions are `Uuid.generateV4()` and `Uuid.generateV7()`, which remain experimental and still require an `@OptIn(ExperimentalUuidApi::class)`.
-  - Use it when UUID generation or parsing is genuinely needed
+  - Use it when the task requires UUID generation or parsing
 - `kotlin.contracts` is experimental and is not a common-path recommendation for ordinary application code
 - `Regex` exists across platforms, but options and behavior can differ because JS uses the host `RegExp` behavior with stricter Unicode parsing
 - examples that use `java.io.File`, `BufferedReader`, or other JDK resource types are JVM-specific illustrations even when the surrounding stdlib concept is broader
@@ -65,16 +63,17 @@ Use when: the example is multiplatform in principle, but callers should not assu
 Recently stabilized API with explicit status:
 
 State an API's current stability in prose before imports or on a declaration KDoc, not as a detached KDoc before an import.
-`kotlin.uuid` graduated to Stable in Kotlin 2.4; `Uuid.random()` needs no opt-in there, while `Uuid.generateV4()` and `Uuid.generateV7()` remain experimental.
+`kotlin.uuid` graduated to stable in Kotlin 2.4.
+`Uuid.random()` needs no opt-in there, while `Uuid.generateV4()` and `Uuid.generateV7()` remain experimental.
 
 ```kotlin
 import kotlin.uuid.Uuid
 
-/** Generates a UUID; stable since Kotlin 2.4, no opt-in required. */
+/** Generates a UUID with the stable Kotlin 2.4 API. */
 fun createId(): Uuid = Uuid.random()
 ```
 
-Use when: an API recently graduated from experimental and callers should know it is now a stable, default recommendation rather than an opt-in surface.
+Use this shape when callers need to distinguish Kotlin 2.4 stable UUID APIs from experimental UUID generation methods.
 
 Experimental contracts with explicit non-default framing:
 
@@ -84,7 +83,7 @@ The opt-in caveat should appear in prose before the snippet and on the declarati
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-/** Requires a non-null name with contracts; use only when simpler checks are not enough. */
+/** Requires a non-null name when the API needs a compiler-visible contract. */
 @OptIn(ExperimentalContracts::class)
 fun requireNotNullName(name: String?) {
     contract { returns() implies (name != null) }
@@ -102,7 +101,7 @@ The stream helpers `decodingWith` and `encodingWith` are JVM-only and still requ
 ```kotlin
 import kotlin.io.encoding.Base64
 
-/** Encodes bytes with the stdlib Base64 API (stable since 2.2); stream helpers are JVM-only. */
+/** Encodes bytes with the stable Kotlin 2.2 Base64 API. */
 fun encode(raw: ByteArray): String = Base64.encode(raw)
 ```
 
@@ -129,5 +128,8 @@ if (String::class.isInstance("hello")) {
 ```
 
 Note: `kotlin-reflect` is a separate artifact.
-On JVM, `T::class` works with just the stdlib, but `KProperty` access requires `kotlin-reflect` on the classpath.
+On JVM, `T::class` works with the stdlib.
+Direct property references such as `User::name` work without `kotlin-reflect`.
+Add `kotlin-reflect` for runtime inspection of members or constructors.
+Use the Kotlin compiler's managed version, and verify new versions against Maven Central before upgrading.
 Prefer reified inline functions when possible.

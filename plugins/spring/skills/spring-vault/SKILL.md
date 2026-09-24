@@ -6,8 +6,10 @@ description: >-
 
 # Spring Vault and CredHub
 
-The latest released Spring Vault line is 4.1.x.
-Pin the concrete artifact example in this skill to 4.1.0 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
+The direct Spring Vault example targets the 4.1.x API line.
+The `4.1.0` Vault and `4.0.1` CredHub versions below illustrate documented API baselines.
+For new dependencies, check `org.springframework.vault:spring-vault-core` and `org.springframework.credhub:spring-credhub-starter` on Maven Central for stable releases compatible with the project's Boot and Framework lines.
+Keep existing BOM or version-catalog pins unless the task authorizes changing them.
 
 ## Boundaries
 
@@ -26,9 +28,6 @@ Use `spring-vault` for application-side Vault or CredHub access, authentication 
 | --- | --- |
 | HashiCorp Vault is the secret store | Vault paths in this skill |
 | Cloud Foundry CredHub is the secret store | CredHub paths in this skill |
-
-Vault and CredHub follow the same integration pattern: configure a client, authenticate, read and write secrets.
-The code shapes differ but the workflow is equivalent.
 
 ## Surface map
 
@@ -72,7 +71,7 @@ Use Spring Cloud Vault (`spring-cloud-starter-vault-config`) only when Vault-bac
 
 `spring-vault-core` does not bind `spring.cloud.vault.*` properties and does not provide a `vault://` config-import resolver.
 Those belong to Spring Cloud Vault (`spring-cloud-starter-vault-config`), which is managed by the Spring Cloud release train and brings `spring-vault-core` transitively.
-The current Spring Cloud Vault line is 5.0.x.
+The Spring Cloud Vault examples target the 5.0.x line.
 Add it only when the application loads Vault-backed property sources at startup, and let the Spring Cloud BOM manage its version.
 
 ```xml

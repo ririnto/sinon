@@ -97,8 +97,3 @@ class LogoutConfig {
 | Clients need ID tokens | Enable `.oidc()` and add `openid` scope to registered clients |
 | Customize UserInfo claims | Prefer ID-token customization or configure the official `userInfoMapper` seam |
 | Provider-initiated logout | Configure logout endpoint and register post-logout URIs per client |
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

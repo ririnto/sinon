@@ -193,8 +193,4 @@ The inheritance works as follows at config-load time:
 
 This means setting `http_config` in a receiver completely replaces the global `http_config` for that receiver -- it is not a partial merge.
 
-## Official documentation
-
-Schemas were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
-The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`, `docs/configuration.md`).
-The field tables here are a condensed authored summary of that page, not a verbatim copy.
+The field tables above are condensed authored summaries, not verbatim copies of the source documentation.

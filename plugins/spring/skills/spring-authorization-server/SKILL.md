@@ -1,4 +1,19 @@
 ---
+metadata:
+  reference:
+    Spring Authorization Server:
+      version: 1.5.8
+      url:
+        - https://docs.spring.io/spring-authorization-server/reference/
+        - https://docs.spring.io/spring-authorization-server/reference/guides/how-to-pkce.html
+        - https://github.com/spring-projects/spring-authorization-server/tree/1.5.8
+    Spring Security Authorization Server:
+      version: 7.1.1
+      url:
+        - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html
+        - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html
+        - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html
+        - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html
 name: spring-authorization-server
 description: >-
   Configure or test Spring OAuth/OIDC token issuance, registered clients, signing keys, consent, and authorization-server endpoints.
@@ -25,6 +40,9 @@ Use the matching references below.
 The local-development examples are not a prerequisite for changing an existing provider.
 
 ## Dependency baseline
+
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
 
 ```xml
 <dependencies>

@@ -21,9 +21,9 @@ Use it when the deployment explicitly uses Grafana observability-as-code feature
 
 ## Review Focus
 
-- verify the deployment actually supports the Git Sync or local-path provisioning flow being discussed
+- verify the deployment supports the Git Sync or local-path provisioning flow being discussed
 - verify the needed toggles or `[provisioning]` settings for the target Grafana version
-- verify the team really needs the observability-as-code flow rather than stable legacy file provisioning
+- verify the team needs the observability-as-code flow rather than stable legacy file provisioning
 - confirm the target Grafana version supports the chosen resource format
 
 ## Feature Toggles
@@ -124,6 +124,8 @@ Use this to distinguish dashboard resource files from legacy provider YAML.
 File provisioning and dashboard resource files both differ from HTTP API response payloads.
 
 Representative API payload:
+The example's `"schemaVersion": 41` comes from a classic JSON export.
+use the target instance's value for real requests.
 
 ```json
 {

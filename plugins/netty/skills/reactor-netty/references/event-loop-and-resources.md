@@ -27,9 +27,15 @@ DisposableServer server = HttpServer.create()
     .port(8080)
     .bindNow();
 
-server.onDispose().block();
-loops.disposeLater().block();
+try {
+    server.onDispose().block();
+} finally {
+    server.disposeNow();
+    loops.disposeLater().block();
+}
 ```
+
+The application must dispose the server through its shutdown path to unblock the wait.
 
 ## Shared `ConnectionProvider`
 
@@ -59,4 +65,4 @@ loops.disposeLater().block();
 
 - keep custom resources close to the code that owns them
 - dispose providers and loop resources explicitly when you created them
-- avoid custom resources unless isolation or tuning is actually required
+- avoid custom resources unless isolation or tuning is required

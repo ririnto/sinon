@@ -5,10 +5,7 @@ description: >-
 
 # JVM Path and Filesystem Boundaries
 
-Use this reference when the job is to implement or review one JVM filesystem boundary in Kotlin.
-This reference should be sufficient on its own for that task.
-
-Use this file to finish one of these jobs:
+Choose the JVM filesystem operation for one boundary:
 
 - choose between raw `String` paths and `Path`
 - write or read a small JVM text file correctly

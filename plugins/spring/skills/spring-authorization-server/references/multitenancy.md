@@ -110,7 +110,3 @@ This file is about issuer-scoped component delegation, not storage modeling.
 | signing keys are shared across tenants | single `JWKSource` |
 | each tenant has distinct key material | per-issuer delegated `JWKSource` |
 | client lookup must be issuer-scoped | delegating repository through issuer registry |
-
-## Official documentation
-
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

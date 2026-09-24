@@ -13,7 +13,3 @@ void userInfoReturnsClaimsForValidAccessToken() {
     assertTrue(body.containsKey("sub"));
 }
 ```
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

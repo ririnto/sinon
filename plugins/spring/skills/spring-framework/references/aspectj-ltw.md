@@ -15,7 +15,10 @@ Use AspectJ when:
 ## Enable load-time weaving
 
 Add the minimum AspectJ load-time weaving libraries first.
-In this standalone Spring Framework BOM path, `aspectjweaver` keeps an explicit version because `spring-framework-bom` does not manage `org.aspectj:*` artifacts.
+The `7.0.9` Framework BOM and `1.9.25` AspectJ versions below illustrate documented example baselines.
+For new dependencies, check `org.springframework:spring-framework-bom` and `org.aspectj:aspectjweaver` on Maven Central for stable compatible releases.
+Keep project BOM or version-catalog pins unless the task authorizes changing them.
+The Framework BOM does not manage `org.aspectj:*`, so the standalone path needs a separate AspectJ version.
 
 ```xml
 <dependencyManagement>
@@ -23,7 +26,7 @@ In this standalone Spring Framework BOM path, `aspectjweaver` keeps an explicit 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
-            <version>7.0.8</version>
+            <version>7.0.9</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

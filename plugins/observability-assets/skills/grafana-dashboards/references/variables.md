@@ -363,8 +363,13 @@ They are always available in every dashboard.
 | `$__range` | number | Time range width in ms | `1800000` |
 | `$__range_ms` | number | Alias for `$__range` | `1800000` |
 | `$__range_s` | number | Time range in seconds | `1800` |
-| `$__rate_interval` | string | Safe rate interval (4x interval) | `"20m"` |
+| `$__rate_interval` | string | Rate lookback derived from query interval and scrape interval | `max($__interval + scrape_interval, 4 * scrape_interval)` |
 | `$__timezone` | string | Dashboard timezone setting | `"browser"` or `"UTC"` |
+
+`$__rate_interval` is `max($__interval + scrape_interval, 4 * scrape_interval)`.
+Grafana uses the query's Min step as `scrape_interval` when set, otherwise the data source's Scrape interval.
+Panel Min interval does not affect this calculation.
+Set the data source Scrape interval to match the real scrape cadence, or use query Min step when the target uses a different cadence.
 
 ## Practical usage examples
 
@@ -408,7 +413,11 @@ Every format modifier changes how multi-value variables expand into query string
 | `:regex` | Regex alternation | `(a\|b\|c)` |
 | `:glob` | Glob pattern | `{a,b,c}` |
 | `:sqlstring` | SQL quoted, comma-separated | `'a','b','c'` |
-| `:filepath` | File path safe | `a,b,c` |
+| `:join:<delimiter>` | Join values with a custom delimiter (comma by default) | `a&b&c` |
+| `:distributed` | OpenTSDB distributed-value format | `test1,servers=test2` |
+| `:queryparam` | Repeated dashboard URL parameters | `var-servers=a&var-servers=b` |
+| `:customqueryparam:<name>:<prefix>` | URL parameters with a custom name and value prefix | `v-servers=x-a&v-servers=x-b` |
+| `:text` | Display text; join multiple values with `+` | `a + b + c` |
 
 ### Context-Specific Default Behavior
 

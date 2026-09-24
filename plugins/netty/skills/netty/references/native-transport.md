@@ -20,6 +20,10 @@ Open this when Linux or macOS deployment needs native transport features, lower 
 
 ## Dependency pattern
 
+Use the project's Netty BOM or platform pin for the native artifact's version.
+If the project has no managed version, check `io.netty:netty-bom` in Maven Central for the latest stable compatible Netty release and set `${netty.version}` to that release before adding a native artifact.
+Keep native and core modules on the same release and confirm the classifier exists for the target OS and architecture.
+
 Linux epoll on x86_64:
 
 ```xml
@@ -42,7 +46,7 @@ Linux epoll on aarch64 or ARM64:
 </dependency>
 ```
 
-macOS or BSD kqueue:
+macOS x86_64 kqueue:
 
 ```xml
 <dependency>
@@ -53,8 +57,8 @@ macOS or BSD kqueue:
 </dependency>
 ```
 
-Linux io_uring on Java 9+ and kernel 5.14+ (a first-class transport since Netty 4.2, replacing the `netty-incubator-transport-io_uring` module).
-The `netty-transport-native-io_uring` README lists kernel 5.14 with `CONFIG_IO_URING=y` as the floor:
+Use Linux io_uring with Java 9+ and kernel 5.14+ configured with `CONFIG_IO_URING=y`.
+Netty 4.2 includes io_uring as a first-class transport, replacing the `netty-incubator-transport-io_uring` module.
 
 ```xml
 <dependency>

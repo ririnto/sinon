@@ -191,6 +191,6 @@ Providers often use `scope` (space-separated string) rather than `scp` (array).
   - They are mutually exclusive.
 - Do not assume a third-party issuer uses `scope` or `scp`.
 - Do not leave audience validation implicit when downstream authorization depends on token audience.
-- Do not disable `exp` or `iss` validation in production unless the deployment model genuinely requires it.
+- Do not disable `exp` or `iss` validation in production unless the deployment model requires it.
 - Do not assume the principal name is `sub` for third-party issuers.
   - Many use `preferred_username` or `email`.

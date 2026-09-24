@@ -1,4 +1,12 @@
 ---
+metadata:
+  reference:
+    Spring GraphQL:
+      version: 2.0.5
+      url: https://docs.spring.io/spring-graphql/reference/
+    Spring Boot Dependency BOM:
+      version: 4.1.1
+      url: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-graphql
 description: >-
   Implement or test Spring GraphQL schemas, resolvers, batching, subscriptions, transports, and error handling.
@@ -29,8 +37,11 @@ Keep GraphQL schema, resolver, transport, batching, and tester decisions at the 
 
 ## Dependency baseline
 
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+
 Spring GraphQL 2.0.x requires Spring Framework 7.0, graphql-java 25.0, and Java 17+.
-Spring Boot 4.1.x manages Spring GraphQL 2.0.4.
+Spring Boot 4.1.1 manages Spring GraphQL 2.0.5.
 Jackson 3.x is the default serialization library, with Jackson 2.x supported as a fallback.
 
 Use the Boot starter for application code and the GraphQL test module for focused tests.

@@ -7,25 +7,11 @@ description: >-
 
 Use this reference when the main blocker is how to turn a known module graph into a runtime image or packaged deliverable without skipping the intermediate validation steps.
 
-Primary references:
-
-- `jpackage`: [Java SE 25 jpackage](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jpackage.html)
-- Packaging overview: [Java SE 25 packaging overview](https://docs.oracle.com/en/java/javase/25/jpackage/packaging-overview.html)
-- `jlink`: [Java SE 25 jlink](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jlink.html)
-
-LTS reference points for this workflow:
-
-- JDK 8 tools overview: [Java SE 8 tools](https://docs.oracle.com/javase/8/docs/technotes/tools/)
-- JDK 11 tool index: [Java SE 11 tools reference](https://docs.oracle.com/en/java/javase/11/tools/index.html)
-- JDK 17 tool index: [Java SE 17 tool specifications](https://docs.oracle.com/en/java/javase/17/docs/specs/man/index.html)
-- JDK 21 tool index: [Java SE 21 tool specifications](https://docs.oracle.com/en/java/javase/21/docs/specs/man/index.html)
-- JDK 25 packaging baseline: [Java SE 25 packaging overview](https://docs.oracle.com/en/java/javase/25/jpackage/packaging-overview.html)
-
 Version boundaries for this reference:
 
 - `jdeps`: available across the supported LTS line used by this plugin.
 - `jlink`: JDK 9+ (part of the module system).
-- `jpackage`: incubating in JDK 14-15 (`jdk.incubator.jpackage`), standard tool from JDK 16 onward (JEP 392).
+- `jpackage`: incubating in JDK 14-15 (`jdk.incubator.jpackage`), standard tool from JDK 16 onward.
   - Do not treat the incubator form on JDK 14-15 as production-grade, and do not present `jpackage` as available on JDK 8 or JDK 11.
 
 ## Practical Guidance
@@ -35,7 +21,7 @@ Version boundaries for this reference:
 - Use `jpackage` when native installers or app images are part of the product requirement and the target JDK actually ships the standard tool (JDK 16+).
 - Native packages MUST be built for their target platform.
   - Cross-platform packaging is not supported.
-- On JDK 25 and later (JDK-8345185), `jpackage` no longer includes `--bind-services` in its default `jlink` options.
+- On JDK 25 and later, `jpackage` no longer includes `--bind-services` in its default `jlink` options.
   - When the packaged application relies on `java.util.ServiceLoader`, pass a single quoted `--jlink-options` string that restores the strip defaults and re-enables service binding.
   - See the `jpackage` section below for the full form.
 
@@ -83,9 +69,9 @@ Packaging rules:
 This path is a JDK 16+ workflow because `jpackage` is a standard tool only from JDK 16.
 On JDK 14-15 the tool is an incubator (`jdk.incubator.jpackage`) and its command name and options MAY differ from the standard form.
 
-On JDK 25 and later, restore service binding with a single quoted `--jlink-options` argument.
-`--jlink-options` takes exactly one string.
-Splitting the jlink flags into multiple positional arguments turns them back into `jpackage` arguments and fails.
+On JDK 25 and later, restore service binding with a quoted, space-separated `--jlink-options` argument.
+Each `--jlink-options` occurrence takes one space-separated string, and the option may be used multiple times.
+Do not pass jlink flags as standalone `jpackage` arguments.
 When you pass `--jlink-options`, it replaces the jpackage default list entirely, so include the four strip flags explicitly if a lean runtime image is still the goal:
 
 ```sh

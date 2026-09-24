@@ -49,9 +49,4 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 - Do not add revocation without deciding which clients are allowed to call it and how the result is verified.
 - Do not enable introspection or revocation and skip testing one successful and one rejected request path.
 
-## Official documentation
-
 The `/oauth2/introspect` and `/oauth2/revoke` default paths match the Spring Authorization Server `1.5.8` endpoint filters.
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)

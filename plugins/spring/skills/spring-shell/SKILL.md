@@ -10,7 +10,9 @@ description: >-
 
 Keep command registration, parsing, validation, availability, completion, terminal interaction, and shell tests focused on the CLI boundary while application services hold workflow logic.
 
-Keep dependency examples on the released Spring Shell line that matches the published Maven artifact metadata for `org.springframework.shell:spring-shell-starter`.
+The `4.0.3` versions below illustrate one Spring Shell release pairing.
+For new dependencies, check `org.springframework.shell:spring-shell-starter` and `org.springframework.shell:spring-shell-test` on Maven Central for the latest stable compatible release.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 Spring Shell 4.0 is based on Spring Framework 7 and requires Spring Boot 4+.
 

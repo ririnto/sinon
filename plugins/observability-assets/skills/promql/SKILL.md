@@ -1,4 +1,16 @@
 ---
+metadata:
+  reference:
+    Prometheus:
+      version: 3.14.0
+      license: Apache-2.0
+      url:
+        - https://prometheus.io/docs/prometheus/3.14/querying/basics/
+        - https://prometheus.io/docs/prometheus/3.14/querying/operators/
+        - https://prometheus.io/docs/prometheus/3.14/querying/functions/
+        - https://prometheus.io/docs/prometheus/3.14/querying/api/
+        - https://prometheus.io/docs/prometheus/3.14/feature_flags/
+        - https://github.com/prometheus/prometheus/releases/tag/v3.14.0
 name: promql
 description: >-
   Use for PromQL query authoring, aggregation, vector matching, SLI math, or query review for alerts, dashboards, and recording rules.
@@ -8,11 +20,6 @@ description: >-
 
 Write and review PromQL queries that stay readable, correct, and appropriate for the consumer that will use them.
 This file keeps the authoring workflow, function-choice baseline, common templates, and review checks.
-
-## Official Baseline
-
-- Use the official Prometheus query documentation for release 3.14.0, read on 2026-09-13: [Querying basics](https://prometheus.io/docs/prometheus/3.14/querying/basics/), [Operators](https://prometheus.io/docs/prometheus/3.14/querying/operators/), and [Functions](https://prometheus.io/docs/prometheus/3.14/querying/functions/).
-- Verified against the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
 
 Exact language syntax, operator and function tables, vector matching detail, staleness, and HTTP API shapes live in [`./references/language-reference.md`](./references/language-reference.md).
 

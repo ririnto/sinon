@@ -1,3 +1,19 @@
+---
+metadata:
+  reference:
+    Bun:
+      url: https://bun.com/docs/pm/cli/install
+    oven-sh/setup-bun:
+      version: 2.2.0
+      url: https://github.com/oven-sh/setup-bun/blob/v2.2.0/README.md
+    Oxlint:
+      url:
+        - https://oxc.rs/docs/guide/usage/linter/config.html
+        - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.html
+    Oxfmt:
+      url: https://oxc.rs/docs/guide/usage/formatter/config.html
+---
+
 # Bun
 
 Use this profile for a Bun-managed JavaScript, TypeScript, or JSX project.
@@ -25,7 +41,8 @@ Add only missing `check` and `fix` script entries after reviewing existing comma
 Add `test` only when the target has a Bun test owner.
 If an existing script owns one of these names, preserve it and report the required command substitution.
 Do not silently replace an existing native check, formatter, test runner, or build task.
-Add `oxlint`, `oxfmt`, and `ultracite` as development dependencies with versions compatible with the target lockfile.
+Before adding or upgrading any profile dependency, check the npm registry for its latest stable release compatible with the target's runtime, Oxc plugin API, and lockfile.
+Keep existing compatible target pins and lockfile choices.
 Do not add direct `oxlint` or `oxfmt` script entries.
 Route lint and format execution only through Ultracite.
 Add `npm-run-all2` only when the merged scripts use `run-p`.
@@ -81,13 +98,9 @@ Add that bounded step after verifying the target's compiler dependencies.
 The catalog does not infer this step from file names.
 Existing CI jobs and package scripts take precedence over these catalog entries.
 
-## Version And Source Record
+## Source Profile Version Evidence
 
-The source profile was checked against the repository's available Bun `1.3.14`, Oxc `1.83.0`, Oxfmt `0.68.0`, Ultracite `7.12.0`, Markdownlint CLI2 `0.23.3`, and `@oxc-project/types` `0.150.0` packages on 2026-09-21.
+The source profile was checked against the repository's available Bun `1.3.14`, Oxc `1.83.0`, Oxfmt `0.68.0`, Ultracite `7.12.0`, Markdownlint CLI2 `0.23.3`, and `@oxc-project/types` `0.150.0` packages.
 The target owns final dependency versions through its manifest and lockfile.
-The listed versions are source-profile evidence, not mandatory target pins.
-Bun lockfile behavior and installation options were read from `https://bun.com/docs/pm/cli/install` on 2026-09-13.
-The `oven-sh/setup-bun@v2` input and version-selection behavior was read from `https://github.com/oven-sh/setup-bun/blob/main/README.md` on 2026-09-13.
-Oxlint configuration was read from `https://oxc.rs/docs/guide/usage/linter/config.html` on 2026-09-13.
-Oxlint JavaScript plugin authoring was read from `https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.html` on 2026-09-13.
-Oxfmt configuration was read from `https://oxc.rs/docs/guide/usage/formatter/config.html` on 2026-09-13.
+The fragment's version ranges are source-profile evidence, not mandatory target pins.
+Check npm before merging them.

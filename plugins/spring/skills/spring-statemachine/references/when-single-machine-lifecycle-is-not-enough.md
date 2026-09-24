@@ -133,7 +133,7 @@ It requires a `RedisConnectionFactory`.
 
 ## Region usage
 
-Use regions only when a workflow genuinely has parallel independent sub-lifecycles.
+Use regions only when a workflow has parallel independent sub-lifecycles.
 
 Regions are created when a hierarchical state has multiple sub-state groups, each with its own initial state.
 The framework detects multiple initial states under the same parent and creates orthogonal regions automatically.

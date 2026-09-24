@@ -63,6 +63,6 @@ final class BufferedPipeline {
 
 ## Failure checks
 
-- If the issue is actually request pressure, open [Backpressure and Demand](backpressure.md).
+- If the issue is request pressure, open [Backpressure and Demand](backpressure.md).
 - If the issue is combining multiple full publishers rather than partitioning one stream, open [Combining Operators](combining-operators.md).
 - If the partitioning model is still unclear, choose the output shape first: keyed streams, nested publishers, or concrete collections.

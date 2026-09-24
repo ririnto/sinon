@@ -10,12 +10,6 @@ Detailed PromQL language and API facts moved out of the skill root.
 The skill root keeps the authoring workflow, review guidance, and common templates.
 Open this reference when the blocker is exact syntax, an operator or function table, or an HTTP API shape.
 
-## Official documentation
-
-Facts were verified against the official Prometheus documentation for release 3.14.0, read on 2026-09-13: [Querying basics](https://prometheus.io/docs/prometheus/3.14/querying/basics/), [Operators](https://prometheus.io/docs/prometheus/3.14/querying/operators/), [Functions](https://prometheus.io/docs/prometheus/3.14/querying/functions/), [HTTP API](https://prometheus.io/docs/prometheus/3.14/querying/api/), and [Feature flags](https://prometheus.io/docs/prometheus/3.14/feature_flags/).
-The source repository content is Apache License 2.0 (`prometheus/prometheus` tag `v3.14.0`, `docs/querying/`).
-Content here is a condensed authored summary of those pages, not a verbatim copy.
-
 ## Data Types
 
 PromQL expressions evaluate to one of four types:
@@ -190,7 +184,8 @@ Runs an instant query over a range at a given resolution, producing a range vect
 ```
 
 `<range_expr>`, `<resolution_expr>`, and `<offset_expr>` accept numeric or duration literals such as `3600` and `1h`.
-On the repository's Prometheus 3.14.0 review baseline, duration arithmetic such as `5m * 2`, and the `step()` and `range()` duration functions, require `--enable-feature=promql-duration-expr`.
+Duration arithmetic such as `5m * 2` is enabled by default.
+The `step()`, `range()`, `min_of()`, and `max_of()` duration functions require `--enable-feature=promql-experimental-functions`.
 Duration expressions used with `offset` must be parenthesized, such as `offset (step() * 2)`.
 Resolution defaults to the global evaluation interval if omitted.
 
@@ -329,9 +324,9 @@ The `by`/`without` clause may appear before or after the expression.
 
 | Function | Signature | Notes |
 | --- | --- | --- |
-| `rate(v range-vector)` | Per-second average rate | Auto-adjusts counter resets. Extrapolates to range ends. Use with counters. Best for alerts/recording rules. Always apply before aggregation. |
-| `irate(v range-vector)` | Per-second instant rate (last 2 points) | Auto-adjusts resets. Use only for volatile dashboards. Always apply before aggregation. |
-| `increase(v range-vector)` | Total increase over range | Syntactic sugar: `rate(v) * range_seconds`. Human-readable. Use with counters. |
+| `rate(v range-vector)` | Per-second average rate | Adjusts counter resets and extrapolates to range ends. Use with counters for alerts or recording rules. Apply before aggregation. |
+| `irate(v range-vector)` | Per-second instant rate (last 2 points) | Adjusts resets. Use only for volatile dashboards. Apply before aggregation. |
+| `increase(v range-vector)` | Extrapolated total increase over the range | Equivalent to `rate(v) * range_seconds`. May return a non-integer even for integer counters. Use with counters when the range total is the desired result. |
 | `resets(v range-vector)` | Number of counter resets | Counts decreases between consecutive samples. Use with counters. |
 | `delta(v range-vector)` | First-last difference | No reset adjustment. Use with gauges only. |
 | `idelta(v range-vector)` | Last-two-sample difference | No reset adjustment. Use with gauges only. |
