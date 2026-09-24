@@ -69,13 +69,17 @@ spring:
 
 ### Anthropic
 
+Set `ANTHROPIC_CHAT_MODEL` to an active model supported by the target account and Spring AI version.
+Check [Anthropic's model lifecycle](https://platform.claude.com/docs/en/about-claude/model-deprecations) before deployment.
+Source: Anthropic model deprecations, unversioned, read 2026-09-24.
+
 ```yaml
 spring:
   ai:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:
-        model: claude-3-5-sonnet-20241022
+        model: ${ANTHROPIC_CHAT_MODEL}
 ```
 
 ### Google Vertex AI Gemini
