@@ -292,9 +292,9 @@ tests:
   - interval: 1m
     input_series:
       - series: 'http_requests_total{job="api",status="500"}'
-        values: '0+4x20'
+        values: '0+6x20'
       - series: 'http_requests_total{job="api",status="200"}'
-        values: '0+96x20'
+        values: '0+94x20'
     alert_rule_test:
       - eval_time: 16m
         alertname: Api5xxRatioAbove5Percent
