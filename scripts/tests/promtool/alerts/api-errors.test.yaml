@@ -1,0 +1,59 @@
+rule_files:
+  - api-errors.rules.yaml
+
+evaluation_interval: 1m
+
+tests:
+  - name: api-error-rate-normal
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{job="api",status="500"}'
+        values: '0+4x20'
+      - series: 'http_requests_total{job="api",status="200"}'
+        values: '0+96x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: Api5xxRatioAbove5Percent
+        exp_alerts: []
+
+  - name: api-error-rate-firing
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{job="api",status="500"}'
+        values: '0+10x20'
+      - series: 'http_requests_total{job="api",status="200"}'
+        values: '0+90x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: Api5xxRatioAbove5Percent
+        exp_alerts:
+          - exp_labels:
+              severity: page
+              service: api
+            exp_annotations:
+              summary: API 5xx ratio is high
+              description: |-
+                API 5xx ratio stayed above 5% for 10 minutes.
+                Current value: 10%.
+              runbook_url: https://runbooks.example.com/api-high-error-rate
+
+  - name: api-error-rate-minimal-firing
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{job="api",status="500"}'
+        values: '0+6x20'
+      - series: 'http_requests_total{job="api",status="200"}'
+        values: '0+94x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: Api5xxRatioAbove5Percent
+        exp_alerts:
+          - exp_labels:
+              severity: page
+              service: api
+            exp_annotations:
+              summary: API 5xx ratio is high
+              description: |-
+                API 5xx ratio stayed above 5% for 10 minutes.
+                Current value: 6%.
+              runbook_url: https://runbooks.example.com/api-high-error-rate
