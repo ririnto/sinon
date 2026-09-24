@@ -7,11 +7,12 @@ A custom repository changes durability and operational behavior at the core sess
 
 ## Repository choice
 
-The [Spring Session 4.0 release notes](https://docs.spring.io/spring-session/reference/whats-new.html) record that the Hazelcast and MongoDB modules moved to the Hazelcast and MongoDB teams.
+Spring Session 4.0 moved the Hazelcast and MongoDB modules to the Hazelcast and MongoDB teams.
 Treat these integrations as independently maintained rather than assuming that Spring Session releases them in lockstep.
 
 When a repository is required to use MongoDB or Hazelcast, use the maintained integration from its owning team and verify that its artifact is available and compatible with the application's Spring Session and Spring Boot line.
-For example, Maven Central publishes MongoDB's [`org.mongodb:mongodb-spring-session:4.0.0`](https://central.sonatype.com/artifact/org.mongodb/mongodb-spring-session/4.0.0).
+For MongoDB, check `org.mongodb:mongodb-spring-session` on Maven Central for the latest stable release compatible with the project's Spring Session and Boot lines.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 Do not infer a Hazelcast artifact or version without checking the Hazelcast maintainer's current documentation.
 
 Keep Redis or JDBC as the preferred repository path when no platform requirement mandates another store.

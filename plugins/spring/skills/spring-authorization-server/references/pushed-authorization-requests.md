@@ -35,9 +35,4 @@ Keep PAR-specific validation on the PAR endpoint seam instead of duplicating the
 - Do not duplicate authorization-request validation in both the PAR and authorization endpoints without a clear reason.
 - Do not enable PAR and forget to test the `/oauth2/par` to `/oauth2/authorize` handoff.
 
-## Official documentation
-
 The `/oauth2/par` default path matches the Spring Authorization Server `1.5.8` endpoint filter.
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

@@ -1,3 +1,30 @@
+---
+metadata:
+  reference:
+    Spotless Gradle Plugin:
+      version: 8.10.2
+      url:
+        - https://github.com/diffplug/spotless/blob/gradle/8.10.2/plugin-gradle/README.md
+        - https://github.com/diffplug/spotless/blob/gradle/8.10.2/plugin-gradle/src/main/java/com/diffplug/gradle/spotless/JavaExtension.java
+    Gradle Plugin Portal:
+      url: https://plugins.gradle.org/plugin/com.diffplug.spotless
+    Palantir Java Format:
+      version: 2.98.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.98.0
+    Checkstyle:
+      version: 14.1.0
+      url: https://github.com/checkstyle/checkstyle/releases/tag/checkstyle-14.1.0
+    Gradle Checkstyle Plugin:
+      url: https://docs.gradle.org/current/userguide/checkstyle_plugin.html
+    Checkstyle Checks:
+      url: https://checkstyle.org/checks.html
+    Dependabot:
+      tag: v0.397.0
+      url: https://github.com/dependabot/dependabot-core/blob/v0.397.0/gradle/lib/dependabot/gradle/file_parser.rb
+    Dependabot Configuration:
+      url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+---
+
 # Gradle
 
 Use this profile for an existing Gradle project with Java sources.
@@ -8,8 +35,12 @@ In a monorepo, repeat the profile for each independent Gradle root.
 
 Apply the Gradle `java` or `java-library` plugin already used by the target before enabling Java checks.
 Add the Spotless Gradle plugin only when the target has no existing formatter with overlapping Java ownership.
-Use `com.diffplug.spotless` version `8.10.2` and pin `palantir-java-format` version `2.98.0` in the target's existing version catalog or plugin convention.
-Use the existing repository and plugin-management policy; add `mavenCentral()` only when the target has no equivalent repository.
+The fragment selects `com.diffplug.spotless` `8.10.2` and `palantir-java-format` `2.98.0` as profile baselines.
+They do not establish current releases.
+Before adding or upgrading Spotless, Palantir Java Format, or Checkstyle, check the Gradle Plugin Portal and Maven Central for the latest stable compatible versions against the target's Gradle, Java, and version catalog constraints.
+Use the checked versions for a new integration, and keep compatible target-managed versions unless the task authorizes changing them.
+Use the existing repository and plugin-management policy.
+Add `mavenCentral()` only when the target has no equivalent repository.
 
 Merge the Gradle fragment supplied by this profile into the existing Kotlin DSL build, or translate the same blocks to Groovy DSL.
 Apply the external plugin in the target's existing `plugins` block.
@@ -111,15 +142,9 @@ Run `./gradlew spotlessApply` only after reviewing the resulting Java diff.
 Spotless `8.10.2` requires Gradle `7.3` or newer and a Java 17 or newer runtime.
 Checkstyle `14.1.0` is the selected engine version for this profile.
 If the target's Java or Gradle baseline is older, retain its compatible existing tools or obtain explicit approval for an upgrade.
-The GitLab catalog uses the official `gradle:9.7.1-jdk25-ubi10` image and does not install a separate Gradle distribution.
+The GitLab catalog uses the `gradle:9.7.1-jdk25-ubi10` image and does not install a separate Gradle distribution.
+Before adopting that image or the GitHub action versions, check their official releases and the target's Gradle wrapper and Java policy.
+Keep compatible target pins.
 The CI catalog assumes that the target contains a checked-in `./gradlew` wrapper.
 For a non-root Gradle root, add `working-directory: <existing-root>` to the GitHub run step and run `cd <existing-root> && ./gradlew check` in GitLab.
 Replace `<existing-root>` with a real target-owned path before activating the catalog.
-
-## Sources
-
-The Spotless Gradle configuration is adapted from the official [Gradle plugin README](https://github.com/diffplug/spotless/blob/main/plugin-gradle/README.md) and [JavaExtension source](https://raw.githubusercontent.com/diffplug/spotless/main/plugin-gradle/src/main/java/com/diffplug/gradle/spotless/JavaExtension.java), read 2026-09-13.
-The selected Spotless Gradle plugin version `8.10.2` is from the official [Gradle Plugin Portal](https://plugins.gradle.org/plugin/com.diffplug.spotless), read 2026-09-13.
-The selected Palantir Java Format version `2.98.0` is from the official [release page](https://github.com/palantir/palantir-java-format/releases/latest), read 2026-09-13.
-The Checkstyle configuration follows the official [Gradle Checkstyle plugin documentation](https://docs.gradle.org/current/userguide/checkstyle_plugin.html) and [Checkstyle checks documentation](https://checkstyle.org/checks.html), read 2026-09-13.
-The Dependabot Gradle ecosystem and version catalog dependency names follow the official [Dependabot configuration options](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file) and [Gradle file parser](https://github.com/dependabot/dependabot-core/blob/main/gradle/lib/dependabot/gradle/file_parser.rb), read 2026-09-14.

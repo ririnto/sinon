@@ -55,7 +55,7 @@ Open this reference when you need one of these version-sensitive syntax jobs:
 ### Java 21 LTS
 
 - Record patterns and pattern-matching `switch` make deconstruction and exhaustive branching more practical.
-- Use this boundary when matching logic is genuinely clearer than casts plus getters.
+- Use this boundary when matching logic is clearer than casts plus getters.
 
 ### Java 25 LTS
 

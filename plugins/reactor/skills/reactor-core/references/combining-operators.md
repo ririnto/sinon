@@ -86,4 +86,4 @@ final class ThenExample {
 - If output order matters, rule out `merge(...)` first.
 - If one source may complete empty, remember that `zip(...)` can complete before other sources produce all values.
 - If you only need a completion dependency, prefer `then(...)` or `thenMany(...)` over `zip(...)` or `merge(...)`.
-- If the issue is actually partitioning one stream into groups, windows, or buffers, open [Batching, Grouping, and Windowing](batching-grouping-windowing.md).
+- If the issue is partitioning one stream into groups, windows, or buffers, open [Batching, Grouping, and Windowing](batching-grouping-windowing.md).

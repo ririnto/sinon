@@ -1,4 +1,19 @@
 ---
+metadata:
+  reference:
+    Prometheus:
+      version: 3.14.0
+      license: Apache-2.0
+      url:
+        - https://prometheus.io/docs/prometheus/3.14/configuration/unit_testing_rules/
+        - https://prometheus.io/docs/prometheus/3.14/querying/basics/
+        - https://prometheus.io/docs/prometheus/3.14/querying/functions/
+        - https://github.com/prometheus/prometheus/blob/v3.14.0/cmd/promtool/unittest.go
+    Prometheus releases:
+      url: https://github.com/prometheus/prometheus/releases
+    Native Histograms:
+      license: Apache-2.0
+      url: https://prometheus.io/docs/specs/native_histograms/
 name: alert-rule-testing
 description: >-
   Use for promtool test rules fixtures, alert lifecycle timing, expected labels and annotations, and alert regression review.
@@ -8,11 +23,6 @@ description: >-
 
 Write and review `promtool test rules` files that lock alert behavior before a rule ships.
 Use the real rule file and fixtures that protect the behavior under change.
-
-## Official Baseline
-
-- Use the official Prometheus testing documentation for release 3.14.0, read on 2026-09-13: [Test your rules](https://prometheus.io/docs/prometheus/3.14/configuration/unit_testing_rules/).
-- Schema facts were also checked against the `promtool` test-rule parser in the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
 
 ## Task Focus
 
@@ -25,7 +35,6 @@ Use the real rule file and fixtures that protect the behavior under change.
 
 ## Test File Schema
 
-Schema facts here match the `promtool` test-rule parser in the Prometheus 3.14.0 source (`cmd/promtool/unittest.go`), read on 2026-09-13.
 The schema also supports per-test-group `external_labels` and `external_url`, which the tables below omit.
 
 ### Top-Level Fields
@@ -64,9 +73,9 @@ tests:
     interval: 1m
     input_series:
       - series: 'http_requests_total{job="api",status="500"}'
-        values: '0+6x20'
+        values: '0+4x20'
       - series: 'http_requests_total{job="api",status="200"}'
-        values: '0+94x20'
+        values: '0+96x20'
     alert_rule_test:
       - eval_time: 16m
         alertname: Api5xxRatioAbove5Percent
@@ -185,11 +194,13 @@ See [`./references/fixture-edge-cases.md`](./references/fixture-edge-cases.md) f
 
 ## alert_rule_test Complete Schema
 
-Each entry in `alert_rule_test:` asserts the expected alert state at a single point in time.
+Each entry in `alert_rule_test:` asserts the expected alert state at a requested time.
+The assertion observes the most recent scheduled rule evaluation at or before that time.
+`promql_expr_test` instead evaluates its expression at the exact requested time.
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `eval_time` | duration | yes | -- | Time offset from test start at which to evaluate. Must be a multiple of the test's `interval`. |
+| `eval_time` | duration | yes | -- | Time offset from test start. Alert state is checked at the latest scheduled evaluation at or before this time. |
 | `alertname` | string | yes | -- | Name of the alert to assert. Must match an `alert:` field in the loaded rule file. |
 | `exp_alerts` | list | yes | `[]` | Expected alert instances at this eval time. Empty list means no firing alerts. |
 
@@ -242,24 +253,27 @@ Each entry in `exp_samples:` describes one expected result sample:
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `labels` | string | yes | -- | Label set as a string map literal, e.g. `'{}'` or `'{job="api"}'`. |
-| `value` | number | yes | -- | Expected numeric value of the sample. |
+| `value` | number | for float samples | -- | Expected numeric value of the sample. |
+| `histogram` | string | for histogram samples | -- | Expected native histogram in promtool series notation. A non-empty value makes `value` ignored. |
 
-Example:
+For a float sample, provide `labels` and `value`.
+For a native histogram, provide `labels` and one `histogram` descriptor in the same notation used by input series.
+
+Float and histogram expected samples:
 
 ```yaml
 promql_expr_test:
-  - expr: job:http_requests:rate5m{job="api"}
+  - expr: sum(increase(http_requests_total{job="api"}[5m]))
     eval_time: 16m
     exp_samples:
       - labels: '{}'
-        value: 94
+        value: 500
 
-  - expr: sum(rate(http_requests_total{job="api"}[5m]))
+  - expr: http_request_duration_seconds{job="api"}
     eval_time: 16m
     exp_samples:
-      - labels: '{}'
-        value: 100
-
+      - labels: '{job="api"}'
+        histogram: '{{schema:1 count:12 sum:3.0 buckets:[1 4 7]}}'
 ```
 
 Use when: the blocker is an intermediate query shape rather than only the final alert state.
@@ -302,8 +316,10 @@ promtool test rules alerts/api-errors.test.yaml
 
 ```
 
-Use when: the test file already exists or has just been edited and you need the first safe validation run.
-If `promtool` is unavailable, stop at a blocked validation state instead of claiming the rule test is ready.
+Use this command to validate an existing or edited test file.
+Use the deployment's `promtool` when available.
+Before obtaining a new binary, check the official Prometheus releases for the latest stable version compatible with the target server and rule features.
+If `promtool` is unavailable, report validation as blocked instead of claiming the rule test is ready.
 
 Run only the test groups within a file whose `name` field matches the `--run` flag, interpreted as a regular expression (the flag has no short form and may be repeated to match several groups):
 
@@ -312,12 +328,15 @@ promtool test rules --run api-error-rate-firing alerts/api-errors.test.yaml
 
 ```
 
-Run all test files in a directory:
+Run all test files matched by a shell glob:
 
 ```sh
-promtool test rules tests/
+promtool test rules tests/*.yaml
 
 ```
+
+`promtool test rules` accepts test-file paths, not a directory path.
+The shell expands the glob to positional file arguments.
 
 ### Test Output Interpretation
 
@@ -498,7 +517,7 @@ Review the affected assertions with these checks:
 - The test suite protects real regressions without becoming an unreadable fixture dump.
 - `promtool test rules` passes on the test file you intend to ship.
 - Each test case has a descriptive `name` field for filtered execution.
-- `eval_time` values are multiples of the test's `interval` (non-multiples cause confusing failures).
+- Alert `eval_time` values use a scheduled boundary when the exact evaluation matters; off-boundary values inspect the latest prior evaluation. PromQL assertions use the exact requested time.
 
 Local fixture execution does not deploy rules or prove live alert delivery.
 Report the tested behaviors and the exact command result before claiming those behaviors are verified.
@@ -537,7 +556,7 @@ Return:
 | choosing arbitrary `eval_time` values | the test passes or fails for unclear reasons | place eval times deliberately around the `for` boundary |
 | copying labels into `exp_labels` that the alert never emits | tests fail for the wrong reason | assert only the labels that belong to the real alert contract |
 | building one giant fixture for many behaviors | review becomes difficult and regressions are harder to isolate | keep each test focused on one behavior or transition |
-| using `eval_time` values that are not multiples of `interval` | promtool evaluates at interval boundaries; off-boundary times produce confusing results | always use multiples: `4m`, `8m`, `16m` for `interval: 1m` |
+| assuming alert assertions evaluate at arbitrary off-boundary times | alert state comes from the latest scheduled rule evaluation at or before `eval_time`, while PromQL assertions use the exact time | choose a scheduled boundary when exact alert-state timing matters |
 | asserting `alertname` inside `exp_labels` | `alertname` is matched by the top-level `alertname` field, not inside `exp_labels`; putting it in both places is redundant and fragile | keep `alertname` at the top level only |
 | writing `input_series` with too few samples | the series ends before `eval_time` is reached, causing missing-data errors | ensure enough samples cover the latest `eval_time` in the test case |
 

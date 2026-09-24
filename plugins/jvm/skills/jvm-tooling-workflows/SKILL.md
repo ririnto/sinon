@@ -1,4 +1,32 @@
 ---
+metadata:
+  reference:
+    jpackage:
+      version: Java SE 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jpackage.html
+    jpackage packaging:
+      version: Java SE 25
+      url: https://docs.oracle.com/en/java/javase/25/jpackage/packaging-overview.html
+    jlink:
+      version: Java SE 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jlink.html
+    Java SE Tools Overview:
+      version: Java SE 8
+      url: https://docs.oracle.com/javase/8/docs/technotes/tools/
+    Java Platform Tools:
+      version: Java SE 11
+      url: https://docs.oracle.com/en/java/javase/11/tools/index.html
+    Java SE tool specifications:
+      - version: Java SE 17
+        url: https://docs.oracle.com/en/java/javase/17/docs/specs/man/index.html
+      - version: Java SE 21
+        url: https://docs.oracle.com/en/java/javase/21/docs/specs/man/index.html
+    JEP 392:
+      version: JDK 16
+      url: https://openjdk.org/jeps/392
+    JDK-8345185:
+      version: JDK 25
+      url: https://bugs.openjdk.org/browse/JDK-8345185
 name: jvm-tooling-workflows
 description: >-
   Use JDK tools for compilation, documentation, module analysis, runtime images, or application packaging.

@@ -1,4 +1,12 @@
 ---
+metadata:
+  reference:
+    Spring Framework:
+      version: 7.0.9
+      url:
+        - https://docs.spring.io/spring-framework/reference/index.html
+        - https://docs.spring.io/spring-framework/reference/7.0.9/core/aop/proxying.html
+        - https://docs.spring.io/spring-framework/reference/core/aop/using-aspectj.html
 name: spring-framework
 description: >-
   Configure or debug Spring container wiring, lifecycle, transactions, events, validation, scheduling, resilience, JDBC, and TestContext integration.
@@ -65,6 +73,9 @@ Use the target repository's native build command.
 ## Module selection
 
 Use only the Spring Framework modules the application actually needs.
+The `7.0.9` BOM below illustrates the documented Framework baseline.
+For a new BOM, check `org.springframework:spring-framework-bom` on Maven Central for the latest stable release compatible with the project's Boot line.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <dependencyManagement>
@@ -72,7 +83,7 @@ Use only the Spring Framework modules the application actually needs.
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
-            <version>7.0.8</version>
+            <version>7.0.9</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -208,7 +219,7 @@ MyPrototypeBean prototypeBean() {
 ```
 
 Use singleton by default.
-Reach for prototype only when the lifecycle difference genuinely matters.
+Reach for prototype only when the lifecycle difference matters.
 Request-bound scopes belong to HTTP-layer configuration rather than the ordinary framework-core path.
 
 ## Bean lifecycle
@@ -251,7 +262,7 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent> {
 }
 ```
 
-Use lifecycle hooks only when initialization or shutdown semantics genuinely matter.
+Use lifecycle hooks only when initialization or shutdown semantics matter.
 Prefer one lifecycle style consistently instead of mixing `@PostConstruct` / `@PreDestroy` with `initMethod` / `destroyMethod` in the same component graph.
 
 ## Application events
@@ -290,7 +301,7 @@ class OrderNotificationListener implements ApplicationListener<OrderPlacedEvent>
 }
 ```
 
-Use application events for genuinely decoupled follow-up work, not as a substitute for basic method calls.
+Use application events for decoupled follow-up work, not as a substitute for basic method calls.
 Keep event classes immutable and scoped to the application package.
 
 Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task depends on ordered listeners, `@EventListener` conditions, or lower-level listener infrastructure.

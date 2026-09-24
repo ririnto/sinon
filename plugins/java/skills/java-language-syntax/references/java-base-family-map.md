@@ -87,16 +87,17 @@ String loaded = Files.readString(config);
 ### Security and specialized runtime surfaces
 
 - `java.security*`, `javax.crypto*`, `javax.net*`, and `javax.security.auth*` for providers, certificates, crypto, SSL, and authentication.
-- `java.lang.classfile*` and `java.lang.foreign` for classfile transformation and foreign memory/function access.
+- `java.lang.foreign` for foreign memory/function access (standard since JDK 22).
+- `java.lang.classfile*` for classfile transformation (standard since JDK 24).
 
-Use when: the code genuinely needs these specialized capabilities.
+Use when: the code needs these specialized capabilities.
 These are not the default path for ordinary application code.
 
 ### SPI and extension points
 
 - `java.nio.file.spi`, `java.nio.charset.spi`, `java.nio.channels.spi`, and `java.net.spi` for provider hooks and extension points.
 
-Use when: the problem is explicitly about customizing or extending standard-library behavior rather than simply using it.
+Use when: the problem is explicitly about customizing or extending standard-library behavior rather than using it.
 
 ## Boundary reminder
 

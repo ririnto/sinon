@@ -42,7 +42,7 @@ Use `JpaRepository` only when the task actually relies on JPA semantics such as 
 | --- | --- | --- |
 | JPA | lazy loading, JPQL, entity graphs, persistence context semantics matter | you want direct aggregate persistence without session state |
 | JDBC | aggregate persistence is simple and explicit SQL-backed mapping is enough | you need JPA session or query-language features |
-| R2DBC | the repository path must stay reactive end to end | the app is fundamentally blocking |
+| R2DBC | the repository path must stay reactive end to end | the app is blocking |
 | MongoDB | the aggregate shape is document-oriented | strong relational joins are central |
 | Redis | key-value, cache-like, TTL-driven persistence matters | relational consistency is the main problem |
 

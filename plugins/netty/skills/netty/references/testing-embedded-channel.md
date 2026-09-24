@@ -85,9 +85,10 @@ void decodesLengthPrefixedMessage() {
 
 ## Exception path test
 
-Only 2 bytes arrive instead of the required 4 - no frame is produced and no exception is thrown from the decoder.
+Only 2 bytes arrive instead of the required 4, so no frame is produced and no exception is thrown from the decoder.
 `writeInbound` returns `false` because the decoder cannot produce a complete frame.
-`finishAndReleaseAll()` releases pending internal buffers and returns `true` if any remain.
+`finishAndReleaseAll()` releases pending messages and returns whether the channel's inbound or outbound queue held messages before release.
+Incomplete bytes held only in a decoder's cumulation buffer do not make that return value `true`.
 
 ```java
 import io.netty.buffer.Unpooled;
@@ -100,7 +101,7 @@ void buffersShortFrameWithoutException() {
     ByteBuf shortInput = Unpooled.buffer(2);
     shortInput.writeShort(42);
     assertFalse(channel.writeInbound(shortInput));
-    assertTrue(channel.finishAndReleaseAll());
+    assertFalse(channel.finishAndReleaseAll());
 }
 ```
 

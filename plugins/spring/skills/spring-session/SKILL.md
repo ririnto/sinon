@@ -1,4 +1,12 @@
 ---
+metadata:
+  reference:
+    Spring Session:
+      version: 4.0
+      url: https://docs.spring.io/spring-session/reference/whats-new.html
+    MongoDB Spring Session:
+      version: 4.0.0
+      url: https://central.sonatype.com/artifact/org.mongodb/mongodb-spring-session/4.0.0
 name: spring-session
 description: >-
   Configure or test Spring Session stores, session ID transport, expiration, and Security/WebFlux/WebSocket integration.
@@ -43,6 +51,9 @@ Do not present those platform choices as Spring Session's library minimums.
 - Open [references/alternative-repositories.md](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
 
 ## Dependency baseline
+
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
 
 Use the Spring Boot starter that matches the store so the session module, data-access integration, and client dependencies remain aligned.
 Start with Redis for the common clustered browser-session path unless the deployment already standardizes on a different store.

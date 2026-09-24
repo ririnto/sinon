@@ -12,8 +12,9 @@ The profile adds no wrapper script, no task runner, and no test harness; the com
 
 ## Toolchain
 
-- ShellCheck: any currently maintained release; version 0.11 is current at authoring time.
-- shfmt: any currently maintained release; version 3.14 is current at authoring time.
+- ShellCheck: any maintained release; the profile was checked against 0.11.
+- shfmt: any maintained release; the profile was checked against 3.14.
+- Before installing either tool, check its upstream releases and the platform package repository for the latest stable version compatible with the target runner.
 - Install through the platform package manager; do not install global tools to conceal a missing dependency on a target machine.
 
 ## Native Configuration Sources
@@ -56,5 +57,6 @@ No working-directory adjustment exists for this profile; the file list is reposi
 ## Known Limitations
 
 - Package-manager versions of ShellCheck and shfmt lag upstream releases; the checks remain valid, but new checks appear only after a runner image update.
-- The Ubuntu and Debian archives carry older releases: Ubuntu 24.04 gives shfmt 3.8.0 and ShellCheck 0.9.0; Debian 13 gives shfmt 3.8.0 and ShellCheck 0.10.0, versus upstream 3.14 and 0.11.
+- For the source profile baselines, Ubuntu 24.04 supplies shfmt 3.8.0 and ShellCheck 0.9.0, and Debian 13 supplies shfmt 3.8.0 and ShellCheck 0.10.0.
+  Check the target package archive before installation.
 - `debian:13-slim` selects the Debian 13 release line; rebuild freshness follows the image, and a target needing exact pins must install release archives instead.

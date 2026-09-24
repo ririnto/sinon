@@ -71,9 +71,3 @@ Kotlin string templates treat `$` as an expression start, so a `@Value` placehol
 
 - Do not blame the record or class shape before checking the effective property names.
 - Do not rely on Kotlin nullability alone to reject an absent reference property; use a validation constraint instead.
-
-## Official documentation
-
-Verified against the Spring Boot reference documentation, Externalized Configuration (constructor binding, `@DefaultValue`, Kotlin bindings, and `@ConfigurationProperties` validation), version 4.1.1, read 2026-09-14.
-
-- [Externalized Configuration](https://docs.spring.io/spring-boot/reference/features/external-config.html)

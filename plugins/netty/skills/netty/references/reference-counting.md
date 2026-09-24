@@ -89,7 +89,7 @@ final class AsyncHandler extends ChannelInboundHandlerAdapter {
 > In that case, retain once and release only the retained reference in the executor.
 
 Use a real external executor for blocking or CPU-heavy work.
-If you stay on the channel's event loop, you did not actually offload anything.
+If you stay on the channel's event loop, you did not offload work.
 
 If you do not need both references, do not retain.
 Move ownership once and release once.

@@ -23,10 +23,13 @@ Use the sections and references for the affected processing, fault-tolerance, or
 
 ## Dependency baseline
 
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
 Spring Boot 4.1.x manages Spring Batch 6.0.x.
-The current released Spring Batch artifact line is 6.0.x.
+The examples target the Spring Batch 6.0.x release line.
 Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch.
 Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
 
@@ -84,7 +87,7 @@ Keep the batch runtime vocabulary explicit:
 The minimum Spring Batch model is `Job -> Step -> chunk or tasklet`.
 
 - Use a chunk step for item-oriented work: read, optionally process, then write in transactions.
-- Use a tasklet step for inherently one-shot work such as cleanup, archive, trigger, or command execution.
+- Use a tasklet step for one-shot work such as cleanup, archive, trigger, or command execution.
 - Keep one linear job path until a real branching or scaling need exists.
 
 ## First safe configuration

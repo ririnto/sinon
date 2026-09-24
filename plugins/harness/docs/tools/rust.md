@@ -1,3 +1,10 @@
+---
+metadata:
+  reference:
+    rustup:
+      url: https://rust-lang.github.io/rustup/concepts/toolchains.html
+---
+
 # Rust Tool Reference
 
 This document owns the `rust` profile commands, dependencies, and target integration rules for Cargo workspace targets.
@@ -16,6 +23,10 @@ In a workspace with member subdirectories, install configuration at the workspac
 - Rust: use the channel declared by the target's `rust-toolchain.toml` when present; otherwise the stable toolchain with `clippy` and `rustfmt` components.
 - The supported rustup representations are a named channel such as `stable`, a major/minor channel such as `1.98`, or a full version such as `1.98.1`; Cargo has no compatible range syntax for this file.
 - The required components are `clippy` and `rustfmt`; add them to an existing toolchain with `rustup component add clippy rustfmt`.
+
+For a new toolchain selection, check the official rustup release channel for the current stable version compatible with the target before pinning it.
+For new crate dependencies, check crates.io for the latest stable version compatible with the target's Rust version and Cargo constraints.
+Keep existing toolchain and crate pins unless the task authorizes changing them.
 
 ## Native Configuration Sources
 
@@ -60,7 +71,3 @@ Neither catalog configures Rust caching; adding a maintained cache action is a t
 - The reference `rust-toolchain.toml` also uses floating `stable`, so it has no major or version ceiling.
 - Refresh that selection with `rustup update stable` before the target's normal gate.
 - For reproducibility, install a reviewed channel such as `1.98.1`, set the same value in the target's toolchain file, and use it in CI.
-
-## Sources
-
-The supported rustup channel forms and toolchain-file behavior follow the official [rustup toolchain documentation](https://rust-lang.github.io/rustup/concepts/toolchains.html), read 2026-09-14.

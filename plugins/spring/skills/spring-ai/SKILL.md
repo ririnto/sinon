@@ -1,4 +1,13 @@
 ---
+metadata:
+  reference:
+    Spring AI:
+      version: 2.0.1
+      url:
+        - https://docs.spring.io/spring-ai/reference/
+        - https://docs.spring.io/spring-ai/reference/upgrade-notes.html
+    Anthropic Model Lifecycle:
+      url: https://platform.claude.com/docs/en/about-claude/model-deprecations
 name: spring-ai
 description: >-
   Implement Spring AI model calls, structured output, tools, memory, retrieval, vector stores, and MCP integration.
@@ -48,6 +57,9 @@ Keep external calls and tool side effects within the task's authority and data-h
 Spring AI 2.0.x supports Spring Boot 4.0.x and 4.1.x.
 
 Import the Spring AI BOM and add only the starters needed for the current model and optional retrieval path.
+The `2.0.1` BOM below illustrates the documented Spring AI baseline.
+For a new BOM, check `org.springframework.ai:spring-ai-bom` on Maven Central for the latest stable release compatible with the project's Boot line.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <dependencyManagement>
@@ -55,7 +67,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-bom</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -75,7 +87,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
 ```
 
 Add retrieval, image, audio, moderation, or MCP starters only when that surface is part of the current job.
-Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when the target Spring AI version differs from the version pinned here.
+Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when changing the project's Spring AI version.
 
 ## First safe setup
 
@@ -140,7 +152,7 @@ class ReleaseSummaryService {
 
 ## Tool boundary
 
-Add tools only when the model genuinely needs a bounded application capability.
+Add tools only when the model needs a bounded application capability.
 
 ```java
 @Component

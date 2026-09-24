@@ -1,4 +1,9 @@
 ---
+metadata:
+  reference:
+    Record:
+      version: Java SE 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html
 name: java-language-design
 description: >-
   Design or review Java type models, public APIs, mutability, and exception contracts.

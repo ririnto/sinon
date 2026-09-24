@@ -22,8 +22,8 @@ tests:
 
 | Control | Type | Default | Effect |
 | --- | --- | --- | --- |
-| `evaluation_interval` | duration | `1m` | Base interval between evaluation cycles. All `eval_time` values must be multiples of this. |
-| `fuzzy_compare` | bool | `false` | When true, uses approximate float comparison (tolerance ~1e-6) instead of exact equality for sample value assertions. |
+| `evaluation_interval` | duration | `1m` | Base interval between evaluation cycles. Alert assertions observe the latest scheduled evaluation at or before `eval_time`. |
+| `fuzzy_compare` | bool | `false` | When true, effectively ignores differences in the last bit of the mantissa for sample value assertions. |
 | `start_timestamp` | timestamp (per-test) | epoch zero | Wall-clock start time. Affects functions that depend on absolute time, such as `time()`, `month()`, `hour()`. |
 
 ### Per-Test Case Controls
@@ -71,7 +71,7 @@ In this example, `api-recording` must evaluate first because it produces `job:ht
 
 Use when: the rule file contains multiple groups and alerts in one group depend on recording rules in another.
 
-Current Prometheus 3.14 documentation includes `start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` in the `promtool test rules` schema.
+The current `promtool test rules` schema includes `start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval`.
 If the target repository runs an older `promtool`, verify support before relying on these controls.
 
 ## Focused Execution
@@ -87,12 +87,12 @@ promtool test rules alerts/api-errors.test.yaml
 
 Use when: you need to iterate on one test group without running the whole suite.
 
-## Time Precision and eval_time Alignment
+## Alert Evaluation Timing
 
-`eval_time` MUST be a multiple of the effective evaluation interval.
-Misaligned times produce confusing results because Prometheus evaluates at interval boundaries, not at arbitrary timestamps.
+Alert assertions observe state from the most recent scheduled evaluation at or before the requested `eval_time`.
+PromQL expression assertions evaluate at the exact requested time, even when it falls between scheduled rule evaluations.
 
-### Correct alignment (interval: 1m)
+### Scheduled rule evaluations (interval: 1m)
 
 ```yaml
 tests:
@@ -104,9 +104,9 @@ tests:
       - eval_time: 16m
 ```
 
-The values are all valid multiples of `1m`: initial evaluation, after 5 evaluations, exactly at a `for: 10m` boundary, and well past that boundary.
+Each value lands on a scheduled evaluation: the initial evaluation, after 5 evaluations, at the `for: 10m` boundary, and well past that boundary.
 
-## Misaligned (will cause problems)
+### Off-boundary alert assertions
 
 ```yaml
 tests:
@@ -116,19 +116,15 @@ tests:
       - eval_time: 7m30s
 ```
 
-These values are not clean multiples of `1m`.
-Both fall between evaluation points.
+`30s` falls between evaluations and observes the initial state at `0m`.
+`7m30s` observes the alert state from the scheduled evaluation at `7m`.
 
-When `eval_time` does not land on an evaluation boundary, promtool evaluates at the last boundary before the requested time.
-An `eval_time: 7m30s` with `interval: 1m` actually evaluates at `7m`.
-This can make tests appear to fail or pass for unclear reasons.
-
-Rule of thumb: always use integer multiples of the interval as `eval_time`.
+Choose a scheduled boundary when the assertion must inspect that exact rule evaluation.
+An off-boundary alert assertion deliberately observes the latest earlier evaluation, while a PromQL expression assertion uses the exact requested time.
 
 ## Fuzzy Compare Behavior
 
-When `fuzzy_compare: true` is set, promtool uses approximate comparison for numeric assertions instead of exact equality.
-The tolerance is typically around 1e-6 relative to the expected value.
+When `fuzzy_compare: true` is set, promtool effectively ignores differences in the last bit of the mantissa.
 
 ### When to use it
 
@@ -199,8 +195,8 @@ The timestamp lands just before a spring-forward transition.
 
 ## Review Questions
 
-- Does the test really need a custom timestamp or would relative time be clearer?
+- Does the test need a custom timestamp or would relative time be clearer?
 - Is fuzzy comparison hiding a real query regression?
 - Does the selected test protect the changed behavior without duplicating an existing fixture?
-- Are all `eval_time` values clean multiples of the effective interval?
+- Do off-boundary alert assertions intentionally inspect the latest earlier evaluation, and do PromQL assertions use the intended exact time?
 - Does the `group_eval_order` match the actual dependency graph between rule groups?

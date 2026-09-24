@@ -24,17 +24,16 @@ Use official Java and OpenJDK materials for version-specific behavior and limita
 
 ## Concrete code examples
 
-Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive):
+Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 27 inclusive):
 
 ```java
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 
-try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+try (var scope = StructuredTaskScope.open()) {
     Subtask<String> a = scope.fork(() -> blockingCall("a"));
     Subtask<String> b = scope.fork(() -> blockingCall("b"));
     scope.join();
-    scope.throwIfFailed();
     String first = a.get();
     String second = b.get();
 }
@@ -42,12 +41,11 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
 > [!IMPORTANT]
 >
-> `StructuredTaskScope` is a preview API through JDK 25 (`JEP 505: Structured Concurrency (Fifth Preview)`).
-> As of Java 25, Structured Concurrency is in JEP 505 (Fifth Preview).
-> Production use requires `--enable-preview`.
-> Compile with `--enable-preview --release <n>` and accept that the API surface MAY still move before finalization.
-> Call `scope.fork()` which returns `StructuredTaskScope.Subtask<T>`.
-> Read values only after `join()` (and `throwIfFailed()` when using `ShutdownOnFailure`) has returned.
+> JDK 27 is generally available, but `StructuredTaskScope` remains a preview API in that release.
+> Production use requires `--enable-preview` at compile time and runtime.
+> Compile with `--enable-preview --release <n>` and expect the API to change before finalization.
+> `StructuredTaskScope.open()` uses the default policy that waits for all subtasks to succeed or throws `ExecutionException`.
+> Read subtask values only after `join()` returns.
 
 ScopedValue for immutable request context (preview on JDK 21-24, finalized in JDK 25):
 

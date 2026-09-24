@@ -5,10 +5,7 @@ description: >-
 
 # Date-Time Type Decisions
 
-Use this reference when the job is to choose or convert Kotlin date-time types for one concrete model or workflow.
-This reference should be sufficient on its own for that task.
-
-Use this file to finish one of these jobs:
+Choose a date-time type for one concrete model or workflow:
 
 - choose between `Instant`, `LocalDate`, and `LocalDateTime`
 - decide when a civil-time value should stay local instead of becoming an `Instant`
@@ -31,11 +28,12 @@ Version note:
   - On the 2.1 baseline, use `kotlinx.datetime.Instant` with `org.jetbrains.kotlinx:kotlinx-datetime`.
 - when a project deliberately raises its Kotlin baseline to 2.3+ for stdlib Instant, keep one timestamp representation per boundary.
   - Migrate deliberately.
-- use `0.8.0` for the ordinary dependency path.
-  - Maven metadata also publishes `0.8.0-0.6.x-compat`.
-  - Choose that only when the project needs the 0.6.x compatibility variant.
+- use the project's managed `kotlinx-datetime` version when it supports the required API.
+  - For a new dependency or required upgrade, check Maven Central for the latest stable Kotlin-compatible release and record it in the project catalog.
+  - Use a compatibility variant only when the project needs that variant's older API.
 
-Gradle dependency:
+This executable sample shows the 0.8.0 artifact, not a current install target.
+For a new installation, check Maven Central and Kotlin compatibility before recording the selected version in the project catalog.
 
 ```kotlin
 dependencies {

@@ -137,8 +137,3 @@ void authenticateRejectsUnknownClient() {
 ```
 
 Run integration tests against the actual `/oauth2/token` endpoint with a client provisioned for the custom grant type.
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

@@ -15,12 +15,6 @@ Use this file to finish one of these jobs:
 - decide whether enum or sealed variants communicate the model more clearly
 - pressure-test whether a preview-only feature is worth the baseline or support cost
 
-## Official references
-
-- Oracle Java SE documentation hub: <https://docs.oracle.com/en/java/>
-- Oracle Java API documentation index: <https://docs.oracle.com/en/java/javase/index.html>
-- OpenJDK JEP index: <https://openjdk.org/jeps/0>
-
 ## Semantic modeling comparisons
 
 Mutable class: fields can change, and equality remains whatever the class explicitly implements.
@@ -46,6 +40,7 @@ final class Money {
 ```
 
 Record: components are final, accessors are generated, and equality is value-based.
+This is shallow immutability: mutable component objects can still change, so copy them in the canonical constructor or use immutable component values when needed.
 
 ```java
 record Money(String currency, long cents) {
@@ -175,7 +170,7 @@ Treat it as a product and support decision, not as default design modernization.
 ## Review questions
 
 - Does a record model value semantics more clearly than a mutable class here?
-- Is a sealed hierarchy genuinely closed inside the module, or is future extension still expected?
+- Is a sealed hierarchy closed inside the module, or is future extension still expected?
 - Would a preview-only construct make the public API or operational baseline harder to support?
 
 ## Guidance

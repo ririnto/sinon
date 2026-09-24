@@ -18,6 +18,11 @@ The `go` toolchain in `PATH` provides build and test support; golangci-lint and 
 - NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
 - Task: not required. Direct native commands below provide the same checks the historical Taskfile bundled, so this profile adds no Task dependency.
 
+The Go module proxy and upstream release tags determine the latest stable golangci-lint version at installation time.
+Check its compatibility with the target's Go directive before changing the profile pin.
+NilAway has no stable release tag.
+Review the current upstream commit and target Go compatibility before proposing a replacement for its reviewed pseudo-version.
+
 ## Native Configuration Sources
 
 | Source file | Destination | Write rule |
@@ -41,7 +46,9 @@ go test -race -shuffle=on -count=1 ./...
 ```
 
 `golangci-lint fmt` applies formatting; `golangci-lint run --fix` applies safe lint fixes.
-Tool installation for local runs and CI uses a build-local `GOBIN`, for example:
+Tool installation for local runs and CI uses a build-local `GOBIN`.
+The commands below preserve profile baselines.
+For a new installation, use the checked stable compatible golangci-lint version and the reviewed NilAway commit instead of assuming these pins remain current:
 
 ```sh
 export GOBIN="$(pwd)/.bin"
@@ -56,6 +63,8 @@ export PATH="${GOBIN}:${PATH}"
 
 The GitHub catalog `ci/github/go.yaml` and GitLab catalog `ci/gitlab/go.gitlab-ci.yaml` run the same four checks in one job.
 Both pin golangci-lint and NilAway to the versions above and keep module downloads read-only through the config.
+Before adopting the catalog's `golang:1.27` image or GitHub actions, check their official releases against the target's `go.mod` and CI policy.
+Keep compatible target pins.
 The GitLab job declares `stage: validate`; add that stage to the target's pipeline stages when it does not exist.
 A working-directory adjustment is required when the module is not at the repository root; set the job's working directory to the module root instead of changing the commands.
 

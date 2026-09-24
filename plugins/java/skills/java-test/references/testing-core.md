@@ -7,12 +7,6 @@ description: >-
 
 Open this reference when the common Java test shape is already clear and the remaining blocker is assertion detail, mocking, or asynchronous verification.
 
-Official references:
-
-- JUnit 5 user guide: <https://junit.org/junit5/docs/current/user-guide/>
-- Official Mockito site: <https://site.mockito.org/>
-- Official Awaitility wiki: <https://github.com/awaitility/awaitility/wiki/Usage>
-
 ## JUnit 5 building blocks
 
 - Core test annotations: `@Test`, `@DisplayName`, `@Nested`, `@Tag`, `@Disabled`

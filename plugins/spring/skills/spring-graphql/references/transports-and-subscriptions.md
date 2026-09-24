@@ -11,7 +11,7 @@ Open this reference when the ordinary HTTP server path is not enough and the tas
     - No persistent connection.
   - Only subscriptions are supported over SSE.
     - Queries and mutations must use the plain JSON HTTP variant.
-- WebSocket: use when the application genuinely needs subscriptions or long-lived interactive GraphQL sessions.
+- WebSocket: use when the application needs subscriptions or long-lived interactive GraphQL sessions.
   - Supports queries, mutations, and subscriptions on a single persistent connection.
   - Requires `spring-boot-starter-websocket` for Servlet apps.
     - No extra starter for WebFlux.

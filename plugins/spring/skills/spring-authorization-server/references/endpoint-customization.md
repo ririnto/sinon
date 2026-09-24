@@ -64,8 +64,3 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 - Use the official provider validator hooks for request-level validation where the framework exposes them.
 - Use `AuthenticationProvider` for protocol-level validation during authentication.
 - Do not duplicate client checks across multiple layers.
-
-## Official documentation
-
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

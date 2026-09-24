@@ -97,7 +97,7 @@ Use when: the blocker is deciding whether removing a source file should destroy 
 
 The `version` field inside a raw dashboard JSON source file is ignored by Grafana's file-provisioning update logic.
 
-What actually happens:
+For example:
 
 ```text
 1. source file contains "version": 1

@@ -24,10 +24,15 @@ This file covers what comes after framing: stateful decode logic, encode pattern
 
 ## Stateful decoder pattern
 
+Validate lengths from untrusted input against a protocol-specific maximum before allocating memory.
+The example uses a 1 MiB limit; choose the limit required by the protocol.
+
 Minimum JDK for this example: Java 17.
 It uses arrow-form switch rules.
 
 ```java
+import io.netty.handler.codec.CorruptedFrameException;
+
 final class CommandDecoder extends ByteToMessageDecoder {
     private enum State {
         READ_HEADER,
@@ -46,6 +51,9 @@ final class CommandDecoder extends ByteToMessageDecoder {
                         return;
                     }
                     payloadLength = in.readInt();
+                    if (payloadLength < 0 || payloadLength > 1_048_576) {
+                        throw new CorruptedFrameException("Invalid payload length: " + payloadLength);
+                    }
                     state = State.READ_PAYLOAD;
                 }
                 case READ_PAYLOAD -> {

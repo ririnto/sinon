@@ -1,4 +1,9 @@
 ---
+metadata:
+  reference:
+    Spring Cloud Data Flow:
+      version: 2.11.5
+      url: https://docs.spring.io/spring-cloud-dataflow/docs/current/reference/htmlsingle/
 name: spring-cloud-data-flow
 description: >-
   Maintain or troubleshoot existing Spring Cloud Data Flow stream/task estates, app registrations, schedules, and platform operations.
@@ -9,17 +14,13 @@ description: >-
 Use this skill for SCDF server and shell operations around existing stream or task estates.
 Application-side dependencies, stream or task code, service discovery, load-balanced clients, and circuit-breaker wiring are separate application-development concerns.
 
-The current public SCDF server artifact is 2.11.5.
-The 2.11.x server line is the last open-source release.
-Later patches (for example 2.11.7) ship only in the Spring Enterprise repository to Tanzu Spring customers.
+The official SCDF reference guide documents server artifacts at version 2.11.5 and Spring Boot 3.x support.
+That guide does not identify the latest public artifact or distribution terms for later releases.
+The `3.2.1` app coordinates below illustrate one catalog snapshot.
+For new registrations, check each exact artifact on Maven Central for its latest stable release compatible with the SCDF server and project catalog.
+Keep existing app registrations pinned unless the task authorizes changing them.
+Verify server artifact coordinates and repository access before recommending a server upgrade.
 Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new application code.
-
-> [!WARNING]
->
-> Spring Cloud Data Flow ended open-source development after the 2.11.x line.
-> Spring Cloud Deployer (2.9.x) and Spring Statemachine (4.0.x) ended open-source development in the same announcement.
-> Future releases are commercial-only and available only to Tanzu Spring customers.
-> Keep guidance on the final open-source lines.
 
 ## Authority and completion
 
@@ -31,6 +32,7 @@ After a change, verify the affected runtime state and report observed results or
 ## Registration and launch example
 
 Register every app a topology needs before creating and deploying or launching its definition.
+For new registrations, check the project catalog and Maven Central for a stable release compatible with the SCDF server.
 Metadata is optional and is only needed when operators must inspect app options or deployment properties.
 The stream and task cycles share one command shape.
 Only the definition DSL and deploy or launch verb change.

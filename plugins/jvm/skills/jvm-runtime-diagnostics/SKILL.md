@@ -1,4 +1,12 @@
 ---
+metadata:
+  reference:
+    jcmd:
+      version: JDK 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+    jhsdb:
+      version: JDK 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/jhsdb.html
 name: jvm-runtime-diagnostics
 description: >-
   Diagnose JVM incidents from stack traces, thread dumps, JFR, jcmd output, or memory-pressure evidence.

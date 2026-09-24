@@ -1,4 +1,11 @@
 ---
+metadata:
+  reference:
+    Grafana provisioning:
+      url: https://grafana.com/docs/grafana/latest/administration/provisioning/
+    Grafana:
+      version: 13.2.1
+      url: https://github.com/grafana/grafana/releases/tag/v13.2.1
 name: dashboard-provisioning
 description: >-
   Use for Grafana dashboard provider YAML, folder and source-file mapping, file/UI drift, or dashboard delivery ownership.
@@ -7,12 +14,6 @@ description: >-
 # Dashboard Provisioning
 
 Provision Grafana dashboards as reviewed files instead of relying on long-lived manual UI state.
-
-## Official Baseline
-
-- Use the official Grafana provisioning documentation for the running Grafana line, read on 2026-09-13: [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/).
-- Verified against the Grafana 13.2.1 GitHub release on 2026-09-02.
-- Provider YAML facts here are an authored summary of that documentation, not a verbatim copy.
 
 ## Task Focus
 
@@ -93,7 +94,7 @@ Field meanings: `name` is the provider identifier.
 `updateIntervalSeconds` defaults to `30`.
 `allowUiUpdates` defaults to `false`.
 `options.path` must point at the dashboard JSON directory.
-`options.foldersFromFilesStructure` mirrors one directory level into Grafana folders when no provider-level folder is set.
+`options.foldersFromFilesStructure` mirrors the directory hierarchy under `options.path` into Grafana folders, up to four levels deep, when provider-level `folder` and `folderUid` are unset.
 
 Use when: you need one stable provider file for dashboard JSON already tracked in Git, with all fields explicitly documented.
 
@@ -107,7 +108,7 @@ uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafan
 
 ```
 
-Use when: the provider config was just edited and you need a fast syntax check before treating it as ready for deployment.
+Use when: the provider config was edited and you need a fast syntax check before treating it as ready for deployment.
 Replace the path with your actual provider file location.
 
 ## Dashboard Source File Shape
@@ -117,6 +118,8 @@ Current Grafana accepts classic dashboard wrapper files and Kubernetes resource-
 The ordinary source-control path in this skill uses plain dashboard definitions so the provider YAML owns placement and sync behavior.
 
 Representative source file:
+`"schemaVersion": 41` is an illustrative classic JSON value.
+Preserve or generate the schema version for the target Grafana instance.
 
 ```json
 {
@@ -468,7 +471,7 @@ Return:
 | mixing dashboard authoring guidance into provisioning docs | users lose the distinction between dashboard content and dashboard delivery | keep panel design and visualization authoring out of this skill, and keep file delivery here |
 | enabling `allowUiUpdates` without a clear merge-back workflow | UI edits appear to work and are later overwritten by files | document file-wins behavior and keep Git as the source of truth |
 | using `foldersFromFilesStructure` without unsetting `folder` | Grafana rejects the provider config at startup | ensure `folder` and `folderUid` are absent when `foldersFromFilesStructure: true` |
-| assuming nested directories create nested Grafana folders | only one level of directory-to-folder mapping exists | flatten to single level or use multiple providers |
+| mirroring a directory hierarchy deeper than four levels | nested-folder provisioning supports up to four levels | keep the mirrored hierarchy within that depth |
 | putting environment variables inside dashboard JSON files | substitution only runs in provider YAML config values | parameterize at the provider level, not the dashboard level |
 | provisioning raw exports with no cleanup or review path | drift and noisy diffs accumulate quickly | keep provisioned dashboard files normalized and reviewable |
 

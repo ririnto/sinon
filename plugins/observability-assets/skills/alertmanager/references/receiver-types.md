@@ -107,9 +107,9 @@ receivers:
 | `api_url_file` | string | no | global `slack_api_url_file` | Path to file containing Slack API URL |
 | `app_token` | secret | no | global `slack_app_token` | Slack bot/app token (for chat.postMessage) |
 | `app_token_file` | string | no | global `slack_app_token_file` | Path to file containing app token |
-| `app_url` | URL | no | global `slack_app_url` | Base URL for Slack app API calls |
+| `app_url` | URL | cond.* | global `slack_app_url` | Base URL for Slack app API calls; required with `app_token` |
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
-| `channel` | string | no | -- | Channel override (`#channel` or `@user`) |
+| `channel` | string | cond.* | -- | Channel name or ID; required with `app_token` |
 | `username` | string | no | `'{{ template "slack.default.username" . }}'` | Bot username display name |
 | `color` | string | no | `'{{ template "slack.default.color" . }}'` | Attachment color (sidebar) |
 | `title` | string | no | `'{{ template "slack.default.title" . }}'` | Attachment title |
@@ -169,6 +169,7 @@ receivers:
 - At most one of `app_token` / `app_token_file`.
 - Cannot use both `api_url`/`api_url_file` AND `app_token`/`app_token_file` together.
 - `update_message: true` requires `api_url` set to `https://slack.com/api/chat.postMessage`.
+- If using `app_token`, set `app_url` and `channel` locally or globally.
 - If using `app_token`, `http_config.authorization` cannot be separately set (the token becomes the bearer authorization).
 - Default `send_resolved`: `false`.
 
@@ -470,7 +471,7 @@ receivers:
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
 | `api_key` | secret | cond.* | global `victorops_api_key` | VictorOps API key (inline) |
 | `api_key_file` | string | cond.* | global `victorops_api_key_file` | Path to API key file |
-| `api_url` | URL | yes | global `victorops_api_url` | VictorOps integration API URL |
+| `api_url` | URL | no | `https://alert.victorops.com/integrations/generic/20131114/alert/` | VictorOps integration API URL; overridable by global `victorops_api_url` |
 | `routing_key` | string | yes | -- | Routing key for the VictorOps integration |
 | `message_type` | string | no | `"CRITICAL"` | Incident message type |
 | `state_message` | string | no | `'{{ template "victorops.default.state_message" . }}'` | State message body |
@@ -487,7 +488,6 @@ These keys are reserved and cannot appear in `custom_fields`:
 ### Validation Rules
 
 - `routing_key` is always required.
-- `api_url` is always required.
 - At most one of `api_key` / `api_key_file`.
 - Default `send_resolved`: `true`.
 
@@ -634,7 +634,7 @@ receivers:
   - name: example-sns
     sns_configs:
       - topic_arn: arn:aws:sns:...
-      - sigv4:
+        sigv4:
           region: us-east-1
 
 ```
@@ -667,11 +667,13 @@ AWS Signature V4 authentication configuration:
 | `secret_key` | string | AWS secret access key |
 | `profile` | string | AWS credential profile name |
 | `role_arn` | string | ARN of role to assume |
-| `filename` | string | Path to credentials file |
+| `external_id` | string | External ID for role assumption; requires `role_arn` |
 
 ### Validation Rules
 
 - Exactly one of `topic_arn`, `phone_number`, or `target_arn` must be provided.
+- Set both `access_key` and `secret_key`, or leave both blank to use the AWS environment variables.
+- `external_id` requires `role_arn`.
 - Default `send_resolved`: `true`.
 
 ### Complete Example
@@ -710,7 +712,7 @@ receivers:
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
-| `api_url` | URL | yes | global `telegram_api_url` | Telegram Bot API base URL |
+| `api_url` | URL | no | `https://api.telegram.org` | Telegram Bot API base URL; overridable by global `telegram_api_url` |
 | `bot_token` | secret | cond.* | global `telegram_bot_token` | Bot token (inline) |
 | `bot_token_file` | string | cond.* | global `telegram_bot_token_file` | Path to bot token file |
 | `chat_id` | int64 | cond.* | -- | Target chat ID (integer) |
@@ -798,6 +800,10 @@ receivers:
 ## msteams_configs
 
 Sends notifications to Microsoft Teams via incoming webhook connector (legacy Office 365 Connector format).
+
+Microsoft is deprecating Office 365 connectors.
+Consider Workflows with `msteamsv2_configs` for new integrations.
+Alertmanager still supports `msteams_configs`.
 
 ```yaml
 receivers:
@@ -1255,9 +1261,3 @@ receivers:
         timeout: 30s
 
 ```
-
-## Official documentation
-
-Schemas were verified against the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
-The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`, `docs/configuration.md`).
-The field tables here are a condensed authored summary of that page, not a verbatim copy.

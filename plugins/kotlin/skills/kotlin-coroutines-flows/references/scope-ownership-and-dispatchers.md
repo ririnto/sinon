@@ -62,14 +62,15 @@ fun launchBackgroundRefresh(scope: CoroutineScope) {
 }
 ```
 
-Use `try/catch` around `await()` when the caller owns an `async` result:
+Use `supervisorScope` when the caller handles an expected child failure from `await()`.
+A failed child does not cancel its sibling, and the scope waits for both children to finish:
 
 ```kotlin
 import java.io.IOException
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 
-suspend fun loadDashboardSafely(): DashboardResult = coroutineScope {
+suspend fun loadDashboardSafely(): DashboardResult = supervisorScope {
     val summary = async { summaryService.load() }
     val alerts = async { alertService.load() }
     try {
@@ -82,7 +83,7 @@ suspend fun loadDashboardSafely(): DashboardResult = coroutineScope {
 
 ## Patterns
 
-All children succeed or fail together:
+Use regular `coroutineScope` when a child failure must cancel siblings and propagate to the caller:
 
 ```kotlin
 suspend fun loadDashboard(): Dashboard = coroutineScope {
@@ -125,7 +126,7 @@ class OrderPresenter(private val scope: CoroutineScope) {
 ```
 
 Control parallelism for CPU-bound work without creating extra threads.
-`limitedParallelism(n)` creates a dispatcher view that limits concurrent execution to `n` threads from the parent pool:
+`limitedParallelism(n)` creates a dispatcher view that limits the number of coroutines executing at once, without creating or reserving threads.
 
 ```kotlin
 import kotlinx.coroutines.Dispatchers

@@ -1,4 +1,20 @@
 ---
+metadata:
+  reference:
+    Kotlin:
+      version: 2.4.20
+      url: https://github.com/JetBrains/kotlin/releases/tag/v2.4.20
+    Kotlin EAP documentation:
+      url: https://kotlinlang.org/docs/eap.html
+    Kotlin release notes:
+      - version: 2.2.0
+        url: https://kotlinlang.org/docs/whatsnew22.html
+      - version: 2.3.0
+        url: https://kotlinlang.org/docs/whatsnew23.html
+      - version: 2.4.0
+        url: https://kotlinlang.org/docs/whatsnew24.html
+    Kotlin standard library API:
+      url: https://kotlinlang.org/api/core/kotlin-stdlib/
 name: kotlin-language-patterns
 description: >-
   Design or refactor Kotlin types, null handling, collections, extensions, Java interop, or stdlib boundaries.
@@ -11,11 +27,13 @@ description: >-
 Write idiomatic Kotlin by choosing the smallest language construct or stdlib path that keeps meaning obvious.
 
 Minimum Kotlin version: 2.1 -- examples use `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`.
+The referenced Kotlin 2.4.20 release is an example baseline.
+For a compiler upgrade, check the latest stable Kotlin release and confirm library compatibility before updating the project catalog.
+Exclude EAP builds from the stable-release comparison.
 Newer stdlib surfaces are version-gated and noted where they appear: `kotlin.io.encoding` is stable since Kotlin 2.2, `kotlin.time.Instant` is stable since Kotlin 2.3, and `kotlin.uuid` is stable since Kotlin 2.4.
 On the 2.1 baseline `kotlinx.datetime.Instant` remains the portable choice for a real moment in time.
-Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog.
-Pin versions when adopting features from specific releases.
-Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
+Use the project's managed `kotlinx.serialization` and `kotlinx-datetime` versions when they support the required APIs.
+For new dependencies or required upgrades, check Maven Central for the latest stable Kotlin-compatible version and record it in the project catalog.
 
 ## Operating Rules
 
@@ -40,14 +58,16 @@ Keep the common path focused on null safety, type modeling, extensions, collecti
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.
-- MUST NOT use the implicit `it` lambda parameter; name the parameter with a meaningful role or use a callable reference.
+- MUST NOT use the implicit `it` lambda parameter.
+  Name the parameter with a meaningful role or use a callable reference.
   - This rule never expires for short scopes.
   - The `it` name of a Kotest test-case DSL call, such as `it("calculates total") { }`, is a test name argument, not an implicit lambda parameter.
 - SHOULD use infix functions only when the operation reads naturally at the call site and stays unambiguous without extra context.
 - SHOULD keep class members in a stable scan order so the public shape stays predictable.
 - MUST declare constructor parameters that a container or DI framework supplies non-null and default-free.
   - A missing required value fails registration instead of falling back to a code default or a nullable property.
-  - This rule targets registered classes only; domain and protocol values keep explicit nullable flow.
+  - This rule targets registered classes only.
+    Domain and protocol values keep explicit nullable flow.
 - SHOULD express optional behavior as explicit strategy implementations selected at composition time instead of a nullable or defaulted dependency.
 
 ## Task Context
@@ -109,7 +129,8 @@ fun process(items: List<String>) {
 }
 ```
 
-`assert` calls are stripped when running without `-ea` JVM flag.
+On the JVM, `assert` checks run only when assertions are enabled with `-ea`.
+The compiler does not remove the calls.
 Use `require` and `check` for validations that must always run.
 Use `assert` for internal consistency checks that are safe to skip in production.
 
@@ -171,11 +192,11 @@ Extension dispatch is static.
 The resolved implementation depends on the actual runtime type for members but on the declared compile-time type for extensions:
 
 ```kotlin
-open class Base { open fun greet() = "Base" }
-class Derived : Base() { override fun greet() = "Derived" }
+open class Base { open fun greet(): String = "Base" }
+class Derived : Base() { override fun greet(): String = "Derived" }
 
-fun Base.greetExt() = "Base-ext"
-fun Derived.greetExt() = "Derived-ext"
+fun Base.greetExt(): String = "Base-ext"
+fun Derived.greetExt(): String = "Derived-ext"
 
 val b: Base = Derived()
 b.greet()
@@ -188,15 +209,8 @@ Use extensions for utility surface that does not need runtime polymorphism.
 Extension properties follow the same dispatch rules as extension functions -- static resolution on the declared type:
 
 ```kotlin
-val String.lineCount: Int
-    get() = count { char -> char == '\n' } + 1
-
-val List<Int>.median: Double?
-    get() = if (isEmpty()) {
-        null
-    } else {
-        sorted()[size / 2].toDouble()
-    }
+val GeoPoint.isNorthernHemisphere: Boolean
+    get() = lat >= 0.0
 ```
 
 Use extension properties when the computed value reads as a natural attribute of the receiver type and each access costs no more than the equivalent call would.
@@ -213,13 +227,13 @@ fun activeIds(customers: List<Customer>): List<CustomerId> =
     customers.filter(Customer::active).map(Customer::id)
 ```
 
-Expose read-only collection interfaces from public APIs so callers cannot mutate internal state:
+Expose read-only collection interfaces and return a snapshot when callers must not mutate internal state:
 
 ```kotlin
 class OrderRepository {
     private val mutableOrders = mutableListOf<Order>()
 
-    val orders: List<Order> get() = mutableOrders
+    val orders: List<Order> get() = mutableOrders.toList()
 }
 ```
 
@@ -288,7 +302,6 @@ inline fun <reified T> parseList(raw: String): List<T> =
 val users: List<User> = parseList(rawJson)
 ```
 
-Use `inline fun` sparingly.
 Inlining trades bytecode size for call-site performance and enables reification.
 Prefer regular functions unless you specifically need reified type parameters or have measured a hot-path bottleneck that inlining resolves.
 
@@ -317,7 +330,8 @@ class ConfigLoader {
 ```
 
 `lazy {}` defaults to `LazyThreadSafetyMode.SYNCHRONIZED` (double-checked locking).
-Use `LazyThreadSafetyMode.PUBLICATION` when the initialized value is safe to read before initialization completes and you want concurrent readers without synchronization overhead.
+Use `LazyThreadSafetyMode.PUBLICATION` when concurrent initializer calls are safe.
+Only one completed value is published to all readers.
 Use `LazyThreadSafetyMode.NONE` only when the property is accessed from a single thread:
 
 ```kotlin
@@ -540,7 +554,7 @@ This follows the Kotlin coding-conventions expectation that class contents stay 
 
 Explain the selected Kotlin shape and any material nullability, collection, parsing, or Java-interop consequence.
 For source edits, preserve the operating rules and verify affected behavior with the repository's native checks.
-Do not review unrelated language features merely to complete a checklist.
+Do not review unrelated language features to complete a checklist.
 
 ## Common Pitfalls
 

@@ -101,6 +101,6 @@ Late subscriber sees only the last 2 retained values (`4`, `5`) because `replay(
 ## Guardrails
 
 - Use these patterns when you already have a cold source and want to share it.
-- Do not replace a real manual producer with ConnectableFlux just because the stream should be hot.
+- Do not replace a real manual producer with ConnectableFlux when the stream needs a real manual producer.
 - `refCount(...)` is for lifecycle coupling to subscriber count, not for retained history.
 - `replay(...)` trades memory for late-subscriber history, so pick size or time limits deliberately.

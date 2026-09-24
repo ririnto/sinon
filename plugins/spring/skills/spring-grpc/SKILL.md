@@ -1,4 +1,12 @@
 ---
+metadata:
+  reference:
+    Spring gRPC:
+      version: 1.1.1
+      url: https://docs.spring.io/spring-grpc/reference/
+    Spring Boot:
+      version: 4.1.1
+      url: https://docs.spring.io/spring-boot/reference/
 name: spring-grpc
 description: >-
   Implement or test Spring gRPC services, protobuf stubs, channels, deadlines, interceptors, health checks, and reflection.
@@ -6,7 +14,7 @@ description: >-
 
 # Spring gRPC
 
-The latest stable Spring gRPC line is 1.1.x.
+The examples target Spring gRPC 1.1.x.
 On this line, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
 
 ## Boundaries
@@ -43,7 +51,10 @@ Treat reflection exposure as an explicit deployment decision even though the ser
 
 ## Dependency baseline
 
-Use only the starter set the application actually needs on the stable 1.1.x line.
+Use only the starter set the application actually needs on the compatible Spring gRPC line.
+The `4.1.1` Boot BOM below illustrates the documented Spring gRPC pairing.
+For a new BOM, check `org.springframework.boot:spring-boot-dependencies` on Maven Central for the latest stable release compatible with Spring gRPC.
+Keep the existing Boot BOM or version-catalog pin unless the task authorizes changing it.
 
 ### Stable BOM baseline
 
@@ -53,7 +64,7 @@ Use only the starter set the application actually needs on the stable 1.1.x line
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-dependencies</artifactId>
-            <version>4.1.0</version>
+            <version>4.1.1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -198,7 +209,7 @@ Use manual stub beans only when the client setup needs more control than the imp
 | Caller must overlap many remote calls | future or async stub |
 
 Unary request-response is the ordinary path.
-Open the streaming reference only when the contract or caller model genuinely needs a non-unary RPC style.
+Open the streaming reference only when the contract or caller model needs a non-unary RPC style.
 
 ## Error and boundary decisions
 

@@ -14,7 +14,7 @@ Use `_` for a missing sample and `stale` when the test must model Prometheus sta
 ### Missing Sample (`_`)
 
 A missing sample means the series has no value at that specific timestamp.
-The series still exists for evaluation purposes -- it simply has a gap.
+The series still exists for evaluation purposes -- it has a gap.
 
 ```yaml
 - series: 'up{job="api",instance="api-1"}'
@@ -31,9 +31,8 @@ input_series:
     values: '100 _ 120 140'
 ```
 
-`rate()` and `increase()` interpolate across the gap.
-The gap does not cause the series to disappear from results.
-At sample 4, `rate(http_requests_total[2m])` sees roughly `(140 - 100) / 4m = 10/s`.
+`rate()` and `increase()` calculate from the samples in the selected range and extrapolate to its boundaries.
+A missing sample is not a synthetic sample, and the result depends on sample times, evaluation time, and counter resets.
 
 ### Stale Marker (`stale`)
 
@@ -49,7 +48,9 @@ This sequence marks the series stale at position 5.
 
 Effect on PromQL functions:
 
-After the stale marker, instant queries return no sample for this series, range vectors exclude it, `absent(up{instance="api-1"})` returns a sample, and `count(up)` decreases because the series is gone.
+After the stale marker, instant selectors stop returning the series.
+A range selector can still return earlier samples when they fall within its selected time range.
+`absent()` and `count()` results depend on the expression and evaluation time.
 
 Example testing staleness-dependent alert:
 
@@ -107,36 +108,27 @@ The missing series can produce division by zero or an empty result, so add the d
 
 ## Native Histogram Fixtures
 
-Use native histogram notation only when the rule under test actually depends on histogram-native behavior.
-Do not complicate a basic alert test just because the source metric is histogram-shaped elsewhere.
+Use native histogram notation only when the rule under test depends on histogram-native behavior.
+Do not complicate a basic alert test because the source metric is histogram-shaped elsewhere.
 
 ### Basic Native Histogram Sample
 
 ```yaml
 input_series:
   - series: 'http_request_duration_seconds{job="api"}'
-    values: '{{schema:0 count:10 sum:25.0 buckets:[3 5 2]}} {{schema:0 count:15 sum:40.0 buckets:[5 7 3]}}'
+    values: '{{schema:0 count:10 sum:15.0 buckets:[3 5 2]}} {{schema:0 count:15 sum:25.0 buckets:[5 7 3]}}'
 ```
 
-Schema defines the bucket resolution:
-
-| Schema | Bucket width formula |
-| --- | --- |
-| -4 | 2^-4 = 0.0625 |
-| -3 | 0.125 |
-| -2 | 0.25 |
-| -1 | 0.5 |
-| 0 | 1 |
-| 1 | 2 |
-| 2 | 4 |
-| 3 | 8 |
+Schema defines bucket resolution.
+Adjacent positive bucket boundaries are multiplied by `2^(2^-schema)`.
+Schema 0 has boundaries at powers of two, and each schema `n` has half the resolution of schema `n+1`.
 
 Schema 0 with buckets `[3 5 2]` means:
 
-- Bucket [0, 1): 3 observations
-- Bucket [1, 2): 5 observations
-- Bucket [2, +inf): 2 observations
-- Total count: 10, sum: 25.0
+- Bucket `(0.5, 1]`: 3 observations
+- Bucket `(1, 2]`: 5 observations
+- Bucket `(2, 4]`: 2 observations
+- Total count: 10, sum: 15.0
 
 ### Testing histogram_quantile with Native Histograms
 
@@ -227,7 +219,7 @@ See [`./test-execution-controls.md`](./test-execution-controls.md) for more on `
 ## Review Questions
 
 - Is the edge-case fixture proving a real regression risk?
-- Would a simpler float-series fixture prove the same behavior more clearly?
-- Are stale or missing samples part of the alert contract or just incidental noise?
+- Would a simpler float-series fixture prove the same behavior better?
+- Are stale or missing samples part of the alert contract or incidental noise?
 - Does the fixture have enough samples to cover the latest `eval_time` in every assertion?
 - Is each native histogram bucket count consistent with the declared `count` and `sum`?

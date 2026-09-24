@@ -1,4 +1,18 @@
 ---
+metadata:
+  reference:
+    Project Reactor Core:
+      version: 3.8.7
+      url:
+        - https://projectreactor.io/docs/core/3.8.7/reference/aboutDoc.html
+        - https://projectreactor.io/docs/core/3.8.7/reference/gettingStarted.html
+        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/publisher/SynchronousSink.html
+        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/publisher/Mono.html
+        - https://projectreactor.io/docs/core/3.8.7/reference/debugging.html
+        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/publisher/Flux.html
+    Project Reactor BOM:
+      version: 2025.0.7
+      url: https://repo.maven.apache.org/maven2/io/projectreactor/reactor-bom/2025.0.7/reactor-bom-2025.0.7.pom
 name: reactor-core
 description: >-
   Design or review Reactor Flux/Mono sources, operator composition, empty/error behavior, demand, and Context.
@@ -9,9 +23,10 @@ description: >-
 ## Official Baseline
 
 - Use the official Project Reactor 3.8.x reference guide for this skill.
-  - Verified against `reactor-core` 3.8.6.
-- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
+  - Reviewed against `reactor-core` 3.8.7 and `reactor-bom` 2025.0.7.
+  These versions are documentation baselines, not dependency pins.
+- Before adding or upgrading Reactor dependencies, check `io.projectreactor:reactor-bom` and `io.projectreactor:reactor-core` in Maven Central for the latest stable compatible release.
+  Honor the project's existing platform, BOM, or pins and keep Reactor modules on the same managed release train.
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
 
@@ -91,7 +106,7 @@ Operator order follows the required signal and subscription semantics, not a fix
 | cancellation-aware fan-out (latest-win) | `switchMap(...)` | cancels previous inner on new trigger |
 | Mono-to-Flux flatten | `flatMapMany(...)` or `flatMapIterable(...)` | bridges cardinality change |
 | synchronous reshape | `map(...)` | keeps the chain simple |
-| conditional multi-signal emission | `handle(...)` | emit 0..N values per input element |
+| conditional single-signal emission | `handle(...)` | emit zero or one value per input element |
 | static empty fallback | `defaultIfEmpty(...)` | eagerly replaces empty with one value |
 | dynamic empty fallback | `switchIfEmpty(...)` | lazily switches to another publisher on empty |
 | error fallback | `onErrorResume(...)` | chooses a replacement publisher |
@@ -224,26 +239,24 @@ final class PollingService {
 Combine with `take(n)` or `repeatUntil(...)`.
 When using `repeatWhen(...)`, its companion must include a terminating bound or predicate.
 
-### `handle` for conditional multi-signal emission
+### `handle` for conditional single-signal emission
 
 ```java
 import reactor.core.publisher.Flux;
 final class ConditionalEmission {
-    Flux<Integer> expand(Flux<Integer> source) {
+    Flux<Integer> positive(Flux<Integer> source) {
         return source.handle((value, sink) -> {
             if (value > 0) {
                 sink.next(value);
-                if (value % 2 == 0) {
-                    sink.next(value * 10);
-                }
             }
         });
     }
 }
 ```
 
-`handle` allows emitting 0, 1, or N values per input element without nesting publishers.
+The `handle` callback may emit zero or one value per input element.
 Values less than or equal to zero are silently filtered (no signal emitted).
+Use `flatMapIterable(...)` or `flatMap(...)` when one input must produce multiple values.
 
 ### `flatMapMany` for Mono-to-Flux cardinality change
 

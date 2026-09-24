@@ -1,4 +1,18 @@
 ---
+metadata:
+  reference:
+    Grafana release:
+      version: Grafana 13.2.1
+      url: https://github.com/grafana/grafana/releases/tag/v13.2.1
+    Grafana releases:
+      url: https://github.com/grafana/grafana/releases
+    Grafana variable docs:
+      version: Grafana 13.2.1
+      url:
+        - https://grafana.com/docs/grafana/v13.2/dashboards/variables/variable-syntax/
+        - https://grafana.com/docs/grafana/v13.2/datasources/prometheus/template-variables/
+    Grafonnet:
+      url: https://github.com/grafana/grafonnet
 name: grafana-dashboards
 description: >-
   Use for Grafana dashboard JSON, panel and query configuration, variables, field settings, stable identity, or Jsonnet and mixin generation.
@@ -10,10 +24,10 @@ Author and review Grafana dashboards as version-controlled assets while keeping 
 
 ## Official Baseline
 
-- Use the current Grafana stable line for new classic dashboard JSON.
-  - Verified against the Grafana 13.2.1 GitHub release on 2026-09-02.
+- For new Grafana installations, check the official Grafana releases for the latest stable version compatible with the target deployment.
+  Preserve the target instance's version and dashboard model when editing existing assets.
 - The classic dashboard JSON model (`schemaVersion`, `panels`, `templating`) and the Grafana 13 V2 Resource model differ; check the target instance before copying examples.
-- Schema details in the references are authored summaries of the official documentation at [grafana.com/docs](https://grafana.com/docs/), not verbatim copies.
+- Schema details in the references are authored summaries, not verbatim copies.
 
 Select the supporting reference for the affected dashboard fields or generation path from References below.
 
@@ -303,7 +317,7 @@ Review the affected dashboard fields with these checks:
 
 - dashboard JSON is syntactically valid
 - the dashboard has a stable `uid` and explicit title
-- the dashboard structure and panel arrangement answer one operator question clearly
+- the dashboard structure and panel arrangement answer one operator question
 - query expressions and datasource references are deliberate rather than copied from a random export
 - variables and repeated panels are present only when they improve the normal read path
 - transformations, field config, units, thresholds, and legends improve readability instead of hiding query problems
@@ -313,7 +327,7 @@ Review the affected dashboard fields with these checks:
 - variable types match the data source (query for dynamic lists, custom for static enums)
 - overrides target the correct fields with appropriate matchers
 - value mappings handle edge cases (null, NaN, empty) explicitly
-- JSON model ownership is explicit: either the dashboard JSON is reviewed directly, or a generated workflow is clearly documented
+- JSON model ownership is explicit: either the dashboard JSON is reviewed directly, or a generated workflow is documented
 
 Run the existing JSON or renderer checks for the changed source.
 Use available query or rendering evidence when panel behavior changes, and state what remains unverified.
@@ -359,7 +373,7 @@ Return:
 | --- | --- | --- |
 | copying a UI export with unstable metadata and no cleanup | reviews become noisy and identity drifts | normalize the JSON and keep a stable `uid`, title, and panel structure |
 | setting the default dashboard range broader than 30 minutes with no operator reason | live queries scan far more data than the common path needs | start with `now-30m` and widen only when the investigation needs more history |
-| treating generated or exported dashboard JSON as authoritative without checking the source workflow behind it | reviewers lose track of where the asset really comes from | keep direct JSON and mixin-generated workflows explicit and review the right source of truth |
+| treating generated or exported dashboard JSON as authoritative without checking the source workflow behind it | reviewers lose track of the asset source | keep direct JSON and mixin-generated workflows explicit and review the right source of truth |
 | mixing unrelated panels into one dashboard | operators cannot read the story quickly | group panels by one question such as traffic, latency, and errors |
 | leaving datasource references implicit or environment-specific without review | dashboards break when moved between environments | make datasource references explicit in the dashboard asset itself |
 | using timeseries panels for everything regardless of the question | single values look wrong on line charts, categorical data looks wrong on time axes | pick the panel type that matches the data shape and operator question |

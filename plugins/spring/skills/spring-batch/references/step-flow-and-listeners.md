@@ -18,7 +18,7 @@ If the step loops over many records, it probably belongs in chunk processing ins
 
 ## Flow branching blocker
 
-Keep jobs linear unless runtime branching is genuinely required.
+Keep jobs linear unless runtime branching is required.
 
 ```java
 @Bean

@@ -41,8 +41,3 @@ RegisteredClient mtlsClient = RegisteredClient.withId(UUID.randomUUID().toString
 For self-signed MTLS clients, use `ClientAuthenticationMethod.SELF_SIGNED_TLS_CLIENT_AUTH` and register the client JWK Set instead of a subject-DN matcher.
 
 The resulting JWT access token uses the certificate thumbprint confirmation claim (`cnf.x5t#S256`).
-
-## Official documentation
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

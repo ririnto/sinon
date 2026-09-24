@@ -63,4 +63,4 @@ server.onDispose().block();
 
 - keep insecure trust managers out of normal examples
 - use `.secure(...)` as the Reactor Netty entrypoint rather than low-level pipeline wiring
-- keep certificate and trust material management outside the common path until TLS is actually needed
+- keep certificate and trust material management outside the common path until TLS is needed

@@ -2,7 +2,7 @@
 
 Open this reference when the ordinary mutual-TLS password-read path is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
 
-The current stable Spring CredHub line is 4.0.x, and the official reference documents both mutual TLS and OAuth2 client-auth paths.
+These examples target Spring CredHub 4.0.x, whose reference documents mutual TLS and OAuth2 client authentication.
 
 ## Mutual TLS versus OAuth2
 
@@ -19,6 +19,8 @@ It binds only `spring.credhub.url`, `spring.credhub.oauth2.registration-id`, and
 
 For CA trust (validating the CredHub server certificate), use the `ca-cert-files` property.
 Add `org.apache.httpcomponents.client5:httpclient5` when the application relies on this property.
+Use the project's managed version or check Maven Central for the latest stable release compatible with its Spring Boot line.
+Keep any existing pin unless the task authorizes changing it.
 The starter does not include it, and the JDK request-factory fallback does not install custom CA trust.
 
 The ordinary URL and CA-file property shape provides the baseline for the request-factory and authentication variants covered here.

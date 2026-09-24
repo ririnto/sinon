@@ -1,4 +1,13 @@
 ---
+metadata:
+  reference:
+    JUnit:
+      version: 5.14.4
+      url: https://docs.junit.org/5.14.4/user-guide/
+    Mockito:
+      url: https://site.mockito.org/
+    Awaitility:
+      url: https://github.com/awaitility/awaitility/wiki/Usage
 name: java-test
 description: >-
   Write or fix Java tests, choose test scope, and configure JUnit execution in Maven or Gradle.

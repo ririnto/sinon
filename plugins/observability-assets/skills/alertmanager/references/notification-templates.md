@@ -296,9 +296,4 @@ Building structured data with `dict` for template reuse:
 - does it rely on labels or annotations that upstream alerts always provide
 - would the same information be clearer as a stable alert annotation instead
 - does it handle empty collections gracefully (e.g., zero firing alerts)
-- does it use `safeHtml` only where the target receiver actually renders HTML
-
-## Official documentation
-
-Template functions and examples were verified against the official Alertmanager documentation for release 0.34.0, read on 2026-09-13: [Notification template reference](https://prometheus.io/docs/alerting/latest/notifications/) and [Examples](https://prometheus.io/docs/alerting/latest/notification_examples/).
-The source repository content is Apache License 2.0 (`prometheus/alertmanager` tag `v0.34.0`).
+- does it use `safeHtml` only where the target receiver renders HTML

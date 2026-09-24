@@ -1,4 +1,14 @@
 ---
+metadata:
+  reference:
+    Prometheus:
+      version: 3.14.0
+      license: Apache-2.0
+      url:
+        - https://prometheus.io/docs/prometheus/3.14/configuration/recording_rules/
+        - https://prometheus.io/docs/prometheus/3.14/configuration/alerting_rules/
+    Prometheus releases:
+      url: https://github.com/prometheus/prometheus/releases
 name: prometheus-alert-rules
 description: >-
   Use for Prometheus alert and recording rules, firing timers, routing labels, annotations, and promtool check rules validation.
@@ -7,11 +17,6 @@ description: >-
 # Prometheus Alert Rules
 
 Design and review Prometheus alert and recording rules around real operator symptoms, validate them with `promtool`, and keep rule definitions stable in version-controlled files.
-
-## Official Baseline
-
-- Use the official Prometheus rule and alerting documentation for release 3.14.0, read on 2026-09-13: [Recording rules](https://prometheus.io/docs/prometheus/3.14/configuration/recording_rules/) and [Alerting rules](https://prometheus.io/docs/prometheus/3.14/configuration/alerting_rules/).
-- Verified against the `prometheus/prometheus` tag `v3.14.0` (Apache License 2.0).
 
 ## Task Focus
 
@@ -55,10 +60,16 @@ Each rule is either an `alert:` rule or a `record:` rule, and every rule require
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | string | yes | -- | Unique identifier for this group. Used in logs and UI. |
+| `name` | string | yes | -- | Group name. Must be unique within the rules file. |
 | `interval` | duration | no | global `evaluation_interval` | How often this group's rules are evaluated. |
-| `limit` | integer | no | -- | Maximum number of rules allowed in this group. Exceeding it produces a load error. |
+| `limit` | integer | no | `0` (unlimited) | Maximum output series or alerts from each rule. A breach discards that rule's output and records an evaluation error. |
+| `query_offset` | duration | no | global `rule_query_offset` | Evaluate the group's rules using data from this far in the past. |
+| `labels` | map | no | `{}` | Labels added to every rule's output. Rule-level labels override group labels with the same name. |
 | `rules` | list | yes | -- | List of alert or recording rules in this group. |
+
+A rule's output is limited independently of other rules in the group.
+If the limit is exceeded, Prometheus discards all output from that rule and records an evaluation error.
+For an alerting rule, the limit breach also clears its active, pending, and inactive alert state.
 
 Group naming convention:
 
@@ -77,11 +88,11 @@ groups:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `alert` | string | yes | -- | Alert identifier. Must be unique across all loaded rules files. |
-| `expr` | PromQL | yes | -- | Boolean expression. When true, the alert activates. |
+| `alert` | string | yes | -- | Alert name, stored as the `alertname` label. Names need not be unique across rules. |
+| `expr` | PromQL | yes | -- | PromQL expression returning an instant vector. Each returned series creates an alert instance; an empty vector means no active instance. |
 | `for` | duration | no | `0s` | Time the expression must hold true before transitioning from pending to firing. |
 | `keep_firing_for` | duration | no | `0s` | Time to keep firing after the expression becomes false. Use it only after confirming the deployed Prometheus version supports it. |
-| `labels` | map | no | `{}` | Extra labels attached to the firing alert. Merged with `$labels` from the expression result. |
+| `labels` | map | no | `{}` | Labels attached to the firing alert. Rule labels override matching labels from the expression result or group. |
 | `annotations` | map | no | `{}` | Human-readable text attached to each firing alert instance. Supports Go templating. |
 
 Complete alert rule example:
@@ -241,8 +252,9 @@ Template rules:
 
 Prometheus rules belong in a file loaded by the server or rule-evaluation stack, and `promtool` should run against the exact file shape that will ship.
 
-`promtool` must already be installed and available in `PATH` before you treat a rule edit as ready.
-If it is unavailable, stop at a blocked validation state instead of claiming the rule is ready.
+Use the deployment's `promtool` when available.
+Before obtaining a new binary, check the official Prometheus releases for the latest stable version compatible with the target server and rule features.
+If `promtool` is unavailable, report validation as blocked instead of claiming the rule is ready.
 
 Minimal alerting file:
 
@@ -319,10 +331,10 @@ rules/api-latency.rules.yaml FAILED: parsing YAML file rules/api-latency.rules.y
 
 ```
 
-Duplicate alert name across files:
+Runtime alert evaluation error (not reported by `promtool check rules`):
 
 ```text
-rules/api-latency.rules.yaml FAILED: alert "ApiP95LatencyAbove750ms" is defined twice
+vector contains metrics with the same labelset after applying alert labels
 
 ```
 
@@ -520,7 +532,7 @@ Return:
 | writing only the alert and never validating it | syntax and behavior drift are caught too late | run `promtool check rules` immediately and add tests when the rule matters |
 | alerting on a low-level cause with no user-facing impact | operators get pages with weak actionability | page on the symptom and keep lower-level metrics as supporting signals |
 | putting template variables in `runbook_url` or other link annotations | broken links when template data contains URL-unsafe characters | keep link-like annotations as literal trusted strings |
-| duplicate `alert:` names across rule files | Prometheus rejects the config on load | ensure each alert name is globally unique across all loaded rule files |
+| one alert rule produces duplicate output label sets after adding alert labels | Prometheus cannot identify separate alert instances with identical labels | preserve a unique label set for every series produced by the rule |
 | setting `for: 0s` explicitly instead of omitting it | signals intent to fire immediately, which is almost never what you want | either omit `for` entirely or set a meaningful duration based on the symptom's natural timescale |
 
 ## Scope Boundaries

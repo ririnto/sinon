@@ -45,6 +45,9 @@ Add TLS before application handlers so downstream handlers receive decrypted tra
 
 ## OPENSSL provider (production Linux)
 
+Use the project's managed `netty-tcnative` version when present.
+Otherwise, check `io.netty:netty-tcnative-boringssl-static` in Maven Central for the latest stable release compatible with the project's Netty version and target platform before setting `${netty.tcnative.version}`.
+
 ```xml
 <dependency>
     <groupId>io.netty</groupId>

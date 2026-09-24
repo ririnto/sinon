@@ -36,6 +36,8 @@ jhsdb <subcommand> --exe "$JAVA_HOME/bin/java" --core /path/to/private-diagnosti
 
 Remote SA debug server:
 
+JDK 25 deprecates the `debugd` subcommand and `--connect` option and plans to remove them in a future release.
+
 ```sh
 jhsdb debugd --pid <pid>
 jhsdb <subcommand> --connect host

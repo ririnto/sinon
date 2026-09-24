@@ -1,4 +1,9 @@
 ---
+metadata:
+  reference:
+    Spring Framework:
+      version: 7.0.9
+      url: https://docs.spring.io/spring-framework/reference/index.html
 name: spring-web
 description: >-
   Implement or test Spring MVC/WebFlux endpoints, HTTP clients, codecs, error responses, and API versioning.
@@ -25,7 +30,10 @@ A servlet application can use `WebClient` as an outbound client without adopting
 
 ## Dependency baseline
 
-Pin the current Spring Framework BOM once and keep child modules versionless.
+Use one Spring Framework BOM and keep child modules versionless.
+The `7.0.9` BOM below illustrates the documented Framework baseline.
+For a new BOM, check `org.springframework:spring-framework-bom` on Maven Central for the latest stable release compatible with the project's Boot line.
+Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
 ```xml
 <dependencyManagement>
@@ -33,7 +41,7 @@ Pin the current Spring Framework BOM once and keep child modules versionless.
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
-            <version>7.0.8</version>
+            <version>7.0.9</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

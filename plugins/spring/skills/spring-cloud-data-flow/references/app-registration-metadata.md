@@ -5,6 +5,9 @@ Open this reference when the blocker is versioned coordinates, bulk import, meta
 ## Registration blocker
 
 Keep app registration coordinates explicit and versioned.
+The `3.2.1` coordinates below illustrate one catalog snapshot.
+For new registrations, check each artifact on Maven Central for the latest stable release compatible with the SCDF server and project catalog.
+Keep an existing registration pin unless the task authorizes changing it.
 
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
@@ -25,7 +28,7 @@ dataflow:>app import --uri file:///opt/scdf/apps-rabbitmq.properties
 
 Treat imported catalogs as versioned operational inputs, not as hidden defaults.
 
-The current official `rabbitmq-maven-latest` catalog resolves these RabbitMQ stream apps to `3.2.1`, so keep the common-path examples aligned with that curated catalog unless the task explicitly chooses a different app release line.
+If the deployment owns a curated `rabbitmq-maven-latest` catalog, confirm its coordinates before importing it.
 
 ## Metadata blocker
 

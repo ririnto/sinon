@@ -1,105 +1,95 @@
 ---
 description: >-
-  Open this when writing tests for coroutine or Flow code, controlling virtual time, verifying emissions, or testing cancellation behavior.
+  Open this when testing suspend functions, Flow emissions, cancellation, or virtual time.
 ---
 
 # Testing Coroutines and Flows
 
-Open this when the task is testing coroutine or Flow code.
+This reference is a bridge from coroutine design to the `kotest` skill's test guidance.
+Kotest test bodies are suspending.
+Ordinary suspend calls and bounded Flow collection need no coroutine-test wrapper.
+Enable Kotest `coroutineTestScope` only when test-dispatcher control or virtual time is essential.
 
-This reference is a minimal bridge for coroutine-design work.
-For full Kotlin test structure, dependency setup, Turbine usage, and JUnit/Kotest choices, use the `kotlin-test` skill's ordinary path.
-
-## Rules
-
-- use `runTest` from `kotlinx.coroutines.test` as the standard test entry point
-- prefer `StandardTestDispatcher` for time-controlled tests
-- use `UnconfinedTestDispatcher` only for synchronous execution without time control
-- start the delayed work, advance virtual time, then call `runCurrent()` or `advanceUntilIdle()` to run tasks scheduled at the new virtual time
-- verify Flow emissions with bounded collection (`first()`, `take(n).toList()`, or Turbine)
-- test cancellation by launching in a `TestScope`, cancelling, and verifying cleanup
-
-## Patterns
-
-Basic suspend function test:
+## Test a suspend result
 
 ```kotlin
-import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-@Test
-fun loadOrderReturnsData() = runTest {
-    val loader = OrderLoader(FakeOrderRepository())
-    val order = loader.load(OrderId("123"))
-    assertEquals("123", order.id.value)
-}
+class OrderLoaderTest : FunSpec({
+    test("returns the loaded order") {
+        OrderLoader(FakeOrderRepository()).load(OrderId("123")).id.value shouldBe "123"
+    }
+})
 ```
 
-Time-controlled test -- start the delayed work, advance time, then run tasks scheduled at the target time:
+## Control virtual time
+
+Kotest's `coroutineTestScope` provides a test dispatcher and scheduler through the framework.
+`kotlinx-coroutines-test` implements that scheduler.
+Add it to `testImplementation` when calling scheduler methods because Kotest does not expose its internal dependency on the consumer's compile classpath.
 
 ```kotlin
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.async
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
-@Test
-fun timeoutEmitsFallback() = runTest {
-    val result = async { slowRepository.loadWithTimeout(OrderId("1")) }
-    advanceTimeBy(5_000)
-    runCurrent()
-    assertEquals(Fallback, result.await())
-}
+class TimeoutTest : FunSpec({
+    test("returns fallback after timeout").config(coroutineTestScope = true) {
+        val result = async { slowRepository.loadWithTimeout(OrderId("1")) }
+        testCoroutineScheduler.advanceTimeBy(5_000)
+        testCoroutineScheduler.runCurrent()
+        result.await() shouldBe Fallback
+    }
+})
 ```
 
-Testing a StateFlow:
+## Bound Flow collection
 
 ```kotlin
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
-@Test
-fun stateFlowEmitsInitialThenUpdated() = runTest {
-    val viewModel = OrderViewModel(repository)
-    assertEquals(UiState.Loading, viewModel.uiState.first())
-    viewModel.load(OrderId("1"))
-    assertEquals(UiState.Data(order), viewModel.uiState.first())
-}
+class StateFlowTest : FunSpec({
+    test("replays the latest state") {
+        val state = MutableStateFlow<UiState>(UiState.Loading)
+        state.first() shouldBe UiState.Loading
+        state.value = UiState.Data(order)
+        state.first() shouldBe UiState.Data(order)
+    }
+})
 ```
 
-Testing cancellation triggers cleanup:
+If an intermediate `StateFlow` value must be observed, start collection before changing the state.
+Use `take(n).toList()` or Turbine for a bounded sequence.
+
+## Verify cancellation cleanup
+
+Use `coroutineScope` for a child job when no virtual scheduler is needed.
+The child must start before cancellation so its `finally` block can run.
 
 ```kotlin
-import kotlinx.coroutines.Job
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeTrue
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
-import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
 
-@Test
-fun cancellationRunsCleanup() {
-    val resource = TrackingResource()
-    val scope = TestScope()
-    val job: Job = scope.launch { resource.use(TrackingResource::longOperation) }
-    scope.runCurrent()
-    job.cancel()
-    scope.advanceUntilIdle()
-    assertTrue(resource.wasClosed)
-}
+class CleanupTest : FunSpec({
+    test("closes a cancelled resource") {
+        coroutineScope {
+            val resource = TrackingResource()
+            val job = launch(start = CoroutineStart.UNDISPATCHED) { resource.longOperation() }
+            job.cancel()
+            job.join()
+            resource.wasClosed.shouldBeTrue()
+        }
+    }
+})
 ```
 
-## Pitfalls
-
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| using `runBlocking` in tests | does not support time control or test dispatchers | use `runTest` |
-| assuming `launch` inside `runTest` executes synchronously | StandardTestDispatcher schedules, does not run immediately | use `advanceUntilIdle()` or `UnconfinedTestDispatcher` |
-| not advancing time for delayed assertions | timeouts and delays never resolve | call `advanceTimeBy()` or `advanceUntilIdle()` |
-| testing Flow with `collect` directly in test body | may hang if the flow is infinite or cold | use `first()`, `take(n).toList()`, or Turbine |
+Avoid `runBlocking` when the Kotest body already suspends.
+Do not collect an unbounded Flow in a test body.

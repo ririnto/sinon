@@ -1,4 +1,27 @@
 ---
+metadata:
+  reference:
+    Alertmanager:
+      - version: v0.34.1
+        license: Apache-2.0
+        url:
+          - https://github.com/prometheus/alertmanager/blob/v0.34.1/docs/configuration.md
+          - https://github.com/prometheus/alertmanager/blob/v0.34.1/tracing/config.go
+      - version: v0.34.0
+        license: Apache-2.0
+        url:
+          - https://github.com/prometheus/alertmanager/blob/v0.34.0/docs/configuration.md
+          - https://github.com/prometheus/alertmanager/blob/v0.34.0/docs/notifications.md
+          - https://github.com/prometheus/alertmanager/blob/v0.34.0/docs/notification_examples.md
+          - https://github.com/prometheus/alertmanager/blob/v0.34.0/LICENSE
+    Alertmanager releases:
+      url: https://github.com/prometheus/alertmanager/releases
+    Alertmanager configuration:
+      url: https://prometheus.io/docs/alerting/latest/configuration/
+    Alertmanager notifications:
+      url:
+        - https://prometheus.io/docs/alerting/latest/notifications/
+        - https://prometheus.io/docs/alerting/latest/notification_examples/
 name: alertmanager
 description: >-
   Use for Alertmanager configuration: route trees, receivers, grouping timers, inhibition, mute schedules, and notification templates.
@@ -6,14 +29,12 @@ description: >-
 
 # Alertmanager
 
-Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications.
+Author and review Alertmanager configuration that routes alerts by recipient, groups them by label, and avoids noisy or misleading notifications.
 
-## Official Baseline
+## Matcher Compatibility
 
-- Use the official Alertmanager configuration documentation for release 0.34.0, read on 2026-09-13: [Configuration](https://prometheus.io/docs/alerting/latest/configuration/).
-  - Verified against the `prometheus/alertmanager` tag `v0.34.0` (Apache License 2.0).
 - Use modern Alertmanager matcher syntax as the common path: prefer the `matchers:` array form for routes and inhibition rules.
-- Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes.
+- Alertmanager supports fallback, UTF-8 strict, and classic matcher-parser modes.
   Write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.
 
 ## Task Focus
@@ -21,7 +42,7 @@ Author and review Alertmanager configuration that routes alerts clearly, groups 
 - Inspect the affected config and upstream alert labels against the intended recipients and grouping behavior.
 - Preserve a safe root receiver and add branches only for real label, severity, ownership, or environment differences.
 - Adjust `group_wait`, `group_interval`, and `repeat_interval` only where the routing task needs different notification timing.
-- Keep receiver mappings explicit and match labels that upstream alerts actually emit.
+- Keep receiver mappings explicit and match labels that upstream alerts emit.
 - Add inhibition or mute windows only to remove known noise without suppressing the primary symptom.
   Keep inhibition in top-level `inhibit_rules` and attach mute windows only to the affected routes.
 
@@ -53,14 +74,15 @@ Use when: you need one readable Alertmanager baseline with a default receiver an
 
 ## First Runnable Commands or Code Shape
 
-Start by validating the configuration file that will actually ship:
+Start by validating the configuration file that will ship:
 
 ```sh
 amtool check-config alertmanager.yml
 ```
 
-Use when: the config was just edited, `amtool` is available in `PATH`, and you need the first safe syntax and schema check.
-If `amtool` is unavailable, stop at a blocked validation state instead of claiming the config is ready.
+Use this check after editing the config, with the deployment's `amtool` when available.
+Before obtaining a new binary, check the official Alertmanager releases for the latest stable version compatible with the target server and config schema.
+If `amtool` is unavailable, report validation as blocked instead of claiming the config is ready.
 
 ## Route Tree
 
@@ -88,6 +110,7 @@ The root route MUST satisfy these constraints (enforced by config validation):
 | `matchers` | list of string | -- | Modern matcher expressions (e.g., `severity="page"`) |
 | `continue` | bool | false | If true, continue matching child routes after this route matches |
 | `routes` | list of route | -- | Child routes evaluated in order after parent matches |
+| `labels` | map[string]string | -- | Template labels merged from parent to child; child values override parent values and do not change alert grouping. |
 | `mute_time_intervals` | list of string | -- | Named time intervals during which this route is muted |
 | `active_time_intervals` | list of string | -- | Named time intervals during which this route is active |
 
@@ -296,7 +319,7 @@ receivers:
 {{ end }}
 ```
 
-Keep the template file on disk at the path matched by `templates:` so Alertmanager can actually load it, and wire it through a receiver field that actually supports templated strings.
+Keep the template file on disk at the path matched by `templates:` so Alertmanager can load it, and wire it through a receiver field that supports templated strings.
 
 ## Ready-to-Adapt Templates
 
@@ -375,12 +398,12 @@ Review the changed config and its affected routes with these checks:
 
 - the root route has a deliberate default receiver
 - the root route has no matchers, no mute_time_intervals, no active_time_intervals, and no `continue: true`
-- every child route matches on labels that the upstream alert rules really emit
+- every child route matches on labels that the upstream alert rules emit
 - grouping timers batch related alerts without muting urgent signal
 - receiver names are explicit, unique, and connected to the intended routes
 - inhibition or mute logic removes known noise rather than hiding the primary symptom
 - any mute interval or active interval used by a route is defined in the same config
-- notification templates use labels and annotations that upstream alerts actually provide
+- notification templates use labels and annotations that upstream alerts provide
 - `*_file` fields reference files that exist and are readable by the Alertmanager process
 - paired credential fields (e.g., `token` vs `token_file`) do not both contain values
 - `amtool check-config` passes on the shipped config file
@@ -417,7 +440,7 @@ Return:
 - MUST make matcher and receiver relationships explicit.
 - MUST use `matchers` (modern syntax) over deprecated `match`/`match_re`.
 - MUST ensure receiver names are unique across the entire config.
-- SHOULD keep route trees shallow unless a deeper split is clearly justified.
+- SHOULD keep route trees shallow unless a deeper split is justified.
 - SHOULD use inhibition and mute windows to remove noise, not to hide the primary alert.
 - SHOULD keep grouping timers deliberate and reviewable.
 

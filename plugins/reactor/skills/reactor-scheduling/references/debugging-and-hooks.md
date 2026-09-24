@@ -62,7 +62,7 @@ final class ThreadLoggingExample {
 }
 ```
 
-Use this pattern to verify that `publishOn(...)` actually switches threads at the expected point.
+Use this pattern to verify that `publishOn(...)` switches threads at the expected point.
 The before/after pair shows whether the scheduler hop occurred.
 
 ## `ReactorDebugAgent` for lower-overhead instrumentation

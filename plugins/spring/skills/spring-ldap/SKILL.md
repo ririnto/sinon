@@ -1,4 +1,9 @@
 ---
+metadata:
+  reference:
+    Spring LDAP:
+      version: 4.1.1
+      url: https://docs.spring.io/spring-ldap/reference/
 name: spring-ldap
 description: >-
   Implement or troubleshoot Spring LDAP queries, DN handling, ODM mapping, repositories, authentication checks, and embedded LDAP tests.
@@ -6,7 +11,7 @@ description: >-
 
 # Spring LDAP
 
-The latest released Spring LDAP line is 4.1.x.
+The direct-dependency examples target Spring LDAP 4.1.x.
 That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line.
 Keep the direct 4.1.x path in this skill only when the project baseline already matches the 4.x generation.
 If the job needs `LdapRepository`, use the matching Spring Data LDAP 4.1.x and Spring LDAP 4.1.x lines.
@@ -51,6 +56,9 @@ Prefer one mapping style per aggregate unless the schema forces a mixed approach
 ## Dependency baseline
 
 Use direct Spring LDAP artifacts for the ordinary 4.1.x path.
+The `4.1.1` versions below illustrate the documented direct-dependency pairing.
+For new direct dependencies, check `org.springframework.ldap:spring-ldap-core` and `org.springframework.data:spring-data-ldap` on Maven Central for stable releases compatible with the project's Boot and Framework lines.
+Keep existing BOM or version-catalog pins unless the task authorizes changing them.
 Treat Spring Boot starter wiring as a parallel Boot-managed path only when the project is already on the matching Boot generation.
 
 ### Runtime baseline
@@ -60,7 +68,7 @@ Treat Spring Boot starter wiring as a parallel Boot-managed path only when the p
     <dependency>
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
     </dependency>
 </dependencies>
 ```
@@ -72,12 +80,12 @@ Treat Spring Boot starter wiring as a parallel Boot-managed path only when the p
     <dependency>
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-ldap</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
     </dependency>
 </dependencies>
 ```

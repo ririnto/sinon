@@ -23,13 +23,14 @@ Open this reference when the task involves:
 <dependency>
     <groupId>org.springframework.ai</groupId>
     <artifactId>spring-ai-bom</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <type>pom</type>
     <scope>import</scope>
 </dependency>
 ```
 
-Replace `2.0.0` with the target Spring AI version during the upgrade and review starter availability before merging.
+Check Maven Central for the latest stable release compatible with the project's Boot line.
+Use the project's existing BOM or version-catalog pin unless the upgrade authorizes changing it, and review starter availability before merging.
 
 ## Upgrading to 2.0.0
 

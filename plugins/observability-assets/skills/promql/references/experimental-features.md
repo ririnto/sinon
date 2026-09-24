@@ -15,9 +15,10 @@ Use this reference when the query requires a function or operator that is gated 
 | | Current examples include `double_exponential_smoothing`, `end`, `first_over_time`, and `histogram_quantiles`. |
 | | They also include `info`, `limit_ratio`, `limitk`, `mad_over_time`, `range`, `start`, and `step`. |
 | | Label sort and timestamp helper functions are also gated by this flag. |
+| | The `step()`, `range()`, `min_of()`, and `max_of()` duration functions also require this flag. |
 | `--enable-feature=promql-binop-fill-modifiers` | Enables `fill()`, `fill_left()`, `fill_right()` modifiers for binary operations |
-| `--enable-feature=promql-duration-expr` | Enables arithmetic duration expressions in range queries and offset durations. |
-| | Also enables the `step()`, `range()`, `min_of()`, and `max_of()` duration functions. |
+
+Duration expressions are enabled by default and do not require a feature flag.
 
 ## Experimental Functions Summary
 
@@ -95,13 +96,9 @@ Constraints:
 - `info()`: Explicitly documented as an experiment whose behavior may change, including removal.
   - The current limitation (only `target_info`, fixed identifying labels `instance`+`job`) is acknowledged as partially defeating the purpose.
 - `parse_query` endpoint: Documented as experimental, intended for Prometheus web UI use only.
-  - Endpoint name and format may change between versions.
 - `query_exemplars` endpoint: Experimental.
-  Format may change.
-- `targets/relabel_steps` endpoint: Experimental.
-  Intended for UI use only.
+- `targets/relabel_steps` endpoint: Experimental and intended for UI use only.
 - `targets/metadata` endpoint: Experimental.
-  May change.
-- All experimental functions require their respective feature flags and may change behavior or be removed in future releases.
+- Check the target Prometheus version and enable the required feature flag before using an experimental function.
 
 Use this reference only when you need to determine whether a function is stable, which flag enables it, or what caveats apply to experimental features.

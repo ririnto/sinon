@@ -40,9 +40,4 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 - Do not customize only one half of the device flow and ignore the other endpoint.
 - Do not forget to test polling, user-code verification, and one rejected device flow path.
 
-## Official documentation
-
 The default endpoint paths match the Spring Authorization Server `1.5.8` endpoint filters.
-
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

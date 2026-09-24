@@ -130,9 +130,3 @@ RegisteredClient restrictedClient = RegisteredClient.withId(UUID.randomUUID().to
     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(5)).build())
     .build();
 ```
-
-## Official references
-
-- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
-- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

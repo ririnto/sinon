@@ -184,12 +184,11 @@ config + {
 Reuse the existing Jsonnet setup without initializing another dependency tree.
 When an external dependency is authorized, use `jb init` only if the tree has no jsonnet-bundler manifest.
 Run `jb install` so jsonnet-bundler owns manifest and lock updates.
-Install Grafonnet only when the source imports Grafonnet:
-
-```sh
-jb install github.com/grafana/grafonnet/gen/grafonnet-latest@main
-```
-
+Install Grafonnet only when the source imports Grafonnet.
+Check the official Grafonnet repository for a stable compatible release tag at use time.
+If none exists, choose a reviewed commit instead of tracking the moving `main` branch.
+Keep the project's existing locked revision unless an update is authorized.
+For a new install, append `@` and the reviewed tag or commit to `github.com/grafana/grafonnet/gen/grafonnet-latest`, then pass that spec to `jb install`.
 Do not hand-maintain dependency lock data when jsonnet-bundler already owns it.
 
 Minimal render step: render mixin or Jsonnet source into a reviewed dashboard asset:

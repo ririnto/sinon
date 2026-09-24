@@ -43,7 +43,7 @@ fun loadEnabledUsers(lines: List<String>): List<UserId> =
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
 | converting every pipeline to `asSequence()` | lazy machinery adds noise without a payoff | stay eager until laziness helps materially |
-| leaving a long pipeline unreadable because it is technically correct | the domain meaning gets buried | split the path into named steps |
+| leaving a long pipeline unreadable | the domain meaning gets buried | split the path into named steps |
 | using `Sequence` and then immediately materializing after every step | the code pays complexity without keeping laziness | keep the pipeline either clearly lazy or clearly eager |
 
 ## Key Operations Reference
@@ -54,7 +54,6 @@ fun loadEnabledUsers(lines: List<String>): List<UserId> =
 val byCategory: Map<String, List<Order>> = orders.groupBy(Order::category)
 val byId: Map<String, Order> = orders.associateBy(Order::id)
 val lengths: Map<String, Int> = names.associateWith(String::length)
-val pairs: Map<String, Int> = names.associateWith { name -> name to name.length }
 ```
 
 ### Flattening and zipping

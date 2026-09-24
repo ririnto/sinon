@@ -1,4 +1,16 @@
 ---
+metadata:
+  reference:
+    Spring Data Commons:
+      - version: 4.1.1
+        url: https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/4.1.1/spring-data-commons-4.1.1.pom
+      - version: 4.2.0-M1
+        url: https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/4.2.0-M1/spring-data-commons-4.2.0-M1.pom
+    Spring Data Commons Guide:
+      url: https://docs.spring.io/spring-data/commons/reference/index.html
+    Spring Data JPA AOT:
+      version: 4.1.1
+      url: https://docs.spring.io/spring-data/jpa/reference/jpa/aot.html
 name: spring-data
 description: >-
   Design or test Spring Data repositories, queries, projections, auditing, pagination, and store-module selection.
@@ -17,6 +29,9 @@ Use `spring-data` for repository abstraction, derived query methods, projections
 
 ## Dependency baseline
 
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+
 Pick the store-specific starter or module that matches the chosen persistence technology and pair it with the matching test support.
 
 ```text
@@ -33,7 +48,8 @@ Keep `spring-data` itself focused on repository abstractions shared across those
 
 If the project already imports the Spring Data BOM for this release train, omit child Spring Data versions from dependency examples and keep the BOM import as the single version anchor.
 
-The current stable Spring Data release train is `2026.0.0` with Commons `4.1.0`.
+Spring Data Commons 4.1.1 is the documented stable example baseline.
+Version 4.2.0-M1 is a preview milestone, not a stable release.
 
 ## First safe configuration
 

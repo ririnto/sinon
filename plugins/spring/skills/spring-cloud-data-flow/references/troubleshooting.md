@@ -22,7 +22,9 @@ If a stream will not deploy or a task will not launch, verify platform account s
 
 ## Example: stream deploy fails because the apps were never registered
 
-Use this sequence when a stream definition exists but deploy fails before any runtime apps appear:
+Use this sequence when a stream definition exists but deploy fails before any runtime apps appear.
+The `3.2.1` coordinates illustrate a catalog snapshot.
+Before registration, check each artifact on Maven Central for the latest stable release compatible with the SCDF server and project catalog.
 
 ```text
 dataflow:>stream create --name http-log --definition "http | log"
@@ -33,8 +35,6 @@ Deployment failed: Application(s) [http, log] are not registered for the current
 
 dataflow:>app list
 No registered apps.
-
-The following coordinates match the official `rabbitmq-maven-latest` SCDF catalog.
 
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
 dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1

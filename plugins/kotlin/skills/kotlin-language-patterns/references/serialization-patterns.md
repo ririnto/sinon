@@ -5,10 +5,7 @@ description: >-
 
 # Serialization Boundaries
 
-Use this reference when the job is to implement Kotlin serialization for one boundary or fix serializer behavior that is already blocking the task.
-This reference should be sufficient on its own for that work.
-
-Use this file to finish one of these jobs:
+Set up a serialization boundary or diagnose serializer behavior:
 
 - create a working `@Serializable` model and one configured `Json` instance
 - reason about defaults, required fields, and `@Transient`
@@ -65,7 +62,7 @@ Important rules:
 Instant note:
 
 - prefer `kotlinx.datetime.Instant` on the Kotlin 2.1 baseline for models that need portable date-time serialization
-- use one timestamp representation per boundary instead of mixing `kotlinx.datetime.Instant`, newer stdlib Instant, and `java.time.Instant` casually
+- use one timestamp representation per boundary instead of mixing `kotlinx.datetime.Instant`, stdlib Instant, and `java.time.Instant`
 
 Contextual serializer shape:
 

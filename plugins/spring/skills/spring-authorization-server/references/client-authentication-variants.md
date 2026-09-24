@@ -93,9 +93,3 @@ Register via `OAuth2AuthorizationServerConfigurer`:
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
     .clientAuthentication(clientAuth -> clientAuth.authenticationConverter(new CustomClientAuthenticationConverter()));
 ```
-
-## Official references
-
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
-- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
-- [Authorization code grant and PKCE](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-pkce.html)

@@ -1,4 +1,12 @@
 ---
+metadata:
+  reference:
+    JEP 454:
+      version: JDK 22
+      url: https://openjdk.org/jeps/454
+    JEP 484:
+      version: JDK 24
+      url: https://openjdk.org/jeps/484
 name: java-language-syntax
 description: >-
   Check Java syntax compatibility, migrate source between Java baselines, or choose foundational java.base APIs.

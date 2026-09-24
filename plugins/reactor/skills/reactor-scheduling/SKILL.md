@@ -1,4 +1,15 @@
 ---
+metadata:
+  reference:
+    Project Reactor Core:
+      version: 3.8.7
+      url:
+        - https://projectreactor.io/docs/core/3.8.7/reference/aboutDoc.html
+        - https://projectreactor.io/docs/core/3.8.7/reference/coreFeatures/schedulers.html
+        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/scheduler/Scheduler.html
+    Project Reactor BOM:
+      version: 2025.0.7
+      url: https://repo.maven.apache.org/maven2/io/projectreactor/reactor-bom/2025.0.7/reactor-bom-2025.0.7.pom
 name: reactor-scheduling
 description: >-
   Choose Reactor schedulers, place publishOn/subscribeOn, offload blocking work, or diagnose thread hops.
@@ -9,9 +20,10 @@ description: >-
 ## Official Baseline
 
 - Use the official Project Reactor 3.8.x scheduler reference for this skill.
-  - Verified against `reactor-core` 3.8.6.
-- Use Reactor BOM 2025.0.7 when importing Reactor-managed versions.
-  - Verified against `reactor-bom` 2025.0.7 in Maven Central.
+  - Reviewed against `reactor-core` 3.8.7 and `reactor-bom` 2025.0.7.
+  These versions are documentation baselines, not dependency pins.
+- Before adding or upgrading Reactor dependencies, check `io.projectreactor:reactor-bom` and `io.projectreactor:reactor-core` in Maven Central for the latest stable compatible release.
+  Honor the project's existing platform, BOM, or pins and keep Reactor modules on the same managed release train.
 
 Choose execution context deliberately in Reactor.
 

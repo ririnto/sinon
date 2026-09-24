@@ -63,7 +63,3 @@ Keep deeper account-linking, identity normalization, and logout choreography as 
 | External OIDC provider is the login source | Use `oauth2Login()` in the non-AS chain |
 | Unauthenticated HTML requests should land at the external provider | Use `LoginUrlAuthenticationEntryPoint` for `/oauth2/authorization/{registrationId}` |
 | External identity must affect issued ID tokens | Use a federated ID-token customizer |
-
-## Official documentation
-
-- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

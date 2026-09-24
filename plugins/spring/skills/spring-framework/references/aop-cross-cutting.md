@@ -15,9 +15,11 @@ class AppConfig {
 }
 ```
 
-Spring Framework 7.0 defaults all proxy processors to CGLIB, matching Spring Boot behavior.
-When `@EnableAspectJAutoProxy` is used alongside other proxy-based features (`@Async`, `@Transactional`), all share the same CGLIB default.
-Use `@Proxyable(ProxyType.INTERFACES)` on individual beans to opt out.
+The Spring Framework core default uses JDK dynamic proxies when the target implements an interface, and CGLIB when it does not.
+Spring Boot 4.1 configures Spring AOP to use CGLIB by default through `spring.aop.proxy-target-class=true`.
+Set that property to `false` to use JDK proxies in Boot.
+In Framework 7, proxy processors such as `@EnableAspectJAutoProxy`, `@EnableAsync`, and `@EnableTransactionManagement` share the configured global default.
+Use `@Proxyable(ProxyType.INTERFACES)` on an individual bean to override that default.
 
 ## Basic aspect shape
 

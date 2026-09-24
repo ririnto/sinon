@@ -19,15 +19,20 @@ Attach JFR to a live JVM when the process is already running:
 
 ```sh
 jcmd <pid> JFR.start name=profile settings=profile disk=true maxage=10m
-jcmd <pid> JFR.dump name=profile filename=/tmp/profile.jfr
+jcmd <pid> JFR.dump name=profile filename=/tmp/profile-snapshot.jfr
+jcmd <pid> JFR.stop name=profile filename=/tmp/profile.jfr
 ```
 
-List available JFR events and filters, then dump the recording for later analysis:
+Inspect active recordings and their event settings, then save a snapshot without stopping the recording:
 
 ```sh
-jcmd <pid> JFR.check
-jcmd <pid> JFR.dump name=profile filename=/tmp/profile.jfr
+jcmd <pid> JFR.check verbose=true
+jcmd <pid> JFR.dump name=profile filename=/tmp/profile-snapshot.jfr
 ```
+
+`maxage` limits how long recording data is retained on disk, not how long recording continues.
+`JFR.dump` leaves the recording active.
+`JFR.stop` ends it, and must include `filename` to save the final data.
 
 Allocation-heavy path diagnosis (look for `java.lang.String` or byte-buffers in the hot path):
 
@@ -38,7 +43,8 @@ jcmd <pid> GC.class_histogram | head -50
 ```
 
 Live histogram.
-This stops the world briefly, so use it with care in production:
+`GC.class_histogram` is a high-impact heap inspection whose cost depends on heap size and content.
+Do not assume it causes only a brief pause, especially in production.
 
 ```sh
 jcmd <pid> GC.class_histogram -all
@@ -63,11 +69,12 @@ Verify selected JVM flags at startup:
 java -XX:+PrintCommandLineFlags -version
 ```
 
-Capture a short JFR recording to get allocation rate and thread states, then dump it after the workload runs:
+Capture a JFR recording over the workload window to get allocation rate and thread states, then dump and stop it:
 
 ```sh
 jcmd <pid> JFR.start name=baseline settings=default disk=true maxage=2h
-jcmd <pid> JFR.dump name=baseline filename=/tmp/baseline.jfr
+jcmd <pid> JFR.dump name=baseline filename=/tmp/baseline-snapshot.jfr
+jcmd <pid> JFR.stop name=baseline filename=/tmp/baseline.jfr
 ```
 
 ## Review prompts for evidence interpretation

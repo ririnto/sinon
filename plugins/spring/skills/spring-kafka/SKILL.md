@@ -31,9 +31,12 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 ## Dependency baseline
 
+Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
-The current stable Spring Kafka line is `4.1.x`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x.
+The Spring Kafka `4.1.x` examples require Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x.
 Spring Boot `4.0.x` manages Spring Kafka `4.0.x`.
 Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`.
 Applications on Boot 3.4.x or earlier must stay on the `3.3.x` line and should be treated as a separate compatibility branch.

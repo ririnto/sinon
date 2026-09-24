@@ -15,7 +15,9 @@ By default, `ChannelOption.AUTO_READ` is `true`.
 Netty automatically reads all available data from the socket and delivers it to the pipeline as fast as the event loop can process it.
 This is correct for most servers.
 
-When the consumer is slower than the producer, set `AUTO_READ` to `false` and call `channel.read()` explicitly after each message is processed:
+When the consumer is slower than the producer, set `AUTO_READ` to `false` and request more socket input with `channel.read()` when capacity is available.
+A read request is not a per-message token: one inbound read can produce multiple frames from a `ByteToMessageDecoder`.
+For asynchronous processing, use bounded in-flight work or a bounded queue and resume reads only when capacity returns.
 
 ```java
 ServerBootstrap bootstrap = new ServerBootstrap();
@@ -33,11 +35,17 @@ final class FlowControlledHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
         process(msg);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) {
+        ctx.fireChannelReadComplete();
         ctx.channel().read();
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
+        ctx.fireChannelActive();
         ctx.channel().read();
     }
 
@@ -52,7 +60,7 @@ final class FlowControlledHandler extends SimpleChannelInboundHandler<ByteBuf> {
 | Scenario | Use manual read? | Why |
 | --- | --- | --- |
 | standard request/response server | No | default AUTO_READ keeps latency low |
-| slow consumer, bounded memory | Yes | prevents unbounded inbound queue growth |
+| slow consumer, bounded memory | Yes, with bounded in-flight work | limits further socket reads but does not limit frames already decoded from one read |
 | protocol with credit-based flow control | Yes | reads only when the sender has credit |
 | batch processing with backpressure propagation | Yes | each batch completion signals the next read |
 
@@ -69,11 +77,12 @@ ch.pipeline()
     .addLast(new FlowControlledBusinessHandler());
 ```
 
-`FlowControlledBusinessHandler` calls `ctx.channel.read()` after each message.
+`FlowControlledBusinessHandler` requests more socket input after processing.
+This does not guarantee one decoded frame per read cycle; bound queued or asynchronous work separately.
 
 ## Common mistakes
 
 - setting `AUTO_READ` to `false` and forgetting to call `channel.read()` in `channelActive()` - the channel never reads anything
-- calling `channel.read()` inside `channelRead()` before processing completes - defeats the purpose of flow control by re-entering immediately
+- requesting another read before processing frees capacity - allows additional input to arrive while the consumer is still behind
 - mixing `AUTO_READ` handlers in the same pipeline - the option is per-channel, not per-handler.
   - All handlers share the same auto-read state
