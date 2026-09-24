@@ -1,6 +1,6 @@
 module github.com/ririnto/sinon/scripts/tests/promtool
 
-go 1.26.6
+go 1.25.8
 
 tool github.com/prometheus/prometheus/cmd/promtool
 
