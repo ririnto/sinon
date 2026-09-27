@@ -2,7 +2,7 @@
 kotlin = "2.4.20"
 ktlint = "14.2.0"
 ktlint-engine = "1.8.0"
-slf4j = "2.0.19"
+slf4j = "2.0.20"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
