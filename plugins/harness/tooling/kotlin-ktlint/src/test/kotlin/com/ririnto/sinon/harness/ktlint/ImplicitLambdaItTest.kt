@@ -193,6 +193,107 @@ class ImplicitLambdaItTest :
                 )
         }
 
+        test("preserves member names while renaming the implicit receiver") {
+            val source = "fun render(items: List<Item>) = items.map { it.it + it?.it + holder.it }\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.size shouldBe 1
+            lintResult.formattedCode shouldBe
+                "fun render(items: List<Item>) = items.map { value -> value.it + value?.it + holder.it }\n"
+        }
+
+        test("does not introduce lambda parameters for qualified members") {
+            val source = "fun render() = run { holder.it + holder?.it + holder.it() + holder::it }\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult.formattedCode shouldBe source
+        }
+
+        test("preserves local shadowing and renames the captured initializer") {
+            val source = "fun render(items: List<Int>) = items.map { val it = it + 1; it * 2 }\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.size shouldBe 1
+            lintResult.formattedCode shouldBe
+                "fun render(items: List<Int>) = items.map { value -> val it = value + 1; it * 2 }\n"
+        }
+
+        test("preserves shadowed function loop and destructuring parameters") {
+            val source =
+                """
+                fun render(items: List<Int>) = items.map {
+                    fun local(it: Int): Int = it + 1
+                    for (it in items) consume(it)
+                    run { val (it, other) = pair; consume(it + other) }
+                    consume(it)
+                }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.size shouldBe 1
+            lintResult.formattedCode shouldBe
+                """
+                fun render(items: List<Int>) = items.map {
+                    value ->
+                    fun local(it: Int): Int = it + 1
+                    for (it in items) consume(it)
+                    run { val (it, other) = pair; consume(it + other) }
+                    consume(value)
+                }
+                """.trimIndent() + "\n"
+        }
+
+        test("preserves catch parameters and when subjects while renaming their inputs") {
+            val source =
+                """
+                fun render(items: List<Int>) = items.map {
+                    try { consume(it) } catch (it: Exception) { report(it) }
+                    when (val it = it + 1) { else -> consume(it) }
+                }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.size shouldBe 1
+            lintResult.formattedCode shouldBe
+                """
+                fun render(items: List<Int>) = items.map {
+                    value ->
+                    try { consume(value) } catch (it: Exception) { report(it) }
+                    when (val it = value + 1) { else -> consume(it) }
+                }
+                """.trimIndent() + "\n"
+        }
+
+        test("local callable and type names do not shadow the implicit value") {
+            val source =
+                """
+                fun render(items: List<Int>) = items.map { fun it(): Int { return 1 }; consume(it); it() }
+                fun renderTypes(items: List<Int>) = items.map { class it {}; consume(it); it() }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.size shouldBe 2
+            lintResult.formattedCode shouldBe
+                """
+                fun render(items: List<Int>) = items.map { value -> fun it(): Int { return 1 }; consume(value); it() }
+                fun renderTypes(items: List<Int>) = items.map { value -> class it {}; consume(value); it() }
+                """.trimIndent() + "\n"
+        }
+
+        test("does not introduce parameters when a local declaration supplies it") {
+            val source =
+                """
+                fun render() = run {
+                    val it = 1
+                    consume(it)
+                    for (it in values) consume(it)
+                    fun local(it: Int): Int = it
+                    class Item(val it: Int) { fun value(): Int = it }
+                    val item = object { val it: Int = 2; fun value(): Int = it }
+                    fun it(): Int = 3
+                    consume(it())
+                }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult.formattedCode shouldBe source
+        }
+
         test("accepts named parameters and nested triple quote limitations") {
             val source =
                 """

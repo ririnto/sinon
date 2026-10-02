@@ -18,7 +18,8 @@ Open this when collection shape and laziness tradeoffs are the hard part.
   Preserve order, nullability, smart casts, side effects, and eager or lazy behavior.
 - chain independent positive `takeIf` predicates when each one qualifies the same object
   Use `?.takeIf` after a nullable receiver so a rejected first predicate skips the next one.
-  Do not split `takeUnless` or mixed-polarity predicates when that changes the Boolean logic.
+  Keep `takeUnless` and `filterNot` predicates intact.
+  Do not split mixed-polarity predicates when that changes the Boolean logic.
 
 ## Patterns
 

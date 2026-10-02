@@ -57,7 +57,10 @@ No `@EnableBatchProcessing` or store-specific annotations are needed for the com
 
 - JDBC store: activates when a `DataSource` and `PlatformTransactionManager` are present (default with `spring-boot-starter-batch`).
 - MongoDB store: activates when a `MongoDatabaseFactory` is present and JDBC conditions are not met (default with `spring-boot-starter-batch-data-mongodb`).
-- In-memory store: fallback when neither JDBC nor MongoDB conditions are satisfied.
+- Resourceless repository: fallback when neither JDBC nor MongoDB conditions are satisfied.
+
+The resourceless repository does not persist metadata and does not support restartability or concurrent execution.
+Use JDBC or MongoDB when jobs require persistent execution state.
 
 Use a Mongo-backed repository only when the platform already standardizes on Mongo for operational metadata.
 

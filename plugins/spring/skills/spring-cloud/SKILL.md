@@ -31,10 +31,11 @@ Use the documented 2025.1.x examples only when the project's exact Boot release 
 | --- | --- | --- |
 | 2025.1.x (Oakwood) | 4.0.x | Documented GA line; Jackson 3, JSpecify, Spring Framework 7 |
 | 2025.0.x (Northfields) | 3.5.x | Parallel GA line; Gateway artifact rename |
-| 2024.0.x (Moorgate) | 3.4.x | Supported until Boot 3.4.x EOL |
-| 2023.0.x (Leyton) | 3.3.x, 3.2.x | Supported until Boot 3.3.x EOL |
+| 2024.0.x (Moorgate) | 3.4.x | Outside the documented OSS support policy |
+| 2023.0.x (Leyton) | 3.3.x, 3.2.x | Outside the documented OSS support policy |
 
-Release trains 2022.0.x and earlier are end-of-life and MUST NOT appear in new work.
+For new work, choose a release train within the documented OSS support policy unless the project has applicable commercial support.
+Keep historical release trains only for compatibility and migration guidance.
 
 ## Boundaries
 

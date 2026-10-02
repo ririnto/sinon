@@ -7,8 +7,9 @@ metadata:
         - https://docs.astral.sh/uv/concepts/projects/dependencies/
         - https://docs.astral.sh/uv/getting-started/installation/
     Ruff:
-      version: 0.16.9
+      version: 0.16.10
       url:
+        - https://github.com/astral-sh/ruff/releases/tag/0.16.10
         - https://docs.astral.sh/ruff/configuration/
         - https://docs.astral.sh/ruff/rules/
     pre-commit:
@@ -39,7 +40,7 @@ For a new empty target, report the initialization gap and run only `uv init` whe
 
 - uv: check the official releases for the latest stable version compatible with the target, then use its official installer.
 - Python: the target's `requires-python` field stays authoritative.
-- Ruff: `>= 0.16.9,<0.17` through the `dev` dependency group.
+- Ruff: `>= 0.16.10,<0.17` through the `dev` dependency group.
 - pre-commit: `>= 4.6.2,<5` through the `dev` dependency group, hooks only when explicitly selected.
   This pre-commit line requires Python >= 3.10 in the target environment (4.2.x required >= 3.9).
 

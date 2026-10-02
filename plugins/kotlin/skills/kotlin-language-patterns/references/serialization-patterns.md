@@ -12,18 +12,16 @@ Set up a serialization boundary or diagnose serializer behavior:
 - keep time fields consistent across a serialized boundary
 - add a contextual serializer when the default format is not enough
 
-Configured `Json` instance:
+This adapted example requires Kotlin 2.3 or later and `kotlinx.serialization` 1.9.0 or later:
 
 ```kotlin
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Serializable
 data class Note(
@@ -56,22 +54,33 @@ Important rules:
 - default values are not encoded by default
 - `@Transient` properties need a default value
 - only properties with backing fields are serialized
-- use `kotlinx.datetime.Instant` for precise timestamps on the Kotlin 2.1 baseline.
-  - Stdlib `kotlin.time.Instant` is stable since Kotlin 2.3
+- use stable `kotlin.time.Instant` for precise timestamps on Kotlin 2.3 or later
+  - Its built-in serializer requires `kotlinx.serialization` 1.9.0 or later.
 
 Instant note:
 
-- prefer `kotlinx.datetime.Instant` on the Kotlin 2.1 baseline for models that need portable date-time serialization
+- preserve the managed `0.6.x` or documented `0.7.x` compatibility release when an existing Kotlin 2.1 boundary needs `kotlinx.datetime.Instant`
+- ordinary `kotlinx-datetime` 0.8.0 no longer provides `kotlinx.datetime.Instant` or `kotlinx.datetime.Clock`
 - use one timestamp representation per boundary instead of mixing `kotlinx.datetime.Instant`, stdlib Instant, and `java.time.Instant`
 
 Contextual serializer shape:
+`InstantComponentSerializer` requires the `ExperimentalTime` opt-in even when the stdlib `Instant` type is stable.
 
 ```kotlin
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.InstantComponentSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+
 @Serializable
 data class Event(@Contextual val instant: Instant)
 
+@OptIn(ExperimentalTime::class)
 val module = SerializersModule {
-    contextual(InstantComponentSerializer)
+    contextual(Instant::class, InstantComponentSerializer)
 }
 
 val json = Json { serializersModule = module }

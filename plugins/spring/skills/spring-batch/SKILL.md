@@ -5,12 +5,15 @@ metadata:
       version: 6.0.5
       url:
         - https://docs.spring.io/spring-batch/reference/
+        - https://docs.spring.io/spring-batch/reference/whatsnew.html
+        - https://raw.githubusercontent.com/spring-projects/spring-batch/v6.0.5/spring-batch-core/src/main/java/org/springframework/batch/core/repository/support/ResourcelessJobRepository.java
         - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-bom/maven-metadata.xml
         - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-bom/6.0.5/spring-batch-bom-6.0.5.pom
     Spring Batch 5.2:
       version: 5.2.x
       url:
         - https://docs.spring.io/spring-batch/reference/5.2/
+        - https://docs.spring.io/spring-batch/docs/5.2.6/api/org/springframework/batch/core/configuration/annotation/EnableBatchProcessing.html
         - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-core/maven-metadata.xml
         - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-core/5.2.6/spring-batch-core-5.2.6.pom
     Spring Boot 3.4:
@@ -23,6 +26,14 @@ metadata:
       url:
         - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
         - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/3.5.16/spring-boot-dependencies-3.5.16.pom
+    Spring Boot 4.1:
+      version: 4.1.1
+      url:
+        - https://docs.spring.io/spring-boot/4.1/reference/io/spring-batch.html
+        - https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-batch/src/main/java/org/springframework/boot/batch/autoconfigure/BatchAutoConfiguration.java
+    Spring Boot 4.0:
+      version: 4.0.8
+      url: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.0.8/spring-boot-dependencies-4.0.8.pom
 name: spring-batch
 description: >-
   Use Spring Batch for job design, restartability, readers, writers, retries, and scaling.
@@ -52,10 +63,11 @@ Keep project BOM or version-catalog management and existing pins unless the task
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
-Spring Boot 4.1.x manages Spring Batch 6.0.x.
+Spring Boot 4.0.x and 4.1.x manage Spring Batch 6.0.x.
 The examples target the Spring Batch 6.0.x release line.
 Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch.
-Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
+Batch 6-specific APIs require a Boot 4.x path or an intentional compatible Spring Batch 6.x dependency.
+The Boot 4.1-specific starter and auto-configuration examples below require that Boot release line.
 
 JDBC store (default when a `DataSource` is present):
 
@@ -118,7 +130,10 @@ The minimum Spring Batch model is `Job -> Step -> chunk or tasklet`.
 
 ### Infrastructure shape
 
-On Spring Boot's Batch 5.2.x compatibility path (Boot 3.4.x and 3.5.x), `@EnableBatchProcessing` alone provides the framework-managed `JobRepository` and transaction manager backed by the Boot `DataSource`:
+On the Boot 3.4.x and 3.5.x Batch 5.2.x path, use Boot auto-configuration unless manual infrastructure control is required.
+For manual control, `@EnableBatchProcessing` configures JDBC infrastructure using existing `DataSource` and `PlatformTransactionManager` beans.
+It does not create the transaction manager.
+The default bean names are `dataSource` and `transactionManager`:
 
 ```java
 @Configuration
@@ -131,7 +146,10 @@ On Spring Boot 4.1+, the auto-configured store is selected by classpath and cond
 
 - `BatchJdbcAutoConfiguration` activates when a `DataSource` and `PlatformTransactionManager` are present (the default when `spring-boot-starter-batch` is on the classpath alongside any JDBC starter).
 - `BatchDataMongoAutoConfiguration` activates when a `MongoDatabaseFactory` is present and no JDBC store is configured (the default when `spring-boot-starter-batch-data-mongodb` is on the classpath).
-- `BatchAutoConfiguration` provides the in-memory fallback when neither JDBC nor MongoDB conditions are met.
+- `BatchAutoConfiguration` provides a `ResourcelessJobRepository` fallback when neither JDBC nor MongoDB conditions are met.
+
+The resourceless repository does not persist metadata and does not support restartability or concurrent execution.
+Use a persistent repository when jobs require these capabilities.
 
 No `@EnableBatchProcessing` or `@EnableJdbcJobRepository`/`@EnableMongoJobRepository` annotations are needed on the Boot 4.1+ auto-configured path.
 Boot backs off its auto-configuration when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass on the classpath.

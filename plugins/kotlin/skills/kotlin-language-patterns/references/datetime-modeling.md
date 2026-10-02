@@ -14,18 +14,18 @@ Choose a date-time type for one concrete model or workflow:
 
 Date-time rules:
 
-- use `kotlinx.datetime.Instant` for a real moment in time on the Kotlin 2.1 baseline
+- use stable `kotlin.time.Instant` for a real moment in time on Kotlin 2.3 or later
 - use `LocalDate` for a date-only concept such as a birthday or due date
 - use `LocalDateTime` for civil or scheduled wall-clock concepts and keep the `TimeZone` separately
 - do not convert far-future scheduled civil times into `Instant` too early because time-zone rules can change
-- keep `Instant`, `Clock`, `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
-  unless the module raises its Kotlin baseline to 2.3+ to use stdlib `kotlin.time.Instant`
+- keep `Instant` and `Clock` in `kotlin.time`, and civil dates and time zones in `kotlinx-datetime`
 
 Version note:
 
 - the Kotlin 2.1 baseline does not include stdlib Instant.
   - Stdlib `kotlin.time.Instant` is stable since Kotlin 2.3.
-  - On the 2.1 baseline, use `kotlinx.datetime.Instant` with `org.jetbrains.kotlinx:kotlinx-datetime`.
+  - Existing Kotlin 2.1 modules need their compatible `0.6.x` library or the documented `0.7.x` compatibility release.
+  - The ordinary `0.8.0` artifact does not provide `kotlinx.datetime.Instant` or `kotlinx.datetime.Clock`.
 - when a project deliberately raises its Kotlin baseline to 2.3+ for stdlib Instant, keep one timestamp representation per boundary.
   - Migrate deliberately.
 - use the project's managed `kotlinx-datetime` version when it supports the required API.
@@ -51,14 +51,15 @@ dependencies {
 }
 ```
 
-Example:
+This adapted example requires Kotlin 2.3 or later:
 
 ```kotlin
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 data class Invoice(
     val issuedAt: Instant,

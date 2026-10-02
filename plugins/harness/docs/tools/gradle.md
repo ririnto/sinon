@@ -27,8 +27,8 @@ metadata:
         - https://kotest.io/docs/framework/project-setup.html
         - https://kotest.io/docs/framework/testing-styles.html
     Palantir Java Format:
-      version: 2.100.0
-      url: https://github.com/palantir/palantir-java-format/releases/tag/2.100.0
+      version: 2.101.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.101.0
     Checkstyle:
       version: 14.3.0
       url:
@@ -55,7 +55,7 @@ In a monorepo, repeat the profile for each independent Gradle root.
 
 Apply the Gradle `java` or `java-library` plugin already used by the target before enabling Java checks.
 Add the Spotless Gradle plugin only when the target has no existing formatter with overlapping Java ownership.
-The fragment selects `com.diffplug.spotless` `8.10.3` and `palantir-java-format` `2.100.0` as profile baselines.
+The fragment selects `com.diffplug.spotless` `8.10.3` and `palantir-java-format` `2.101.0` as profile baselines.
 They do not establish current releases.
 Before adding or upgrading Spotless, Palantir Java Format, or Checkstyle, check the Gradle Plugin Portal and Maven Central for the latest stable compatible versions against the target's Gradle, Java, and version catalog constraints.
 Use the checked versions for a new integration, and keep compatible target-managed versions unless the task authorizes changing them.

@@ -24,6 +24,15 @@ metadata:
     Kotlin Path composition:
       version: Kotlin 1.5+
       url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.path/div.html
+    kotlinx-datetime:
+      version: 0.8.0
+      url: https://github.com/Kotlin/kotlinx-datetime/blob/v0.8.0/README.md
+    kotlinx.serialization Instant support:
+      version: 1.9.0
+      url: https://github.com/Kotlin/kotlinx.serialization/blob/v1.9.0/CHANGELOG.md
+    kotlinx.serialization Instant component serializer:
+      version: 1.11.0
+      url: https://github.com/Kotlin/kotlinx.serialization/blob/v1.11.0/core/commonMain/src/kotlinx/serialization/builtins/InstantComponentSerializer.kt
     Java Path API:
       version: Java SE 25
       url: https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html
@@ -44,6 +53,9 @@ For a compiler upgrade, check the latest stable Kotlin release and confirm libra
 Exclude EAP builds from the stable-release comparison.
 Newer stdlib surfaces are version-gated and noted where they appear: `kotlin.io.encoding` is stable since Kotlin 2.2, `kotlin.time.Instant` is stable since Kotlin 2.3, and `kotlin.uuid` is stable since Kotlin 2.4.
 On the 2.1 baseline `kotlinx.datetime.Instant` remains the portable choice for a real moment in time.
+That older API requires an existing compatible `0.6.x` library or the documented `0.7.x` compatibility release.
+Current `kotlinx-datetime` uses `kotlin.time.Instant` and `kotlin.time.Clock` instead.
+The date-time and serialization examples use these stable types and require Kotlin 2.3 or later.
 Use the project's managed `kotlinx.serialization` and `kotlinx-datetime` versions when they support the required APIs.
 For new dependencies or required upgrades, check Maven Central for the latest stable Kotlin-compatible version and record it in the project catalog.
 
@@ -70,7 +82,8 @@ For new dependencies or required upgrades, check Maven Central for the latest st
 - SHOULD chain independent positive `takeIf` predicates instead of combining them with `&&`.
   Use a safe call before each `takeIf` when the receiver is nullable.
   Keep the original order and short-circuit behavior.
-  Do not split `takeUnless` or mixed positive and negative predicates when the Boolean logic changes.
+  Keep `takeUnless` and `filterNot` predicates intact.
+  Do not split mixed positive and negative predicates when the Boolean logic changes.
 - SHOULD use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged.
   Keep a lambda when a reference changes evaluation or meaning.
 - MUST declare an explicit type for every class, object, and companion object property, including private properties.

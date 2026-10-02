@@ -1,14 +1,20 @@
 ---
 metadata:
   reference:
+    Maven runtime:
+      version: 3.10.0
+      url: https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/maven-metadata.xml
+    Maven Docker image:
+      tag: 3.10.0-eclipse-temurin-25
+      url: https://hub.docker.com/v2/repositories/library/maven/tags/3.10.0-eclipse-temurin-25
     Spotless Maven Plugin:
       version: 3.10.3
       url: https://github.com/diffplug/spotless/blob/maven/3.10.3/plugin-maven/README.md
     Spotless Releases:
       url: https://github.com/diffplug/spotless/releases
     Palantir Java Format:
-      version: 2.100.0
-      url: https://github.com/palantir/palantir-java-format/releases/tag/2.100.0
+      version: 2.101.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.101.0
     Checkstyle:
       version: 14.3.0
       url:
@@ -29,23 +35,32 @@ In a monorepo, repeat the profile for each independent Maven root.
 ## Native setup
 
 Add the Spotless Maven plugin only when the target has no existing formatter with overlapping Java ownership.
-The fragment selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.3` and `palantir-java-format` `2.100.0` as profile baselines.
+The fragment selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.3` and `palantir-java-format` `2.101.0` as profile baselines.
 They do not establish current releases.
 Before adding or upgrading Spotless, Palantir Java Format, or Checkstyle, check Maven Central for the latest stable compatible versions against the target's Java baseline, parent POM, BOM, and dependency management.
 Use the checked versions for a new integration, and keep compatible target-managed versions unless the task authorizes changing them.
 Use the existing repositories and plugin-management policy.
 
-Add the following plugin configuration to the existing `<build><plugins>` section, preserving all coordinates and existing plugins:
+Merge these version properties into the existing `<project><properties>` section, keeping compatible target-managed values:
+
+```xml
+<properties>
+  <spotless.maven.version>3.10.3</spotless.maven.version>
+  <palantir.java.format.version>2.101.0</palantir.java.format.version>
+</properties>
+```
+
+Add this adapted plugin configuration to the existing `<build><plugins>` section, preserving all coordinates and existing plugins:
 
 ```xml
 <plugin>
   <groupId>com.diffplug.spotless</groupId>
   <artifactId>spotless-maven-plugin</artifactId>
-  <version>3.10.3</version>
+  <version>${spotless.maven.version}</version>
   <configuration>
     <java>
       <palantirJavaFormat>
-        <version>2.100.0</version>
+        <version>${palantir.java.format.version}</version>
         <style>PALANTIR</style>
         <formatJavadoc>true</formatJavadoc>
       </palantirJavaFormat>
@@ -119,7 +134,7 @@ If the target's Java baseline is older, retain compatible existing tools or obta
 
 This profile does not create Git hooks.
 Preserve existing hooks and configure a native hook only when the target explicitly selects one.
-The GitLab catalog's `maven:3.9.16-eclipse-temurin-25` image records a profile baseline, not the current stable runtime.
+The GitLab catalog's `maven:3.10.0-eclipse-temurin-25` image records a profile baseline, not the current stable runtime.
 Before adopting it, check the official Maven and JDK image releases against the target's wrapper and Java baseline.
 The CI catalog assumes that the target contains a checked-in `./mvnw` wrapper.
 For a non-root Maven module, add `working-directory: <existing-root>` to the GitHub run step and run `cd <existing-root> && ./mvnw verify` in GitLab.

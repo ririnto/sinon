@@ -12,10 +12,13 @@ Use this reference when the blocker is confirming which collectors are available
 | Java baseline | Default collector | Selectable collectors | Key flags |
 | --- | --- | --- | --- |
 | 8 | Parallel (server-class) | Serial, Parallel, CMS, G1 | `-XX:+UseSerialGC`, `-XX:+UseParallelGC`, `-XX:+UseConcMarkSweepGC`, `-XX:+UseG1GC` |
-| 11 | G1 | Serial, Parallel, G1, ZGC (experimental) | `-XX:+UnlockExperimentalVMOptions -XX:+UseZGC` |
-| 17 | G1 | Serial, Parallel, G1, ZGC | `-XX:+UseZGC` |
-| 21 | G1 | Serial, Parallel, G1, ZGC (+ optional generational) | `-XX:+UseZGC -XX:+ZGenerational` |
-| 25 | G1 | Serial, Parallel, G1, ZGC (generational-only) | `-XX:+UseZGC` |
+| 11 | G1 (server-class) | Serial, Parallel, G1, ZGC (experimental) | `-XX:+UnlockExperimentalVMOptions -XX:+UseZGC` |
+| 17 | G1 (server-class) | Serial, Parallel, G1, ZGC | `-XX:+UseZGC` |
+| 21 | G1 (server-class) | Serial, Parallel, G1, ZGC (+ optional generational) | `-XX:+UseZGC -XX:+ZGenerational` |
+| 25 | G1 (server-class) | Serial, Parallel, G1, ZGC (generational-only) | `-XX:+UseZGC` |
+
+On JDK 9-26, the default can be Serial when processor or memory resources do not meet server-class requirements.
+Confirm the active collector from the target JVM's flags.
 
 JDK 27 is a GA non-LTS release.
 JEP 523 makes G1 the default collector in all environments on JDK 27.
@@ -54,7 +57,7 @@ If the flag is not present, Shenandoah is not available in that build.
 
 ### JDK 11
 
-- G1 is the default collector (since JDK 9).
+- G1 is the default collector in server-class environments (since JDK 9).
   JDK 11 is the first LTS on this line.
 - ZGC exists but requires `-XX:+UnlockExperimentalVMOptions -XX:+UseZGC`.
 - Unified logging (`-Xlog`) replaces all legacy GC log flags.

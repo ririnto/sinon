@@ -223,7 +223,24 @@ class NoJavaPathApi :
                 }.toMap()
         filesWildcardImported = imports.any { (_, path) -> path == "java.nio.file.Files.*" }
         val declarations = file.collectDescendantsOfType<KtNamedDeclaration>()
-        nameBindings = declarations.mapNotNull { declaration -> declaration.nameBindingWithInference() }
+        nameBindings = declarations.mapNotNull { declaration -> declaration.nameBinding() }
+        inferPropertyTypes(declarations, declarations.size)
+    }
+
+    /**
+     * Revisits initializers until types stabilize, with the declaration count bounding unresolved or cyclic inference.
+     */
+    private tailrec fun inferPropertyTypes(
+        declarations: List<KtNamedDeclaration>,
+        remainingPasses: Int
+    ) {
+        val inferredBindings = declarations.mapNotNull { declaration -> declaration.nameBindingWithInference() }
+        if (inferredBindings != nameBindings) {
+            nameBindings = inferredBindings
+            if (1 < remainingPasses) {
+                inferPropertyTypes(declarations, remainingPasses - 1)
+            }
+        }
     }
 
     private fun KtNamedDeclaration.nameBinding(): NameBinding? =

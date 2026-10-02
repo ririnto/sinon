@@ -233,7 +233,9 @@ Look for these flag lines to identify the active collector:
 
 Read: `G1HeapRegionSize` or `UseG1GC` indicates G1, `UseZGC` indicates ZGC, `UseParallelGC` indicates Parallel GC, and `UseSerialGC` indicates Serial GC.
 
-If none of these appear, the default collector for that LTS applies (G1 for 11+, Parallel for 8 server-class).
+If none of these appear, inspect `jcmd <pid> VM.flags -all` for the active collector flags.
+On JDK 9-26, constrained environments can select Serial instead of the server-class G1 default.
+JDK 27 selects G1 by default in all environments.
 
 ### `JFR.check` Output
 

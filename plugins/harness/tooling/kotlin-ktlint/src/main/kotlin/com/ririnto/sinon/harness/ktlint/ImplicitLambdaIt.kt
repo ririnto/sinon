@@ -9,12 +9,28 @@ import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
+import org.jetbrains.kotlin.psi.KtCatchClause
+import org.jetbrains.kotlin.psi.KtClassBody
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
+import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtUserType
+import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
@@ -90,16 +106,98 @@ class ImplicitLambdaIt :
 
         private fun KtNameReferenceExpression.resolvesTo(lambdaExpression: KtLambdaExpression): Boolean {
             val ancestors = generateSequence(parent, PsiElement::getParent).toList()
-            return lambdaExpression in ancestors &&
+            return isUnqualifiedValueReference() &&
+                lambdaExpression in ancestors &&
                 ancestors
-                    .takeWhile { ancestor -> ancestor != lambdaExpression }
-                    .filterIsInstance<KtLambdaExpression>()
-                    .none { nestedLambda -> nestedLambda.shadowsImplicitIt() }
+                    .takeWhile { ancestor -> ancestor !== lambdaExpression }
+                    .none { ancestor -> ancestor.shadowsImplicitIt(this) }
         }
 
-        private fun KtLambdaExpression.shadowsImplicitIt(): Boolean =
-            !functionLiteral.hasParameterSpecification() ||
-                valueParameters.any { parameter -> parameter.name == "it" }
+        private fun KtNameReferenceExpression.isUnqualifiedValueReference(): Boolean {
+            val selector = (parent as? KtCallExpression)?.takeIf { call -> call.calleeExpression === this } ?: this
+            return (selector.parent as? KtQualifiedExpression)?.selectorExpression !== selector &&
+                (parent as? KtCallableReferenceExpression)?.callableReference !== this &&
+                parent !is KtUserType
+        }
+
+        private fun PsiElement.shadowsImplicitIt(reference: KtNameReferenceExpression): Boolean =
+            when (this) {
+                is KtLambdaExpression -> {
+                    !functionLiteral.hasParameterSpecification() || valueParameters.any { parameter -> parameter.name == "it" }
+                }
+
+                is KtNamedFunction -> {
+                    valueParameters.any { parameter -> parameter.name == "it" }
+                }
+
+                is KtCatchClause -> {
+                    catchParameter?.name == "it"
+                }
+
+                is KtWhenExpression -> {
+                    subjectVariable?.let { variable ->
+                        variable.name == "it" && variable.textRange.endOffset <= reference.textOffset
+                    } == true
+                }
+
+                is KtForExpression -> {
+                    PsiTreeUtil.isAncestor(body, reference, false) &&
+                        (loopParameter?.name == "it" || destructuringDeclaration?.entries?.any { entry -> entry.name == "it" } == true)
+                }
+
+                is KtBlockExpression -> {
+                    statements.any { statement ->
+                        when (statement) {
+                            is KtProperty -> {
+                                statement.name == "it" && statement.textRange.endOffset <= reference.textOffset
+                            }
+
+                            is KtDestructuringDeclaration -> {
+                                statement.textRange.endOffset <= reference.textOffset &&
+                                    statement.entries.any { entry -> entry.name == "it" }
+                            }
+
+                            is KtNamedFunction, is KtClassOrObject -> {
+                                (statement as KtNamedDeclaration).shadowsItReference(reference)
+                            }
+
+                            else -> {
+                                false
+                            }
+                        }
+                    }
+                }
+
+                is KtClassBody -> {
+                    declarations.filterIsInstance<KtNamedDeclaration>().any { declaration -> declaration.shadowsItReference(reference) }
+                }
+
+                is KtClassOrObject -> {
+                    primaryConstructorParameters.any { parameter -> parameter.name == "it" }
+                }
+
+                else -> {
+                    false
+                }
+            }
+
+        private fun KtNamedDeclaration.shadowsItReference(reference: KtNameReferenceExpression): Boolean =
+            name == "it" &&
+                when (this) {
+                    is KtNamedFunction -> {
+                        (reference.parent as? KtCallExpression)?.calleeExpression === reference
+                    }
+
+                    is KtClassOrObject -> {
+                        this is KtObjectDeclaration ||
+                            this is KtEnumEntry ||
+                            (reference.parent as? KtCallExpression)?.calleeExpression === reference
+                    }
+
+                    else -> {
+                        true
+                    }
+                }
 
         private fun replaceImplicitParameter(
             lambdaExpression: KtLambdaExpression,

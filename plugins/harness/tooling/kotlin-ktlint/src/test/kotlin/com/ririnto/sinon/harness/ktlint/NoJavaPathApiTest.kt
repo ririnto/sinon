@@ -277,6 +277,64 @@ class NoJavaPathApiTest :
                 )
         }
 
+        test("infers path aliases and method results across local initializers") {
+            val source =
+                """
+                import java.nio.file.Path
+
+                fun child() {
+                    val base = Path.of(".")
+                    val alias = base
+                    val normalized = alias.normalize()
+                    alias.resolve("child")
+                    normalized.resolve("child")
+                }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(7, 8)
+            lintResult.diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldBe
+                List(2) { "Use the kotlin.io.path division operator for Path child paths" }
+            lintResult.formattedCode shouldBe source
+        }
+
+        test("infers member path aliases regardless of declaration order") {
+            val source =
+                """
+                import java.nio.file.Path
+
+                class Paths {
+                    val alias = base
+                    val base = Path.of(".")
+                    fun child(): Path = alias.resolve("child")
+                }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(6)
+            lintResult.formattedCode shouldBe source
+        }
+
+        test("keeps cyclic unknown and forward local aliases conservative") {
+            val source =
+                """
+                import java.nio.file.Path
+
+                class Cyclic {
+                    val first = second
+                    val second = first
+                    fun child() = first.resolve("child")
+                }
+
+                fun child() {
+                    val alias = base
+                    val base = Path.of(".")
+                    alias.resolve("child")
+                }
+                """.trimIndent() + "\n"
+            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
+            lintResult.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult.formattedCode shouldBe source
+        }
+
         test("java path resolve overloads are flagged on typed path receivers") {
             val source =
                 """

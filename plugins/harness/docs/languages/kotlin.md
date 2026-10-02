@@ -77,7 +77,8 @@ Chain independent positive `takeIf` predicates for one object, using `?.takeIf` 
 Keep the conditions in their original left-to-right order.
 Keep predicates together when later conditions need earlier smart casts.
 Keep them together when splitting changes nullability, short-circuit behavior, effects, exception timing, eager work, allocations, or required performance.
-Do not split `takeUnless` or mixed-polarity predicates when that changes their Boolean logic.
+Keep `takeUnless` and `filterNot` predicates intact.
+Do not split mixed-polarity predicates when that changes their Boolean logic.
 Use a `Sequence` only when lazy evaluation matches the contract.
 For optional nullable processing, prefer `?.let` with a named non-null parameter.
 Use the captured parameter instead of rereading the nullable property.

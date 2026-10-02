@@ -2,7 +2,7 @@
 <fragment>
   <properties>
     <spotless.maven.version>3.10.3</spotless.maven.version>
-    <palantir.java.format.version>2.100.0</palantir.java.format.version>
+    <palantir.java.format.version>2.101.0</palantir.java.format.version>
     <checkstyle.version>14.3.0</checkstyle.version>
   </properties>
 
