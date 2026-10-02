@@ -65,7 +65,7 @@ export const normalizeTag = (value: unknown): readonly string[] => {
 export const parseFields = (
   rawFields: string | undefined
 ): readonly string[] | undefined => {
-  if (!rawFields) {
+  if (rawFields === undefined || rawFields.length === 0) {
     return undefined;
   }
   const fields = rawFields
@@ -84,8 +84,8 @@ export const subjectString = (data: JsonRecord): string => {
   if (!isRecord(subject)) {
     return "";
   }
-  const name = String(subject["name"] ?? "");
-  const version = String(subject["version"] ?? "");
+  const name = String(subject.name ?? "");
+  const version = String(subject.version ?? "");
   return name || version ? `${name}@${version}` : "";
 };
 
@@ -118,19 +118,19 @@ export const buildRecord = (
   data: MutableRecord,
   endLine: number
 ): MutableRecord => {
-  const tags = normalizeTag(data["tag"] ?? data["tags"]);
+  const tags = normalizeTag(data.tag ?? data.tags);
   return {
-    created: String(data["created"] ?? ""),
-    description: String(data["description"] ?? ""),
+    created: String(data.created ?? ""),
+    description: String(data.description ?? ""),
     file: filePath,
     frontmatter_end_line: endLine,
     kind: toKindLabel(filePath),
-    last_updated: String(data["last_updated"] ?? ""),
-    status: String(data["status"] ?? ""),
+    last_updated: String(data.last_updated ?? ""),
+    status: String(data.status ?? ""),
     subject: subjectString(data),
     tag: tags,
-    title: String(data["title"] ?? ""),
-    updated: String(data["updated"] ?? "")
+    title: String(data.title ?? ""),
+    updated: String(data.updated ?? "")
   };
 };
 
@@ -151,7 +151,7 @@ export const loadFrontmatterEntry = (filePath: string): LoadEntryResult => {
     if (!data) {
       return { kind: "error", message: "Invalid YAML frontmatter" };
     }
-    const tags = normalizeTag(data["tag"] ?? data["tags"]);
+    const tags = normalizeTag(data.tag ?? data.tags);
     const record = buildRecord(filePath, data, block.endLine);
     return {
       entry: {

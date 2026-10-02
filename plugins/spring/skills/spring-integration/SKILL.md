@@ -165,12 +165,10 @@ Use `originPatterns` for flexible origin matching instead of `allowCredentials`.
 ### CloudEvents support
 
 The `spring-integration-cloudevents` module provides `ToCloudEventTransformer` and `FromCloudEventTransformer` for CloudEvents specification v1.0 interoperability.
-Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ### gRPC support
 
 The `spring-integration-grpc` module provides `GrpcInboundGateway` and `GrpcOutboundGateway` for unary, server streaming, client streaming, and bidirectional streaming gRPC patterns.
-Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ## First safe configuration
 
@@ -210,7 +208,6 @@ IntegrationFlow integrationErrors() {
 ```
 
 Use the default `errorChannel` for the ordinary baseline.
-Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit custom error-channel routing.
 
 ## Coding procedure
 

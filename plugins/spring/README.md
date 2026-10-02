@@ -1,17 +1,18 @@
 ---
 description: >-
-  Overview of the Spring plugin, its included skills, and practical Spring application workflow coverage.
+  Spring plugin skills, architecture routing, scope boundaries, and installation.
 ---
 
 # Spring
 
-Spring is a development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus the `spring-architect` agent for architecture and component design.
+Use Spring skills for application configuration, web endpoints, persistence, security, messaging, and operations.
+Use `spring-architect` for architecture and component design across those areas.
 
 ## Purpose
 
 - Provide reusable Spring workflows that remain portable across Claude Code plugin installations.
-- Keep skills practical, example-driven, and focused on real application tasks rather than framework trivia.
-- Separate Spring application concerns from Java language, JDK tooling, and Kotlin language concerns.
+- Provide application examples and task-specific technical references.
+- Keep Java language, JDK tooling, and Kotlin language concerns in their owning guidance.
 
 ## Included Skills
 
@@ -51,30 +52,11 @@ It may load Spring skills but does not delegate to other agents.
 
 ## When to Use Which Skill
 
-- Spring Boot application shape, configuration, bean wiring, and startup conventions belong in `spring-boot` guidance.
-- Core container behavior, lifecycle, transactions, events, scheduling, and extension points belong in `spring-framework` guidance.
-- Spring test-slice choice, Spring Boot test scaffolding, and generic Spring context test strategy belong in `spring-boot` and `spring-framework` guidance.
-- Filter chains, HTTP security, method-security structure, sessions, and resource-server enforcement belong in `spring-security` guidance.
-- OAuth 2.1/OIDC token issuance, registered clients, signing keys, and provider endpoints belong in `spring-authorization-server` guidance.
-- Servlet MVC controllers, reactive WebFlux endpoints, `RestClient`, and `WebClient` belong in `spring-web` guidance.
-- Hypermedia-driven APIs, HAL forms, and entity links belong in `spring-hateoas` guidance.
-- Adapter chains, channels, routers, and generic message-flow modeling belong in `spring-integration` guidance.
-- Kafka producer and consumer behavior, listener delivery semantics, embedded-Kafka listener verification, and retry/DLT behavior belong in `spring-kafka` guidance.
-- AMQP bindings, template-based messaging, and RabbitMQ integration belong in `spring-amqp` guidance.
-- Apache Pulsar producers, consumers, and Spring integration belong in `spring-pulsar` guidance.
-- Chunk processing, retry/skip policy, and large-scale job structure belong in `spring-batch` guidance.
-- Persistence modeling, JPA, JDBC, R2DBC, or Redis patterns belong in `spring-data` guidance.
-- GraphQL endpoint setup, schema execution, and GraphQL-specific testing belong in `spring-graphql` guidance.
-- gRPC service definition, channel customization, and in-process testing belong in `spring-grpc` guidance.
-- SOAP endpoints, WS-Security, and client-variant patterns belong in `spring-web-services` guidance.
-- SCDF stream/task estate operations belong in `spring-cloud-data-flow` guidance.
-- Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-web-flow` guidance.
-
-Select the skill for the active subsystem rather than loading Boot and Framework for every Spring task.
-Use their configuration and test guidance when Boot wiring or container behavior affects the result.
+Select the skill for the active subsystem from the inventory above.
+Use `spring-boot` or `spring-framework` configuration and test guidance when Boot wiring or container behavior affects the result.
 Load additional Spring skills only for integration boundaries the task crosses.
 
-Testing boundary:
+### Testing Boundaries
 
 - Tests that load generic Spring context behavior belong in `spring-framework`.
   MVC/WebFlux HTTP tests belong in `spring-web`.
@@ -98,7 +80,7 @@ These topics fall outside Spring's scope:
 Spring-specific coroutine controllers, `WebClient` usage, and reactive request handling belong in Spring guidance.
 General coroutine and Flow design outside Spring framework behavior belongs in reactive or Kotlin-focused guidance.
 
-Scheduling boundary:
+### Scheduling Boundaries
 
 - Application local scheduled work with `@Scheduled`, `TaskScheduler`, and dynamic trigger registration belongs in `spring-framework` guidance.
 - `spring-batch` covers job identity, restart survival, and batch job state management.
@@ -145,17 +127,6 @@ plugins/spring/
     +-- spring-web-services/
 ```
 
-## Shipped Surfaces
-
-- The plugin ships twenty-six reusable Spring skills under `skills/`.
-- The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
-
-## Design Principles
-
-- Prefer working application slices over isolated annotation lists.
-- Route to the smallest Spring skill that matches the task.
-- Keep references in `references/` to concrete additive content only.
-
 ## Installation
 
 Install from Sinon:
@@ -169,11 +140,3 @@ For local development:
 ```sh
 claude --plugin-dir /path/to/sinon/plugins/spring
 ```
-
-## Scope Notes
-
-This plugin covers Spring-specific application guidance and ships reusable skills plus the `spring-architect` agent surface.
-It intentionally does not publish hooks, MCP servers, LSP servers, or custom runtime data surfaces.
-
-Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior.
-Spring Cloud Data Flow coverage lives in `spring-cloud-data-flow` and is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.

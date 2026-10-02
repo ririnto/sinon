@@ -13,7 +13,6 @@ metadata:
 # Repository Guidelines
 
 Sinon publishes Claude Code plugins and portable Agent Skills.
-These contributor instructions apply only to the Sinon repository.
 
 ## Project Structure
 
@@ -24,8 +23,8 @@ These contributor instructions apply only to the Sinon repository.
 - `rules/` contains repository Markdown custom lint rules.
 - `.github/` contains GitHub repository automation configuration.
 
-Preserve existing named top-level components, each with one documented responsibility.
-Adding, removing, or moving a component MUST update its architecture, dependencies, consumers, and relevant documentation.
+Keep one documented responsibility per top-level component.
+Update architecture, dependencies, consumers, and documentation when adding, removing, or moving a component.
 Do not add legacy parallel surfaces or compatibility shims without an external contract.
 
 ## Authoring
@@ -36,9 +35,8 @@ Use official vendor documentation for technical claims, and identify repository 
 
 ## Task References
 
-Use the relevant sections of [repository conventions](docs/agent-references/repository-conventions.md) for shell, source, documentation, or configuration edits.
-For TypeScript source under `scripts/` or `rules/`, use [TypeScript conventions](docs/agent-references/typescript.md).
-Read supporting references when their subject applies, not as a prerequisite to every edit.
+Use [repository conventions](docs/agent-references/repository-conventions.md) for the language or file type under change.
+Use [TypeScript conventions](docs/agent-references/typescript.md) for TypeScript source under `scripts/` or `rules/`.
 
 ## Completion And Checks
 
@@ -46,11 +44,11 @@ Make the smallest complete change that meets the acceptance criteria.
 Continue through implementation, relevant proof, and proportional diff review.
 Preserve unrelated work and report a precise blocker when required evidence or authority is missing.
 When guidance blocks progress, name its file, quote the relevant instruction, and distinguish the requirement from your interpretation.
-Use the existing TypeScript and Bun commands.
+Use the existing TypeScript, Node.js, and pnpm commands.
 Choose checks for changed behavior and explicit acceptance criteria.
 Reuse passing evidence for unaffected checks.
-Run `bun install` after authorized dependency changes.
-The repository-wide check is `bun run check`.
+Run `pnpm install` after authorized dependency changes.
+The repository-wide check is `pnpm run check`.
 Its named `check:*` commands support narrower validation.
 Report exact commands, exit codes, and any required check that could not run.
 

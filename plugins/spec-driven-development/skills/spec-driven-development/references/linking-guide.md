@@ -58,7 +58,7 @@ When SPEC A references SPEC B:
    - If callers of SPEC B are needed, they SHOULD be queried instead:
 
      ```sh
-     "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
+     node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
      ```
 
 ## Removing a Link
@@ -72,7 +72,7 @@ When deleting a spec, all links pointing to it MUST be removed from every refere
 To find those references, query inbound callers:
 
 ```sh
-"${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
+node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
 ```
 
 ## Link Paths
@@ -107,7 +107,7 @@ Forbidden examples:
 
 ## Link Validation
 
-`"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` validates linking rules:
+`node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` validates linking rules:
 
 - frontmatter `call` MUST exist (`call: []` allowed)
 - each `call` entry MUST be a relative path
@@ -117,12 +117,12 @@ Forbidden examples:
 ## Reverse Reference Query
 
 Reverse references are derived from frontmatter `call`.
-`"${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter` with `--inbound-of` SHOULD be used to query callers of a target spec.
+`node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter` with `--inbound-of` SHOULD be used to query callers of a target spec.
 
 Examples:
 
-- `"${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`
-- `"${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md --jsonl`
+- `node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`
+- `node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md --jsonl`
 
 ## Cross-Hierarchy Links
 

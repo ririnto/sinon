@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,51 +9,48 @@ import io.kotest.matchers.shouldBe
 class FunctionBodyBlankLinesTest :
     FunSpec({
         test("removes decorative blank lines inside function bodies") {
-            val source =
-                """
-                fun work() {
-                    first()
-
-                    second()
-                }
-                """.trimIndent() + "\n"
-            val expected =
-                """
-                fun work() {
-                    first()
-                    second()
-                }
-                """.trimIndent() + "\n"
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    source
+                    """
+                    fun work() {
+                        first()
+
+                        second()
+                    }
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        12,
-                        "remove the decorative blank line from the function body",
-                        canBeAutoCorrected = true
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            2,
+                            12,
+                            "remove the decorative blank line from the function body",
+                            canBeAutoCorrected = true
+                        )
                     )
-                )
-            lintResult1.formattedCode shouldBe expected
+                formattedCode shouldBe
+                    """
+                    fun work() {
+                        first()
+                        second()
+                    }
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("preserves blank lines used by tool directives") {
-            val source =
-                """
-                fun work() {
-                    first()
-
-                    second()
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun work() {
+                        first()
+
+                        second()
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(

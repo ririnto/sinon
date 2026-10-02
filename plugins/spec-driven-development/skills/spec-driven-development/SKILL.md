@@ -7,6 +7,13 @@ metadata:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     OpenAI skills:
       url: https://developers.openai.com/codex/skills
+    tsx Node.js integration:
+      url: https://tsx.hirok.io/dev-api/node-cli
+    YAML parser:
+      url: https://eemeli.org/yaml/
+    Immutable sorting:
+      version: 3.4.1
+      url: https://github.com/snovakovic/fast-sort
     Requirement keywords:
       url:
         - https://www.rfc-editor.org/rfc/rfc2119
@@ -74,21 +81,32 @@ OpenAPI 3.2.1 is current, while the bundled scaffold uses the latest 3.1 patch f
 
 ## Packaged Validator
 
+The installed plugin requires Node.js and its declared `tsx`, `yaml`, and `fast-sort` dependencies.
+Use pnpm to prepare those dependencies before offline use:
+
+```sh
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
+pnpm --dir "${PLUGIN_ROOT}" install --prod --frozen-lockfile
+```
+
+Install once when runtime setup is authorized.
+Reuse the installation while its dependency declarations stay unchanged.
 Resolve `SKILL_ROOT` from the installed plugin for each shell invocation that uses it:
 
 ```sh
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
 SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
-"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
+node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
 ```
 
 If the host does not provide `CLAUDE_PLUGIN_ROOT`, use the absolute installed skill path it supplies.
 Do not write consuming artifacts into that installation.
 
-Run `"${SKILL_ROOT}/scripts/sdd.ts" validate <spec-root-or-subtree>` before Spec Review closes and after final spec sync.
+Run `node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate <spec-root-or-subtree>` before Spec Review closes and after final spec sync.
 Use an affected subtree when it covers the reviewed artifacts and dependency changes.
-Validation MUST exit `0` when Bun is available locally.
-If Bun is unavailable, record the runtime blocker and complete every applicable review-checklist item manually.
+Validation MUST exit `0` when Node.js and the plugin runtime dependencies are available locally.
+If Node.js or the plugin runtime dependencies are unavailable, record the runtime blocker.
+Complete every applicable review-checklist item manually while that blocker remains.
 Do not install a runtime just to hide the blocker.
 Reuse passing evidence for unchanged inputs.
 Rerun validation after artifact changes that affect that evidence.

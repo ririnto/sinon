@@ -129,13 +129,14 @@ Control parallelism for CPU-bound work without creating extra threads.
 `limitedParallelism(n)` creates a dispatcher view that limits the number of coroutines executing at once, without creating or reserving threads.
 
 ```kotlin
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
-private val boundedCompute = Dispatchers.Default.limitedParallelism(4)
+private val boundedCompute: CoroutineDispatcher = Dispatchers.Default.limitedParallelism(4)
 
 suspend fun processAll(items: List<Input>): List<Output> = withContext(boundedCompute) {
     coroutineScope {

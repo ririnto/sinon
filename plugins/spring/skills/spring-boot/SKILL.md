@@ -35,7 +35,7 @@ Existing applications do not need new bootstrap, testing, Actuator, or packaging
 
 ## Dependency baseline
 
-Use Boot dependency management and only the starters the application actually needs.
+Use Boot dependency management and only the starters the application needs.
 The `4.1.1` parent below illustrates the documented baseline.
 For a new parent, check `org.springframework.boot:spring-boot-starter-parent` on Maven Central for the latest stable release compatible with the project.
 Keep an existing parent, BOM, or version-catalog pin unless the task authorizes changing it.
@@ -164,8 +164,6 @@ If the deployment baseline is container-native, keep the image build path explic
 Spring Boot 4.1 adds Jackson multi-format properties, config-import encoding, lazy JDBC connection fetching, async JPA bootstrapping, `@Async` context propagation, `@RedisListener` auto-configuration, embedded LDAPS, and OpenTelemetry enhancements.
 It also changes test-server behavior, HTTP client cookie handling, response compression, Docker Compose logging, build tooling, and `-DskipTests` AOT semantics.
 
-Open [references/4.1-changes.md](references/4.1-changes.md) when the task uses a Spring Boot 4.1 feature or migrates from 4.0 to 4.1.
-
 ## Test strategy baseline
 
 Choose the narrowest Boot test that proves the behavior.
@@ -200,13 +198,11 @@ class GreetingControllerTests {
 }
 ```
 
-Open [references/application-context-runner.md](references/application-context-runner.md) when the blocker is Boot wiring without starting the whole application, and open [references/testcontainers.md](references/testcontainers.md) or [references/service-connections.md](references/service-connections.md) when tests need real local services.
-
 ## Production guardrails
 
 - Keep starter choices small and intentional.
 - Externalize credentials and environment-specific settings.
-- Expose only the Actuator endpoints the operations team actually needs.
+- Expose only the Actuator endpoints the operations team needs.
 - Keep profile, config import, Docker Compose, and deployment assumptions explicit.
 - Make startup, packaging, and local service assumptions reproducible across local and deployment environments.
 

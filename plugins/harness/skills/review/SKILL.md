@@ -11,7 +11,6 @@ metadata:
 
 # Review
 
-Judge the change against the stated requirements and the target repository's own rules, not unstated preferences.
 Use the [shared engineering rules](../../docs/rules.md) for instruction discovery, authority, validation, evidence, and review criteria.
 From their index, load language and tool guidance only for affected files, profiles, or suspected findings.
 

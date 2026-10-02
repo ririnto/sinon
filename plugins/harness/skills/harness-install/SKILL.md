@@ -38,7 +38,7 @@ Do not load unselected native integrations.
 
 | Profile | Language association | Native integration reference |
 | --- | --- | --- |
-| `bun` | JavaScript, TypeScript, JSX as applicable | [Bun](../../docs/tools/bun.md) |
+| `pnpm` | JavaScript, TypeScript, JSX as applicable | [pnpm](../../docs/tools/pnpm.md) |
 | `gradle` | Java; Kotlin with verified Kotlin integration | [Gradle](../../docs/tools/gradle.md) |
 | `maven` | Java; Kotlin only with the verified conditional classpath path | [Maven](../../docs/tools/maven.md) |
 | `uv` | Python | [uv](../../docs/tools/uv.md) |
@@ -86,7 +86,7 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `.claude/skills/docs/rules.md` | `${CLAUDE_PLUGIN_ROOT}/docs/rules.md` |
 | `.claude/skills/docs/languages/<name>.md` | `${CLAUDE_PLUGIN_ROOT}/docs/languages/<name>.md` |
 | `.claude/skills/docs/tools/<name>.md` | `${CLAUDE_PLUGIN_ROOT}/docs/tools/<name>.md` |
-| `<target-root>/.markdownlint-cli2.jsonc` | `${CLAUDE_PLUGIN_ROOT}/tooling/bun/.markdownlint-cli2.jsonc` when Bun is selected |
+| `<target-root>/.markdownlint-cli2.jsonc` | `${CLAUDE_PLUGIN_ROOT}/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm is selected |
 | `<target-tooling>/kotlin-ktlint/` | `${CLAUDE_PLUGIN_ROOT}/tooling/kotlin-ktlint/` when Kotlin is selected |
 
 Read the two skills, common rules, and selected language and tool references before composing their target files.
@@ -128,7 +128,7 @@ Keep existing manifests, identity, source roots, toolchains, test owners, format
 Do not replace whole configuration files or silently upgrade dependencies to match a profile.
 Create native configuration only where the selected reference permits it and no target-owned file conflicts.
 
-For Bun, use the [bounded manifest and Markdownlint merge](../../docs/tools/bun.md#bounded-manifest-merge).
+For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs/tools/pnpm.md#bounded-manifest-merge).
 The profile owns Markdownlint dependency/scripts and config-based `node_modules` exclusion, including targets without `.gitignore`.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.
@@ -154,7 +154,7 @@ Verify written destinations with the native filesystem:
 
 For changed native integrations, run the target's documented affected checks and profile-specific acceptance proof.
 A Kotlin integration needs the complete module, runtime registration, and consumer-lint proof required by its selected tool reference.
-A Bun integration must resolve its Markdownlint configuration at the selected project root.
+A pnpm integration must resolve its Markdownlint configuration at the selected project root.
 Do not invent check commands, add test infrastructure, or rerun unaffected profile checks for guidance-only refreshes.
 
 Report selected profiles, root associations, mapped statuses, preserved customizations, and canonical source identity.

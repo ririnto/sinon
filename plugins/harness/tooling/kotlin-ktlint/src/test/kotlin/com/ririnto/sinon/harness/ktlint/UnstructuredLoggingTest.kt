@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -11,7 +12,9 @@ class UnstructuredLoggingTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun log() = println(\"message\")\n"
+                    """
+                    fun log() = println("message")
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -27,7 +30,9 @@ class UnstructuredLoggingTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun log() = kotlin.io.println(\"message\")\n"
+                    """
+                    fun log() = kotlin.io.println("message")
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -40,17 +45,15 @@ class UnstructuredLoggingTest :
         }
 
         test("multiple println calls are all flagged") {
-            val source =
-                """
-                fun log() {
-                    println("one")
-                    kotlin.io.println("two")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun log() {
+                        println("one")
+                        kotlin.io.println("two")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -74,30 +77,31 @@ class UnstructuredLoggingTest :
                 class Logger { fun println(msg: String) {} }
                 fun log(l: Logger) = l.println("message")
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("non kotlin callee is safe") {
-            val lintResult1 =
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun log(error: Throwable) = error.printStackTrace()\n")) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe "fun log(error: Throwable) = error.printStackTrace()\n"
+            }
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "fun log(error: Throwable) = error.printStackTrace()\n"
+                    """
+                    fun log() = print("message")
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "fun log(error: Throwable) = error.printStackTrace()\n"
-            val lintResult2 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    "fun log() = print(\"message\")\n"
-                )
-            lintResult2.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult2.formattedCode shouldBe "fun log() = print(\"message\")\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    fun log() = print("message")
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("safe access and not null assertion receivers are safe") {
@@ -112,13 +116,10 @@ class UnstructuredLoggingTest :
                     foo!!.println("msg")
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {

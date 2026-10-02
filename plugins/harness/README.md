@@ -6,7 +6,6 @@ description: >-
 # Harness
 
 Harness provides three skills: `implement`, `review`, and `harness-install`.
-The first two give agents concrete engineering rules for implementation, design, language, testing, and review work.
 The installer materializes the implementation and review skills and their canonical documentation in a target repository.
 The skills route each task to shared rules and context-specific language and tool guidance.
 The installed skills are project-local copies derived from the current canonical files.
@@ -19,9 +18,7 @@ The installed skills are project-local copies derived from the current canonical
 | `review` | Review a diff or completed change for correctness, drift, and rule compliance. |
 | `harness-install` | Install the implement and review skills and their current documentation into a target repository. |
 
-The skills are host-neutral: they never prescribe a universal instruction filename and instead read the root instruction file the active host actually loads.
-Plans are self-contained and do not depend on an external tracker.
-Execution state stays in agent context unless the user or target repository names an approved planning surface.
+The skills use the instruction files selected by the active host.
 
 ## Package Inventory
 
@@ -50,4 +47,3 @@ Its preview separates safe creates and unchanged files from conflicts that requi
 For Kotlin, it also materializes the complete target-owned `tooling/kotlin-ktlint/` Gradle module when the Kotlin profile is selected.
 The target must attach its produced JAR to the actual ktlint runtime through `ktlintRuleset(...)`.
 BuildSrc classes alone are not sufficient.
-The skills never disable hooks, fake validation success, or treat a skipped gate as a pass: a gate that cannot run stays a named gap.

@@ -1,0 +1,11 @@
+{
+  "name": "@sinon/spec-driven-development",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "fast-sort": "catalog:",
+    "tsx": "catalog:",
+    "yaml": "catalog:"
+  },
+  "packageManager": "pnpm@12.8.1"
+}

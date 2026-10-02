@@ -13,7 +13,6 @@ Use each package README for its component inventory and supported runtime.
 
 ## Skill Content Authoring
 
-Apply the Markdown authoring rules in [repository conventions](../docs/agent-references/repository-conventions.md) to skill and reference content.
 Local reference filenames omit parts redundant with the owning skill's subject while keeping the distinguishing topic or version.
 
 ## Validation

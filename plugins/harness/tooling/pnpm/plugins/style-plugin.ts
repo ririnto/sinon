@@ -147,4 +147,7 @@ const style = {
   }
 };
 
+/**
+ * Provide the native custom source style rules.
+ */
 export default style;

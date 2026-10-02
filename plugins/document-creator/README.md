@@ -6,12 +6,7 @@ description: >-
 
 # Document Creator
 
-Document Creator is a skill-first plugin for authoring AI-consumable engineering documents in the Sinon Claude marketplace.
-
-## Purpose
-
-Provide reusable skills for authoring engineering documents that are structured, bounded, and testable.
-Focus on documents that capture requirements, design intent, and acceptance criteria in formats that agents and engineers can use without ambiguity or guessing.
+Document Creator provides a skill for standalone engineering specifications.
 
 ## Included Skills
 
@@ -45,17 +40,6 @@ plugins/document-creator/
             +-- scenarios-and-acceptance.md
             +-- template.md
 ```
-
-## Shipped Surfaces
-
-- The plugin ships reusable skills under `skills/`.
-- Each skill is self-contained with a `SKILL.md` entrypoint and `references/` for additive depth.
-
-## Design Principles
-
-- Prefer one coherent user job per skill.
-- Keep the contract and task routing in `SKILL.md`.
-- Load templates and authoring references only when the requested document or review needs them.
 
 ## Installation
 

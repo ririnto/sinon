@@ -5,15 +5,7 @@ description: >-
 
 # Kotlin
 
-Kotlin is a shared, skill-first plugin for Kotlin application and library work in the Sinon Claude marketplace.
-
-## Purpose
-
-- Provide reusable Kotlin workflows that remain portable across Claude Code plugin installations.
-- Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code
-  in the smallest matching Kotlin domain.
-- Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language,
-  JVM tooling, and framework-specific Spring behavior.
+Kotlin provides language, coroutine, and testing skills with local Kotlin LSP integration.
 
 ## Included Skills
 
@@ -29,16 +21,6 @@ This plugin ships no agents.
 
 ## Skill Selection
 
-Start here when Kotlin work could fit more than one skill:
-
-### Language patterns vs coroutines vs testing
-
-- Use `kotlin-language-patterns` for idiomatic API shape, null-safety, and value modeling decisions.
-- Use `kotlin-coroutines-flows` when the question concerns async contract, `suspend`, `Flow`, cancellation, or scope ownership.
-- Use `kotest` for Kotlin unit-test structure, coroutine-aware testing, or test-scope decisions.
-- When the question is "how should the async contract be shaped?", stay in coroutine guidance.
-  - When it is "how do I verify that async behavior deterministically?", stay in testing guidance.
-
 ### Applying the skills
 
 Select the skill for the current decision instead of following a language, coroutine, and testing sequence.
@@ -52,9 +34,6 @@ context stay in Kotlin-focused guidance.
 Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure
 behavior are outside Kotlin-focused guidance.
 
-Kotlin stays responsible for Kotlin-native language patterns, coroutine and Flow modeling,
-Kotlin-focused test structure, and kotlin-lsp-assisted source analysis.
-
 These topics fall outside Kotlin's scope:
 
 - Java syntax rules, Java API design, and Java-specific build conventions.
@@ -62,14 +41,6 @@ These topics fall outside Kotlin's scope:
 - Spring annotations, WebFlux framework wiring, Spring Boot testing, and framework-managed reactive behavior.
 
 Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage are outside Kotlin guidance.
-Kotlin remains the home for general coroutine and Flow design outside Spring framework behavior.
-
-## Design Principles
-
-- Prefer working code shapes over generic language summaries.
-- Keep examples minimal but directly adaptable to production code.
-- Choose the smallest Kotlin skill that matches the task.
-  Each skill owns its style and pattern rules.
 
 ## Runtime Model
 

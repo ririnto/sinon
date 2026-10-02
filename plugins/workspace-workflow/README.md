@@ -5,16 +5,7 @@ description: >-
 
 # Workspace Workflow
 
-Workspace Workflow is a shared, skill-first plugin for end-to-end Git workspace and change-integration workflow in the Sinon Claude marketplace.
-It covers isolated worktree work, working-tree discipline, history integration (merge or rebase), commit message conventions, and Git-contained change-description composition under one coherent plugin.
-
-## Purpose
-
-- Provide reusable guidance for managing parallel development using git worktrees without switching HEAD.
-- Preserve working-tree and staging intent with operation-specific checks rather than requiring a clean tree for every task.
-- Document merge and rebase strategies with concrete commands, decision tables, and conflict-handling procedures.
-- Standardize commit messages with Conventional Commits and align change description bodies across Git repositories.
-- Coordinate decisions across these skills through focused workspace agents.
+Workspace Workflow provides Git worktree, preservation, merge, rebase, commit-message, and change-description skills.
 
 ## Included Skills
 
@@ -68,21 +59,6 @@ plugins/workspace-workflow/
     +-- working-tree-hygiene/
         +-- SKILL.md
 ```
-
-## Shipped Surfaces
-
-- Six reusable skills under `skills/` cover the full workspace-to-integration workflow.
-- Three agents under `agents/` cover workflow coordination, commit-message drafting, and change description body drafting.
-
-## Design Principles
-
-- Prefer one coherent user job per skill.
-  - Route cross-skill decisions through `workspace-architect`.
-- Keep each `SKILL.md` focused on its operation, authority boundaries, relevant command choices, and completion evidence.
-- Derive guidance from real Git behavior and repository state rather than generic tutorials.
-- Keep change descriptions self-contained and derive review and merge context from repository evidence.
-- Treat shared history as a contract: rebasing or force-pushing published branches requires explicit, team-acknowledged intent.
-- Keep `plugin.json` thin and let the skills and agents carry the reusable substance.
 
 ## Installation
 

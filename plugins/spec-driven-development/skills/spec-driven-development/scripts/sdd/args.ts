@@ -110,7 +110,7 @@ export const commandSpecPath = (
     return explicit;
   }
   const fallback = resolveDefaultSpecPath();
-  if (fallback) {
+  if (fallback !== undefined && fallback.length > 0) {
     return fallback;
   }
   fail(`FAIL: ${label} is required (no ./spec directory or $SDD_SPEC_DIR set)`);

@@ -1,5 +1,7 @@
 import path from "node:path";
 
+import { sort } from "fast-sort";
+
 import { loadFrontmatterEntry } from "./frontmatter.js";
 import { listByBasename } from "./infrastructure.js";
 import { extractLinkTargets } from "./links.js";
@@ -23,7 +25,7 @@ export const generateMermaid = (specRoot: string): string => {
       entries.set(filePath, entry);
     }
     const title = String(
-      entry?.data["title"] ?? path.basename(path.dirname(filePath))
+      entry?.data.title ?? path.basename(path.dirname(filePath))
     );
     ids.set(filePath, id);
     lines.push(`  ${id}["${title.replaceAll('"', "'")}"]`);
@@ -32,16 +34,16 @@ export const generateMermaid = (specRoot: string): string => {
   for (const filePath of specFiles) {
     const from = ids.get(filePath);
     const entry = entries.get(filePath);
-    if (!from || !entry) {
+    if (from === undefined || from.length === 0 || !entry) {
       continue;
     }
     for (const target of extractLinkTargets(entry.data, filePath)) {
       const to = ids.get(target.resolved);
-      if (to) {
+      if (to !== undefined && to.length > 0) {
         edges.add(`  ${from} --> ${to}`);
       }
     }
   }
-  lines.push(...[...edges].toSorted());
+  lines.push(...sort([...edges]).asc());
   return lines.join("\n");
 };

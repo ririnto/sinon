@@ -70,7 +70,9 @@ resolve_project_lombok_jar() {
   printf '%s\n' "${project_lombok_jar}"
 }
 
+#
 # Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
+#
 strip_existing_lombok_agents() {
   cleaned_options=""
   for current_arg in ${JDK_JAVA_OPTIONS:-}; do

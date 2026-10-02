@@ -5,13 +5,7 @@ description: >-
 
 # Netty
 
-Netty is a shared, skill-first plugin for Netty core API and Reactor Netty reactive application work in the Sinon Claude marketplace.
-
-## Purpose
-
-- Provide reusable Netty workflows that remain portable across Claude Code plugin installations.
-- Keep skills practical, example-driven, and focused on real network application tasks rather than framework trivia.
-- Clarify handoffs between low-level Netty APIs and Reactor Netty application patterns.
+Netty provides skills for core Netty APIs and Reactor Netty clients and servers.
 
 ## Included Skills
 
@@ -56,16 +50,6 @@ plugins/netty/
     +-- netty/
     +-- reactor-netty/
 ```
-
-## Shipped Surfaces
-
-- The plugin ships two reusable networking skills under `skills/`.
-
-## Design Principles
-
-- Prefer working network application examples over isolated API documentation.
-- Choose the smallest Netty skill that matches the task.
-- References focus on concrete additive examples that support a decision.
 
 ## Installation
 

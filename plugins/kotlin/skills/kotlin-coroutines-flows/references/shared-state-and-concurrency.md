@@ -78,7 +78,7 @@ Simple atomic update:
 ```kotlin
 import java.util.concurrent.atomic.AtomicInteger
 
-private val nextId = AtomicInteger(0)
+private val nextId: AtomicInteger = AtomicInteger(0)
 
 fun allocateId(): Int = nextId.incrementAndGet()
 ```

@@ -16,13 +16,7 @@ description: >-
 
 # Observability Assets
 
-Observability Assets is a shared, skill-first plugin for Prometheus and Grafana asset authoring, routing, testing, and provisioning work in the Sinon Claude marketplace.
-
-## Purpose
-
-- Provide reusable observability workflows that remain portable across Claude Code plugin installations.
-- Keep skills practical, example-driven, and focused on version-controlled monitoring assets rather than UI-only click paths.
-- Separate Prometheus and Grafana operator workflows from application-framework-specific observability guidance.
+Observability Assets provides skills for Prometheus and Grafana asset authoring, routing, testing, and provisioning.
 
 ## Documentation Baselines
 
@@ -92,17 +86,6 @@ plugins/observability-assets/
     +-- prometheus-alert-rules/
     +-- promql/
 ```
-
-## Shipped Surfaces
-
-- The plugin ships six reusable observability-asset skills under `skills/`.
-- The plugin ships one plugin-root agent: `observability-architect` for alerting, dashboard, SLO, and metrics architecture decisions.
-
-## Design Principles
-
-- Prefer version-controlled monitoring assets over UI-only drift.
-- Route to the smallest skill that matches the active observability asset.
-- References are expected to contain concrete additive examples.
 
 ## Installation
 

@@ -1,4 +1,8 @@
-import { expect, test } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+import { expect, onTestFinished, test, vi } from "vitest";
 
 import { parseArgs } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/args.js";
 import { main } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/cli.js";
@@ -22,7 +26,7 @@ test("parseArgs returns undefined for an omitted command", () => {
 
 test("parseArgs marks long help as a boolean option", () => {
   const parsed = parseArgs(["--help"]);
-  expect(parsed?.options["help"]).toBe(true);
+  expect(parsed?.options.help).toBe(true);
   expect(parsed?.positionals).toHaveLength(0);
 });
 
@@ -36,4 +40,23 @@ test("main returns zero for long help", () => {
 
 test("main returns one for an unknown command", () => {
   expect(main(["unknown-command"])).toBe(1);
+});
+
+test("list-tags preserves lexical ordering and counts", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-tags-"));
+  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  writeFileSync(
+    path.join(directory, "SPEC.md"),
+    '---\ntag: [z, Z, alpha, "2", "10", z]\n---\n'
+  );
+  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
+  onTestFinished(() => output.mockRestore());
+  expect(main(["list-tags", directory, "--count"])).toBe(0);
+  expect(output.mock.calls).toEqual([
+    ["10\t1"],
+    ["2\t1"],
+    ["Z\t1"],
+    ["alpha\t1"],
+    ["z\t2"]
+  ]);
 });

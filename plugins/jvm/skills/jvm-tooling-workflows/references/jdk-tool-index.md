@@ -21,7 +21,9 @@ Use this reference when the blocker is choosing among the wider JDK tool set bef
 | `jcmd` | All LTS | Send diagnostic commands to running JVMs |
 | `jstack` | All LTS (deprecated) | Print thread dumps (legacy, prefer `jcmd Thread.print`) |
 | `jmap` | All LTS (deprecated) | Heap inspection and dump (legacy, prefer `jcmd GC.*`) |
-| `jfr` | JDK 11+ on OpenJDK; JDK 8 only on distributions/updates that include and license Flight Recorder | JFR provides Flight Recorder capture and analysis.<br>Verify vendor, update level, and `jcmd <pid> help` before use. |
+| `jfr` | JDK 11+ on OpenJDK; JDK 8 only on distributions/updates that include and license Flight Recorder | JFR provides Flight Recorder capture and analysis. |
+
+Verify the vendor, update level, and `jcmd <pid> help` before using JFR.
 
 ## Selection Rule
 
@@ -59,4 +61,7 @@ java.sql
 | Build custom runtime image | 9 | `jlink` |
 | Generate API docs | 8 | `javadoc` |
 | Build native installer | 16 (standard) / 14 (incubator, not production-grade) | `jpackage` |
-| Low-overhead flight recording | OpenJDK supports low-overhead flight recording from JDK 11 onward.<br>JDK 8 supports it only when the exact distribution/update includes licensed Flight Recorder. | `JFR.start` via `jcmd`, after checking `jcmd <pid> help` |
+| Low-overhead flight recording | See the Flight Recorder availability notes. | `JFR.start` via `jcmd`, after checking `jcmd <pid> help` |
+
+OpenJDK supports low-overhead flight recording from JDK 11 onward.
+JDK 8 supports it only when the exact distribution/update includes licensed Flight Recorder.

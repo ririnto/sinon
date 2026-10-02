@@ -9,6 +9,12 @@ metadata:
       url: https://kotlinlang.org/docs/java-interop.html#getters-and-setters
     Kotlin Equality:
       url: https://kotlinlang.org/docs/equality.html#referential-equality
+    Kotlin Null Preconditions:
+      url:
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/require-not-null.html
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/check-not-null.html
+    Kotlin Regex Conversion:
+      url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/to-regex.html
     Kotlin Scope Functions:
       url:
         - https://kotlinlang.org/docs/scope-functions.html
@@ -56,7 +62,7 @@ Account for enclosing scopes.
 An `internal` or `private` scope limits declarations inside it.
 Every effective public or protected declaration carries a KDoc comment.
 Write KDoc in English with multiple lines.
-Start with `/**` and end with `*/`.
+Put the opening `/**` and closing `*/` delimiters on separate lines, including for one-sentence KDoc.
 Write meaningful English sentences on lines beginning with `*`.
 Concise KDoc states the contract, not a restatement of the name.
 A purely private helper needs no KDoc.
@@ -88,6 +94,7 @@ Minimize mid-block `if` branches with `return`, `break`, or `continue`.
 Invert the condition or move a loop exit into the loop condition when behavior and evaluation order remain unchanged.
 Put braces around every `if` and `else` branch, including expression branches, guard returns, and one-line branches.
 Write function and constructor argument lists without a trailing comma.
+Keep short calls on one line when they fit the configured line limit.
 
 ## Registered Components And Required Values
 
@@ -108,7 +115,9 @@ This is a repository style rule.
 Kotlin also treats `== null` as equivalent to a reference identity check.
 The `harness:null-comparison-identity` rule reports `==` or `!=` when either operand is a literal null.
 It preserves structural equality for other values and does not apply automatic corrections.
-Prefer callable references when they preserve meaning, type, overload resolution, and receiver binding.
+Prefer `requireNotNull` for required arguments and `checkNotNull` for required state over Boolean null preconditions.
+Keep the original exception type, message, evaluation order, wrapper contract, and `Unit` return type.
+`requireNotNull` throws `IllegalArgumentException`, while `checkNotNull` throws `IllegalStateException` for null values.
 Name every lambda parameter explicitly for its role instead of the implicit `it`, with no exception for short lambdas.
 Use `_` only for a genuinely unused parameter.
 Do not confuse the Kotest DSL form `it("description")` with an implicit lambda parameter.
@@ -118,6 +127,10 @@ Do not add factories, DSLs, or layers for appearance.
 ## Raw Strings
 
 Use raw strings (`"""`) for regular expressions and JSON fixtures.
+Use raw triple-quoted strings with `trimIndent()` for multiline code text instead of escaped newline strings.
+Preserve the intended indentation, newline data, and interpolation when changing string form.
+Prefer direct string helpers before regular expressions.
+Use `String.toRegex()` when a regular expression is required.
 Know whether the trailing newline before the closing delimiter is part of the value, and match the exact target.
 
 ## Filesystem Paths
@@ -165,6 +178,7 @@ Use `?.let` for optional nullable work, and keep required failures explicit.
 
 Declare explicit types on every class, object, and companion object property, including private test helpers.
 The `harness:explicit-property-type` rule applies to these members.
+Give private top-level properties explicit types too.
 Use Kotest specs for Kotlin tests and Kotest matchers for their assertions.
 Choose the spec style for the test's structure.
 Declare tests through the spec constructor DSL.

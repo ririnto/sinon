@@ -269,6 +269,4 @@ Report any unverified lifecycle or concurrency boundary.
 
 ## Scope Boundaries
 
-Use this skill for coroutine structure, `suspend` versus `Flow`, cancellation-aware async design, hot or cold stream choices, and shared-state decisions directly caused by coroutine usage.
-
 Do not use this skill as the primary source for general Kotlin language modeling, Kotlin test structure, framework-specific reactive APIs, Android architecture guidance, or JVM runtime internals.

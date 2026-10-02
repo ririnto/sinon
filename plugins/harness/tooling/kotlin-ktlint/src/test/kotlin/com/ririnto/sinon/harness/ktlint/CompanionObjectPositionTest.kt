@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,18 +9,16 @@ import io.kotest.matchers.shouldBe
 class CompanionObjectPositionTest :
     FunSpec({
         test("flags companion object after other declarations") {
-            val source =
-                """
-                class Example {
-                    val value: String = "value"
-
-                    companion object
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    class Example {
+                        val value: String = "value"
+
+                        companion object
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -40,13 +39,10 @@ class CompanionObjectPositionTest :
                     val value: String = "value"
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("accepts class without companion object") {
@@ -56,13 +52,10 @@ class CompanionObjectPositionTest :
                     val value: String = "value"
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("ignores enum entries when computing first position") {
@@ -76,32 +69,27 @@ class CompanionObjectPositionTest :
                     }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("checks nested classes independently") {
-            val source =
-                """
-                class Outer {
-                    val outerValue: String = "outer"
-
-                    class Inner {
-                        val innerValue: String = "inner"
-
-                        companion object
-                    }
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    class Outer {
+                        val outerValue: String = "outer"
+
+                        class Inner {
+                            val innerValue: String = "inner"
+
+                            companion object
+                        }
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(

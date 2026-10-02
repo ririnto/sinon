@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -11,7 +12,11 @@ class NoLineCommentTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun foo() {\n    // comment\n}\n"
+                    """
+                    fun foo() {
+                        // comment
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -27,7 +32,11 @@ class NoLineCommentTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun foo() {\n    val x = 1 // comment\n}\n"
+                    """
+                    fun foo() {
+                        val x = 1 // comment
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -43,7 +52,11 @@ class NoLineCommentTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun foo() {\n    /* block */\n}\n"
+                    """
+                    fun foo() {
+                        /* block */
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -56,11 +69,16 @@ class NoLineCommentTest :
         }
 
         test("mixed line and block comments are all flagged") {
-            val source = "fun foo() {\n    // one\n    val x = 1 // two\n    /* three */ val y = 2\n}\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun foo() {
+                        // one
+                        val x = 1 // two
+                        /* three */ val y = 2
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -85,20 +103,36 @@ class NoLineCommentTest :
         }
 
         test("kdoc comment is not flagged") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "/** docs */\nfun foo()\n"
+                    """
+                    /**
+                     * docs
+                     */
+                    fun foo()
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "/** docs */\nfun foo()\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    /**
+                     * docs
+                     */
+                    fun foo()
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("comment at top of file is flagged") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "// file-level comment\nfun foo()\n"
+                    """
+                    // file-level comment
+                    fun foo()
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -114,7 +148,14 @@ class NoLineCommentTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun foo() {\n    listOf(1).forEach {\n        // comment\n        it.inc()\n    }\n}\n"
+                    """
+                    fun foo() {
+                        listOf(1).forEach {
+                            // comment
+                            it.inc()
+                        }
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -127,21 +168,31 @@ class NoLineCommentTest :
         }
 
         test("comment markers inside raw string are ignored") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "val text = \"\"\"// not a comment /* also not a comment */\"\"\"\n"
+                    """
+                    val text = ${"\"\"\""}// not a comment /* also not a comment */${"\"\"\""}
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "val text = \"\"\"// not a comment /* also not a comment */\"\"\"\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    val text = ${"\"\"\""}// not a comment /* also not a comment */${"\"\"\""}
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("format leaves commented source unchanged") {
-            val source = "fun foo() {\n    // comment\n}\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun foo() {
+                        // comment
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(

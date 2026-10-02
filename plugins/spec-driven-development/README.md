@@ -5,11 +5,7 @@ description: >-
 
 # Spec-Driven Development
 
-Spec-Driven Development is a skill-first plugin for gated specification-driven delivery in the Sinon Claude marketplace.
-
-## Purpose
-
-Provide reusable spec-driven development guidance that remains portable across Claude Code plugin installations.
+Spec-Driven Development provides a gated specification lifecycle through implementation and verification.
 
 ## Included Skill
 
@@ -44,6 +40,9 @@ This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 plugins/spec-driven-development/
 +-- .claude-plugin/plugin.json
 +-- README.md
++-- package.json            # Standalone Node.js runtime dependencies
++-- pnpm-workspace.yaml     # Runtime dependency catalog
++-- pnpm-lock.yaml          # Standalone installation lockfile
 +-- agents/
 |   +-- spec-driven-development.md
 +-- skills/
@@ -57,7 +56,7 @@ plugins/spec-driven-development/
         |   +-- review-checklist.md
         |   +-- examples/
         +-- scripts/
-        |   +-- sdd.ts          # Thin Bun/shebang CLI entrypoint
+        |   +-- sdd.ts          # Thin Node.js CLI entrypoint
         |   +-- sdd/            # Modular runtime source and command modules
         +-- assets/
         |   +-- templates/
@@ -75,17 +74,30 @@ plugins/spec-driven-development/
 - `assets/schemas/` contains JSON Schema author references.
 - The runtime validator enforces only the documented, selected subset of fields and does not parse these files.
 
-## Design Principles
-
-- Keep `SKILL.md` as the task router and load references for the active lifecycle stage.
-- Keep gate semantics in `references/workflow.md` and review items in `references/review-checklist.md`.
-- Reuse current approval and unaffected check evidence when resuming approved work.
-- Derive spec content from requirements, not from implementation.
-
 ## Offline-Capable Runtime
 
-The packaged skill is usable offline when [Bun](https://bun.sh/) is installed on the host.
-`skills/spec-driven-development/scripts/sdd.ts` is a thin Bun/shebang entrypoint that delegates to modular source under `skills/spec-driven-development/scripts/sdd/`.
+The packaged skill requires Node.js.
+Install its runtime dependencies with pnpm before offline use:
+
+```sh
+pnpm --dir /path/to/installed/spec-driven-development install --prod --frozen-lockfile
+```
+
+The package declares `tsx` for TypeScript execution, `yaml` for YAML parsing, and `fast-sort` for immutable sorting.
+The package's catalog and lockfile support installation outside the Sinon repository.
+These dependencies belong to the installed plugin and do not depend on the consuming repository's packages.
+After installation, commands work offline.
+
+Run the CLI from the consuming repository:
+
+```sh
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
+SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
+node --import "${PLUGIN_ROOT}/node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
+```
+
+The absolute loader path resolves the installed plugin's dependencies while preserving the current working directory.
+`skills/spec-driven-development/scripts/sdd.ts` delegates to modular source under `skills/spec-driven-development/scripts/sdd/`.
 
 Maintainers update runtime source under `skills/spec-driven-development/scripts/sdd/`.
 The entrypoint remains the sole CLI surface.

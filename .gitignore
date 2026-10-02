@@ -101,7 +101,6 @@ atlassian-ide-plugin.xml
 
 # Node / package managers
 node_modules/
-bun.lockb
 jspm_packages/
 web_modules/
 .npm/

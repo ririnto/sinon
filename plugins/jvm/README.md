@@ -5,16 +5,9 @@ description: >-
 
 # JVM
 
-JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and
-garbage-collection workflows in the Sinon Claude marketplace.
+JVM provides skills for standard JDK tools, runtime diagnostics, and garbage-collection analysis.
 
 This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line.
-
-## Purpose
-
-- Provide reusable JVM workflows that remain portable across Claude Code plugin installations.
-- Keep the portable value surface in `skills/` and avoid coupling the plugin to Java-language-server setup.
-- Ground guidance in official JDK, JVM, and HotSpot tooling references instead of ad-hoc advice.
 
 ## Included Skills
 
@@ -57,19 +50,6 @@ plugins/jvm/
         +-- SKILL.md
         +-- references/
 ```
-
-## Shipped Surfaces
-
-- The plugin ships three reusable skills under `skills/`.
-- The plugin ships no plugin-root `agents/` directory.
-
-## Design Principles
-
-- Prefer one job per skill.
-- Keep skill entrypoints concise and route references by the task.
-- Move dense material into `references/`.
-- Treat LTS boundaries as the default frame for version-specific JDK differences.
-- Prefer standard JDK and HotSpot tools before wrappers.
 
 ## Installation
 

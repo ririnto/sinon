@@ -66,7 +66,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] String `call` entries use relative paths
 - [ ] No reverse-direction points (backlinks / "called by" lists) are maintained in spec bodies
 - [ ] Deprecated link-maintenance sections are absent (for example, `Link Maintenance`)
-- [ ] Inbound references are queryable from frontmatter call (`"${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`)
+- [ ] Inbound references are queryable from frontmatter call (`node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`)
 - [ ] No broken links
 
 ### Contract
@@ -100,8 +100,8 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Validation
 
-- [ ] The packaged validator exits `0` for the reviewed tree or subtree when Bun is available
-- [ ] If Bun is unavailable, the runtime blocker and manual coverage of applicable items are recorded
+- [ ] The packaged validator exits `0` for the reviewed tree or subtree when Node.js and the plugin runtime dependencies are available
+- [ ] If Node.js or the plugin runtime dependencies are unavailable, the runtime blocker and manual coverage of applicable items are recorded
 
 ## Implementation Review
 

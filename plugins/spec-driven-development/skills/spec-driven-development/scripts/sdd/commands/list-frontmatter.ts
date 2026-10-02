@@ -29,7 +29,7 @@ const buildListHeader = (
   inboundOf: string | undefined,
   fields: readonly string[] | undefined
 ): string => {
-  if (inboundOf) {
+  if (inboundOf !== undefined && inboundOf.length > 0) {
     return "target\tsource\traw_link";
   }
   if (fields) {
@@ -53,7 +53,7 @@ const formatInboundRow = (
     target: inboundOf
   };
   if (includeYaml) {
-    row["frontmatter_yaml"] = entry.yamlBody;
+    row.frontmatter_yaml = entry.yamlBody;
   }
   return jsonl
     ? JSON.stringify(row)
@@ -84,7 +84,7 @@ const formatJsonlRow = (
     }
   }
   if (includeYaml) {
-    row["frontmatter_yaml"] = entry.yamlBody;
+    row.frontmatter_yaml = entry.yamlBody;
   }
   return JSON.stringify(row);
 };
@@ -94,7 +94,7 @@ const formatFieldsTsvRow = (
   fields: readonly string[]
 ): string =>
   [
-    entry.record["file"],
+    entry.record.file,
     ...fields
       .filter((field) => field !== "file")
       .map((field) => entry.record[field] ?? entry.data[field] ?? "")
@@ -104,12 +104,12 @@ const formatFieldsTsvRow = (
 
 const formatDefaultTsvRow = (entry: LoadEntry): string =>
   [
-    entry.record["file"],
-    entry.record["title"],
-    entry.record["status"],
-    entry.record["last_updated"],
-    entry.record["updated"],
-    entry.record["created"],
+    entry.record.file,
+    entry.record.title,
+    entry.record.status,
+    entry.record.last_updated,
+    entry.record.updated,
+    entry.record.created,
     entry.tags.join(","),
     entry.subjectStr
   ]

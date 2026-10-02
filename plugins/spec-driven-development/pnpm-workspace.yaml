@@ -1,0 +1,6 @@
+catalog:
+  fast-sort: ^3.4.1
+  tsx: ^4.23.15
+  yaml: ^2.9.1
+allowBuilds:
+  esbuild: false

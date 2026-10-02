@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -29,7 +30,7 @@ class NullComparisonIdentityTest :
         }
 
         test("allows identity comparisons and structural comparisons without null literal") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -41,16 +42,18 @@ class NullComparisonIdentityTest :
                     }
                     """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe
-                """
-                fun inspect(value: Any?) {
-                    value === null
-                    null !== value
-                    value == "null"
-                    value != "other"
-                }
-                """.trimIndent() + "\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    fun inspect(value: Any?) {
+                        value === null
+                        null !== value
+                        value == "null"
+                        value != "other"
+                    }
+                    """.trimIndent() + "\n"
+            }
         }
     }) {
     companion object {

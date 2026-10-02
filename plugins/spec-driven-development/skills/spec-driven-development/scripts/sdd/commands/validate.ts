@@ -12,7 +12,7 @@ import { validateChangelogFile, validateDocument } from "../validation.js";
  */
 export const cmdValidate = (args: ParsedArgs): number => {
   const specPathArg = commandSpecPath(args, 0, "spec_path");
-  if (!specPathArg) {
+  if (specPathArg === undefined || specPathArg.length === 0) {
     return 1;
   }
   if (!existsSync(specPathArg) || !statSync(specPathArg).isDirectory()) {

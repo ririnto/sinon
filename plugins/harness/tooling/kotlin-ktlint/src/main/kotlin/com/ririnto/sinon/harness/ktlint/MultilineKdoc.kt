@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 /**
  * Requires KDoc comments to use the multiline form.
  *
- * A single-line comment is expanded without changing its documented text.
+ * Delimiters occupy separate lines without changing the documented text.
  */
 class MultilineKdoc :
     Rule(
@@ -35,19 +35,70 @@ class MultilineKdoc :
     ) : KtTreeVisitorVoid() {
         override fun visitDeclaration(declaration: KtDeclaration) {
             super.visitDeclaration(declaration)
-            declaration.docComment?.takeIf { comment -> !comment.text.contains('\n') }?.let { comment ->
-                if (emit(comment.textOffset, "use multiline KDoc for this declaration", true) == AutocorrectDecision.ALLOW_AUTOCORRECT) {
-                    val documentedText = comment.text.substring(3, comment.text.length - 2).trim()
-                    val multilineComment =
-                        """/**
- * $documentedText
+            declaration.docComment?.let { comment ->
+                val source = comment.containingFile.text
+                if (
+                    source.substring(0, comment.textOffset).substringAfterLast('\n').isNotBlank() ||
+                    source.substring(comment.textOffset + comment.textLength).substringBefore('\n').isNotBlank()
+                ) {
+                    emit(comment.textOffset, "put KDoc delimiters on separate source lines", false)
+                } else if (
+                    comment.text
+                        .lineSequence()
+                        .first()
+                        .trim() != "/**" ||
+                    comment.text
+                        .lineSequence()
+                        .last()
+                        .trim() != "*/"
+                ) {
+                    val openingDelimiterHasOwnLine = comment.text.substringBefore('\n').trim() == "/**"
+                    val documentedLines =
+                        comment.text
+                            .substring(3, comment.text.length - 2)
+                            .trimEnd()
+                            .let { text ->
+                                if (openingDelimiterHasOwnLine) {
+                                    text.trimStart()
+                                } else {
+                                    text.removePrefix(" ")
+                                }
+                            }.lines()
+                    val canCorrect =
+                        (
+                            openingDelimiterHasOwnLine ||
+                                !documentedLines.first().takeWhile(Char::isWhitespace).contains('\t')
+                        ) &&
+                            documentedLines
+                                .filterIndexed { index, _ -> index != 0 || openingDelimiterHasOwnLine }
+                                .all { line -> line.isBlank() || line.trimStart() == "*" || line.trimStart().startsWith("* ") }
+                    if (
+                        emit(comment.textOffset, "use multiline KDoc for this declaration", canCorrect) ==
+                        AutocorrectDecision.ALLOW_AUTOCORRECT && canCorrect
+                    ) {
+                        comment.node.replaceWith(
+                            KtPsiFactory
+                                .contextual(declaration)
+                                .createComment(
+                                    """/**
+${
+                                        documentedLines
+                                            .mapIndexed { index, line ->
+                                                if (index == 0 && !openingDelimiterHasOwnLine) {
+                                                    line
+                                                } else {
+                                                    line.trimStart().removePrefix("*").removePrefix(" ")
+                                                }
+                                            }.joinToString("\n") { line ->
+                                                " *${line.takeIf(String::isNotEmpty)?.let { text ->
+                                                    " $text"
+                                                }.orEmpty()}"
+                                            }
+                                    }
  */"""
-                    comment.node.replaceWith(
-                        KtPsiFactory
-                            .contextual(declaration)
-                            .createComment(multilineComment)
-                            .node
-                    )
+                                ).node
+                        )
+                    }
                 }
             }
         }

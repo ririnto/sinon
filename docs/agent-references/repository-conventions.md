@@ -1,6 +1,8 @@
 ---
 metadata:
   reference:
+    pnpm:
+      url: https://pnpm.io/catalogs
     OpenAI skills:
       url: https://developers.openai.com/codex/skills
     OpenAI project instructions:
@@ -22,7 +24,7 @@ Use uppercase constants, lowercase variables, function docstrings, no blank func
 
 ## TypeScript
 
-For TypeScript source, follow [TypeScript Conventions](typescript.md): exported-declaration TSDoc in English multiline form, no blank function-body lines, declaration-level comments, immutable bindings, and type-preserving inlining.
+For TypeScript source, use [TypeScript Conventions](typescript.md).
 
 ## Source Changes
 
@@ -34,6 +36,7 @@ Inline single-use local variables when behavior and clarity stay unchanged.
 Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 
 Write docstrings and source documentation comments in English.
+Apply these formatting rules to maintained source and code samples.
 Use the language's multiline documentation form.
 Keep one-sentence docstrings multiline.
 When the language uses delimiters, put the opening and closing delimiters on separate lines.
@@ -85,6 +88,7 @@ Use the relevant registry, such as npm, Maven Central, PyPI, or crates.io, rathe
 Respect the target's lockfile, parent POM, BOM, version catalog, and existing pins.
 Use the package manager's or build tool's native catalog for dependency versions when it supports catalogs.
 Reference catalog entries instead of repeating version literals in consumers.
+For pnpm, define catalog versions in `pnpm-workspace.yaml` and use `catalog:` references in package manifests.
 Treat historical version examples as examples.
 Change a target pin only when the task authorizes that dependency change.
 
@@ -104,5 +108,3 @@ Use `url` with a scalar for one source page or a list for multiple pages of the 
 Never fabricate a commit or version.
 Keep the original content faithful within the license and copyright of the source, and preserve its licensing and attribution.
 Distinguish exact preservation of official source from our own authored or adapted examples: label an adapted example as adapted, and never call edited code verbatim.
-
-Open the owning runtime skill for inline single-file dependency guidance.

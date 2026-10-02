@@ -45,7 +45,9 @@ JVM-only helper with explicit boundary:
 import java.nio.file.Path
 import kotlin.io.path.readText
 
-/** JVM-only: uses kotlin.io.path on top of java.nio.file.Path. */
+/**
+ * JVM-only: uses kotlin.io.path on top of java.nio.file.Path.
+ */
 fun loadJvmConfig(path: Path): String = path.readText()
 ```
 
@@ -54,8 +56,10 @@ Use when: the code is intentionally JVM-specific and the example should say so d
 Cross-platform `Regex` with portability caveat:
 
 ```kotlin
-/** Cross-platform Regex, but option and Unicode behavior can differ on JS. */
-private val orderPattern = Regex("""\w+-\d+""")
+/**
+ * Cross-platform Regex, but option and Unicode behavior can differ on JS.
+ */
+private val orderPattern: Regex = """\w+-\d+""".toRegex()
 ```
 
 Use when: the example is multiplatform in principle, but callers should not assume every engine behaves identically.
@@ -69,7 +73,9 @@ State an API's current stability in prose before imports or on a declaration KDo
 ```kotlin
 import kotlin.uuid.Uuid
 
-/** Generates a UUID with the stable Kotlin 2.4 API. */
+/**
+ * Generates a UUID with the stable Kotlin 2.4 API.
+ */
 fun createId(): Uuid = Uuid.random()
 ```
 
@@ -83,11 +89,13 @@ The opt-in caveat should appear in prose before the snippet and on the declarati
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-/** Requires a non-null name when the API needs a compiler-visible contract. */
+/**
+ * Requires a non-null name when the API needs a compiler-visible contract.
+ */
 @OptIn(ExperimentalContracts::class)
-fun requireNotNullName(name: String?) {
+fun requireNotNullName(name: String?): Unit {
     contract { returns() implies (name !== null) }
-    require(name !== null)
+    requireNotNull(name) { "Failed requirement." }
 }
 ```
 
@@ -101,7 +109,9 @@ The stream helpers `decodingWith` and `encodingWith` are JVM-only and still requ
 ```kotlin
 import kotlin.io.encoding.Base64
 
-/** Encodes bytes with the stable Kotlin 2.2 Base64 API. */
+/**
+ * Encodes bytes with the stable Kotlin 2.2 Base64 API.
+ */
 fun encode(raw: ByteArray): String = Base64.encode(raw)
 ```
 

@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -18,32 +19,27 @@ class NoJavaPathApiTest :
                     Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("equivalent files helpers are flagged across imports and qualifications") {
-            val source =
-                """
-                import java.nio.file.Files as NioFiles
-                import java.nio.file.Files.readString as readText
-                import java.nio.file.Path
-
-                fun read(path: Path): String {
-                    NioFiles.readString(path)
-                    readText(path)
-                    return java.nio.file.Files.readString(path)
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Files as NioFiles
+                    import java.nio.file.Files.readString as readText
+                    import java.nio.file.Path
+
+                    fun read(path: Path): String {
+                        NioFiles.readString(path)
+                        readText(path)
+                        return java.nio.file.Files.readString(path)
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -68,17 +64,15 @@ class NoJavaPathApiTest :
         }
 
         test("package aliases are recognized for files calls") {
-            val source =
-                """
-                import java.nio.file as nio
-                import java.nio.file.Path
-
-                fun exists(path: Path): Boolean = nio.Files.exists(path)
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file as nio
+                    import java.nio.file.Path
+
+                    fun exists(path: Path): Boolean = nio.Files.exists(path)
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -91,16 +85,14 @@ class NoJavaPathApiTest :
         }
 
         test("wildcard package imports are recognized for files calls") {
-            val source =
-                """
-                import java.nio.file.*
-
-                fun exists(path: Path): Boolean = Files.exists(path)
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.*
+
+                    fun exists(path: Path): Boolean = Files.exists(path)
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -113,18 +105,16 @@ class NoJavaPathApiTest :
         }
 
         test("java path type and file helper chain are recognized with type aliases") {
-            val source =
-                """
-                import java.nio.file.Path as NioPath
-
-                class Example(val path: NioPath) {
-                    fun isDirectory(): Boolean = this.path.toFile().isDirectory()
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path as NioPath
+
+                    class Example(val path: NioPath) {
+                        fun isDirectory(): Boolean = this.path.toFile().isDirectory()
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -137,23 +127,21 @@ class NoJavaPathApiTest :
         }
 
         test("path names are resolved within their lexical scopes") {
-            val source =
-                """
-                import java.nio.file.Path
-
-                fun verify(path: Path) {
-                    path.toFile().exists()
-                    path.toFile().mkdirs()
-                    path.toFile().listFiles()
-                    fun nested(path: String) {
-                        path.toFile().exists()
-                    }
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path
+
+                    fun verify(path: Path) {
+                        path.toFile().exists()
+                        path.toFile().mkdirs()
+                        path.toFile().listFiles()
+                        fun nested(path: String) {
+                            path.toFile().exists()
+                        }
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -178,17 +166,15 @@ class NoJavaPathApiTest :
         }
 
         test("qualified and wildcard static imports are recognized") {
-            val source =
-                """
-                import java.nio.file.Files.*
-                import java.nio.file.Path
-
-                fun check(path: Path): Boolean = exists(path) || isSymbolicLink(path)
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Files.*
+                    import java.nio.file.Path
+
+                    fun check(path: Path): Boolean = exists(path) || isSymbolicLink(path)
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -221,13 +207,10 @@ class NoJavaPathApiTest :
 
                 fun open(path: Path): InputStream = Files.newInputStream(path)
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("filtered file listings remain allowed") {
@@ -241,31 +224,26 @@ class NoJavaPathApiTest :
                     path.toFile().listFiles { file -> file.name.endsWith(".kt") }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("path returning chains stay narrow and uri resolve remains allowed") {
-            val source =
-                """
-                import java.net.URI
-                import java.nio.file.Path
-
-                fun child(base: Path, uri: URI): Path {
-                    base.toUri().resolve("child")
-                    uri.resolve("child")
-                    return base.toRealPath().resolve("child")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.net.URI
+                    import java.nio.file.Path
+
+                    fun child(base: Path, uri: URI): Path {
+                        base.toUri().resolve("child")
+                        uri.resolve("child")
+                        return base.toRealPath().resolve("child")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -290,11 +268,12 @@ class NoJavaPathApiTest :
                     normalized.resolve("child")
                 }
                 """.trimIndent() + "\n"
-            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult.diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(7, 8)
-            lintResult.diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldBe
-                List(2) { "Use the kotlin.io.path division operator for Path child paths" }
-            lintResult.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(7, 8)
+                diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldBe
+                    List(2) { "Use the kotlin.io.path division operator for Path child paths" }
+                formattedCode shouldBe source
+            }
         }
 
         test("infers member path aliases regardless of declaration order") {
@@ -308,9 +287,10 @@ class NoJavaPathApiTest :
                     fun child(): Path = alias.resolve("child")
                 }
                 """.trimIndent() + "\n"
-            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult.diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(6)
-            lintResult.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(6)
+                formattedCode shouldBe source
+            }
         }
 
         test("keeps cyclic unknown and forward local aliases conservative") {
@@ -330,25 +310,24 @@ class NoJavaPathApiTest :
                     alias.resolve("child")
                 }
                 """.trimIndent() + "\n"
-            val lintResult = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("java path resolve overloads are flagged on typed path receivers") {
-            val source =
-                """
-                import java.nio.file.Path as NioPath
-
-                fun child(base: NioPath, child: NioPath): NioPath {
-                    base.resolve("child")
-                    return base.resolve(child)
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path as NioPath
+
+                    fun child(base: NioPath, child: NioPath): NioPath {
+                        base.resolve("child")
+                        return base.resolve(child)
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -381,26 +360,21 @@ class NoJavaPathApiTest :
                     path.toUri().resolve("child")
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("resolve after known path returning method is flagged") {
-            val source =
-                """
-                import java.nio.file.Path
-
-                fun child(base: Path): Path = base.normalize().resolve("child")
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path
+
+                    fun child(base: Path): Path = base.normalize().resolve("child")
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -413,30 +387,28 @@ class NoJavaPathApiTest :
         }
 
         test("flags child resolve calls from supported Path factories and aliases") {
-            val source =
-                """
-                import java.net.URI
-                import java.nio.file.Path as NioPath
-                import java.nio.file.Paths as NioPaths
-                import java.nio.file.Paths.get as fromSegments
-                import java.nio.file.Path.of as fromPath
-                import kotlin.io.path.Path as makePath
-
-                fun f(uri: URI) {
-                    NioPaths.get(".").resolve("x")
-                    makePath(".").resolve("x")
-                    java.nio.file.Path.of(".").resolve("x")
-                    fromSegments(".").resolve("x")
-                    fromPath(".").resolve("x")
-                    NioPath.of(".").resolve("x")
-                    NioPath.of(uri).resolve("x")
-                    NioPaths.get(uri).resolve("x")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.net.URI
+                    import java.nio.file.Path as NioPath
+                    import java.nio.file.Paths as NioPaths
+                    import java.nio.file.Paths.get as fromSegments
+                    import java.nio.file.Path.of as fromPath
+                    import kotlin.io.path.Path as makePath
+
+                    fun f(uri: URI) {
+                        NioPaths.get(".").resolve("x")
+                        makePath(".").resolve("x")
+                        java.nio.file.Path.of(".").resolve("x")
+                        fromSegments(".").resolve("x")
+                        fromPath(".").resolve("x")
+                        NioPath.of(".").resolve("x")
+                        NioPath.of(uri).resolve("x")
+                        NioPaths.get(uri).resolve("x")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -497,9 +469,10 @@ class NoJavaPathApiTest :
 
                 fun f(base: Path, enabled: Boolean) = base.resolve("x", enabled).resolve("y")
                 """.trimIndent() + "\n"
-            val lintResult1 = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("ignores resolve calls after a same named Path extension with a different return type") {
@@ -511,25 +484,24 @@ class NoJavaPathApiTest :
                 fun Path.getName(name: String): URI = TODO()
                 fun f(base: Path) = base.getName("x").resolve("y")
                 """.trimIndent() + "\n"
-            val lintResult1 = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("flags resolve for aliased Path types and factories") {
-            val source =
-                """
-                import java.nio.file.Path as NioPath
-
-                fun f() {
-                    val base = NioPath.of(".")
-                    base.resolve("child")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path as NioPath
+
+                    fun f() {
+                        val base = NioPath.of(".")
+                        base.resolve("child")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -556,53 +528,54 @@ class NoJavaPathApiTest :
                     return base
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        10,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        23,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        10,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        25,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        48,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        8,
-                        21,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        9,
-                        24,
-                        "Use the kotlin.io.path division operator for Path child paths",
-                        canBeAutoCorrected = false
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            5,
+                            10,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            5,
+                            23,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            6,
+                            10,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            6,
+                            25,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            7,
+                            48,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            8,
+                            21,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            9,
+                            24,
+                            "Use the kotlin.io.path division operator for Path child paths",
+                            canBeAutoCorrected = false
+                        )
                     )
-                )
-            lintResult1.formattedCode shouldBe source
+                formattedCode shouldBe source
+            }
         }
 
         test("ignores variadic resolveSibling extension overloads") {
@@ -614,9 +587,10 @@ class NoJavaPathApiTest :
                 fun Path.resolveSibling(first: String, second: String): URI = TODO()
                 fun f(base: Path) = base.resolveSibling("a", "b").resolve("c")
                 """.trimIndent() + "\n"
-            val lintResult1 = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("ignores named-argument and trailing-lambda Path extensions") {
@@ -628,29 +602,28 @@ class NoJavaPathApiTest :
                 fun first(base: Path) = base.resolve(child = "x", transform = { "y" })
                 fun second(base: Path) = base.resolve("x") { "y" }
                 """.trimIndent() + "\n"
-            val lintResult1 = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("infers Path types through direct Java factory aliases") {
-            val source =
-                """
-                import java.nio.file.Path
-                import java.nio.file.Path.of as pathOf
-                import java.nio.file.Paths.get as fromPath
-
-                val direct = Path.of(".")
-                val staticImport = pathOf(".")
-                val pathsImport = fromPath(".")
-                fun first() = direct.resolve("child")
-                fun second() = staticImport.resolve("child")
-                fun third() = pathsImport.resolve("child")
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path
+                    import java.nio.file.Path.of as pathOf
+                    import java.nio.file.Paths.get as fromPath
+
+                    val direct = Path.of(".")
+                    val staticImport = pathOf(".")
+                    val pathsImport = fromPath(".")
+                    fun first() = direct.resolve("child")
+                    fun second() = staticImport.resolve("child")
+                    fun third() = pathsImport.resolve("child")
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -675,17 +648,15 @@ class NoJavaPathApiTest :
         }
 
         test("infers Path types through an aliased Kotlin Path factory") {
-            val source =
-                """
-                import kotlin.io.path.Path as makePath
-
-                val base = makePath(".")
-                fun child() = base.resolve("child")
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import kotlin.io.path.Path as makePath
+
+                    val base = makePath(".")
+                    fun child() = base.resolve("child")
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -721,27 +692,26 @@ class NoJavaPathApiTest :
                     path.toFile().exists()
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 = KtLintRuleTestEngine.execute(ruleProvider, source)
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("restores a typed Path binding after a same-named loop destructuring") {
-            val source =
-                """
-                import java.nio.file.Path
-
-                fun inspect(path: Path) {
-                    for ((path, ignored) in listOf("child" to 1)) {
-                        path.resolve("ignored")
-                    }
-                    path.resolve("child")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path
+
+                    fun inspect(path: Path) {
+                        for ((path, ignored) in listOf("child" to 1)) {
+                            path.resolve("ignored")
+                        }
+                        path.resolve("child")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -754,24 +724,22 @@ class NoJavaPathApiTest :
         }
 
         test("keeps Path bindings visible in the loop range and after the loop") {
-            val source =
-                """
-                import java.nio.file.Path
-
-                fun String.resolve(child: String): String = this + child
-                fun makePairs(path: Path): List<Pair<String, Int>> = emptyList()
-
-                fun inspect(path: Path) {
-                    for ((path, ignored) in makePairs(path.resolve("range"))) {
-                        path.resolve("inside")
-                    }
-                    path.resolve("after")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path
+
+                    fun String.resolve(child: String): String = this + child
+                    fun makePairs(path: Path): List<Pair<String, Int>> = emptyList()
+
+                    fun inspect(path: Path) {
+                        for ((path, ignored) in makePairs(path.resolve("range"))) {
+                            path.resolve("inside")
+                        }
+                        path.resolve("after")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -790,23 +758,21 @@ class NoJavaPathApiTest :
         }
 
         test("scopes ordinary loop parameters to the body only") {
-            val source =
-                """
-                import java.nio.file.Path
-
-                fun makePaths(path: Path): List<String> = emptyList()
-
-                fun inspect(path: Path) {
-                    for (path in makePaths(path.resolve("range"))) {
-                        path.resolve("inside")
-                    }
-                    path.resolve("after")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import java.nio.file.Path
+
+                    fun makePaths(path: Path): List<String> = emptyList()
+
+                    fun inspect(path: Path) {
+                        for (path in makePaths(path.resolve("range"))) {
+                            path.resolve("inside")
+                        }
+                        path.resolve("after")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -837,13 +803,10 @@ class NoJavaPathApiTest :
                     Files.exists()
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("static Files imports are not matched when a local function shadows them") {
@@ -857,13 +820,10 @@ class NoJavaPathApiTest :
                     exists(path)
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("wildcard Files imports are not matched when a local function shadows them") {
@@ -877,13 +837,10 @@ class NoJavaPathApiTest :
                     exists(path)
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("destructured path names hide outer path bindings") {
@@ -900,13 +857,10 @@ class NoJavaPathApiTest :
                     }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("destructured lambda names hide outer path and files bindings") {
@@ -922,17 +876,14 @@ class NoJavaPathApiTest :
                     listOf(({ _: Path -> false }) to 1).forEach { (exists, ignored) -> exists(path) }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("local Java root does not become a fully qualified Files call") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -948,20 +899,22 @@ class NoJavaPathApiTest :
                     }
                     """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe
-                """
-                class JavaNamespace(val nio: NioNamespace)
-                class NioNamespace(val file: FileNamespace)
-                class FileNamespace(val Files: Helpers)
-                class Helpers {
-                    fun exists(): Boolean = true
-                }
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    class JavaNamespace(val nio: NioNamespace)
+                    class NioNamespace(val file: FileNamespace)
+                    class FileNamespace(val Files: Helpers)
+                    class Helpers {
+                        fun exists(): Boolean = true
+                    }
 
-                fun inspect(java: JavaNamespace) {
-                    java.nio.file.Files.exists()
-                }
-                """.trimIndent() + "\n"
+                    fun inspect(java: JavaNamespace) {
+                        java.nio.file.Files.exists()
+                    }
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("unrelated same named types are safe") {
@@ -981,13 +934,10 @@ class NoJavaPathApiTest :
                     path.toFile().exists()
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {

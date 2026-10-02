@@ -14,7 +14,11 @@ metadata:
       - version: 2.4.0
         url: https://kotlinlang.org/docs/whatsnew24.html
     Kotlin standard library API:
-      url: https://kotlinlang.org/api/core/kotlin-stdlib/
+      url:
+        - https://kotlinlang.org/api/core/kotlin-stdlib/
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/require-not-null.html
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/check-not-null.html
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/to-regex.html
     Kotlin scope functions:
       url:
         - https://kotlinlang.org/docs/scope-functions.html
@@ -73,6 +77,8 @@ For new dependencies or required upgrades, check Maven Central for the latest st
 - SHOULD choose the smallest type shape that matches the domain.
 - SHOULD use `?.let` when nullable data should trigger work only when present.
   Use `?:` for an intentional default or required-value failure.
+- SHOULD use `requireNotNull` for required arguments and `checkNotNull` for required state instead of Boolean null preconditions.
+  Preserve exception types, messages, evaluation order, wrapper contracts, and `Unit` return types.
 - SHOULD invert a guard condition to keep the main path positive instead of using `return`, `break`, or `continue`.
   Do this only when behavior stays the same and no nesting or mutable state is added.
 - SHOULD use `when (subject)` when one value determines the branches.
@@ -87,9 +93,12 @@ For new dependencies or required upgrades, check Maven Central for the latest st
 - SHOULD use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged.
   Keep a lambda when a reference changes evaluation or meaning.
 - MUST declare an explicit type for every class, object, and companion object property, including private properties.
+- MUST declare an explicit type for private top-level properties.
 - SHOULD prefer `kotlin.io.path.div` for JVM `Path` composition when the Kotlin standard library is available.
 - SHOULD expose read-only collection interfaces from public APIs rather than mutable variants.
 - SHOULD prefer direct string helpers before introducing `Regex`.
+- SHOULD use `String.toRegex()` when a regular expression is required.
+- SHOULD keep short calls on one line when they fit the configured line limit.
 - SHOULD pass an existing function reference instead of wrapping it in a lambda when the meaning, receiver binding, and overload resolution stay identical.
 - SHOULD document every effectively public declaration with KDoc.
   - Consider the enclosing visibility: a public member inside an `internal` or `private` holder is not public API and does not require KDoc.
@@ -431,12 +440,14 @@ Use `Regex` only when pattern matching is the real requirement.
 
 Raw strings (`"""..."""`) preserve formatting and avoid escaping backslashes, which makes regex patterns and multi-line text readable.
 Use them for fixed JSON or regex expectations when exact string semantics matter.
+Use raw strings with `trimIndent()` for multiline code text instead of escaped newline strings.
+Preserve the intended indentation, newline data, and interpolation when changing string form.
 Raw strings still interpolate `${}` expressions.
 Write `${'$'}` when the content needs a literal dollar sign.
 A trailing newline before the closing delimiter remains part of a multi-line value, so account for it in exact comparisons.
 
 ```kotlin
-private val referencePattern: Regex = Regex("""([A-Z]+)-(\d+)""")
+private val referencePattern: Regex = """([A-Z]+)-(\d+)""".toRegex()
 ```
 
 Use `trimIndent()` to strip leading whitespace from multi-line raw strings, and `trimMargin()` when you want custom prefix-based stripping:
@@ -466,7 +477,7 @@ Combine `Regex` with string helpers to extract structured data:
 
 ```kotlin
 class ReferenceKeyParser {
-    private val referencePattern: Regex = Regex("""([A-Z]+)-(\d+)""")
+    private val referencePattern: Regex = """([A-Z]+)-(\d+)""".toRegex()
 
     fun parse(input: String): Pair<String, Int>? =
         referencePattern
@@ -628,9 +639,5 @@ Do not review unrelated language features to complete a checklist.
 | relying on smart cast across lambda captures of `var` | compiler cannot prove the variable did not change between capture and use | capture the value in a local `val` before the lambda |
 
 ## Scope Boundaries
-
-Use this skill for Kotlin language and stdlib common-path work: null safety, type shape, extensions, collections, scope functions, string handling, `Result` boundaries, generics and reification, property delegation, and Java interop basics.
-
-It also owns Kotlin-native boundary choices for serialization, date-time modeling, JVM filesystem paths, and predictable member ordering when those questions are still Kotlin language or API-shape decisions.
 
 Coroutine or Flow API design, Kotlin testing strategy, and runtime-specific diagnostics are adjacent domains outside this language-and-stdlib scope.

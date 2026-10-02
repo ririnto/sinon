@@ -6,7 +6,10 @@ import io.kotest.matchers.shouldBe
 class RuleSetProviderTest :
     FunSpec({
         test("registers every harness rule") {
-            RuleSetProvider().getRuleProviders().map { provider -> provider.ruleId.value }.toSet() shouldBe
+            RuleSetProvider()
+                .getRuleProviders()
+                .map { provider -> provider.ruleId.value }
+                .toSet() shouldBe
                 setOf(
                     "harness:companion-object-position",
                     "harness:comparison-direction",

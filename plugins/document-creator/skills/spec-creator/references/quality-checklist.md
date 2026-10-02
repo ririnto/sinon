@@ -21,6 +21,8 @@ If revision requires human judgment, record a focused open question instead of g
   The reader can construct a state diagram from the text alone.
 - [ ] Integration protocol details are sufficient for a developer to implement without external documentation (or external docs are referenced by name and chapter).
 - [ ] No placeholders like "see [other component spec]" or "[to be detailed in integration guide]" inside core sections.
+- [ ] The spec remains one standalone artifact.
+  Beyond ~10,000 words, move large conditional details to appendices within `SPEC.md` and link to their internal headings.
 
 ## Normative Discipline
 
@@ -124,20 +126,6 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Verification method is explicit for each requirement or acceptance criterion when testability is not obvious.
 - [ ] Open questions are answerable and have an owner or decision point when needed.
 - [ ] Open questions are specific, for example `[NEEDS CLARIFICATION: Should retry attempts cap at 3 or be unlimited?]`.
-
-## AI-Agent Readiness
-
-- [ ] The spec is self-contained enough for a future agent to use without guessing.
-- [ ] The spec clearly separates WHAT/WHY from HOW unless design is explicitly in scope.
-- [ ] The spec includes enough boundaries (limits, states, transitions) to prevent feature inflation during implementation.
-- [ ] The spec contains its required contract rather than delegating requirement discovery to other repository documents.
-- [ ] Repository evidence is distinguished from approved requirements and does not expand task authority.
-- [ ] The spec remains one standalone artifact.
-  When it grows beyond ~10,000 words, large conditional details move to appendices inside the same `SPEC.md` and the main sections link to those internal headings.
-- [ ] Ambiguities are resolved.
-  No "implementation may choose" text is left without explicit `Implementation-defined` marking.
-- [ ] Scenarios are detailed enough for an agent to write test code from them.
-- [ ] Reference algorithms are specific enough for an agent to implement from them.
 
 ## Failure Response
 

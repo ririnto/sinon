@@ -332,9 +332,5 @@ Do not require every pattern for each test.
 
 ## Scope Boundaries
 
-Use this skill for Kotlin JVM unit and integration test shape, coroutine-aware test execution, bounded Flow assertions, and practical mocking-boundary choices.
-This skill covers Kotlin/JVM testing with Kotest, MockK, and Turbine.
-Adapt multiplatform testing separately for each target.
-
 Coroutine API design and general Kotlin language refactors are outside this test-shape scope.
 Use the Spring extension reference only when a test requires the Spring application context.

@@ -1,18 +1,24 @@
-import { chmod, mkdtemp, rm } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { once } from "node:events";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { Parser, ReadEntry } from "tar";
 
 /**
  * Verifies a release archive before selecting its regular executable file.
  * Rejects missing, ambiguous, and mismatched release checksums.
+ * Returns binary bytes without extracting archive paths to disk.
  */
 export const verifiedExecutable = async (
   bytes: Uint8Array,
   checksumIndex: string,
   archiveName: string,
   executableMember: string
-): Promise<File> => {
+): Promise<Buffer> => {
   const checksums = checksumIndex
     .split(/\r?\n/u)
     .map((line) => line.trim().split(/\s+/u))
@@ -20,17 +26,49 @@ export const verifiedExecutable = async (
   if (
     checksums.length !== 1 ||
     !/^[a-f0-9]{64}$/u.test(checksums[0]?.[0] ?? "") ||
-    new Bun.CryptoHasher("sha256").update(bytes).digest("hex") !==
-      checksums[0]?.[0]
+    createHash("sha256").update(bytes).digest("hex") !== checksums[0]?.[0]
   ) {
     throw new Error(`Invalid official release checksum for ${archiveName}`);
   }
-  const files = await new Bun.Archive(bytes).files(executableMember);
-  const executable = files.get(executableMember);
-  if (executable === undefined) {
+  const selectedEntries = new Set<ReadEntry>();
+  const chunks: Buffer[] = [];
+  const parser = new Parser({
+    filter: (member, entry) => {
+      if (entry instanceof ReadEntry && member === executableMember) {
+        selectedEntries.add(entry);
+        return (
+          selectedEntries.size === 1 &&
+          (entry.type === "File" || entry.type === "OldFile")
+        );
+      }
+      return false;
+    },
+    onReadEntry: (entry) => {
+      entry.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+    },
+    strict: true
+  });
+  parser.on("ignoredEntry", (entry: ReadEntry) => {
+    if (entry.path === executableMember) {
+      selectedEntries.add(entry);
+    }
+  });
+  const parsed = once(parser, "end");
+  parser.end(Buffer.from(bytes));
+  await parsed;
+  if (selectedEntries.size === 0) {
     throw new Error(`Missing release executable ${executableMember}`);
   }
-  return executable;
+  if (selectedEntries.size !== 1) {
+    throw new Error(`Ambiguous release executable ${executableMember}`);
+  }
+  const [executable] = selectedEntries;
+  if (executable?.type !== "File" && executable?.type !== "OldFile") {
+    throw new Error(`Nonregular release executable ${executableMember}`);
+  }
+  return Buffer.concat(chunks);
 };
 
 const releaseAsset = async (url: string): Promise<Response> => {
@@ -42,9 +80,9 @@ const releaseAsset = async (url: string): Promise<Response> => {
 };
 
 const installPromtool = async (directory: string): Promise<string> => {
-  const manifest = await Bun.file(
-    new URL("../../../package.json", import.meta.url)
-  ).json();
+  const manifest = JSON.parse(
+    await readFile(new URL("../../../package.json", import.meta.url), "utf-8")
+  );
   const version: unknown = manifest.config?.promtoolVersion;
   if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/u.test(version)) {
     throw new Error("package.json must configure a stable promtoolVersion");
@@ -73,7 +111,7 @@ const installPromtool = async (directory: string): Promise<string> => {
     releaseAsset(`${releaseUrl}/sha256sums.txt`)
   ]);
   const executablePath = path.join(directory, executableName);
-  await Bun.write(
+  await writeFile(
     executablePath,
     await verifiedExecutable(
       new Uint8Array(await archive.arrayBuffer()),
@@ -89,12 +127,16 @@ const installPromtool = async (directory: string): Promise<string> => {
 const execute = async (
   binary: string,
   args: readonly string[]
-): Promise<number> =>
-  await Bun.spawn([binary, ...args], {
-    stderr: "inherit",
-    stdin: "inherit",
-    stdout: "inherit"
-  }).exited;
+): Promise<number> => {
+  const [code, signal] = await once(
+    spawn(binary, [...args], { stdio: "inherit" }),
+    "close"
+  );
+  if (typeof code !== "number") {
+    throw new TypeError(`Promtool terminated by signal ${signal}`);
+  }
+  return code;
+};
 
 const main = async (args: readonly string[]): Promise<number> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-promtool-"));
@@ -120,6 +162,9 @@ const main = async (args: readonly string[]): Promise<number> => {
   }
 };
 
-if (import.meta.main) {
-  process.exitCode = await main(Bun.argv.slice(2));
+if (
+  process.argv[1] !== undefined &&
+  pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url
+) {
+  process.exitCode = await main(process.argv.slice(2));
 }

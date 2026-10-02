@@ -3,8 +3,8 @@ import type { Rule } from "markdownlint";
 const boxDrawingPattern = /[\u{2500}-\u{257F}]/u;
 
 /**
- * Markdownlint rule rejecting Unicode box drawing characters (U+2500 to
- * U+257F) in Markdown documents.
+ * Markdownlint rule rejecting Unicode box drawing characters
+ * (U+2500 to U+257F) in Markdown documents.
  */
 export default {
   description: "Unicode box drawing characters are not allowed in Markdown",

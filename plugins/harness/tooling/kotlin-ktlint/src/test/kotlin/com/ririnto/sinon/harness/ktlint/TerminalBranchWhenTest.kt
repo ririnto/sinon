@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,23 +9,21 @@ import io.kotest.matchers.shouldBe
 class TerminalBranchWhenTest :
     FunSpec({
         test("reports only outermost same subject equality chain with final else") {
-            val source =
-                """
-                fun sample(kind: String) {
-                    if (kind == "first") {
-                        work()
-                    } else if (kind == "second") {
-                        continueWork()
-                    } else {
-                        finish()
-                    }
-                    if (kind == "first") work()
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun sample(kind: String) {
+                        if (kind == "first") {
+                            work()
+                        } else if (kind == "second") {
+                            continueWork()
+                        } else {
+                            finish()
+                        }
+                        if (kind == "first") work()
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -44,28 +43,23 @@ class TerminalBranchWhenTest :
                     if (first) work() else if (second) continueWork()
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("reports same subject type checks") {
-            val source =
-                """
-                fun render(value: Any) {
-                    if (value is String) renderText(value)
-                    else if (value is Number) renderNumber(value)
-                    else renderOther(value)
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun render(value: Any) {
+                        if (value is String) renderText(value)
+                        else if (value is Number) renderNumber(value)
+                        else renderOther(value)
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -86,13 +80,10 @@ class TerminalBranchWhenTest :
                     if (kind == "first") work() else if (other() == kind) continueWork() else finish()
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("ignores chains with an assigned destructured parameter name") {
@@ -107,13 +98,10 @@ class TerminalBranchWhenTest :
                     }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {

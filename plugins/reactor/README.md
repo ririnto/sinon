@@ -5,17 +5,7 @@ description: >-
 
 # Reactor
 
-Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon Claude marketplace.
-
-## Purpose
-
-- Provide reusable Reactor workflows that remain portable across Claude Code plugin
-  installations.
-- Keep skills practical, example-driven, and focused on real reactive programming tasks rather
-  than framework trivia.
-- Separate reactive programming concerns from Java language, Spring framework, and general
-  concurrency concerns.
-- Document the primary skill for each Reactor task while keeping secondary concerns explicit.
+Reactor provides skills for Project Reactor composition, scheduling, hot sources, and publisher testing.
 
 ## Included Skills
 
@@ -33,37 +23,7 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 `reactor-architect` is a read-only leaf domain router for cross-skill Reactor decisions.
 It may load Reactor skills but does not delegate to other agents.
 
-## Skill Selection Tree
-
-Use this tree to select the primary skill for any Reactor task.
-
-```text
-Is the task about testing a publisher?
-  YES -> reactor-testing
-  NO  -> Continue
-
-Does the task involve manual programmatic emission or hot-source design?
-  YES -> reactor-sinks
-  NO  -> Continue
-
-Does the task involve scheduler choice, thread placement, or publishOn/subscribeOn?
-  YES -> reactor-scheduling
-  NO  -> reactor-core (default)
-```
-
-### Selection by Surface Area
-
-| Task keyword or intent | Skill |
-| --- | --- |
-| Flux, Mono, map, flatMap, concatMap, filter, zip, merge, combineLatest, concat | reactor-core |
-| fromCallable, fromSupplier, just, defer, generate, create, push, using | reactor-core |
-| onErrorResume, retry, switchIfEmpty, defaultIfEmpty, doFinally | reactor-core |
-| Context, contextWrite, deferContextual | reactor-core |
-| Schedulers.parallel, Schedulers.boundedElastic, Schedulers.single | reactor-scheduling |
-| publishOn, subscribeOn, blocking bridge, thread-affine | reactor-scheduling |
-| Sinks.one, Sinks.many, Sinks.empty, tryEmitNext, emitNext | reactor-sinks |
-| multicast, replay, unicast, share, autoConnect, refCount, ConnectableFlux | reactor-sinks |
-| StepVerifier, TestPublisher, PublisherProbe, withVirtualTime, expectNext | reactor-testing |
+## Skill Selection
 
 ### Primary Skill and Secondary Concerns
 
@@ -119,17 +79,6 @@ plugins/reactor/
     +-- reactor-sinks/
     +-- reactor-testing/
 ```
-
-## Shipped Surfaces
-
-- The plugin ships four reusable Reactor skills under `skills/`.
-- The plugin ships one plugin-root agent: `reactor-architect` for Flux/Mono composition, scheduler, hot-source, and testing workflow decisions.
-
-## Design Principles
-
-- Prefer working reactive pipeline examples over isolated API documentation.
-- Select the smallest Reactor skill that matches the primary task.
-- References in this plugin stay focused on concrete examples and additive depth.
 
 ## Installation
 

@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,23 +9,21 @@ import io.kotest.matchers.shouldBe
 class SlfDirectLoggingTest :
     FunSpec({
         test("each direct log level is flagged") {
-            val source =
-                """
-                import org.slf4j.LoggerFactory
-
-                val logger = LoggerFactory.getLogger("sample")
-                fun log() {
-                    logger.trace("trace")
-                    logger.debug("debug")
-                    logger.info("info")
-                    logger.warn("warn")
-                    logger.error("error")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import org.slf4j.LoggerFactory
+
+                    val logger = LoggerFactory.getLogger("sample")
+                    fun log() {
+                        logger.trace("trace")
+                        logger.debug("debug")
+                        logger.info("info")
+                        logger.warn("warn")
+                        logger.error("error")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -64,7 +63,9 @@ class SlfDirectLoggingTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "fun log() = org.slf4j.LoggerFactory.getLogger(\"sample\").info(\"message\")\n"
+                    """
+                    fun log() = org.slf4j.LoggerFactory.getLogger("sample").info("message")
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -77,19 +78,17 @@ class SlfDirectLoggingTest :
         }
 
         test("typed logger property is flagged") {
-            val source =
-                """
-                import org.slf4j.Logger
-
-                val logger: Logger = TODO()
-                fun log() {
-                    logger.info("message")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import org.slf4j.Logger
+
+                    val logger: Logger = TODO()
+                    fun log() {
+                        logger.info("message")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -102,18 +101,16 @@ class SlfDirectLoggingTest :
         }
 
         test("typed function parameter is flagged") {
-            val source =
-                """
-                import org.slf4j.Logger
-
-                fun log(logger: Logger) {
-                    logger.info("message")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import org.slf4j.Logger
+
+                    fun log(logger: Logger) {
+                        logger.info("message")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -135,38 +132,40 @@ class SlfDirectLoggingTest :
                     logger.atInfo().log("message")
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("unrelated receiver is safe") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "fun log() = other.info(\"message\")\n"
+                    """
+                    fun log() = other.info("message")
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "fun log() = other.info(\"message\")\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    fun log() = other.info("message")
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("nullable safe call logger parameter is flagged") {
-            val source =
-                """
-                import org.slf4j.Logger
-
-                fun log(logger: Logger?) {
-                    logger?.info("message")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    import org.slf4j.Logger
+
+                    fun log(logger: Logger?) {
+                        logger?.info("message")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -179,16 +178,14 @@ class SlfDirectLoggingTest :
         }
 
         test("nullable fully qualified logger parameter is flagged") {
-            val source =
-                """
-                fun log(logger: org.slf4j.Logger?) {
-                    logger?.info("message")
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun log(logger: org.slf4j.Logger?) {
+                        logger?.info("message")
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -211,13 +208,10 @@ class SlfDirectLoggingTest :
                     service?.info("message")
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {

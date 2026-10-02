@@ -1,0 +1,26 @@
+packages:
+  - plugins/spec-driven-development
+
+allowBuilds:
+  esbuild: true
+
+catalog:
+  "@oxc-project/types": ^0.152.0
+  "@tsconfig/node-lts": ^24.0.1
+  "@types/node": ^24.19.1
+  fast-sort: ^3.4.1
+  markdownlint: ^0.41.1
+  markdownlint-cli2: ^0.23.3
+  npm-run-all2: ^9.0.3
+  oxfmt: ^0.71.0
+  oxlint: ^1.86.0
+  tar: ^7.5.22
+  tsx: ^4.23.15
+  typescript: ^7.0.2
+  ultracite: ^7.12.2
+  vitest: ^5.0.3
+  yaml: ^2.9.1
+
+# Keep the selected stable Node 24 API types available during the release-age window.
+minimumReleaseAgeExclude:
+  - "@types/node@24.19.1"

@@ -2,6 +2,7 @@ package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.api.EditorConfigOverride
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -9,32 +10,28 @@ import io.kotest.matchers.shouldBe
 class PublicDeclarationDocCommentTest :
     FunSpec({
         test("requires documentation on effective public declarations") {
-            val source =
-                """
-                class Service(
-                    val dependency: String
-                )
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source,
+                    """
+                    class Service(
+                        val dependency: String
+                    )
+                    """.trimIndent() + "\n",
                     editorConfigOverride = EditorConfigOverride.from(PublicDeclarationDocComment.DOC_COMMENT_MODE to "on")
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(KtLintRuleTestEngine.Diagnostic(1, 7, "add a documentation comment to public declaration `Service`", false))
         }
 
         test("requires documentation on public interfaces") {
-            val source =
-                """
-                interface Repository {
-                    fun find(): String
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source,
+                    """
+                    interface Repository {
+                        fun find(): String
+                    }
+                    """.trimIndent() + "\n",
                     editorConfigOverride = EditorConfigOverride.from(PublicDeclarationDocComment.DOC_COMMENT_MODE to "on")
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
@@ -46,9 +43,13 @@ class PublicDeclarationDocCommentTest :
         test("accepts documentation and inherited override contracts") {
             val source =
                 """
-                /** Service contract. */
+                /**
+                 * Service contract.
+                 */
                 open class Service {
-                    /** Performs work. */
+                    /**
+                     * Performs work.
+                     */
                     open fun work() {
                     }
                 }
@@ -58,13 +59,10 @@ class PublicDeclarationDocCommentTest :
                     }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("ignores declarations hidden by internal or private enclosures") {
@@ -79,13 +77,10 @@ class PublicDeclarationDocCommentTest :
                     }
                 }
                 """.trimIndent() + "\n"
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    source
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {

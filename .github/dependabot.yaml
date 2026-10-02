@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: bun
+  - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
@@ -9,7 +9,7 @@ updates:
         update-types:
           - version-update:semver-major
     groups:
-      bun-development-dependencies:
+      node-development-dependencies:
         patterns:
           - "*"
         update-types:

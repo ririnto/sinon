@@ -15,12 +15,10 @@ Harness provides implementation, review, and target-repository installation guid
 Keep each rule in its owning document.
 Update consumers when their routing or contract changes, not merely because a referenced rule changes.
 Skill bodies discover the instruction files selected by the active host rather than prescribing a universal filename.
-The plugin ships no agents, settings adapters, hooks, or asset bundles.
+The [package inventory](README.md#package-inventory) lists the shipped components.
 Do not add legacy compatibility surfaces, scratch plan files, or bundled target templates.
 
 ## Validation
 
-Run `claude plugin validate plugins/harness` after changing this package.
-Keep skill frontmatter valid for the host loader.
 For routing changes, check published links and the installer's remapped regular files.
 Run native profile checks when their implementation or integration changes, not for unrelated guidance edits.

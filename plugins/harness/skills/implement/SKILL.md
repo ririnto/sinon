@@ -16,7 +16,5 @@ Use the [shared engineering rules](../../docs/rules.md) for instruction discover
 From their index, load language guidance for changed source and tool guidance for affected build or validation profiles.
 Read design, interface, and test-quality sections when those surfaces change.
 
-## Implementation
-
-Continue through the required checks and authorized Git handoff instead of stopping at the first implementation.
+Complete the acceptance criteria and authorized handoff.
 Report the outcome, changed paths, evidence, and remaining gaps in the task's required format.

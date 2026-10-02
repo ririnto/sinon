@@ -1,0 +1,11 @@
+stages:
+  - validate
+
+pnpm:
+  stage: validate
+  image: node:24
+  before_script:
+    - corepack enable
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm run check

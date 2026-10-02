@@ -12,7 +12,7 @@ import type { ParsedArgs } from "../shared.js";
  */
 export const cmdGenerateDiagram = (args: ParsedArgs): number => {
   const specRoot = commandSpecPath(args, 0, "spec_root");
-  if (!specRoot) {
+  if (specRoot === undefined || specRoot.length === 0) {
     return 1;
   }
   if (!existsSync(specRoot) || !statSync(specRoot).isDirectory()) {

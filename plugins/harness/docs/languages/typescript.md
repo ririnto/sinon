@@ -11,7 +11,7 @@ metadata:
 
 These rules extend the [common rules](../rules.md) for TypeScript files.
 Read them together with that document.
-The [Bun tool reference](../tools/bun.md) owns TypeScript project detection, Oxc configuration, and native commands.
+The [pnpm tool reference](../tools/pnpm.md) owns TypeScript project detection, Oxc configuration, and native commands.
 
 ## Exports And TSDoc
 
@@ -26,10 +26,6 @@ An unexported helper needs no TSDoc.
 
 Put braces around every `if` and `else` branch, including guard returns and one-line branches.
 Use no trailing comma in TypeScript.
-Keep no blank lines inside a function body.
-Blank lines between functions and lint-required spacing stay.
-Put no inline comments inside a function body.
-An explanation that must survive becomes a TSDoc comment on the relevant declaration.
 
 ## Bindings And Recursion
 
@@ -42,6 +38,4 @@ Do not replace an unbounded or unknown-depth loop with recursion.
 
 ## Type-Safe Inlining
 
-Inline single-use local variables when behavior, type, and clarity stay unchanged.
-Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
-Preserve a binding when a wider or narrower type would result or when any of those semantics would change.
+Apply the common inlining rules and preserve the binding's TypeScript type.

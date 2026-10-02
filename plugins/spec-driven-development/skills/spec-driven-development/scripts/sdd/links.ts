@@ -30,7 +30,7 @@ export const resolveValidationRoots = (
 ): readonly [string, string] | undefined => {
   const resolved = path.resolve(specPath);
   const inSpecRoot = findSpecRoot(resolved);
-  if (inSpecRoot) {
+  if (inSpecRoot !== undefined && inSpecRoot.length > 0) {
     return [inSpecRoot, resolved];
   }
   const localSpecRoot = path.join(resolved, "spec");
@@ -60,12 +60,17 @@ export const resolveTargetPaths = (
   }
   const parts = stripped.split(/[\\/]/u).filter((part) => part.length > 0);
   const specRoot = findSpecRoot(baseDir);
-  if (parts[0] === "spec" && specRoot && !parts.includes("..")) {
+  if (
+    parts[0] === "spec" &&
+    specRoot !== undefined &&
+    specRoot.length > 0 &&
+    !parts.includes("..")
+  ) {
     resolved.add(path.resolve(path.dirname(specRoot), ...parts));
     return resolved;
   }
   resolved.add(path.resolve(baseDir, ...parts));
-  if (specRoot && !parts.includes("..")) {
+  if (specRoot !== undefined && specRoot.length > 0 && !parts.includes("..")) {
     resolved.add(path.resolve(specRoot, ...parts));
   }
   return resolved;
@@ -80,7 +85,7 @@ export const extractCallPath = (rawCall: unknown): string => {
     return rawCall;
   }
   if (isRecord(rawCall)) {
-    return String(rawCall["path"] ?? "");
+    return String(rawCall.path ?? "");
   }
   return "";
 };
@@ -101,7 +106,7 @@ export const extractLinkTargets = (
   data: JsonRecord,
   sourceFile: string
 ): readonly LinkTarget[] => {
-  const rawCalls = data["call"];
+  const rawCalls = data.call;
   if (!Array.isArray(rawCalls)) {
     return [];
   }

@@ -29,7 +29,7 @@ Use `spring-ai` for model-facing application seams, retrieval flow, Spring-manag
 
 ## Official surface map
 
-Use this map to keep the official Spring AI surface visible without pushing the common path into `references/`.
+Use this map to select a Spring AI surface and its supporting reference.
 
 | Surface | Start here when | Open a reference when |
 | --- | --- | --- |
@@ -39,10 +39,10 @@ Use this map to keep the official Spring AI surface visible without pushing the 
 | Advisors + chat memory | Requests need prompt decoration, recursive advisor behavior, history, token-window control, reasoning augmentation, or content safety | Advisor ordering or persistent memory is the blocker in [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) |
 | RAG + vector stores | The answer must use retrieved enterprise context | ETL pipeline, ingestion, chunking, embeddings, store choice, or advanced RAG flow design is the blocker in [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) |
 | MCP | Tools or prompts cross a process or service boundary | Client/server choice or transport setup is the blocker in [references/mcp-client-server-boundaries.md](references/mcp-client-server-boundaries.md) |
-| Vision + image generation | The feature must inspect images or generate images from prompts | Vision payload shape is the blocker in [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md), multiple-image comparison is the blocker in [references/multiple-image-comparison.md](references/multiple-image-comparison.md), or image-model output is the blocker in [references/image-generation.md](references/image-generation.md) |
+| Vision + image generation | The feature must inspect images or generate images from prompts | Single-image vision input: [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md), multiple-image comparison: [references/multiple-image-comparison.md](references/multiple-image-comparison.md), or generated image artifacts: [references/image-generation.md](references/image-generation.md) |
 | Audio transcription + speech | The feature transcribes audio or returns synthesized speech | Transcription or TTS configuration is the blocker in [references/audio-transcription-and-speech-output.md](references/audio-transcription-and-speech-output.md) |
 | Moderation | The application needs input or output safety gates | Moderation placement or category thresholds are the blocker in [references/moderation-and-safety-gates.md](references/moderation-and-safety-gates.md) |
-| Effective agents | One bounded workflow must route, chain, plan, or iteratively refine work | Routing is the blocker in [references/routing-workflow.md](references/routing-workflow.md), chaining is the blocker in [references/chain-workflow.md](references/chain-workflow.md), stepwise planning is the blocker in [references/planning-and-stepwise-execution.md](references/planning-and-stepwise-execution.md), or loop bounds are the blocker in [references/loop-bounds-and-iteration-control.md](references/loop-bounds-and-iteration-control.md) |
+| Effective agents | One bounded workflow must route, chain, plan, or iteratively refine work | Routing is the blocker in [references/routing-workflow.md](references/routing-workflow.md), feeding one model step into the next: [references/chain-workflow.md](references/chain-workflow.md), bounded planning: [references/planning-and-stepwise-execution.md](references/planning-and-stepwise-execution.md), or application iteration limits: [references/loop-bounds-and-iteration-control.md](references/loop-bounds-and-iteration-control.md) |
 | Evaluation + testing | Prompt, retrieval, or tool behavior needs repeatable checks | Evaluation harness design is the blocker in [references/testing-and-evaluation-harnesses.md](references/testing-and-evaluation-harnesses.md) |
 | Usage + observability | You need token accounting, latency, tracing, or production debugging | Telemetry or incident diagnosis is the blocker in [references/observability-and-production-debugging.md](references/observability-and-production-debugging.md) |
 | Local development infra | You need Docker Model Runner, development-time services, Testcontainers, local models, vector stores, or containerized dev services | Local model runtime is the blocker in [development services and infra](references/development-services-and-local-infra.md), local vector store provisioning is the blocker in [local vector store setup](references/local-vector-store-dev.md), or full containerized bootstrap is the blocker in [containerized development environment](references/containerized-dev-environment.md) |
@@ -252,23 +252,9 @@ class KnowledgeSearchService {
 - Open [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) when advisor ordering, persistent memory repositories, token buffering, or conversation isolation becomes the blocker.
 - Open [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) when chunking, embeddings, metadata filters, vector-store choice, or advanced retrieval tuning is the blocker.
 
-## Secondary official surfaces
-
-These surfaces are part of official Spring AI scope, but they are not on the ordinary path unless the use case requires them.
-
-- Open [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md) when the feature must attach single-image vision input to a chat request.
-- Open [references/multiple-image-comparison.md](references/multiple-image-comparison.md) when the blocker is comparing or cross-referencing several images in one request.
-- Open [references/image-generation.md](references/image-generation.md) when the blocker is producing generated image artifacts instead of text.
-- Open [references/audio-transcription-and-speech-output.md](references/audio-transcription-and-speech-output.md) when the feature must transcribe audio or synthesize speech.
-- Open [references/moderation-and-safety-gates.md](references/moderation-and-safety-gates.md) when input or output moderation is required.
-- Open [references/routing-workflow.md](references/routing-workflow.md) when routing is the blocker.
-- Open [references/chain-workflow.md](references/chain-workflow.md) when one bounded model step must explicitly feed the next.
-- Open [references/planning-and-stepwise-execution.md](references/planning-and-stepwise-execution.md) when the task is too large for one safe pass and needs a bounded plan first.
-- Open [references/loop-bounds-and-iteration-control.md](references/loop-bounds-and-iteration-control.md) when iterative refinement needs an application-level bound.
-
 ## Usage handling and observability
 
-Treat token accounting as part of the application contract, not as an afterthought.
+Include token accounting in the application contract.
 
 - Read `Usage` from the final `ChatResponse` when cost, token budgets, or provider drift matter.
 - Record prompt, completion, and total token counts together with latency and tool or retrieval activity.
@@ -288,7 +274,6 @@ Use live-provider evaluation only when the required evidence and authority justi
 - Verify token usage, latency, and tool-call identity are observable in the final path.
 
 Open [references/testing-and-evaluation-harnesses.md](references/testing-and-evaluation-harnesses.md) when the task needs repeatable evaluation datasets, regression checks, or infrastructure-backed integration tests.
-Open [references/observability-and-production-debugging.md](references/observability-and-production-debugging.md) when adding usage accounting, tracing, or production incident diagnostics.
 
 ## Production guardrails
 

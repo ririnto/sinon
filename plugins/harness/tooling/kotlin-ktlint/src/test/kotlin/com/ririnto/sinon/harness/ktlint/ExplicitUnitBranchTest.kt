@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,28 +9,26 @@ import io.kotest.matchers.shouldBe
 class ExplicitUnitBranchTest :
     FunSpec({
         test("flags only explicit unit results in mixed when branches") {
-            val source =
-                """
-                fun sample(value: Int) {
-                    when (value) {
-                        0 -> Unit
-                        1 -> value
-                        2 -> kotlin.Unit
-                        3 -> value.toString()
-                        4 -> kotlin . Unit
-                        5 -> (Unit)
-                        6 -> {
-                            val ignored = value
-                            Unit
-                        }
-                        else -> Unit
-                    }
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun sample(value: Int) {
+                        when (value) {
+                            0 -> Unit
+                            1 -> value
+                            2 -> kotlin.Unit
+                            3 -> value.toString()
+                            4 -> kotlin . Unit
+                            5 -> (Unit)
+                            6 -> {
+                                val ignored = value
+                                Unit
+                            }
+                            else -> Unit
+                        }
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(3, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
@@ -59,42 +58,35 @@ class ExplicitUnitBranchTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                val lintResult1 =
-                    KtLintRuleTestEngine.execute(
-                        ruleProvider,
-                        source
-                    )
-                lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-                lintResult1.formattedCode shouldBe source
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    formattedCode shouldBe source
+                }
             }
         }
 
         test("flags unit result in if without else") {
-            val source =
-                """
-                fun sample(condition: Boolean) {
-                    if (condition) Unit
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun sample(condition: Boolean) {
+                        if (condition) Unit
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(KtLintRuleTestEngine.Diagnostic(2, 20, "explicit Unit branch result is forbidden", canBeAutoCorrected = false))
         }
 
         test("flags both branches in simple if else") {
-            val source =
-                """
-                fun sample(condition: Boolean) {
-                    if (condition) Unit else Unit
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun sample(condition: Boolean) {
+                        if (condition) Unit else Unit
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(2, 20, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
@@ -103,16 +95,14 @@ class ExplicitUnitBranchTest :
         }
 
         test("flags each unit result once in else if chain") {
-            val source =
-                """
-                fun sample(first: Boolean, second: Boolean) {
-                    if (first) Unit else if (second) Unit else Unit
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun sample(first: Boolean, second: Boolean) {
+                        if (first) Unit else if (second) Unit else Unit
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(2, 16, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
@@ -122,23 +112,21 @@ class ExplicitUnitBranchTest :
         }
 
         test("traverses nested control flow without flagging outer branches") {
-            val source =
-                """
-                fun sample(value: Int, condition: Boolean) {
-                    when (value) {
-                        0 -> if (condition) Unit else value
-                        1 -> when (value) {
-                            0 -> Unit
-                            else -> value
-                        }
-                        else -> value
-                    }
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun sample(value: Int, condition: Boolean) {
+                        when (value) {
+                            0 -> if (condition) Unit else value
+                            1 -> when (value) {
+                                0 -> Unit
+                                else -> value
+                            }
+                            else -> value
+                        }
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(3, 29, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),

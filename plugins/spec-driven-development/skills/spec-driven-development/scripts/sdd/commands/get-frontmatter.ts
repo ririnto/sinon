@@ -78,7 +78,7 @@ const outputJson = (
     Object.assign(out, outputData);
   }
   if (optionBool(args, "include-yaml")) {
-    out["frontmatter_yaml"] = entry.yamlBody;
+    out.frontmatter_yaml = entry.yamlBody;
   }
   console.log(JSON.stringify(out, null, format === "jsonl" ? undefined : 2));
   return 0;
@@ -103,7 +103,7 @@ export const cmdGetFrontmatter = (args: ParsedArgs): number => {
     return 1;
   }
   const docPath = resolveDocPath(kind, rawPath);
-  if (!docPath) {
+  if (docPath === undefined || docPath.length === 0) {
     return 1;
   }
   if (format === "file") {
@@ -122,7 +122,7 @@ export const cmdGetFrontmatter = (args: ParsedArgs): number => {
   const { entry } = result;
   const outputData: MutableRecord = { ...entry.data };
   if ("tag" in outputData || "tags" in outputData) {
-    outputData["tag"] = normalizeTag(outputData["tag"] ?? outputData["tags"]);
+    outputData.tag = normalizeTag(outputData.tag ?? outputData.tags);
   }
   const fields = parseFields(optionString(args, "fields"));
   switch (format) {

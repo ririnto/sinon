@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,62 +9,87 @@ import io.kotest.matchers.shouldBe
 class ImportOverFqnTest :
     FunSpec({
         test("simple fqn is rewritten and imported") {
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    "val value = kotlin.collections.ArrayList<String>()\n"
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        13,
-                        "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
-                        canBeAutoCorrected = true
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "val value = kotlin.collections.ArrayList<String>()\n")) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            1,
+                            13,
+                            "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
+                            canBeAutoCorrected = true
+                        )
                     )
-                )
-            lintResult1.formattedCode shouldBe "import kotlin.collections.ArrayList\n\nval value = ArrayList<String>()\n"
+                formattedCode shouldBe
+                    """
+                    import kotlin.collections.ArrayList
+
+                    val value = ArrayList<String>()
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("multiple packages add multiple imports") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "val a = java.util.ArrayList<String>()\nval b = kotlin.collections.LinkedList<String>()\n"
+                    """
+                    val a = java.util.ArrayList<String>()
+                    val b = kotlin.collections.LinkedList<String>()
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        9,
-                        "fully qualified name `java.util.ArrayList` used inline; add an import and use the simple name"
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        9,
-                        "fully qualified name `kotlin.collections.LinkedList` used inline; add an import and use the simple name"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            1,
+                            9,
+                            "fully qualified name `java.util.ArrayList` used inline; add an import and use the simple name"
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            2,
+                            9,
+                            "fully qualified name `kotlin.collections.LinkedList` used inline; add an import and use the simple name"
+                        )
                     )
-                )
-            lintResult1.formattedCode shouldBe
-                "import java.util.ArrayList\nimport kotlin.collections.LinkedList\n\nval a = ArrayList<String>()\nval b = LinkedList<String>()\n"
+                formattedCode shouldBe
+                    """
+                    import java.util.ArrayList
+                    import kotlin.collections.LinkedList
+
+                    val a = ArrayList<String>()
+                    val b = LinkedList<String>()
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("inserts new import in alphabetical order with existing imports") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "import gamma.delta.Baz\n\nval value = alpha.beta.Foo()\n"
+                    """
+                    import gamma.delta.Baz
+
+                    val value = alpha.beta.Foo()
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        13,
-                        "fully qualified name `alpha.beta.Foo` used inline; add an import and use the simple name",
-                        canBeAutoCorrected = true
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            3,
+                            13,
+                            "fully qualified name `alpha.beta.Foo` used inline; add an import and use the simple name",
+                            canBeAutoCorrected = true
+                        )
                     )
-                )
-            lintResult1.formattedCode shouldBe "import alpha.beta.Foo\nimport gamma.delta.Baz\n\nval value = Foo()\n"
+                formattedCode shouldBe
+                    """
+                    import alpha.beta.Foo
+                    import gamma.delta.Baz
+
+                    val value = Foo()
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("local name collision is lint only") {
@@ -86,7 +112,10 @@ class ImportOverFqnTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "import other.ArrayList\nval value = java.util.ArrayList<String>()\n"
+                    """
+                    import other.ArrayList
+                    val value = java.util.ArrayList<String>()
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -99,28 +128,43 @@ class ImportOverFqnTest :
         }
 
         test("same path import allows shortening") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "import kotlin.collections.ArrayList\n\nval value = kotlin.collections.ArrayList<String>()\n"
+                    """
+                    import kotlin.collections.ArrayList
+
+                    val value = kotlin.collections.ArrayList<String>()
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        13,
-                        "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
-                        canBeAutoCorrected = true
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            3,
+                            13,
+                            "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
+                            canBeAutoCorrected = true
+                        )
                     )
-                )
-            lintResult1.formattedCode shouldBe "import kotlin.collections.ArrayList\n\nval value = ArrayList<String>()\n"
+                formattedCode shouldBe
+                    """
+                    import kotlin.collections.ArrayList
+
+                    val value = ArrayList<String>()
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("same path alias import does not allow shortening") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "import kotlin.collections.ArrayList as JList\n\nval value = kotlin.collections.ArrayList<String>()\n"
+                    """
+                    import kotlin.collections.ArrayList as JList
+
+                    val value = kotlin.collections.ArrayList<String>()
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -136,7 +180,10 @@ class ImportOverFqnTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "val first = alpha.one.Widget()\nval second = beta.two.Widget()\n"
+                    """
+                    val first = alpha.one.Widget()
+                    val second = beta.two.Widget()
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -158,7 +205,11 @@ class ImportOverFqnTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "package java.util\n\nval value = java.util.ArrayList<String>()\n"
+                    """
+                    package java.util
+
+                    val value = java.util.ArrayList<String>()
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -174,7 +225,10 @@ class ImportOverFqnTest :
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    "import other.*\nval value = java.util.ArrayList<String>()\n"
+                    """
+                    import other.*
+                    val value = java.util.ArrayList<String>()
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -187,13 +241,10 @@ class ImportOverFqnTest :
         }
 
         test("already short name is no op") {
-            val lintResult1 =
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    "val value = ArrayList<String>()\n"
-                )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "val value = ArrayList<String>()\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "val value = ArrayList<String>()\n")) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe "val value = ArrayList<String>()\n"
+            }
         }
     }) {
     companion object {

@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 
+import { sort } from "fast-sort";
+
 import { extractFrontmatterFromText } from "./frontmatter.js";
 import { isRecord, parseYamlRecord } from "./infrastructure.js";
 import { extractCallPath, extractLinkTargets } from "./links.js";
@@ -55,8 +57,8 @@ const validateStringFields = (
     }
   }
   if (
-    typeof data["last_updated"] === "string" &&
-    !ISO_DATE_RE.test(data["last_updated"])
+    typeof data.last_updated === "string" &&
+    !ISO_DATE_RE.test(data.last_updated)
   ) {
     errors.push(`FAIL [${filePath}]: last_updated must be YYYY-MM-DD`);
   }
@@ -72,16 +74,13 @@ const validateSpecFields = (
     return [];
   }
   const errors: string[] = [];
-  if (
-    typeof data["status"] === "string" &&
-    !SPEC_STATUSES.has(data["status"])
-  ) {
+  if (typeof data.status === "string" && !SPEC_STATUSES.has(data.status)) {
     errors.push(
-      `FAIL [${filePath}]: status is not an allowed value: ${data["status"]}`
+      `FAIL [${filePath}]: status is not an allowed value: ${data.status}`
     );
   }
-  if (Array.isArray(data["call"])) {
-    for (const item of data["call"]) {
+  if (Array.isArray(data.call)) {
+    for (const item of data.call) {
       const link = extractCallPath(item);
       if (!link || !RELATIVE_SPEC_LINK_RE.test(link)) {
         errors.push(
@@ -103,7 +102,7 @@ const validateTagField = (
   if (
     (kind === "spec" || kind === "research") &&
     "tag" in data &&
-    !Array.isArray(data["tag"])
+    !Array.isArray(data.tag)
   ) {
     return [`FAIL [${filePath}]: frontmatter field must be an array: tag`];
   }
@@ -121,10 +120,10 @@ const validateResearchSubject = (
   const { subject } = data;
   if (
     !isRecord(subject) ||
-    typeof subject["name"] !== "string" ||
-    !subject["name"] ||
-    typeof subject["version"] !== "string" ||
-    !subject["version"]
+    typeof subject.name !== "string" ||
+    !subject.name ||
+    typeof subject.version !== "string" ||
+    !subject.version
   ) {
     return [
       `FAIL [${filePath}]: subject.name and subject.version are required strings`
@@ -219,9 +218,10 @@ export const validateChangelogFile = (filePath: string): ValidationResult => {
   if (dates.length === 0) {
     errors.push(`FAIL [${filePath}]: CHANGELOG.md must include dated entries`);
   }
-  const sorted = [...dates].toSorted((left, right) =>
-    right.localeCompare(left)
-  );
+  const sorted = sort(dates).by({
+    asc: true,
+    comparer: (left: string, right: string) => right.localeCompare(left)
+  });
   if (dates.some((date, index) => date !== sorted[index])) {
     errors.push(
       `FAIL [${filePath}]: CHANGELOG.md entries must be newest first`

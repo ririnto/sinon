@@ -19,8 +19,7 @@ metadata:
 This document owns common engineering rules and workflow boundaries for the `implement` and `review` skills.
 Language and tool documents own their specific requirements.
 Use the sections and indexed references that apply to the task.
-The instruction structure follows official OpenAI guidance.
-Engineering preferences are Harness policies, with technical claims grounded in the relevant vendor documentation.
+Treat engineering preferences as Harness policy and use cited vendor documentation for technical claims.
 
 ## Instruction Priority And Discovery
 
@@ -41,7 +40,7 @@ Do not treat `stable` or `latest` as LTS labels.
 Choose an explicit supported LTS baseline for runtime images.
 When no official LTS exists, retain the required compatible tool and report the limitation.
 Do not label a non-LTS tool as LTS, or autoupgrade or remove a profile to create artificial compliance.
-Rust, Go, Bun, Python, Gradle, Maven, and Kotlin do not offer an official LTS line, so universal LTS coverage across all profiles is unavailable.
+Rust, Go, pnpm, Python, Gradle, Maven, and Kotlin do not offer an official LTS line, so universal LTS coverage across all profiles is unavailable.
 
 ## Authority And Completion
 
@@ -75,7 +74,7 @@ Preserve requested evidence and other contributors' work.
 
 Read the relevant code, tests, configuration, and type definitions directly before editing.
 Verify the premise before building on it.
-Fix the root cause: before changing a shared function, check every caller and fix the shared path rather than patching one caller.
+Check affected callers when changing shared behavior.
 Reuse existing helpers, patterns, and installed dependencies before adding new ones.
 Prefer an available native host tool or the target's maintained command over a custom wrapper for the same operation.
 Use a fallback only when the native tool cannot satisfy the required contract, and state the limitation.
@@ -87,10 +86,9 @@ Use native dependency catalogs when the selected package manager or build tool s
 Reference catalog entries from consumers instead of repeating their versions.
 Preserve behavior outside the requested change.
 Remove replaced code, fallbacks, and obsolete paths in the same change.
-No legacy compatibility surfaces.
+Add compatibility paths only for a required external contract.
 
 Keep the smallest complete change that satisfies the requirements.
-Set invariants for what must not vary and leave implementation detail to the implementer's judgment.
 For a requested mechanical change, verify coverage across its stated scope without adding unrelated cleanup.
 
 ## Validation
@@ -99,7 +97,7 @@ Choose proof for the acceptance criteria before editing.
 Use the narrowest existing checks that exercise changed behavior.
 Use the target's documented native runner and maintained commands directly, without new wrapper scripts.
 Run fixers only within authorized edit scope.
-Use read-only commands for validation.
+Use read-only validation commands when the check supports them.
 When changing package scripts, put independent checks in `run-p` children and use `run-s` only for real dependencies.
 Do not add tests that mirror prose, implementation wording, or already-covered low-impact changes.
 Add coverage for an uncovered acceptance criterion or regression risk with the native test setup.
@@ -112,10 +110,8 @@ Never substitute a weaker check for a required gate or report an unrun gate as p
 
 ## Evidence Classes
 
-Separate what a claim is proven by: source inspection, automated checks, live integration behavior, and independent review are different evidence classes.
-A unit test proves the unit.
-Only a live check proves the runtime path.
-Every verdict names the evidence class that supports it.
+Distinguish source inspection, automated checks, live integration behavior, and independent review in the handoff.
+Claim runtime behavior only for paths exercised by runtime checks.
 
 ## Code Rules Common To All Languages
 
@@ -174,7 +170,7 @@ Use language documents for changed source, examples, and language-rule findings:
 
 Use tool documents for profile detection, native configuration, commands, CI catalogs, and integration limits:
 
-- [Bun](tools/bun.md)
+- [pnpm](tools/pnpm.md)
 - [Gradle](tools/gradle.md)
 - [Maven](tools/maven.md)
 - [uv](tools/uv.md)
@@ -182,9 +178,7 @@ Use tool documents for profile detection, native configuration, commands, CI cat
 - [Rust](tools/rust.md)
 - [Shell](tools/shell.md)
 
-Load the reference for each affected profile, not every profile present in the repository.
 The installer preserves these relative links in target copies.
-When Kotlin is selected, its complete module and `RuleSetProviderV3` descriptor must reach the actual ktlint runtime classpath.
 
 ## Domain Boundaries And Design Direction
 
@@ -226,8 +220,7 @@ Pure logic gets unit tests.
 Integration tests prove boundaries.
 End-to-end tests stay limited to system-critical journeys that lighter layers cannot prove.
 Tests assert observable behavior, not implementation wording or file layout.
-A failing behavior gets exactly one protecting test.
-Do not add tests that repeat the same story as existing coverage.
+Add regression coverage when existing tests do not protect the failing behavior.
 
 ## Review
 
@@ -235,5 +228,4 @@ Judge a change against the repository's own rules and the requirements actually 
 Reject: accidental deletion, weakened validation commands, edits that mask a failing contract, scope expansion beyond the stated task, and invented values for required identifiers.
 Verify documentation matches code: a change that alters a documented boundary, workflow, or invariant updates that documentation in the same change.
 Update a rule's consumers and validation when their contract or behavior changes, not merely to repeat the new wording.
-Output fields in a report are recommended choices.
-The dispatch, host, or user requirement wins over any fixed schema.
+Use the report format required by the user or host.

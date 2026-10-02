@@ -1,12 +1,16 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
+import type { Dirent } from "node:fs";
 import path from "node:path";
+
+import { sort } from "fast-sort";
+import { parse } from "yaml";
 
 import type { MutableRecord } from "./shared.js";
 
 /**
  * Returns the executable name from the environment or the default.
  */
-export const cliName = (): string => process.env["SDD_CLI_NAME"] ?? "sdd";
+export const cliName = (): string => process.env.SDD_CLI_NAME ?? "sdd";
 
 /**
  * Prints an error message to standard error.
@@ -36,8 +40,13 @@ export const resolveDefaultSpecPath = (): string | undefined => {
   if (existsSync("spec") && statSync("spec").isDirectory()) {
     return "spec";
   }
-  const envPath = process.env["SDD_SPEC_DIR"];
-  if (envPath && existsSync(envPath) && statSync(envPath).isDirectory()) {
+  const envPath = process.env.SDD_SPEC_DIR;
+  if (
+    envPath !== undefined &&
+    envPath.length > 0 &&
+    existsSync(envPath) &&
+    statSync(envPath).isDirectory()
+  ) {
     return envPath;
   }
   return undefined;
@@ -49,7 +58,7 @@ export const resolveDefaultSpecPath = (): string | undefined => {
  */
 export const parseYamlRecord = (text: string): MutableRecord | undefined => {
   try {
-    const parsed = Bun.YAML.parse(text);
+    const parsed: unknown = parse(text);
     return isRecord(parsed) ? parsed : undefined;
   } catch (error) {
     if (error instanceof Error) {
@@ -91,9 +100,11 @@ export const collectFiles = (
 ): readonly string[] => {
   const out: string[] = [];
   const walk = (dirPath: string): void => {
-    const entries = readdirSync(dirPath, { withFileTypes: true }).toSorted(
-      (left, right) => left.name.localeCompare(right.name)
-    );
+    const entries = sort(readdirSync(dirPath, { withFileTypes: true })).by({
+      asc: true,
+      comparer: (left: Dirent, right: Dirent) =>
+        left.name.localeCompare(right.name)
+    });
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       if (entry.isDirectory()) {

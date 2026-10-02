@@ -2,7 +2,7 @@ import { defineConfig } from "oxfmt";
 import ultracite from "ultracite/oxfmt";
 
 /**
- * Configure the Bun profile's native format checks.
+ * Configure the pnpm profile's native format checks.
  */
 export default defineConfig({
   ...ultracite,

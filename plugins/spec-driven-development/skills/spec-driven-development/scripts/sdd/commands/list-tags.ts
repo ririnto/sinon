@@ -1,6 +1,8 @@
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 
+import { sort } from "fast-sort";
+
 import {
   commandSpecPath,
   optionBool,
@@ -17,7 +19,7 @@ import type { ParsedArgs } from "../shared.js";
  */
 export const cmdListTags = (args: ParsedArgs): number => {
   const specPath = commandSpecPath(args, 0, "spec_path");
-  if (!specPath) {
+  if (specPath === undefined || specPath.length === 0) {
     return 1;
   }
   const kind = optionString(args, "kind") ?? "any";
@@ -44,7 +46,7 @@ export const cmdListTags = (args: ParsedArgs): number => {
       counter.set(tag, (counter.get(tag) ?? 0) + 1);
     }
   }
-  for (const tag of [...counter.keys()].toSorted()) {
+  for (const tag of sort([...counter.keys()]).asc()) {
     console.log(
       optionBool(args, "count") ? `${tag}\t${counter.get(tag) ?? 0}` : tag
     );

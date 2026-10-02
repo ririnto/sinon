@@ -5,16 +5,7 @@ description: >-
 
 # Java
 
-Java is a shared, skill-first plugin for Java language work in the Sinon Claude marketplace.
-
-## Purpose
-
-- Provide reusable Java workflows that remain portable across Claude Code plugin installations.
-- Keep the portable value surface in `skills/`, with Java-specific language-server integration
-  kept separate from the shared skill corpus.
-- Keep skills practical, example-driven, and focused on direct Java implementation work rather
-  than directory-style guidance.
-- Ground guidance in plugin bundled skills, wrapper behavior, and stable Java ecosystem conventions instead of ad-hoc advice.
+Java provides language, API design, testing, dependency, and concurrency skills with local JDTLS integration.
 
 ## Included Skills
 
@@ -26,9 +17,6 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 | `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
 | `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, and install snippets with live registry access for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
 
-These skills are meant to help complete Java work directly inside the current repository.
-They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
-
 ## Included Agents
 
 - `java-architect`: coordinates Java language, testing, dependency, performance, and API design
@@ -38,19 +26,6 @@ They should not stop at pointing toward other repositories or documentation when
 It may load Java skills but does not delegate to other agents.
 
 ## Skill Selection
-
-Start here when the Java work could fit more than one skill:
-
-### Syntax vs design vs test vs performance vs dependency
-
-- Use `java-language-syntax` when the question is "can this Java baseline compile or express it?".
-- Use `java-language-syntax` when the question is "which foundational `java.base` API family should I reach for?".
-- Use `java-language-design` when the question is "should this type or API be modeled this way?".
-- Use `java-language-design` for type modeling, immutability, exception boundaries, or collection exposure.
-- Use `java-test` for JUnit structure, red-green-refactor sequencing, or test execution setup.
-- Use `java-performance-concurrency` for virtual-thread fit, contention, profiling-driven bottleneck review.
-- Use `java-dependency-versioning` for Maven coordinate lookup or current dependency-release checks.
-- Use `java-architect` when the task crosses several Java skill areas or needs an architecture-level decision before implementation.
 
 ### Applying the skills
 
@@ -96,13 +71,6 @@ plugins/java/
 - `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
 - `scripts/has-lombok.sh` supports Lombok source selection for the wrapper.
 - The plugin ships one plugin-root agent: `java-architect` for Java language, testing, dependency, performance, and API design decisions.
-
-## Design Principles
-
-- Keep Java guidance LTS-aware while still naming current-language behavior when it changes implementation choices.
-- Prefer implementation-ready examples for core Java, tests, dependencies, and performance work over catalog-style API summaries.
-- Keep framework-specific behavior outside shared Java skills instead of hiding framework assumptions in them.
-- Use `java-architect` for cross-skill tradeoffs rather than duplicating architecture guidance inside every Java skill.
 
 ## Installation
 

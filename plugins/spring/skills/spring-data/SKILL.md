@@ -342,8 +342,6 @@ Keyset scrolling constraints:
 - The `ScrollPosition` must be carried forward from the previous Window result.
 - Keep a deterministic sort such as `OrderByIdAsc` so every window position stays stable.
 
-Open [references/scrolling-patterns.md](references/scrolling-patterns.md) when the blocker is `WindowIterator`, offset-versus-keyset `ScrollPosition`, or why a projection breaks keyset scrolling.
-
 ### Auditing activation
 
 Enable auditing per store module.
@@ -368,8 +366,6 @@ class PurchaseOrder {
 ```
 
 If using `@CreatedBy` or `@LastModifiedBy`, provide the auditor SPI that matches the store style: `AuditorAware<T>` for imperative repositories and `ReactiveAuditorAware<T>` for reactive infrastructure.
-
-Open [references/jpa-transactions.md](references/jpa-transactions.md) when the blocker is declared-query transaction behavior, `@Modifying`, or a facade-level transaction boundary in a JPA store.
 
 ### Auditing field shape
 
@@ -409,5 +405,5 @@ Use the existing native test setup.
 - Open [references/domain-events.md](references/domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
 - Open [references/rest-exposure.md](references/rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
 - Open [references/aot.md](references/aot.md) when the task depends on AOT or native-image repository details.
-- Open [references/scrolling-patterns.md](references/scrolling-patterns.md) when the blocker is scroll position semantics, `WindowIterator`, or projection constraints in keyset scrolling.
-- Open [references/jpa-transactions.md](references/jpa-transactions.md) when the blocker is JPA repository transaction inheritance, declared `@Query` methods, or `@Modifying` behavior.
+- Open [references/scrolling-patterns.md](references/scrolling-patterns.md) for offset or keyset positions, `WindowIterator`, or keyset projection constraints.
+- Open [references/jpa-transactions.md](references/jpa-transactions.md) for transaction inheritance, declared queries, `@Modifying`, or facade transaction boundaries.

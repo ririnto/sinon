@@ -14,6 +14,8 @@ import type {
  * Oxlint comment token shape used by sourceCode comment lookup.
  */
 interface Comment {
+  end: number;
+  start: number;
   type: string;
   value: string;
 }
@@ -25,6 +27,7 @@ interface RuleContext {
   filename?: string;
   getFilename?: () => string;
   sourceCode: {
+    text: string;
     getCommentsBefore: (node: Node) => Comment[];
   };
   report: (diagnostic: {
@@ -129,35 +132,28 @@ const variableName = (node: VariableDeclaration): string =>
     : "variable declaration";
 
 /**
- * Require TSDoc on exported TypeScript public API declarations.
+ * Require multiline TSDoc on exported TypeScript public API declarations.
  */
 const exportTsdocRule = {
   create(context: RuleContext) {
-    const { filename, sourceCode } = context;
-    const isTypeScript = /\.(?:ts|tsx)$/u.test(
-      filename ?? context.getFilename?.() ?? ""
-    );
+    const { sourceCode } = context;
     /**
-     * Determine whether a node or its export wrapper has a TSDoc block.
+     * Find TSDoc blocks before a node or its export wrapper.
      *
      * @param node AST node to inspect.
-     * @returns True when a directly preceding block comment starts with `*`.
+     * @returns Documentation comment tokens without their block delimiters.
      */
-    const hasTsdoc = (node: Node): boolean =>
-      sourceCode
-        .getCommentsBefore(node)
-        .some(
-          (comment) => comment.type === "Block" && comment.value.startsWith("*")
-        ) ||
-      (node.parent?.type.startsWith("Export") === true &&
-        sourceCode
-          .getCommentsBefore(node.parent)
-          .some(
-            (comment) =>
-              comment.type === "Block" && comment.value.startsWith("*")
-          ));
+    const tsdocComments = (node: Node): Comment[] =>
+      [
+        ...sourceCode.getCommentsBefore(node),
+        ...(node.parent?.type.startsWith("Export") === true
+          ? sourceCode.getCommentsBefore(node.parent)
+          : [])
+      ].filter(
+        (comment) => comment.type === "Block" && comment.value.startsWith("*")
+      );
     /**
-     * Report a missing-TSDoc diagnostic unless the node is already documented.
+     * Report missing TSDoc or delimiters that share a documentation line.
      *
      * @param node AST node to attach the diagnostic to.
      * @param kind Human-readable declaration kind for the diagnostic message.
@@ -165,10 +161,26 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const report = (node: Node, kind: string, name: string): void => {
-      if (!hasTsdoc(node)) {
+      const comments = tsdocComments(node);
+      if (
+        comments.length === 0 ||
+        !comments.every(
+          (comment) =>
+            /^\*[ \t]*\r?\n[\s\S]*\r?\n[ \t]*$/u.test(comment.value) &&
+            /^[ \t]*$/u.test(
+              sourceCode.text.slice(
+                sourceCode.text.lastIndexOf("\n", comment.start - 1) + 1,
+                comment.start
+              )
+            ) &&
+            /^[ \t\r]*$/u.test(
+              sourceCode.text.slice(comment.end).split("\n", 1)[0] ?? ""
+            )
+        )
+      ) {
         context.report({
           data: { kind, name },
-          messageId: "missingTsdoc",
+          messageId: comments.length === 0 ? "missingTsdoc" : "multilineTsdoc",
           node
         });
       }
@@ -207,7 +219,9 @@ const exportTsdocRule = {
         validateExportedClass(node);
       }
     };
-    if (!isTypeScript) {
+    if (
+      !/\.(?:ts|tsx)$/u.test(context.filename ?? context.getFilename?.() ?? "")
+    ) {
       return {};
     }
     return {
@@ -222,10 +236,13 @@ const exportTsdocRule = {
   meta: {
     docs: {
       description:
-        "Require TSDoc on exported TypeScript public API declarations."
+        "Require multiline TSDoc on exported TypeScript public API declarations."
     },
     messages: {
-      missingTsdoc: 'Missing TSDoc for exported public API {{kind}} "{{name}}".'
+      missingTsdoc:
+        'Missing TSDoc for exported public API {{kind}} "{{name}}".',
+      multilineTsdoc:
+        'Use multiline TSDoc with opening and closing delimiters on separate lines for exported public API {{kind}} "{{name}}".'
     },
     type: "suggestion"
   } as const
@@ -241,4 +258,7 @@ const plugin = {
   }
 };
 
+/**
+ * Provide the native rule for exported TypeScript API documentation.
+ */
 export default plugin;

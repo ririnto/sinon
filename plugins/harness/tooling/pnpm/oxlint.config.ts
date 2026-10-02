@@ -2,7 +2,7 @@ import { defineConfig } from "oxlint";
 import core from "ultracite/oxlint/core";
 
 /**
- * Configure the Bun profile's native lint checks.
+ * Configure the pnpm profile's native lint checks.
  */
 export default defineConfig({
   extends: [core],

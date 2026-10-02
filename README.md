@@ -51,18 +51,19 @@ Common plugin assets include:
 - `settings.json`.
 - Executable `bin/`.
 
-Sinon-maintained plugin details belong in each plugin's own `README.md`, not in this root document.
+Use each plugin's `README.md` for its runtime surfaces and scope.
 Portable skills follow OpenAI's task-focused authoring guidance, while Claude manifests retain Claude's component contract.
 
 ## Development
 
-Use the Node range in `package.json` and the repository's Bun toolchain.
-Run `bun install` after dependency changes and `bun run check` for the repository checks.
-Run native profile checks for changed integrations and `claude plugin validate plugins/<plugin>` for each changed package.
-Run `bun run test:promtool` for the [Prometheus documentation fixtures](scripts/tests/promtool/README.md).
+Use the Node range in `package.json` and the repository's pnpm toolchain.
+Run `pnpm install` after dependency changes.
+Run `pnpm run check` for the repository checks.
+Use Node.js 24 for development dependencies.
+Store shared npm dependency versions in `pnpm-workspace.yaml` catalogs and reference them with `catalog:`.
+Use [repository instructions](AGENTS.md) for task-specific checks and package validation.
+Run `pnpm run test:promtool` for the [Prometheus documentation fixtures](scripts/tests/promtool/README.md).
 That component verifies and runs the official release executable without a separate Go build graph.
-Select current stable dependencies from their official registries, subject to the target's runtime and managed constraints.
-Keep historical migration examples tied to their documented release.
 
 ## Current Plugins
 
@@ -87,15 +88,6 @@ Sinon selects external plugins through its marketplace catalog.
 
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the runtime, Skills, and version.
-
-## Publishing Model
-
-The repository maintains one marketplace catalog:
-
-- `.claude-plugin/marketplace.json` for Claude Code.
-
-Sinon-maintained plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets.
-The marketplace catalog lists local plugin roots and selected external plugin registrations.
 
 ## Registering This Marketplace in Claude Code
 

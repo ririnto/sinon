@@ -50,6 +50,8 @@ Convert deep recursion to iteration when depth scales with input size.
 ## Documentation
 
 Write module, class, and public-function docstrings in imperative prose.
+Use multiline docstrings, including one-sentence docstrings.
+Put opening and closing triple quotes on separate lines.
 One short paragraph states the contract.
 Add parameters and return descriptions only when they clarify semantics.
 Do not restate the type hints in prose.

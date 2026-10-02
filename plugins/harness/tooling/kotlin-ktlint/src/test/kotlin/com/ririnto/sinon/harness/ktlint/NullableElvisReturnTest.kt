@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -8,19 +9,17 @@ import io.kotest.matchers.shouldBe
 class NullableElvisReturnTest :
     FunSpec({
         test("map lookup with return fallback is flagged") {
-            val source =
-                """
-                class Example {
-                    fun value(values: Map<String, String>, key: String): String {
-                        val value = values[key] ?: return "fallback"
-                        return value
-                    }
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    class Example {
+                        fun value(values: Map<String, String>, key: String): String {
+                            val value = values[key] ?: return "fallback"
+                            return value
+                        }
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -33,22 +32,20 @@ class NullableElvisReturnTest :
         }
 
         test("safe call property lookup with return fallback is flagged") {
-            val source =
-                """
-                class Example {
-                    fun value(example: Example?): String {
-                        val value = example.field ?: return "fallback"
-                        return value
-                    }
-
-                    val field: String
-                        get() = "value"
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    class Example {
+                        fun value(example: Example?): String {
+                            val value = example.field ?: return "fallback"
+                            return value
+                        }
+
+                        val field: String
+                            get() = "value"
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -61,17 +58,15 @@ class NullableElvisReturnTest :
         }
 
         test("bare return after nullable lookup is flagged") {
-            val source =
-                """
-                fun handle(requests: Map<String, String>, key: String) {
-                    val request = requests[key] ?: return
-                    process(request)
-                }
-                """.trimIndent() + "\n"
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
-                    source
+                    """
+                    fun handle(requests: Map<String, String>, key: String) {
+                        val request = requests[key] ?: return
+                        process(request)
+                    }
+                    """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(
@@ -84,23 +79,45 @@ class NullableElvisReturnTest :
         }
 
         test("expression body elvis is safe") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "class Example {\n    fun value(value: String?): String = value ?: \"fallback\"\n}\n"
+                    """
+                    class Example {
+                        fun value(value: String?): String = value ?: "fallback"
+                    }
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "class Example {\n    fun value(value: String?): String = value ?: \"fallback\"\n}\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    class Example {
+                        fun value(value: String?): String = value ?: "fallback"
+                    }
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("elvis without return is safe") {
-            val lintResult1 =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "class Example {\n    val value: String = compute() ?: \"fallback\"\n}\n"
+                    """
+                    class Example {
+                        val value: String = compute() ?: "fallback"
+                    }
+                    """.trimIndent() + "\n"
                 )
-            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            lintResult1.formattedCode shouldBe "class Example {\n    val value: String = compute() ?: \"fallback\"\n}\n"
+            ) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe
+                    """
+                    class Example {
+                        val value: String = compute() ?: "fallback"
+                    }
+                    """.trimIndent() + "\n"
+            }
         }
     }) {
     companion object {

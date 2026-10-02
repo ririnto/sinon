@@ -1,17 +1,13 @@
-import path from "node:path";
-
-const repositoryRoot = path.resolve(import.meta.dirname, "../..");
-const sddSkillRoot = path.join(
-  repositoryRoot,
-  "plugins/spec-driven-development/skills/spec-driven-development"
-);
+import { fileURLToPath } from "node:url";
 
 /**
  * Provides repository test fixture paths.
  */
 export const repositoryPaths = Object.freeze({
-  sddFixtureRoot: path.join(
-    sddSkillRoot,
-    "references/examples/valid-spec-tree/spec"
+  sddFixtureRoot: fileURLToPath(
+    new URL(
+      "../../plugins/spec-driven-development/skills/spec-driven-development/references/examples/valid-spec-tree/spec",
+      import.meta.url
+    )
   )
 });
