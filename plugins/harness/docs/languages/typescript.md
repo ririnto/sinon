@@ -1,3 +1,12 @@
+---
+metadata:
+  reference:
+    TypeScript:
+      url:
+        - https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+        - https://tsdoc.org/pages/intro/approach/
+---
+
 # TypeScript Rules
 
 These rules extend the [common rules](../rules.md) for TypeScript files.
@@ -33,5 +42,6 @@ Do not replace an unbounded or unknown-depth loop with recursion.
 
 ## Type-Safe Inlining
 
-Inline a single-use local only when the type, evaluation count, evaluation order, exception timing, mutable snapshot, closure capture, and overload or receiver resolution stay identical.
+Inline single-use local variables when behavior, type, and clarity stay unchanged.
+Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 Preserve a binding when a wider or narrower type would result or when any of those semantics would change.

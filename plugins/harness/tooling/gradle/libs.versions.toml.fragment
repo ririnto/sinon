@@ -1,0 +1,7 @@
+[versions]
+spotless = "8.10.3"
+palantirJavaFormat = "2.100.0"
+checkstyle = "14.3.0"
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

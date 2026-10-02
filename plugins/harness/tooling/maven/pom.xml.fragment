@@ -1,9 +1,9 @@
 <!-- Adapted fragment: merge properties into <project><properties> and plugins into <build><plugins>. -->
 <fragment>
   <properties>
-    <spotless.maven.version>3.10.2</spotless.maven.version>
-    <palantir.java.format.version>2.98.0</palantir.java.format.version>
-    <checkstyle.version>14.1.0</checkstyle.version>
+    <spotless.maven.version>3.10.3</spotless.maven.version>
+    <palantir.java.format.version>2.100.0</palantir.java.format.version>
+    <checkstyle.version>14.3.0</checkstyle.version>
   </properties>
 
   <plugins>

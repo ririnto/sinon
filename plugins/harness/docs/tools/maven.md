@@ -2,16 +2,18 @@
 metadata:
   reference:
     Spotless Maven Plugin:
-      version: 3.10.2
-      url: https://github.com/diffplug/spotless/blob/maven/3.10.2/plugin-maven/README.md
+      version: 3.10.3
+      url: https://github.com/diffplug/spotless/blob/maven/3.10.3/plugin-maven/README.md
     Spotless Releases:
       url: https://github.com/diffplug/spotless/releases
     Palantir Java Format:
-      version: 2.98.0
-      url: https://github.com/palantir/palantir-java-format/releases/tag/2.98.0
+      version: 2.100.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.100.0
     Checkstyle:
-      version: 14.1.0
-      url: https://github.com/checkstyle/checkstyle/releases/tag/checkstyle-14.1.0
+      version: 14.3.0
+      url:
+        - https://github.com/checkstyle/checkstyle/releases/tag/checkstyle-14.3.0
+        - https://github.com/checkstyle/checkstyle/blob/checkstyle-14.3.0/pom.xml
     Maven Checkstyle Plugin:
       url: https://maven.apache.org/plugins/maven-checkstyle-plugin/
     Checkstyle Checks:
@@ -27,7 +29,7 @@ In a monorepo, repeat the profile for each independent Maven root.
 ## Native setup
 
 Add the Spotless Maven plugin only when the target has no existing formatter with overlapping Java ownership.
-The fragment selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.2` and `palantir-java-format` `2.98.0` as profile baselines.
+The fragment selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.3` and `palantir-java-format` `2.100.0` as profile baselines.
 They do not establish current releases.
 Before adding or upgrading Spotless, Palantir Java Format, or Checkstyle, check Maven Central for the latest stable compatible versions against the target's Java baseline, parent POM, BOM, and dependency management.
 Use the checked versions for a new integration, and keep compatible target-managed versions unless the task authorizes changing them.
@@ -39,11 +41,11 @@ Add the following plugin configuration to the existing `<build><plugins>` sectio
 <plugin>
   <groupId>com.diffplug.spotless</groupId>
   <artifactId>spotless-maven-plugin</artifactId>
-  <version>3.10.2</version>
+  <version>3.10.3</version>
   <configuration>
     <java>
       <palantirJavaFormat>
-        <version>2.98.0</version>
+        <version>2.100.0</version>
         <style>PALANTIR</style>
         <formatJavadoc>true</formatJavadoc>
       </palantirJavaFormat>
@@ -68,11 +70,14 @@ Spotless uses the target's Java source roots and does not require a generated Ja
 Use an explicit target only when the target has custom source layout that its existing build already defines.
 
 Add the Maven Checkstyle plugin only when the target has no existing Java static checker with overlapping ownership.
+Checkstyle `14.3.0` requires Java 21 or newer in the lint process.
+An older source release does not lower that requirement.
+Use a supported lint runtime or retain a compatible engine.
 Create the target's `tooling/java/checkstyle.xml` only when it is missing.
 Keep it when it is identical, and review or merge target-owned rules when it differs.
 Do not overwrite target customizations.
 The fragment's `configLocation` path must remain aligned with the installed target path.
-Set the Checkstyle engine to `14.1.0` through the plugin dependency when the target permits a managed engine override.
+Set the Checkstyle engine to `14.3.0` through the plugin dependency when the target permits a managed engine override.
 Bind the `checkstyle:check` goal to the target's existing validation phase without replacing its lifecycle.
 
 The native configuration enforces braces, import hygiene, public Javadoc, Java naming, line length, and prohibited direct standard streams.
@@ -108,8 +113,8 @@ Run `./mvnw spotless:check checkstyle:check` for the focused Java gate when the 
 Run `./mvnw verify` for the target's normal full lifecycle.
 Run `./mvnw spotless:apply` only after reviewing the resulting Java diff.
 
-Spotless Maven plugin `3.10.2` requires Maven to run on Java 17 or newer.
-Checkstyle engine `14.1.0` is the selected version for this profile.
+Spotless Maven plugin `3.10.3` requires Maven to run on Java 17 or newer.
+Checkstyle engine `14.3.0` is the selected version for this profile.
 If the target's Java baseline is older, retain compatible existing tools or obtain explicit approval for an upgrade.
 
 This profile does not create Git hooks.

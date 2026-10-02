@@ -1,3 +1,12 @@
+---
+metadata:
+  reference:
+    JavaScript:
+      url:
+        - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
+        - https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
+---
+
 # JavaScript
 
 Use the JavaScript language rules for `.js`, `.jsx`, `.mjs`, and `.cjs` files.

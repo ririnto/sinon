@@ -1,3 +1,12 @@
+---
+metadata:
+  reference:
+    Go:
+      url:
+        - https://go.dev/doc/effective_go
+        - https://go.dev/doc/comment
+---
+
 # Go Language Rules
 
 This document owns Go-specific rules for the `go` profile.
@@ -7,30 +16,38 @@ The [Go tool reference](../tools/go.md) owns commands and configuration.
 ## Errors
 
 Wrap errors with `%w` so callers can inspect the chain.
-Return the error rather than logging it; log at the boundary where handling ends.
+Return the error rather than logging it.
+Log at the boundary where handling ends.
 Name error variables `err` and check them immediately after the call.
-Do not discard errors with `_`; the linter gate enforces this.
-Sentinel errors stay package-level and named `ErrXxx`; error types stay named `XxxError`.
+Do not discard errors with `_`.
+The linter gate enforces this.
+Sentinel errors stay package-level and named `ErrXxx`.
+Error types stay named `XxxError`.
 
 ## Context And Concurrency
 
 Pass `context.Context` as the first parameter of request-scoped functions.
-Do not store contexts in structs; pass them explicitly.
+Do not store contexts in structs.
+Pass them explicitly.
 Every goroutine launched inside a function must have a documented shutdown path: a context cancellation, a channel close, or a `WaitGroup` the caller joins.
-Never share memory between goroutines without synchronization; the race detector gate enforces this.
+Never share memory between goroutines without synchronization.
+The race detector gate enforces this.
 
 ## Interfaces And Values
 
 Define interfaces where they are consumed, not where they are implemented.
 Accept interfaces, return concrete types.
-Take pointer receivers only when mutation or shared identity is needed; keep value receivers as the default for small structs.
+Take pointer receivers only when mutation or shared identity is needed.
+Keep value receivers as the default for small structs.
 Use `any` over `interface{}` in new code.
 
 ## Strings, Maps, And Slices
 
 Use `strings.Builder` for repeated concatenation in loops.
-Copy or pre-size maps and slices in hot paths; `make(T, 0, n)` states the intent.
-Never rely on map iteration order; sort keys when order is observable.
+Copy or pre-size maps and slices in hot paths.
+`make(T, 0, n)` states the intent.
+Never rely on map iteration order.
+Sort keys when order is observable.
 Use `slices` and `maps` packages over hand-written loops for standard operations.
 
 ## Documentation
@@ -38,7 +55,8 @@ Use `slices` and `maps` packages over hand-written loops for standard operations
 Every exported identifier carries a doc comment starting with its name.
 Package comments state the package's single responsibility.
 Comments stay grammatical English prose with no restatement of the signature.
-Go doc syntax owns the format; do not force Kotlin KDoc or Javadoc tags onto it.
+Go doc syntax owns the format.
+Do not force Kotlin KDoc or Javadoc tags onto it.
 
 ## Testing
 

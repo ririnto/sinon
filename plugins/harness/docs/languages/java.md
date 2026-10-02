@@ -1,3 +1,12 @@
+---
+metadata:
+  reference:
+    Java language:
+      version: JDK 25
+      url:
+        - https://docs.oracle.com/en/java/javase/25/language/java-language-changes.html
+---
+
 # Java
 
 Use the target build's declared Java toolchain and release as the compatibility boundary.
@@ -23,7 +32,8 @@ Do not use wildcard imports.
 Use lower camel case for methods, fields, parameters, and local variables.
 Use upper camel case for types.
 Prefer final fields and local bindings when mutation is not required.
-Do not use `System.out` or `System.err` for application diagnostics; use the project's structured logger.
+Do not use `System.out` or `System.err` for application diagnostics.
+Use the project's structured logger.
 
 ## Formatting and validation
 

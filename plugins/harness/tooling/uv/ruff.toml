@@ -2,6 +2,9 @@
 # Merge into an existing Ruff configuration instead of replacing it.
 # See docs/tools/uv.md for integration rules.
 
+[lint]
+extend-select = ["ASYNC", "B", "I", "UP"]
+
 [lint.isort]
 split-on-trailing-comma = false
 

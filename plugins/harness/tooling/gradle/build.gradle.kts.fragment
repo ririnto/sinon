@@ -1,6 +1,6 @@
 spotless {
     java {
-        palantirJavaFormat("2.98.0")
+        palantirJavaFormat(libs.versions.palantirJavaFormat.get())
             .style("PALANTIR")
             .formatJavadoc(true)
         removeUnusedImports()
@@ -10,6 +10,6 @@ spotless {
 }
 
 checkstyle {
-    toolVersion = "14.1.0"
+    toolVersion = libs.versions.checkstyle.get()
     configFile = file("tooling/java/checkstyle.xml")
 }

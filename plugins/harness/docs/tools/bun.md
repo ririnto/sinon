@@ -2,7 +2,9 @@
 metadata:
   reference:
     Bun:
-      url: https://bun.com/docs/pm/cli/install
+      url:
+        - https://bun.com/docs/pm/cli/install
+        - https://bun.sh/docs/pm/catalogs
     oven-sh/setup-bun:
       version: 2.2.0
       url: https://github.com/oven-sh/setup-bun/blob/v2.2.0/README.md
@@ -12,6 +14,18 @@ metadata:
         - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.html
     Oxfmt:
       url: https://oxc.rs/docs/guide/usage/formatter/config.html
+    Markdownlint CLI2:
+      version: 0.23.3
+      url: https://github.com/DavidAnson/markdownlint-cli2/blob/v0.23.3/README.md
+    Ultracite:
+      version: 7.12.2
+      url: https://github.com/haydenbleasel/ultracite/blob/ultracite%407.12.2/packages/cli/README.md
+    npm-run-all2:
+      version: 9.0.3
+      url: https://registry.npmjs.org/npm-run-all2/9.0.3
+    Oxc Project Types:
+      version: 0.152.0
+      url: https://registry.npmjs.org/@oxc-project/types/0.152.0
 ---
 
 # Bun
@@ -43,6 +57,10 @@ If an existing script owns one of these names, preserve it and report the requir
 Do not silently replace an existing native check, formatter, test runner, or build task.
 Before adding or upgrading any profile dependency, check the npm registry for its latest stable release compatible with the target's runtime, Oxc plugin API, and lockfile.
 Keep existing compatible target pins and lockfile choices.
+Store shared versions in the root catalog and reference them with `catalog:` or the target's named catalog.
+Merge missing catalog entries without replacing existing versions or unrelated catalogs.
+When converting a workspace array to an object, preserve its paths in `workspaces.packages`.
+Resolve catalog references from the target's workspace root before running installation.
 Do not add direct `oxlint` or `oxfmt` script entries.
 Route lint and format execution only through Ultracite.
 Add `npm-run-all2` only when the merged scripts use `run-p`.
@@ -100,7 +118,7 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile was checked against the repository's available Bun `1.3.14`, Oxc `1.83.0`, Oxfmt `0.68.0`, Ultracite `7.12.0`, Markdownlint CLI2 `0.23.3`, and `@oxc-project/types` `0.150.0` packages.
+The source profile was checked against the repository's available Bun `1.3.14`, Oxc `1.86.0`, Oxfmt `0.71.0`, Ultracite `7.12.2`, Markdownlint CLI2 `0.23.3`, and `@oxc-project/types` `0.152.0` packages.
 The target owns final dependency versions through its manifest and lockfile.
-The fragment's version ranges are source-profile evidence, not mandatory target pins.
+The fragment's catalog ranges are source-profile evidence, not mandatory target pins.
 Check npm before merging them.

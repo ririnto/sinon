@@ -3,28 +3,30 @@
   "private": true,
   "workspaces": {
     "catalog": {
-      "@oxc-project/types": "^0.150.0",
+      "@oxc-project/types": "^0.152.0",
       "@tsconfig/node-lts": "^24.0.1",
       "bun-types": "^1.4.2",
       "markdownlint": "^0.41.1",
       "markdownlint-cli2": "^0.23.3",
       "npm-run-all2": "^9.0.3",
-      "oxfmt": "^0.68.0",
-      "oxlint": "^1.83.0",
+      "oxfmt": "^0.71.0",
+      "oxlint": "^1.86.0",
       "typescript": "^7.0.2",
-      "ultracite": "^7.12.0"
+      "ultracite": "^7.12.2"
     }
   },
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:promtool-release": "bun test scripts/tests/promtool/release.test.ts",
     "check:sdd": "bun test scripts/tests/sdd",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "fix:ultracite": "ultracite fix"
+    "fix:ultracite": "ultracite fix",
+    "test:promtool": "bun scripts/tests/promtool/run.ts"
   },
   "devDependencies": {
     "@oxc-project/types": "catalog:",
@@ -37,6 +39,9 @@
     "oxlint": "catalog:",
     "typescript": "catalog:",
     "ultracite": "catalog:"
+  },
+  "config": {
+    "promtoolVersion": "3.15.0"
   },
   "engines": {
     "node": ">=24.15.0 <25"
