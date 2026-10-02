@@ -6,11 +6,13 @@ metadata:
       url:
         - https://docs.spring.io/spring-ai/reference/
         - https://docs.spring.io/spring-ai/reference/upgrade-notes.html
+        - https://repo.maven.apache.org/maven2/org/springframework/ai/spring-ai-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/ai/spring-ai-bom/2.0.1/spring-ai-bom-2.0.1.pom
     Anthropic Model Lifecycle:
       url: https://platform.claude.com/docs/en/about-claude/model-deprecations
 name: spring-ai
 description: >-
-  Implement Spring AI model calls, structured output, tools, memory, retrieval, vector stores, and MCP integration.
+  Use Spring AI for prompts, model calls, tools, memory, retrieval, vector stores, and MCP.
 ---
 
 # Spring AI

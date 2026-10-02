@@ -45,7 +45,8 @@ Use `git -C /path/to/repo` for portable command examples and the actual absolute
 Do not expose private paths or remote credentials in committed material.
 
 Choose merge versus rebase from policy and ancestry, not branch size or commit count.
-Unrelated dirty work is not an automatic blocker; preserve it and identify operation-specific interference.
+Unrelated dirty work is not an automatic blocker.
+Preserve it and identify operation-specific interference.
 Do not suggest rewriting shared history or publishing without explicit authority.
 If materially different history choices remain unresolved, return the choice and its evidence to the user-facing session.
 

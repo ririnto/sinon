@@ -1,4 +1,15 @@
 ---
+metadata:
+  reference:
+    Prometheus:
+      version: 3.15.0
+      url: https://github.com/prometheus/prometheus/releases/tag/v3.15.0
+    Alertmanager:
+      version: 0.34.1
+      url: https://github.com/prometheus/alertmanager/releases/tag/v0.34.1
+    Grafana:
+      version: 13.2.3
+      url: https://github.com/grafana/grafana/releases/tag/v13.2.3
 description: >-
   Overview of the Observability Assets plugin, its included skills, and practical observability configuration workflow coverage.
 ---
@@ -13,18 +24,10 @@ Observability Assets is a shared, skill-first plugin for Prometheus and Grafana 
 - Keep skills practical, example-driven, and focused on version-controlled monitoring assets rather than UI-only click paths.
 - Separate Prometheus and Grafana operator workflows from application-framework-specific observability guidance.
 
-## Verified Upstream Baseline
+## Documentation Baselines
 
-This review checked these upstream versions on 2026-09-11:
-
-- Prometheus 3.14.0, released on 2026-08-17 and published on GitHub on 2026-08-18.
-- Alertmanager 0.34.0, released and published on GitHub on 2026-08-16.
-- Grafana 13.2.1, published on GitHub on 2026-09-02.
-
-The release date is used when upstream states one.
-Otherwise, the GitHub publication date is reported.
-
-Treat these as documentation review baselines, not dependency pins.
+The documented upstream baselines are Prometheus 3.15.0, Alertmanager 0.34.1, and Grafana 13.2.3.
+Treat these as documentation baselines, not dependency pins.
 Target deployments may stay on an older supported line, but version-sensitive features need a local version check before use.
 
 ## Included Skills

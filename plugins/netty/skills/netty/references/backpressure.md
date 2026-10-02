@@ -78,7 +78,8 @@ ch.pipeline()
 ```
 
 `FlowControlledBusinessHandler` requests more socket input after processing.
-This does not guarantee one decoded frame per read cycle; bound queued or asynchronous work separately.
+This does not guarantee one decoded frame per read cycle.
+Bound queued or asynchronous work separately.
 
 ## Common mistakes
 

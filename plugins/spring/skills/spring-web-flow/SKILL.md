@@ -1,7 +1,15 @@
 ---
+metadata:
+  reference:
+    Spring Web Flow:
+      version: 4.0.1
+      url:
+        - https://docs.spring.io/spring-webflow/docs/current/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/webflow/spring-webflow/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/webflow/spring-webflow/4.0.1/spring-webflow-4.0.1.pom
 name: spring-web-flow
 description: >-
-  Implement or troubleshoot Spring Web Flow browser conversations, scoped models, transitions, validation, recovery, MVC integration, and execution tests.
+  Use Spring Web Flow for stateful browser conversations, scoped models, transitions, and flow tests.
 ---
 
 # Spring Web Flow

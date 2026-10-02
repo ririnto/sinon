@@ -2,12 +2,12 @@
 metadata:
   reference:
     Grafana release:
-      version: Grafana 13.2.1
-      url: https://github.com/grafana/grafana/releases/tag/v13.2.1
+      version: Grafana 13.2.3
+      url: https://github.com/grafana/grafana/releases/tag/v13.2.3
     Grafana releases:
       url: https://github.com/grafana/grafana/releases
     Grafana variable docs:
-      version: Grafana 13.2.1
+      version: Grafana 13.2.3
       url:
         - https://grafana.com/docs/grafana/v13.2/dashboards/variables/variable-syntax/
         - https://grafana.com/docs/grafana/v13.2/datasources/prometheus/template-variables/
@@ -26,7 +26,8 @@ Author and review Grafana dashboards as version-controlled assets while keeping 
 
 - For new Grafana installations, check the official Grafana releases for the latest stable version compatible with the target deployment.
   Preserve the target instance's version and dashboard model when editing existing assets.
-- The classic dashboard JSON model (`schemaVersion`, `panels`, `templating`) and the Grafana 13 V2 Resource model differ; check the target instance before copying examples.
+- The classic dashboard JSON model (`schemaVersion`, `panels`, `templating`) and the Grafana 13 V2 Resource model differ.
+  Check the target instance before copying examples.
 - Schema details in the references are authored summaries, not verbatim copies.
 
 Select the supporting reference for the affected dashboard fields or generation path from References below.

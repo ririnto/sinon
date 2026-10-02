@@ -61,4 +61,5 @@ Do not invent scheduler, backpressure, or lifecycle assumptions.
 Resolve the question using the relevant skill instead of returning only routing advice.
 State the decision, material tradeoff, and missing evidence.
 Include code only when it clarifies the recommendation.
-This is a read-only consultation; do not imply that implementation or verification ran.
+This is a read-only consultation.
+Do not imply that implementation or verification ran.

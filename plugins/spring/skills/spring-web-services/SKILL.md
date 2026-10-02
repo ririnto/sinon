@@ -1,7 +1,20 @@
 ---
+metadata:
+  reference:
+    Spring Web Services:
+      version: 5.0.2
+      url:
+        - https://docs.spring.io/spring-ws/docs/current/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/ws/spring-ws-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/ws/spring-ws-bom/5.0.2/spring-ws-bom-5.0.2.pom
+    Spring Boot 4.1:
+      version: 4.1.1
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-web-services
 description: >-
-  Implement or troubleshoot Spring SOAP services and clients, XSD/WSDL contracts, JAXB marshalling, SOAP faults, and WS-Security.
+  Use Spring Web Services for SOAP endpoints and clients, XSD/WSDL contracts, XML, faults, and WS-Security.
 ---
 
 # Spring Web Services
@@ -18,7 +31,7 @@ Use `spring-web-services` for SOAP transport, XML contract publication, endpoint
 ## Baseline
 
 The examples target Spring Web Services 5.0.x.
-Spring Web Services 5.0 requires JDK 17+ (compatible through JDK 27), Jakarta EE 11 (Servlet 6.1, Jakarta XML Bind 4.0, Jakarta Activation 2.1), Spring Framework 7.0, Spring Security 7.0, Apache WSS4J 4.0, and JUnit 6.0.
+Spring Web Services 5.0 requires JDK 17 or later, Jakarta EE 11 (Servlet 6.1, Jakarta XML Bind 4.0, Jakarta Activation 2.1), Spring Framework 7.0, Spring Security 7.0, Apache WSS4J 4.0, and JUnit 6.0.
 
 - Spring WS 5.0.x aligns with Spring Boot 4.0.x and 4.1.x.
   - The Boot starter manages the Spring WS version.

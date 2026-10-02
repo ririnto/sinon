@@ -3,9 +3,18 @@ metadata:
   reference:
     Spring Data Commons:
       - version: 4.1.1
-        url: https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/4.1.1/spring-data-commons-4.1.1.pom
-      - version: 4.2.0-M1
-        url: https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/4.2.0-M1/spring-data-commons-4.2.0-M1.pom
+        url:
+          - https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/maven-metadata.xml
+          - https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/4.1.1/spring-data-commons-4.1.1.pom
+      - version: 4.2.0-M2
+        url:
+          - https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/maven-metadata.xml
+          - https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-commons/4.2.0-M2/spring-data-commons-4.2.0-M2.pom
+    Spring Data BOM:
+      version: 2026.0.1
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/data/spring-data-bom/2026.0.1/spring-data-bom-2026.0.1.pom
     Spring Data Commons Guide:
       url: https://docs.spring.io/spring-data/commons/reference/index.html
     Spring Data JPA AOT:
@@ -13,7 +22,7 @@ metadata:
       url: https://docs.spring.io/spring-data/jpa/reference/jpa/aot.html
 name: spring-data
 description: >-
-  Design or test Spring Data repositories, queries, projections, auditing, pagination, and store-module selection.
+  Use Spring Data for repositories, queries, projections, auditing, pagination, and store modules.
 ---
 
 # Spring Data

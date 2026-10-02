@@ -4,9 +4,9 @@ metadata:
     Project Reactor Core:
       version: 3.8.7
       url:
-        - https://projectreactor.io/docs/core/3.8.7/reference/aboutDoc.html
-        - https://projectreactor.io/docs/core/3.8.7/reference/coreFeatures/schedulers.html
-        - https://projectreactor.io/docs/core/3.8.7/api/reactor/core/scheduler/Scheduler.html
+        - https://projectreactor.io/docs/core/release/reference/aboutDoc.html
+        - https://projectreactor.io/docs/core/release/reference/coreFeatures/schedulers.html
+        - https://projectreactor.io/docs/core/release/api/reactor/core/scheduler/Scheduler.html
     Project Reactor BOM:
       version: 2025.0.7
       url: https://repo.maven.apache.org/maven2/io/projectreactor/reactor-bom/2025.0.7/reactor-bom-2025.0.7.pom

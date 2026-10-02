@@ -1,6 +1,12 @@
 ---
 name: harness-install
 description: Use when installing or refreshing Harness implement and review guidance in a target repository.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
 ---
 
 # Harness Install
@@ -19,7 +25,8 @@ A dirty target is allowed when installation changes remain isolated.
 Inspection alone grants no replacement authority.
 
 Show the mapped-path preview before writing.
-The installation request permits missing guidance files and authorized profile merges; no separate preview approval is required for those actions.
+The installation request permits missing guidance files and authorized profile merges.
+No separate preview approval is required for those actions.
 Ask before replacing conflicting content unless an explicit grant already covers the exact replacement.
 A prior installation or dirty worktree is not a replacement grant.
 
@@ -56,7 +63,8 @@ Create these paths relative to the target root:
 ```
 
 Harness manages exactly two target skills: `implement` and `review`.
-Other existing skills remain untouched; profile documents are support material, not skills.
+Other existing skills remain untouched.
+Profile documents are support material, not skills.
 Copy the common rules and all eight language and seven tool documents by default to preserve the complete reference index.
 Consumers load only references relevant to their task, regardless of which documents are present.
 If installing selected documents only, filter the common index and include every linked companion.
@@ -101,7 +109,8 @@ Read each existing destination and preview one status per selected guidance or n
 - `conflict`: destination differs and replacement is not authorized.
 - `replace`: an explicit grant covers replacing this conflicting Harness-owned file.
 
-For a conflict, report ownership and a diff or concise change summary; leave it unchanged until replacement is authorized.
+For a conflict, report ownership and a diff or concise change summary.
+Leave it unchanged until replacement is authorized.
 Compose destinations from the same current canonical input set on each run.
 Create missing files, leave matching files untouched, and replace only explicitly approved Harness-owned conflicts.
 Do not maintain a second target-specific implementation.
@@ -113,7 +122,8 @@ Never delete files merely because they are absent from the mapping.
 ## Native Integration
 
 Read the target manifest, build files, editor configuration, CI, and project identity for each selected integration.
-Use the profile's merge rules; add only missing settings and preserve target values on conflict.
+Use the profile's merge rules.
+Add only missing settings and preserve target values on conflict.
 Keep existing manifests, identity, source roots, toolchains, test owners, formatters, checkers, hooks, and unrelated CI jobs.
 Do not replace whole configuration files or silently upgrade dependencies to match a profile.
 Create native configuration only where the selected reference permits it and no target-owned file conflicts.
@@ -123,7 +133,8 @@ The profile owns Markdownlint dependency/scripts and config-based `node_modules`
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.
 Do not install only a prebuilt JAR or substitute buildSrc classes for ruleset registration.
-The native build graph must build the module before consumer lint runs; otherwise report the integration gap.
+The native build graph must build the module before consumer lint runs.
+Otherwise report the integration gap.
 Do not install the module when Kotlin is unselected.
 
 Install CI catalogs only when explicitly selected, retaining least-privilege read permissions.
@@ -134,10 +145,12 @@ When no test owner exists, omit that test task and report it as not applicable.
 
 Verify written destinations with the native filesystem:
 
-- Mapped files are regular files within the target; custom skills and unrelated native files remain unchanged.
+- Mapped files are regular files within the target.
+  Custom skills and unrelated native files remain unchanged.
 - Managed skill frontmatter names are `implement` and `review`, and both rules links resolve in the installed layout.
 - Relative instruction links resolve within the copied guidance without plugin-root variables, checkout paths, or symlink dependencies.
-- Recompose from unchanged canonical inputs; completed paths produce only `keep` statuses on the second pass.
+- Recompose from unchanged canonical inputs.
+  Completed paths produce only `keep` statuses on the second pass.
 
 For changed native integrations, run the target's documented affected checks and profile-specific acceptance proof.
 A Kotlin integration needs the complete module, runtime registration, and consumer-lint proof required by its selected tool reference.
@@ -145,7 +158,8 @@ A Bun integration must resolve its Markdownlint configuration at the selected pr
 Do not invent check commands, add test infrastructure, or rerun unaffected profile checks for guidance-only refreshes.
 
 Report selected profiles, root associations, mapped statuses, preserved customizations, and canonical source identity.
-Use portable paths in Git or public reports; keep any necessary absolute source or target path in private task context.
+Use portable paths in Git or public reports.
+Keep any necessary absolute source or target path in private task context.
 Include filesystem and second-pass results, native commands and exit codes, and unresolved conflicts or gaps.
 Distinguish source inspection and file-copy proof from native integration and hosted CI behavior.
 Installation is complete only when requested paths and integrations are verified with no unresolved required conflicts or checks.

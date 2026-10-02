@@ -3,13 +3,13 @@ metadata:
   reference:
     Project Reactor Core:
       version: 3.8.7
-      url: https://projectreactor.io/docs/core/3.8.7/reference/aboutDoc.html
+      url: https://projectreactor.io/docs/core/release/reference/aboutDoc.html
     Project Reactor Test:
       version: 3.8.7
       url:
         - https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.7/reactor-test-3.8.7.pom
-        - https://projectreactor.io/docs/test/3.8.7/api/reactor/test/StepVerifierOptions.html
-        - https://projectreactor.io/docs/test/3.8.7/api/reactor/test/publisher/TestPublisher.Violation.html
+        - https://projectreactor.io/docs/test/release/api/reactor/test/StepVerifierOptions.html
+        - https://projectreactor.io/docs/test/release/api/reactor/test/publisher/TestPublisher.Violation.html
     Project Reactor BOM:
       version: 2025.0.7
       url: https://repo.maven.apache.org/maven2/io/projectreactor/reactor-bom/2025.0.7/reactor-bom-2025.0.7.pom

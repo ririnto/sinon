@@ -3,10 +3,15 @@ metadata:
   reference:
     Spring Pulsar:
       version: 2.0.7
-      url: https://repo.maven.apache.org/maven2/org/springframework/pulsar/spring-pulsar/2.0.7/spring-pulsar-2.0.7.pom
+      url:
+        - https://docs.spring.io/spring-pulsar/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/pulsar/spring-pulsar/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/pulsar/spring-pulsar/2.0.7/spring-pulsar-2.0.7.pom
     Spring Boot Dependency BOM:
       version: 4.0.8
-      url: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.0.8/spring-boot-dependencies-4.0.8.pom
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.0.8/spring-boot-dependencies-4.0.8.pom
     Pulsar Docker Image:
       version: 4.1.3
       url: https://hub.docker.com/r/apachepulsar/pulsar/tags?name=4.1.3
@@ -14,7 +19,7 @@ metadata:
       url: https://docs.spring.io/spring-pulsar/reference/appendix/version-compatibility.html
 name: spring-pulsar
 description: >-
-  Configure or test Spring Pulsar producers, listeners, schemas, subscriptions, acknowledgment, replay, and dead-letter handling.
+  Use Spring Pulsar for producers, listeners, schemas, subscriptions, acknowledgments, replay, and dead letters.
 ---
 
 # Spring for Apache Pulsar

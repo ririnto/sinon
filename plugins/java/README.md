@@ -22,7 +22,7 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 | --- | --- | --- |
 | `java-language-syntax` | Java grammar, LTS-boundary syntax differences, foundational `java.base` coverage | "explain Java syntax", "rewrite for Java X", "is this valid on Java 17" |
 | `java-language-design` | API shape, type modeling, immutability, exception contracts, collection exposure | "design a Java API", "review class structure", "records vs sealed classes" |
-| `java-test` | JUnit 5 tests, optional TDD, Mockito boundaries, Awaitility async, build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
+| `java-test` | JUnit Jupiter tests, Mockito boundaries, Awaitility async, and build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
 | `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
 | `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, and install snippets with live registry access for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
 

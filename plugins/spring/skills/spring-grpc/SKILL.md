@@ -3,13 +3,19 @@ metadata:
   reference:
     Spring gRPC:
       version: 1.1.1
-      url: https://docs.spring.io/spring-grpc/reference/
+      url:
+        - https://docs.spring.io/spring-grpc/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/grpc/spring-grpc-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/grpc/spring-grpc-dependencies/1.1.1/spring-grpc-dependencies-1.1.1.pom
     Spring Boot:
       version: 4.1.1
-      url: https://docs.spring.io/spring-boot/reference/
+      url:
+        - https://docs.spring.io/spring-boot/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-grpc
 description: >-
-  Implement or test Spring gRPC services, protobuf stubs, channels, deadlines, interceptors, health checks, and reflection.
+  Use Spring gRPC for protobuf services, channels, deadlines, interceptors, health checks, and reflection.
 ---
 
 # Spring gRPC
@@ -138,7 +144,8 @@ If the project intentionally tracks generated sources in VCS, keep the `.proto` 
 
 ### Milestone branch note
 
-Spring gRPC 1.1 moves starters and autoconfiguration into Spring Boot 4.1. Use the Boot-managed gRPC starters on this line.
+Spring gRPC 1.1 moves starters and autoconfiguration into Spring Boot 4.1.
+Use the Boot-managed gRPC starters on this line.
 
 ## First safe configuration
 

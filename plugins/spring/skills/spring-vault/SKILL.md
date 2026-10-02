@@ -1,14 +1,34 @@
 ---
+metadata:
+  reference:
+    Spring Vault:
+      version: 4.1.0
+      url:
+        - https://docs.spring.io/spring-vault/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/vault/spring-vault-core/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/vault/spring-vault-core/4.1.0/spring-vault-core-4.1.0.pom
+    Spring CredHub:
+      version: 4.1.0
+      url:
+        - https://spring.io/projects/spring-credhub
+        - https://repo.maven.apache.org/maven2/org/springframework/credhub/spring-credhub-starter/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/credhub/spring-credhub-starter/4.1.0/spring-credhub-starter-4.1.0.pom
+    Spring Cloud Vault:
+      version: 5.0.2
+      url:
+        - https://docs.spring.io/spring-cloud-vault/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-vault-config/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-vault-config/5.0.2/spring-cloud-vault-config-5.0.2.pom
 name: spring-vault
 description: >-
-  Integrate Spring applications with Vault or CredHub authentication, secret access, property loading, transit encryption, and credential rotation.
+  Use Spring Vault or CredHub for authentication, secret access, property loading, transit, and rotation.
 ---
 
 # Spring Vault and CredHub
 
 The direct Spring Vault example targets the 4.1.x API line.
-The `4.1.0` Vault and `4.0.1` CredHub versions below illustrate documented API baselines.
-For new dependencies, check `org.springframework.vault:spring-vault-core` and `org.springframework.credhub:spring-credhub-starter` on Maven Central for stable releases compatible with the project's Boot and Framework lines.
+The `4.1.0` Vault and CredHub versions below illustrate current stable API baselines.
+Check each artifact on Maven Central when the application needs a release newer than this documented baseline.
 Keep existing BOM or version-catalog pins unless the task authorizes changing them.
 
 ## Boundaries
@@ -315,7 +335,7 @@ class MyConfiguration {
 ## CredHub integration (Cloud Foundry)
 
 Use this section when the secret store is Cloud Foundry CredHub instead of HashiCorp Vault.
-Spring CredHub 4.0.x provides the client library.
+Spring CredHub 4.1.x provides the client library.
 
 ### CredHub dependency baseline
 
@@ -324,7 +344,7 @@ Spring CredHub 4.0.x provides the client library.
     <dependency>
         <groupId>org.springframework.credhub</groupId>
         <artifactId>spring-credhub-starter</artifactId>
-        <version>4.0.1</version>
+        <version>4.1.0</version>
     </dependency>
     <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>

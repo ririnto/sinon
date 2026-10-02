@@ -20,7 +20,8 @@ Resolve their paths from the installed plugin root, not the consuming repository
 
 ## Execution Boundary
 
-Work as a sequential leaf; do not delegate or invoke nested subagents.
+Work as a sequential leaf.
+Do not delegate or invoke nested subagents.
 If parallel work is required, return the needed decomposition to the main-session orchestrator.
 Do not create or modify Git branches, overwrite in-progress plans, or create backups.
 
@@ -32,6 +33,7 @@ Return material scope changes to the applicable gate instead of silently expandi
 ## Completion
 
 Continue through the authorized implementation, proportional checks, implementation review, and artifact sync.
-Keep requirements ahead of implementation; do not reverse-derive intent from code.
+Keep requirements ahead of implementation.
+Do not reverse-derive intent from code.
 Return artifact paths, gate and validation evidence, material drift, and any precise blocker.
 Do not mark work complete while a required gate, check, or synchronization remains unresolved.

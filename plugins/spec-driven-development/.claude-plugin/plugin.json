@@ -8,5 +8,6 @@
   "keywords": ["spec", "specification", "workflow", "review", "research"],
   "license": "Apache-2.0",
   "name": "spec-driven-development",
-  "repository": "https://github.com/ririnto/sinon"
+  "repository": "https://github.com/ririnto/sinon",
+  "version": "2026.10.01.00"
 }

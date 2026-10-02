@@ -1,4 +1,14 @@
 ---
+metadata:
+  reference:
+    Maven Central Search:
+      url: https://central.sonatype.org/search/rest-api-guide/
+    Maven Central Search API status:
+      url: https://central.sonatype.org/faq/what-happened-to-search-maven-org/
+    Central Search:
+      url: https://central.sonatype.com/
+    Maven Central Repository:
+      url: https://repo.maven.apache.org/maven2/
 name: java-dependency-versioning
 description: >-
   Resolve Java artifact coordinates, prepare Maven or Gradle dependency snippets, or verify current Maven Central releases.

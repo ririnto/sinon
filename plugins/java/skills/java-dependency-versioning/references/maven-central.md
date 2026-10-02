@@ -15,13 +15,14 @@ Open this reference when the coordinate is verified but you still need one of th
 
 ## Official entry points
 
-- Maven Central search: <https://search.maven.org/>
+- Maven Central search: <https://central.sonatype.com/>
 - Maven Central search API: <https://search.maven.org/solrsearch/select>
 - Concrete verification path template:
   - `https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a:%22<artifactId>%22&rows=1&wt=json`
 
 ## Metadata caveat
 
+- Browser traffic to `search.maven.org` redirects to Central Search, but Sonatype continues to support its Search API.
 - `latestVersion` can reflect the highest version string rather than the most recently released artifact.
 - When the result looks suspicious, switch to a `core=gav` query and sort explicitly instead of trusting one summary document.
 

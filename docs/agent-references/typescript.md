@@ -37,7 +37,8 @@ The repository formatter configuration enforces removal (`trailingComma: "none"`
 
 ## Type-Safe Inlining
 
-Inline a single-use local only when the type, evaluation count, evaluation order, exception timing, mutable snapshot, closure capture, and overload or receiver resolution stay identical.
+Inline single-use local variables when behavior, type, and clarity stay unchanged.
+Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 Preserve the binding and state the concrete reason when any of them would change.
 
 Prefer an expression body for a function that consists of a single returned expression when the return type, nullability, and API semantics stay unchanged.

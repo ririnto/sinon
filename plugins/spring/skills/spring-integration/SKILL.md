@@ -1,7 +1,15 @@
 ---
+metadata:
+  reference:
+    Spring Integration:
+      version: 7.1.1
+      url:
+        - https://docs.spring.io/spring-integration/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/integration/spring-integration-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/integration/spring-integration-bom/7.1.1/spring-integration-bom-7.1.1.pom
 name: spring-integration
 description: >-
-  Design or troubleshoot Spring Integration message flows, channels, routers, gateways, pollers, and protocol adapters.
+  Use Spring Integration for message flows, channels, routers, gateways, pollers, and adapters.
 ---
 
 # Spring Integration

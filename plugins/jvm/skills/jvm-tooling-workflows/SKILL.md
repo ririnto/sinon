@@ -24,9 +24,6 @@ metadata:
     JEP 392:
       version: JDK 16
       url: https://openjdk.org/jeps/392
-    JDK-8345185:
-      version: JDK 25
-      url: https://bugs.openjdk.org/browse/JDK-8345185
 name: jvm-tooling-workflows
 description: >-
   Use JDK tools for compilation, documentation, module analysis, runtime images, or application packaging.
@@ -145,7 +142,7 @@ Do not present that incubator form as the normal production baseline, and do not
 
 > [!NOTE]
 >
-> On JDK 25 and later (JDK-8345185), `jpackage` no longer adds `--bind-services` to its default `jlink` options.
+> On JDK 25, the default `jpackage` options do not include `--bind-services`.
 > The default now resolves to `--strip-native-commands --strip-debug --no-man-pages --no-header-files`, so the generated runtime image drops providers that were previously included by service-loader binding.
 > When the application uses `java.util.ServiceLoader`, restore the old behavior by passing a quoted `--jlink-options` string that re-includes `--bind-services`:
 >

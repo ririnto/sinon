@@ -9,6 +9,12 @@ metadata:
       url:
         - https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/default.jfc
         - https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/profile.jfc
+    OpenJDK JDK 27 release:
+      version: JDK 27
+      url: https://openjdk.org/projects/jdk/27/
+    JEP 523:
+      version: JDK 27
+      url: https://openjdk.org/jeps/523
 name: jvm-gc-diagnostics
 description: >-
   Interpret GC logs and JFR evidence, diagnose heap pressure, or compare JVM garbage collectors.

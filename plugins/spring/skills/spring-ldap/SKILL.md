@@ -3,10 +3,13 @@ metadata:
   reference:
     Spring LDAP:
       version: 4.1.1
-      url: https://docs.spring.io/spring-ldap/reference/
+      url:
+        - https://docs.spring.io/spring-ldap/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/ldap/spring-ldap-core/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/ldap/spring-ldap-core/4.1.1/spring-ldap-core-4.1.1.pom
 name: spring-ldap
 description: >-
-  Implement or troubleshoot Spring LDAP queries, DN handling, ODM mapping, repositories, authentication checks, and embedded LDAP tests.
+  Use Spring LDAP for directory queries, DN handling, ODM, repositories, and embedded tests.
 ---
 
 # Spring LDAP
@@ -318,7 +321,8 @@ class PersonDirectory {
 
 `LdapClient` provides `list()`, `stream()`, `single()`, `optional()`, and `map()` terminal operations on search queries.
 Use `LdapClient` when ODM is not needed.
-`LdapClient` does not support ODM; use `LdapTemplate` when ODM entry mapping is required.
+`LdapClient` does not support ODM.
+Use `LdapTemplate` when ODM entry mapping is required.
 
 ### ODM entity with DN-relative attributes
 

@@ -7,7 +7,7 @@ Use flow execution tests when backtracking, invalid input, exception paths, or s
 ## Test harness baseline
 
 Spring Web Flow's official XML flow test support starts from `AbstractXmlFlowExecutionTests`.
-When the project standardizes on JUnit 5, keep the public test class in Jupiter style and delegate flow-harness operations to a helper subclass.
+When the project standardizes on JUnit Jupiter, keep the public test class in Jupiter style and delegate flow-harness operations to a helper subclass.
 
 Define the booking service stub in the test source set.
 Treat it as application test code, not as a framework-provided helper.
@@ -182,9 +182,9 @@ void saveBookingFailureGoesToTechnicalError() {
 
 Test the affected exception paths when changing a global transition, exception handler, or recovery state.
 
-## JUnit 5 compatibility note
+## JUnit Jupiter compatibility note
 
-`AbstractXmlFlowExecutionTests` inherits from a JUnit `TestCase` base class, but a project can still keep the public test surface in JUnit 5 style by delegating the harness operations through a helper subclass as shown above.
+`AbstractXmlFlowExecutionTests` inherits from a JUnit `TestCase` base class, but a project can keep the public test surface in JUnit Jupiter style by delegating the harness operations through a helper subclass as shown above.
 Keep one assertion per `assertAll` line when multiple flow-outcome checks belong to the same scenario.
 
 ## Gotchas

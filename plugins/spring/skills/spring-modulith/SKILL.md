@@ -3,10 +3,13 @@ metadata:
   reference:
     Spring Modulith:
       version: 2.1.1
-      url: https://docs.spring.io/spring-modulith/reference/
+      url:
+        - https://docs.spring.io/spring-modulith/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/modulith/spring-modulith-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/modulith/spring-modulith-bom/2.1.1/spring-modulith-bom-2.1.1.pom
 name: spring-modulith
 description: >-
-  Define or verify Spring Modulith boundaries, named interfaces, cross-module events, publication durability, and module interactions.
+  Use Spring Modulith for module boundaries, named interfaces, events, publication, and interaction tests.
 ---
 
 # Spring Modulith

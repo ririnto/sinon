@@ -1,6 +1,16 @@
 ---
 description: >-
   Repository overview for the Sinon Claude Code plugin marketplace, including structure, marketplace layout, and publishing model.
+metadata:
+  reference:
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Claude plugin marketplaces:
+      url: https://code.claude.com/docs/en/plugins/marketplace-reference
+    Claude plugin components:
+      url:
+        - https://code.claude.com/docs/en/plugins/cli-reference
+        - https://code.claude.com/docs/en/plugins/troubleshooting
 ---
 
 # Sinon
@@ -18,6 +28,10 @@ The Claude marketplace catalog lives at the repository root.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
+- `docs/agent-references/`: source and instruction authoring conventions.
+- `scripts/`: repository checks and native example fixtures.
+- `rules/`: repository Markdown lint rules.
+- `.github/`: dependency update configuration.
 - `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
@@ -38,6 +52,17 @@ Common plugin assets include:
 - Executable `bin/`.
 
 Sinon-maintained plugin details belong in each plugin's own `README.md`, not in this root document.
+Portable skills follow OpenAI's task-focused authoring guidance, while Claude manifests retain Claude's component contract.
+
+## Development
+
+Use the Node range in `package.json` and the repository's Bun toolchain.
+Run `bun install` after dependency changes and `bun run check` for the repository checks.
+Run native profile checks for changed integrations and `claude plugin validate plugins/<plugin>` for each changed package.
+Run `bun run test:promtool` for the [Prometheus documentation fixtures](scripts/tests/promtool/README.md).
+That component verifies and runs the official release executable without a separate Go build graph.
+Select current stable dependencies from their official registries, subject to the target's runtime and managed constraints.
+Keep historical migration examples tied to their documented release.
 
 ## Current Plugins
 
@@ -74,13 +99,11 @@ The marketplace catalog lists local plugin roots and selected external plugin re
 
 ## Registering This Marketplace in Claude Code
 
-Claude Code supports registering marketplaces from GitHub repositories, generic git URLs,
-direct URLs to `marketplace.json`, and local paths.
+Claude Code supports registering marketplaces from GitHub repositories, generic git URLs, direct URLs to `marketplace.json`, and local paths.
 
 For this repository, use a GitHub repository, git URL, or local path.
-Sinon uses relative plugin sources such as `./plugins/java` inside
-`.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe
-distribution path for this marketplace.
+Sinon uses relative sources such as `./plugins/java` inside `.claude-plugin/marketplace.json`, which require the plugin files from a checkout.
+A direct HTTP URL fetches only the catalog and cannot resolve these relative plugin sources.
 
 The Claude marketplace catalog for this repository is:
 

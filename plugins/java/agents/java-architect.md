@@ -32,7 +32,7 @@ Load the relevant skill using the Skill tool when the user's question maps to a 
 | --- | --- | --- |
 | `java:java-language-design` | Type hierarchies, API design, sealed types, records | Class/interface hierarchies, domain modeling, API surface design, value objects |
 | `java:java-language-syntax` | Java syntax and baseline availability | Syntax forms, language constructs, and source migration between Java versions |
-| `java:java-test` | JUnit 5, test scope, Mockito/Awaitility boundaries, test execution | Test-first implementation, unit vs integration scope, or Maven/Gradle test wiring |
+| `java:java-test` | JUnit Jupiter, test scope, Mockito/Awaitility boundaries, test execution | Test-first implementation, unit vs integration scope, or Maven/Gradle test wiring |
 | `java:java-dependency-versioning` | Artifact coordinates, version-neutral dependency snippets, Maven Central release verification | Coordinate lookup, repository-managed version sources, or BOM/platform install shape |
 | `java:java-performance-concurrency` | Profiling, workload classification, virtual-thread fit, contention and allocation review | Evidence-driven performance or concurrency decisions |
 

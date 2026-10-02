@@ -1,7 +1,31 @@
 ---
+metadata:
+  reference:
+    Spring Batch 6:
+      version: 6.0.5
+      url:
+        - https://docs.spring.io/spring-batch/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-bom/6.0.5/spring-batch-bom-6.0.5.pom
+    Spring Batch 5.2:
+      version: 5.2.x
+      url:
+        - https://docs.spring.io/spring-batch/reference/5.2/
+        - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-core/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/batch/spring-batch-core/5.2.6/spring-batch-core-5.2.6.pom
+    Spring Boot 3.4:
+      version: 3.4.13
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/3.4.13/spring-boot-dependencies-3.4.13.pom
+    Spring Boot 3.5:
+      version: 3.5.16
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/3.5.16/spring-boot-dependencies-3.5.16.pom
 name: spring-batch
 description: >-
-  Design or troubleshoot Spring Batch jobs, steps, restartability, readers, writers, fault tolerance, and scaling.
+  Use Spring Batch for job design, restartability, readers, writers, retries, and scaling.
 ---
 
 # Spring Batch

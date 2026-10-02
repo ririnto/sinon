@@ -2,13 +2,14 @@
 metadata:
   reference:
     Spring REST Docs:
-      - version: 4.0.1
-        url: https://repo.maven.apache.org/maven2/org/springframework/restdocs/spring-restdocs-mockmvc/4.0.1/spring-restdocs-mockmvc-4.0.1.pom
-      - version: 4.0.0
-        url: https://docs.spring.io/spring-restdocs/reference/
+      version: 4.0.1
+      url:
+        - https://docs.spring.io/spring-restdocs/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/restdocs/spring-restdocs-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/restdocs/spring-restdocs-bom/4.0.1/spring-restdocs-bom-4.0.1.pom
 name: spring-rest-docs
 description: >-
-  Generate Spring REST Docs snippets from MockMvc/WebTestClient tests and assemble API documentation with Asciidoctor.
+  Use Spring REST Docs to generate and publish API documentation from MockMvc/WebTestClient tests.
 ---
 
 # Spring REST Docs

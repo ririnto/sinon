@@ -1,8 +1,26 @@
+---
+metadata:
+  reference:
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    OpenAI project instructions:
+      url: https://developers.openai.com/codex/guides/agents-md
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    WCAG:
+      version: "2.2"
+      url:
+        - https://www.w3.org/TR/WCAG22/
+        - https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
+---
+
 # Engineering Rules
 
 This document owns common engineering rules and workflow boundaries for the `implement` and `review` skills.
 Language and tool documents own their specific requirements.
 Use the sections and indexed references that apply to the task.
+The instruction structure follows official OpenAI guidance.
+Engineering preferences are Harness policies, with technical claims grounded in the relevant vendor documentation.
 
 ## Instruction Priority And Discovery
 
@@ -50,7 +68,8 @@ Use the user's designated plan location and owner.
 Otherwise keep execution state and handoffs in agent context unless the target defines an approved planning surface.
 Do not create extra plan directories or scratch status reports.
 Simple tasks need no separate planning phase unless explicitly required.
-Remove task-owned scratch files before completion; preserve requested evidence and other contributors' work.
+Remove task-owned scratch files before completion.
+Preserve requested evidence and other contributors' work.
 
 ## Implementation
 
@@ -58,10 +77,14 @@ Read the relevant code, tests, configuration, and type definitions directly befo
 Verify the premise before building on it.
 Fix the root cause: before changing a shared function, check every caller and fix the shared path rather than patching one caller.
 Reuse existing helpers, patterns, and installed dependencies before adding new ones.
+Prefer an available native host tool or the target's maintained command over a custom wrapper for the same operation.
+Use a fallback only when the native tool cannot satisfy the required contract, and state the limitation.
 Before adding or upgrading a library or tool, check its registry for the latest stable version compatible with the target's runtime and dependency constraints.
 Use npm, Maven Central, PyPI, crates.io, or the tool's release registry as appropriate.
 Do not treat a documented example as a current release.
 Honor the target's lockfile, parent POM, BOM, version catalog, and existing pins.
+Use native dependency catalogs when the selected package manager or build tool supports them.
+Reference catalog entries from consumers instead of repeating their versions.
 Preserve behavior outside the requested change.
 Remove replaced code, fallbacks, and obsolete paths in the same change.
 No legacy compatibility surfaces.
@@ -72,9 +95,11 @@ For a requested mechanical change, verify coverage across its stated scope witho
 
 ## Validation
 
-Choose proof for the acceptance criteria before editing; use the narrowest existing checks that exercise changed behavior.
+Choose proof for the acceptance criteria before editing.
+Use the narrowest existing checks that exercise changed behavior.
 Use the target's documented native runner and maintained commands directly, without new wrapper scripts.
-Run fixers only within authorized edit scope; use read-only commands for validation.
+Run fixers only within authorized edit scope.
+Use read-only commands for validation.
 When changing package scripts, put independent checks in `run-p` children and use `run-s` only for real dependencies.
 Do not add tests that mirror prose, implementation wording, or already-covered low-impact changes.
 Add coverage for an uncovered acceptance criterion or regression risk with the native test setup.
@@ -101,7 +126,8 @@ Allow blank lines between functions and tests.
 Put no inline comments inside function bodies.
 Move explanations that must survive to the relevant declaration documentation.
 
-Inline a single-use local only when evaluation count, evaluation order, exception timing, mutable snapshots, closure capture, and overload or receiver resolution stay identical.
+Inline single-use local variables when behavior and clarity stay unchanged.
+Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 Retain the binding and state the concrete reason when any of them would change.
 
 Replace an intermediate guard return with an inverted condition that encloses the trailing work when the two forms behave identically.
@@ -111,13 +137,23 @@ Compare expected strings with full equality.
 Parse structured output (JSON, HTML, URLs, headers, event streams), and compare exact fields or elements instead of substring, prefix, or suffix matching.
 Use membership assertions only when membership itself is the observable contract.
 
+## Documentation Formatting
+
+Put each complete Markdown sentence on its own source line.
+Do not join separate sentences with semicolons or substitute punctuation.
+Keep conditions with the actions they qualify.
+Preserve code, tables, metadata, URLs, and exact quotations.
+Do not reflow prose to a fixed column width.
+
 ## YAML Authoring
 
 Use the `.yaml` extension for every maintained YAML file unless the consuming host or tool requires `.yml` (for example `.gitlab-ci.yml` at a GitLab repository root or `.custom-gcl.yml` for golangci-lint module plugins).
 Write sequences in block style.
 Keep a flow sequence only for an explicit empty sequence (`key: []`), because block style cannot express an empty sequence without turning it into null.
-Do not convert flow sequences inside string payloads, PromQL, GitHub expressions, or quoted scalars; they are not YAML lists.
-Do not rely on YAML 1.1 truthy coercion (`on`, `off`, `yes`, `no` as booleans); quote such scalars.
+Do not convert flow sequences inside string payloads, PromQL, GitHub expressions, or quoted scalars.
+They are not YAML lists.
+Do not rely on YAML 1.1 truthy coercion (`on`, `off`, `yes`, `no` as booleans).
+Quote such scalars.
 Do not quote a scalar when its parsed type and value already match the consumer's need.
 Use double quotes only when the actual consumer requires the exact string type or value, such as a YAML 1.1 scalar that would coerce, or a version-like or numeric-key scalar that must stay a string.
 
@@ -174,7 +210,10 @@ Mark stable interactive and test-indexable elements so headless drivers locate s
 Keep every interactive element keyboard-reachable, focus order matching visual flow, and focus styles visible.
 Interactive non-button elements carry appropriate roles.
 Meaningful images have alt text.
-Color contrast meets WCAG AA (4.5:1 text, 3:1 graphics).
+Meet WCAG AA text contrast requirements: 4.5:1 for normal text and 3:1 for large text.
+Give required non-text visuals at least 3:1 contrast against adjacent colors.
+This covers visual information needed to identify UI components and states, and graphic parts needed to understand content.
+Apply the criterion's exceptions for inactive controls, unmodified browser-provided appearance, and essential graphic presentations.
 Every error response carries an actionable message and a stable error code.
 CLI commands support `--help` and a non-interactive flag.
 Route user-visible strings through the i18n layer when the surface supports multiple languages.

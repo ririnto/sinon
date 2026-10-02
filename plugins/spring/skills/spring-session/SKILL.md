@@ -2,14 +2,20 @@
 metadata:
   reference:
     Spring Session:
-      version: 4.0
-      url: https://docs.spring.io/spring-session/reference/whats-new.html
+      version: 4.1.1
+      url:
+        - https://docs.spring.io/spring-session/reference/
+        - https://docs.spring.io/spring-session/reference/whats-new.html
+        - https://repo.maven.apache.org/maven2/org/springframework/session/spring-session-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/session/spring-session-bom/4.1.1/spring-session-bom-4.1.1.pom
     MongoDB Spring Session:
       version: 4.0.0
-      url: https://central.sonatype.com/artifact/org.mongodb/mongodb-spring-session/4.0.0
+      url:
+        - https://repo.maven.apache.org/maven2/org/mongodb/mongodb-spring-session/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/mongodb/mongodb-spring-session/4.0.0/mongodb-spring-session-4.0.0.pom
 name: spring-session
 description: >-
-  Configure or test Spring Session stores, session ID transport, expiration, and Security/WebFlux/WebSocket integration.
+  Use Spring Session for session stores, ID transport, expiration, and web integration.
 ---
 
 # Spring Session

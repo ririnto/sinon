@@ -166,4 +166,5 @@ Add only the starter that matches the production data layer:
 - `ToolCallingAdvisor` (2.0.0+) manages conversation history internally across tool-call iterations.
   - Memory advisors only store the final user/assistant exchange by default.
   - If memory is needed inside the tool-call loop, set the advisor order above `ToolCallingAdvisor.DEFAULT_ORDER` and call `.disableInternalConversationHistory()`.
-- `PromptChatMemoryAdvisor` has been removed in 2.0.0. All memory advisors require an explicit `CONVERSATION_ID` at call time.
+- `PromptChatMemoryAdvisor` has been removed in 2.0.0.
+  All memory advisors require an explicit `CONVERSATION_ID` at call time.

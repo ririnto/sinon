@@ -3,10 +3,13 @@ metadata:
   reference:
     Spring Statemachine:
       version: 4.0.2
-      url: https://docs.spring.io/spring-statemachine/docs/current/reference/
+      url:
+        - https://docs.spring.io/spring-statemachine/docs/current/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/statemachine/spring-statemachine-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/statemachine/spring-statemachine-bom/4.0.2/spring-statemachine-bom-4.0.2.pom
 name: spring-statemachine
 description: >-
-  Model or troubleshoot Spring Statemachine states, events, guards, actions, factories, persistence, and lifecycle tests.
+  Use Spring Statemachine for states, events, guards, actions, factories, persistence, and tests.
 ---
 
 # Spring Statemachine

@@ -11,9 +11,11 @@ metadata:
         - https://docs.spring.io/spring-boot/appendix/deprecated-application-properties/index.html
         - https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes
         - https://github.com/spring-projects/spring-boot/tree/v4.1.1
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-boot
 description: >-
-  Configure Spring Boot starters, properties, profiles, test slices, Actuator, and packaging, including Boot version migrations.
+  Use Spring Boot for starters, configuration, tests, Actuator, packaging, and upgrades.
 ---
 
 # Spring Boot

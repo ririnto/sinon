@@ -1,6 +1,16 @@
 ---
 name: git-merge-strategies
 description: Choose or perform an authorized Git merge, resolve merge conflicts, or assess recurring conflict resolutions.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Git:
+      url:
+        - https://github.com/git/git/blob/master/Documentation/git-merge.adoc
+        - https://github.com/git/git/blob/master/Documentation/git-rerere.adoc
 ---
 
 # Git Merge Strategies
@@ -14,7 +24,8 @@ This skill covers merges, not rebase, cherry-pick, or remote publication.
   Confirm the source, target, and granted Git action before mutation.
 - Inspect repository policy, relevant ancestry, worktree bindings, and local changes.
   Use [working-tree-hygiene](../working-tree-hygiene/SKILL.md) when preservation or isolation needs attention.
-- Preserve uncommitted work; do not discard, overwrite, or automatically stash unrelated changes.
+- Preserve uncommitted work.
+  Do not discard, overwrite, or automatically stash unrelated changes.
 - Fetch only when current remote evidence is needed and network access is authorized.
   A local merge without an applicable upstream needs no fetch.
 - Do not infer merge policy from feature size or commit count.

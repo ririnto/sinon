@@ -2,7 +2,7 @@
 
 Open this reference when the ordinary mutual-TLS password-read path is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
 
-These examples target Spring CredHub 4.0.x, whose reference documents mutual TLS and OAuth2 client authentication.
+These examples target Spring CredHub 4.1.x, whose project documentation describes mutual TLS and OAuth2 client authentication.
 
 ## Mutual TLS versus OAuth2
 

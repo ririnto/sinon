@@ -48,5 +48,6 @@ The installer reads current canonical inputs and writes only mapped target paths
 It manages only `implement` and `review` skills and their supporting documents, preserving other target skills.
 Its preview separates safe creates and unchanged files from conflicts that require explicit replacement authority.
 For Kotlin, it also materializes the complete target-owned `tooling/kotlin-ktlint/` Gradle module when the Kotlin profile is selected.
-The target must attach its produced JAR to the actual ktlint runtime through `ktlintRuleset(...)`; buildSrc classes alone are not sufficient.
+The target must attach its produced JAR to the actual ktlint runtime through `ktlintRuleset(...)`.
+BuildSrc classes alone are not sufficient.
 The skills never disable hooks, fake validation success, or treat a skipped gate as a pass: a gate that cannot run stays a named gap.

@@ -1,6 +1,12 @@
 ---
 name: review
 description: Use when reviewing a diff or completed change for correctness and requirement compliance.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
 ---
 
 # Review

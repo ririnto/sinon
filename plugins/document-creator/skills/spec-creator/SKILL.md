@@ -1,6 +1,16 @@
 ---
 name: spec-creator
-description: Author or review a standalone SPEC.md with requirements, scenarios, and acceptance criteria, without running an implementation lifecycle.
+description: Author or review a standalone SPEC.md with requirements, scenarios, and acceptance criteria.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Requirement keywords:
+      url:
+        - https://www.rfc-editor.org/rfc/rfc2119
+        - https://www.rfc-editor.org/rfc/rfc8174
 ---
 
 # Spec Creator
@@ -13,7 +23,8 @@ This skill does not own research gates, implementation, or end-to-end delivery.
 - The produced spec MUST be readable and actionable without other in-repo documents.
   Inline required content rather than delegating it through "see `X.md`" pointers.
   Clearly named external standards and API references are allowed.
-- Define RFC 2119 keywords and `Implementation-defined` semantics.
+- Define BCP 14 keywords from RFC 2119 and RFC 8174, and define `Implementation-defined` semantics.
+  Only uppercase keywords carry their normative meanings.
   Implementers MUST document each implementation-defined choice.
 - State the problem, goals, non-goals, scope, and users before requirements or solution details.
   Include title, status, dates, and ownership metadata.
@@ -59,7 +70,8 @@ Remove irrelevant sections rather than leaving empty headings or placeholders.
 ## Completion
 
 Continue through drafting, requirement-quality review, and authorized corrections.
-Use the applicable checklist sections once; do not add implementation tests for spec prose.
+Use the applicable checklist sections once.
+Do not add implementation tests for spec prose.
 Deliver the requested content or save it to the requested path.
 Report only material unresolved decisions and validation limits.
 A draft may retain explicit Open Questions, but MUST NOT present unresolved guesses as approved requirements.

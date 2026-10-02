@@ -2,15 +2,15 @@
 metadata:
   reference:
     Prometheus:
-      version: 3.14.0
+      version: 3.15.0
       license: Apache-2.0
       url:
-        - https://prometheus.io/docs/prometheus/3.14/querying/basics/
-        - https://prometheus.io/docs/prometheus/3.14/querying/operators/
-        - https://prometheus.io/docs/prometheus/3.14/querying/functions/
-        - https://prometheus.io/docs/prometheus/3.14/querying/api/
-        - https://prometheus.io/docs/prometheus/3.14/feature_flags/
-        - https://github.com/prometheus/prometheus/releases/tag/v3.14.0
+        - https://prometheus.io/docs/prometheus/3.15/querying/basics/
+        - https://prometheus.io/docs/prometheus/3.15/querying/operators/
+        - https://prometheus.io/docs/prometheus/3.15/querying/functions/
+        - https://prometheus.io/docs/prometheus/3.15/querying/api/
+        - https://prometheus.io/docs/prometheus/3.15/feature_flags/
+        - https://github.com/prometheus/prometheus/releases/tag/v3.15.0
 name: promql
 description: >-
   Use for PromQL query authoring, aggregation, vector matching, SLI math, or query review for alerts, dashboards, and recording rules.

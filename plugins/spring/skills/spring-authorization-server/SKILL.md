@@ -7,6 +7,8 @@ metadata:
         - https://docs.spring.io/spring-authorization-server/reference/
         - https://docs.spring.io/spring-authorization-server/reference/guides/how-to-pkce.html
         - https://github.com/spring-projects/spring-authorization-server/tree/1.5.8
+        - https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-oauth2-authorization-server/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-oauth2-authorization-server/1.5.8/spring-security-oauth2-authorization-server-1.5.8.pom
     Spring Security Authorization Server:
       version: 7.1.1
       url:
@@ -14,9 +16,11 @@ metadata:
         - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html
         - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html
         - https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/getting-started.html
+        - https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-oauth2-authorization-server/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/security/spring-security-oauth2-authorization-server/7.1.1/spring-security-oauth2-authorization-server-7.1.1.pom
 name: spring-authorization-server
 description: >-
-  Configure or test Spring OAuth/OIDC token issuance, registered clients, signing keys, consent, and authorization-server endpoints.
+  Use Spring OAuth2/OIDC for token issuance, client registration, consent, and provider endpoints.
 ---
 
 # Spring Authorization Server

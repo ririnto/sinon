@@ -24,9 +24,9 @@ If revision requires human judgment, record a focused open question instead of g
 
 ## Normative Discipline
 
-- [ ] The Normative Language section is present and defines RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, REQUIRED, RECOMMENDED, OPTIONAL).
+- [ ] The Normative Language section defines BCP 14 keywords and their uppercase applicability.
 - [ ] The Normative Language section defines `Implementation-defined` and states that implementations MUST document the selected behavior.
-- [ ] RFC 2119 keywords are used deliberately, not randomly.
+- [ ] BCP 14 keywords are used deliberately, not randomly.
 - [ ] SHOULD versus MUST distinction is intentional.
   There is no SHOULD where MUST is intended and no MUST where the project will diverge.
 - [ ] `Implementation-defined` is used consistently for contract surface the spec deliberately does not prescribe.
@@ -50,7 +50,7 @@ If revision requires human judgment, record a focused open question instead of g
 
 - [ ] Every functional requirement has a stable ID such as `FR-001`, `FR-002`, etc.
 - [ ] Every non-functional requirement has a category ID such as `NFR-PERF-001`, `NFR-SEC-001`, `NFR-REL-001`, etc.
-- [ ] Requirements use RFC 2119 language deliberately (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, REQUIRED, RECOMMENDED, OPTIONAL).
+- [ ] Requirements use BCP 14 language deliberately (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, REQUIRED, RECOMMENDED, OPTIONAL).
 - [ ] Each requirement describes one observable behavior or a single real constraint.
   There are no "and"-compound requirements.
 - [ ] Requirements describe WHAT / WHY, not HOW, unless design is explicitly in scope.
@@ -150,9 +150,11 @@ If revision requires human judgment, record a focused open question instead of g
 ### Example: missing scenario
 
 - Failure: FR-001 has no scenarios and no reason stated for why it cannot be scenario-tested.
-- Response: Either (a) add at least one scenario for FR-001, or (b) add a note: "FR-001 is a performance tuning requirement with no observable behavior change; verified by profiling, not scenario testing."
+- Response: Add a scenario for FR-001 or explain why scenario testing does not apply.
+  Example: "Profiling verifies FR-001 because performance tuning changes no observable behavior."
 
 ### Example: blocked decision
 
 - Failure: The spec names "approval policy" as implementation-defined but does not state what approvals are required and when.
-- Response: Record an open question: "What is the approval policy for this implementation? Should file operations require approval, or auto-approve within the workspace?"
+- Response: Record an open question.
+  Example: "Should file operations require approval, or proceed automatically within the authorized workspace?"

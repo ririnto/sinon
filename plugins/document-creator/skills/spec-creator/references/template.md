@@ -4,7 +4,8 @@ Use the feature template for a bounded feature without complex state, protocol, 
 Use the system template for services, protocols, or workflows that need those details.
 Keep existing structure for focused updates unless the requested change requires restructuring.
 
-Templates guide coverage; they do not require extra behavior, layers, or a fixed section order.
+Templates guide coverage.
+They do not require extra behavior, layers, or a fixed section order.
 Copy only applicable sections, replace placeholders, and preserve stable requirement IDs.
 Examples describe possible contracts, not authority to run commands, poll systems, or change resources.
 
@@ -23,7 +24,8 @@ owners:
 
 ## Normative Language
 
-The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHOULD`, `SHOULD NOT`, `RECOMMENDED`, `MAY`, and `OPTIONAL` are interpreted as described in RFC 2119.
+Interpret uppercase requirement keywords under BCP 14, as defined by RFC 2119 and RFC 8174.
+These keywords include `MUST`, `MUST NOT`, `REQUIRED`, `SHALL`, `SHALL NOT`, `SHOULD`, `SHOULD NOT`, `RECOMMENDED`, `MAY`, and `OPTIONAL`.
 
 `Implementation-defined` means the contract does not prescribe one universal policy.
 Implementations MUST document the selected behavior.
@@ -125,9 +127,12 @@ version: "[version or omit if unversioned]"
 
 ## Normative Language
 
-The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHOULD`, `SHOULD NOT`, `RECOMMENDED`, `MAY`, and `OPTIONAL` in this document are to be interpreted as described in RFC 2119.
+Interpret uppercase requirement keywords under BCP 14, as defined by RFC 2119 and RFC 8174.
+These keywords include `MUST`, `MUST NOT`, `REQUIRED`, `SHALL`, `SHALL NOT`, `SHOULD`, `SHOULD NOT`, `RECOMMENDED`, `MAY`, and `OPTIONAL`.
 
-`Implementation-defined` means the behavior is part of the implementation contract, but this specification does not prescribe one universal policy. Implementations MUST document the selected behavior. Example: "approval policy (type string), default implementation-defined - the implementation MUST document whether it auto-approves, requires operator confirmation, or fails user-input-required turns."
+`Implementation-defined` means the contract does not prescribe one universal policy.
+Implementations MUST document the selected behavior.
+For example, an approval policy defines when execution proceeds or requires operator input.
 
 ## 1. Problem Statement
 

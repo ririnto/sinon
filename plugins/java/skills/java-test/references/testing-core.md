@@ -1,20 +1,20 @@
 ---
 description: >-
-  Reference for JUnit 5 building blocks, assertion patterns, Mockito usage, Awaitility async verification, and representative test shapes for Java TDD workflows.
+  Reference for JUnit Jupiter building blocks, assertion patterns, Mockito usage, Awaitility async verification, and representative Java test shapes.
 ---
 
 # Java Testing Core Reference
 
 Open this reference when the common Java test shape is already clear and the remaining blocker is assertion detail, mocking, or asynchronous verification.
 
-## JUnit 5 building blocks
+## JUnit Jupiter building blocks
 
 - Core test annotations: `@Test`, `@DisplayName`, `@Nested`, `@Tag`, `@Disabled`
 - Lifecycle annotations: `@BeforeEach`, `@AfterEach`, `@BeforeAll`, `@AfterAll`
 - Assertion methods: `assertEquals`, `assertNotEquals`, `assertTrue`, `assertFalse`, `assertNull`, `assertNotNull`, `assertSame`, `assertNotSame`, `assertThrowsExactly`, `assertDoesNotThrow`, `assertAll`, `assertArrayEquals`, `assertIterableEquals`, `assertLinesMatch`, `assertTimeoutPreemptively`
 - Parameterized test entry points: `@ParameterizedTest`, `@ValueSource`, `@MethodSource`, `@CsvSource`, `@EnumSource`, `@NullSource`, `@EmptySource`
 
-## Representative JUnit 5 patterns
+## Representative JUnit Jupiter patterns
 
 Prefer `assertThrowsExactly` when the exact exception type is part of the contract.
 It requires JUnit Jupiter 5.8 or later.

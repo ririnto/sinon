@@ -3,6 +3,10 @@ name: commit-convention
 description: Draft or review Conventional Commit messages, including type, scope, breaking changes, and commit cohesion.
 metadata:
   reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
     Conventional Commits:
       version: 1.0.0
       url: https://www.conventionalcommits.org/en/v1.0.0/
@@ -60,7 +64,9 @@ A Conventional Commit has the structure:
 ### Format Tokens
 
 - `type` (required): Semantic category.
-  - One of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+  - Conventional Commits defines `feat` and `fix`.
+    Other types follow repository policy.
+  - Common additional types are `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, and `revert`.
 - `scope` (optional): Affected module, package, or component.
   - Use kebab-case (e.g., `auth`, `api-client`).
   - Omit if it adds noise or affects many areas.
@@ -72,7 +78,9 @@ A Conventional Commit has the structure:
   - Lowercase preferred.
 - `body` (optional but recommended for non-trivial changes): Explains context, motivation, or design decisions.
 - `footers` (optional): Co-authors or breaking-change details.
-  - Format: `Token: value` on separate lines.
+  - Separate the footer token and value with a colon and space, or a space and `#`.
+  - Use hyphens inside tokens, except the allowed `BREAKING CHANGE` token.
+  - Footer values may span lines until another valid footer starts.
 
 ### Type Reference
 

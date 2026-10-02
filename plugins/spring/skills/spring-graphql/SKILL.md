@@ -3,13 +3,18 @@ metadata:
   reference:
     Spring GraphQL:
       version: 2.0.5
-      url: https://docs.spring.io/spring-graphql/reference/
+      url:
+        - https://docs.spring.io/spring-graphql/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/graphql/spring-graphql/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/graphql/spring-graphql/2.0.5/spring-graphql-2.0.5.pom
     Spring Boot Dependency BOM:
       version: 4.1.1
-      url: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-graphql
 description: >-
-  Implement or test Spring GraphQL schemas, resolvers, batching, subscriptions, transports, and error handling.
+  Use Spring GraphQL for schemas, resolvers, batching, subscriptions, transports, and error handling.
 ---
 
 # Spring for GraphQL

@@ -26,7 +26,8 @@ Consumer priority ordering is also supported to control which consumers receive 
 ## Kafka binder multiple bindings fix (5.0.2)
 
 Kafka Binder did not work correctly with multiple bindings pointing to different topics in the same application.
-This is fixed in 5.0.2. Verify multi-binding topologies against the updated binder.
+This is fixed in 5.0.2.
+Verify multi-binding topologies against the updated binder.
 
 ## MessageRoutingCallback
 

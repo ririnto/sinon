@@ -3,10 +3,13 @@ metadata:
   reference:
     Spring Framework:
       version: 7.0.9
-      url: https://docs.spring.io/spring-framework/reference/index.html
+      url:
+        - https://docs.spring.io/spring-framework/reference/index.html
+        - https://repo.maven.apache.org/maven2/org/springframework/spring-framework-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/spring-framework-bom/7.0.9/spring-framework-bom-7.0.9.pom
 name: spring-web
 description: >-
-  Implement or test Spring MVC/WebFlux endpoints, HTTP clients, codecs, error responses, and API versioning.
+  Use Spring MVC/WebFlux for HTTP endpoints, clients, codecs, errors, API versions, and web tests.
 ---
 
 # Spring Web

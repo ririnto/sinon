@@ -1,7 +1,15 @@
 ---
+metadata:
+  reference:
+    Spring AMQP:
+      version: 4.1.1
+      url:
+        - https://docs.spring.io/spring-amqp/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/amqp/spring-amqp-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/amqp/spring-amqp-bom/4.1.1/spring-amqp-bom-4.1.1.pom
 name: spring-amqp
 description: >-
-  Configure or test Spring AMQP messaging, RabbitMQ topology, listeners, conversion, retries, and dead-letter handling.
+  Use Spring AMQP and RabbitMQ producers, listeners, topology, retries, and dead letters.
 ---
 
 # Spring AMQP

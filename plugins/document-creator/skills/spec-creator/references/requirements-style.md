@@ -24,7 +24,8 @@ Do not reuse the ID.
 
 ## Normative Language
 
-Use RFC 2119 language deliberately.
+Use BCP 14 language from RFC 2119 and RFC 8174 deliberately.
+Only uppercase keywords carry their normative meanings.
 Choose MUST versus SHOULD based on actual constraint, not habit.
 
 | Keyword | Interpretation | Use When |
@@ -35,7 +36,7 @@ Choose MUST versus SHOULD based on actual constraint, not habit.
 | `SHOULD NOT` | Discouraged unless justified exception | Likely problematic but not forbidden |
 | `MAY` | Optional behavior | Implementation can choose to do it or not |
 | `REQUIRED` | Absolute (RFC synonym for MUST) | When matching formal RFC or protocol style |
-| `RECOMMENDED` | Advised but optional | When matching formal RFC or protocol style |
+| `RECOMMENDED` | Same normative strength as SHOULD | When matching formal RFC or protocol style |
 | `OPTIONAL` | No requirement to implement | Extensions, nice-to-haves |
 
 Guidance: Prefer `MUST` for product requirements, `SHALL` for formal contracts or protocol specs.
@@ -68,8 +69,7 @@ Example:
 
 `approval_policy (string), default implementation-defined - implementations MUST document whether they auto-approve commands, require operator confirmation, or fail approval-required turns.`
 
-Rationale: Symphony uses this pattern to allow multiple trust postures (high-trust auto-approval vs.
-Strict sandboxing) while keeping the contract clear.
+This pattern allows different trust postures while requiring each implementation to state its selected behavior.
 
 ## Good Requirement Shape
 
@@ -224,7 +224,7 @@ Nice-to-haves can slip if time is constrained.
 Before finalizing a requirement:
 
 - [ ] Is it one observable behavior, not two joined by "and"?
-- [ ] Does it use RFC 2119 language (MUST / SHOULD / MAY)?
+- [ ] Does it use BCP 14 language (MUST / SHOULD / MAY)?
 - [ ] Is it testable or inspectable?
 - [ ] If functional, does it have at least one scenario or a stated reason it cannot?
 - [ ] If non-functional, does it include a metric and measurement point?

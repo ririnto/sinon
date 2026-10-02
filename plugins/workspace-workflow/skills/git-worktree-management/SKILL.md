@@ -1,6 +1,15 @@
 ---
 name: git-worktree-management
 description: Add, inspect, remove, or repair Git worktrees and check branch bindings for isolated parallel work.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Git:
+      url:
+        - https://github.com/git/git/blob/master/Documentation/git-worktree.adoc
 ---
 
 # Git Worktree Management
@@ -13,7 +22,8 @@ A commit or branch update is therefore visible across worktrees even though unco
 ## Boundaries
 
 - Inspect existing paths, branch bindings, and relevant local changes before mutation.
-- Keep one active worktree per branch; do not bypass that protection with `--force`.
+- Keep one active worktree per branch.
+  Do not bypass that protection with `--force`.
 - Keep worktrees outside each other's directories, using sibling paths or the repository's approved external location.
 - An unrelated dirty worktree does not block creating an isolated one.
   Preserve its files and do not move its checked-out branch.

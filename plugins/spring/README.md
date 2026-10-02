@@ -29,7 +29,7 @@ Spring is a development plugin with practical skills for Spring Boot, Web, Data,
 - `spring-hateoas`: Hypermedia-driven APIs, HAL forms, and entity links.
 - `spring-integration`: Integration flows, channels, adapters, routers, and message-driven composition.
 - `spring-kafka`: `KafkaTemplate`, `@KafkaListener`, retry/error handling, and testing patterns.
-- `spring-ldap`: LDAP authentication, OpenLDAP integration, and ODM-based repository patterns.
+- `spring-ldap`: directory queries, DN handling, ODM, repository patterns, and embedded directory tests.
 - `spring-modulith`: Spring Modulith patterns, event publication registry, and module-boundary testing.
 - `spring-pulsar`: Apache Pulsar producers, consumers, and Spring integration.
 - `spring-rest-docs`: API documentation via Spring REST Docs with Asciidoctor.
@@ -76,7 +76,9 @@ Load additional Spring skills only for integration boundaries the task crosses.
 
 Testing boundary:
 
-- Tests that load generic Spring context behavior belong in `spring-framework`; MVC/WebFlux HTTP tests belong in `spring-web`; Boot slices and Boot-managed integration tests belong in `spring-boot`.
+- Tests that load generic Spring context behavior belong in `spring-framework`.
+  MVC/WebFlux HTTP tests belong in `spring-web`.
+  Boot slices and Boot-managed integration tests belong in `spring-boot`.
 - Kafka listener tests whose contract depends on delivery semantics, retry, dead-letter handling, or embedded Kafka belong in `spring-kafka` guidance.
 - Pure unit tests that do not need Spring context belong in language- or platform-level testing guidance.
 

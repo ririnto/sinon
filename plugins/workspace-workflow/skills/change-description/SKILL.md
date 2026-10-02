@@ -1,6 +1,16 @@
 ---
 name: change-description
 description: Draft a Git-contained change summary, review context, or merge handoff from repository evidence.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Git:
+      url:
+        - https://github.com/git/git/blob/master/Documentation/git-diff.adoc
+        - https://github.com/git/git/blob/master/Documentation/git-log.adoc
 ---
 
 # Change Description
@@ -33,7 +43,8 @@ git -C /path/to/repo diff <base>...HEAD
 
 Use `git diff --cached` for a staged-only description and `git diff` for unstaged tracked changes.
 Account for untracked files when they belong to the requested scope.
-Disclose stale remote-tracking evidence; do not silently fetch or invent a base.
+Disclose stale remote-tracking evidence.
+Do not silently fetch or invent a base.
 
 ## Draft The Required Detail
 
@@ -51,7 +62,8 @@ Otherwise include only sections that help the requested review or handoff:
 A small change may need one paragraph and validation evidence rather than every heading.
 Do not add empty `None` sections or repeat evidence in an output checklist.
 If motivation is unavailable, say so instead of inventing a reason.
-Use the repository's title convention; load [commit-convention](../commit-convention/SKILL.md) only when Conventional Commits details are needed.
+Use the repository's title convention.
+Load [commit-convention](../commit-convention/SKILL.md) only when Conventional Commits details are needed.
 
 ## Completion And Readiness
 

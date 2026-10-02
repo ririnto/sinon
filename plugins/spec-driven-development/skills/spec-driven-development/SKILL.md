@@ -1,6 +1,21 @@
 ---
 name: spec-driven-development
-description: Run or resume an explicitly requested gated SPEC.md lifecycle through approval, implementation, and verification, not standalone spec authoring.
+description: Run or resume an explicitly requested SPEC.md lifecycle through approval, implementation, and verification.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Requirement keywords:
+      url:
+        - https://www.rfc-editor.org/rfc/rfc2119
+        - https://www.rfc-editor.org/rfc/rfc8174
+    OpenAPI:
+      - version: 3.2.1
+        url: https://spec.openapis.org/oas/v3.2.1.html
+      - version: 3.1.2
+        url: https://spec.openapis.org/oas/v3.1.2.html
 ---
 
 # Spec-Driven Development
@@ -20,7 +35,8 @@ Continue through implementation review and artifact sync unless a gate or precis
 - Use `spec/research/{framework|library|topic}/{name}/RESEARCH.md` only for external investigation that informs spec decisions.
   Do not use it for audits, project comparisons, implementation plans, migration sequencing, or task tracking.
 - Keep `call` entries outbound, relative, and SPEC-to-SPEC only.
-  Targets MUST exist; use `call: []` without dependencies and never maintain backlinks.
+  Targets MUST exist.
+  Use `call: []` without dependencies and never maintain backlinks.
 - Use the consuming repository for authored artifacts and the installed skill only for bundled resources.
   Preserve existing authored files and in-progress plans.
   Do not create backup files or create or modify Git branches.
@@ -30,7 +46,8 @@ Continue through implementation review and artifact sync unless a gate or precis
 ## Lifecycle And Gates
 
 Use [workflow.md](references/workflow.md) for the active stage, status transitions, and review evidence contract.
-It owns the gate conditions; do not reproduce a second lifecycle in task notes.
+It owns the gate conditions.
+Do not reproduce a second lifecycle in task notes.
 
 Gate 1 requires the user's explicit approval of the current scope, primary requirements, and scenario direction before Document Linking.
 Reuse approval that still covers the current draft.
@@ -42,6 +59,8 @@ Do not treat either gate as automatic approval for publication or other out-of-s
 
 Load only the guides and templates needed for the current stage.
 Templates are scaffolds, not a requirement to recreate existing artifacts or add optional contract surfaces.
+Keep the OpenAPI scaffold's supported dialect unless the target's tooling supports the intended upgrade.
+OpenAPI 3.2.1 is current, while the bundled scaffold uses the latest 3.1 patch for compatible consumers.
 
 | Stage or decision | Resource |
 | --- | --- |
@@ -71,12 +90,14 @@ Use an affected subtree when it covers the reviewed artifacts and dependency cha
 Validation MUST exit `0` when Bun is available locally.
 If Bun is unavailable, record the runtime blocker and complete every applicable review-checklist item manually.
 Do not install a runtime just to hide the blocker.
-Reuse passing evidence for unchanged inputs; rerun validation after artifact changes that affect that evidence.
+Reuse passing evidence for unchanged inputs.
+Rerun validation after artifact changes that affect that evidence.
 
 `scripts/sdd.ts` is the only documented CLI entrypoint and delegates to `scripts/sdd/`.
 Other read-oriented subcommands are `list-frontmatter`, `get-frontmatter`, `generate-diagram`, and `list-tags`.
 Use them when inventory or dependency questions require them, not as a startup checklist.
-`assets/schemas/` contains author references; the runtime checks a selected subset without parsing those schema files.
+`assets/schemas/` contains author references.
+The runtime checks a selected subset without parsing those schema files.
 
 ## Completion Evidence
 

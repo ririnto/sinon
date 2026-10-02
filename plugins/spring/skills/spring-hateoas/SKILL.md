@@ -1,7 +1,20 @@
 ---
+metadata:
+  reference:
+    Spring HATEOAS:
+      version: 3.1.2
+      url:
+        - https://docs.spring.io/spring-hateoas/docs/current/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/hateoas/spring-hateoas/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/hateoas/spring-hateoas/3.1.2/spring-hateoas-3.1.2.pom
+    Spring Boot 4.1:
+      version: 4.1.1
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-hateoas
 description: >-
-  Build or test Spring HATEOAS representations, links, assemblers, HAL/HAL-FORMS affordances, and page navigation.
+  Use Spring HATEOAS for links, representations, assemblers, HAL-FORMS, and page navigation.
 ---
 
 # Spring HATEOAS

@@ -4,11 +4,11 @@ metadata:
     Reactor Netty:
       version: 1.3.7
       url:
-        - https://projectreactor.io/docs/netty/1.3.7/reference/index.html
+        - https://projectreactor.io/docs/netty/release/reference/about-doc.html
         - https://github.com/reactor/reactor-netty/releases/tag/v1.3.7
     Reactor Netty milestone:
-      version: 1.4.0-M1
-      url: https://github.com/reactor/reactor-netty/releases/tag/v1.4.0-M1
+      version: 1.4.0-M2
+      url: https://github.com/reactor/reactor-netty/releases/tag/v1.4.0-M2
 name: reactor-netty
 description: >-
   Build or debug Reactor Netty HTTP, TCP, UDP, or QUIC clients and servers, including lifecycle and resource management.
@@ -20,7 +20,7 @@ description: >-
 
 - Use the official Reactor Netty 1.3.x reference guide for this skill.
   The `v1.3.7` release and its 2025.0.7 Release Train are reviewed baselines, not dependency pins.
-- Treat `v1.4.0-M1` as a milestone release, not a stable production version.
+- Treat `v1.4.0-M2` as a milestone release, not a stable production version.
 - Before adding or upgrading Reactor Netty, check `io.projectreactor:reactor-bom` and `io.projectreactor.netty:reactor-netty-http` in Maven Central for the latest stable compatible versions.
   Honor the project's existing platform, BOM, or pins, and keep Reactor Core and Reactor Netty on a compatible managed release train.
   Set `${reactor.bom.version}` to the selected release train only when the build does not manage Reactor dependencies.

@@ -46,7 +46,7 @@ Load relevant Spring skills with the exact namespaced identifier from the routin
 | `spring:spring-rest-docs` | API documentation, request/response snippets | Living documentation and test-driven documentation |
 | `spring:spring-grpc` | Protocol Buffers, gRPC services, stubs | High-performance RPC and streaming communication |
 | `spring:spring-web-services` | SOAP, WSDL, XML handling | XML web services and SOAP endpoints |
-| `spring:spring-ldap` | LDAP authentication, directory queries | Enterprise directory integration and LDAP user providers |
+| `spring:spring-ldap` | Directory queries, DN handling, ODM, and repositories | Enterprise directory operations and LDAP-backed data access |
 | `spring:spring-shell` | CLI applications, command handling, parameter binding | Interactive CLI tools and command-driven applications |
 | `spring:spring-statemachine` | State transitions, guards, actions | Workflow automation, order processing, complex state logic |
 | `spring:spring-ai` | LLM integration, prompt templates, vector stores | Generative AI, RAG patterns, and tool calling |

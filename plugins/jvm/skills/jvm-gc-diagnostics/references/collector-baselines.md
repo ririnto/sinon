@@ -17,6 +17,10 @@ Use this reference when the blocker is confirming which collectors are available
 | 21 | G1 | Serial, Parallel, G1, ZGC (+ optional generational) | `-XX:+UseZGC -XX:+ZGenerational` |
 | 25 | G1 | Serial, Parallel, G1, ZGC (generational-only) | `-XX:+UseZGC` |
 
+JDK 27 is a GA non-LTS release.
+JEP 523 makes G1 the default collector in all environments on JDK 27.
+The table stays limited to the supported LTS reference line above.
+
 ## Shenandoah Availability
 
 Shenandoah is not a default HotSpot collector on any LTS baseline.

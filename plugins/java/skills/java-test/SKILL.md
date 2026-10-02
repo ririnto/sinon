@@ -2,8 +2,10 @@
 metadata:
   reference:
     JUnit:
-      version: 5.14.4
-      url: https://docs.junit.org/5.14.4/user-guide/
+      - version: 6.1.3
+        url: https://docs.junit.org/6.1.3/user-guide/
+      - version: 5.14.4
+        url: https://docs.junit.org/5.14.4/user-guide/
     Mockito:
       url: https://site.mockito.org/
     Awaitility:
@@ -30,7 +32,9 @@ Keep build-tool wiring separate from behavioral assertions.
 - MUST NOT test prose instructions, headings, wording, word counts, or declared file lists when review is sufficient.
 - SHOULD prefer one observable behavior per test.
 - MUST keep test names descriptive and scenario-based.
-- SHOULD use JUnit 5 as the default baseline unless the repository already standardizes a different test runner.
+- SHOULD use the repository's managed JUnit version.
+  For new projects, prefer the latest stable JUnit 6 when tests run on Java 17 or later.
+  Use JUnit 5 when tests must run on Java 8 through 16 or the project manages that line.
 - MUST introduce Mockito only where a real collaboration boundary needs isolation.
 - MUST introduce Awaitility only for asynchronous or eventually consistent behavior.
 - MUST separate build-tool setup guidance from behavioral test logic.
@@ -48,7 +52,7 @@ Keep build-tool wiring separate from behavioral assertions.
 ## Task Context
 
 Read the target production code and related tests to identify the observable contract and missing evidence.
-Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later).
+Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later, or JUnit 6).
 Verify the returned exception message with `assertEquals` when the message matters.
 Change Maven Surefire or Gradle `useJUnitPlatform()` wiring only when execution setup is the blocker.
 Use the templates below for the selected test shape, not as a checklist of tests to add.
@@ -56,7 +60,7 @@ Open [`testing-core.md`](./references/testing-core.md) for assertion, lifecycle,
 
 ## Regression Example
 
-Adapt this JUnit 5 exception-contract example to the target fixture:
+Adapt this JUnit Jupiter exception-contract example to the target fixture:
 
 ```java
 import org.junit.jupiter.api.Test;
@@ -77,7 +81,7 @@ Use when: starting TDD or pinning a bug boundary before changing production code
 
 ## Ready-to-adapt templates
 
-### Plain JUnit 5 test
+### Plain JUnit Jupiter test
 
 ```java
 import org.junit.jupiter.api.Test;
@@ -232,7 +236,7 @@ class EventPublisherTest {
 }
 ```
 
-### Nested JUnit 5 contexts
+### Nested JUnit Jupiter contexts
 
 ```java
 import java.math.BigDecimal;

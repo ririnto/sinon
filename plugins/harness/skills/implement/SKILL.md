@@ -1,6 +1,12 @@
 ---
 name: implement
 description: Use when implementing a feature, bugfix, refactor, or design change.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
 ---
 
 # Implement

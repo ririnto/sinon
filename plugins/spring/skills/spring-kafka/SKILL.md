@@ -1,7 +1,20 @@
 ---
+metadata:
+  reference:
+    Spring for Apache Kafka:
+      version: 4.1.1
+      url:
+        - https://docs.spring.io/spring-kafka/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/kafka/spring-kafka/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/kafka/spring-kafka/4.1.1/spring-kafka-4.1.1.pom
+    Spring Boot 4.1:
+      version: 4.1.1
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.1/spring-boot-dependencies-4.1.1.pom
 name: spring-kafka
 description: >-
-  Implement or test Spring Kafka producers, listeners, acknowledgment, retries, dead-letter handling, transactions, and share consumers.
+  Use Spring Kafka for producers, listeners, delivery, retries, dead letters, and transactions.
 ---
 
 # Spring for Apache Kafka

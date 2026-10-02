@@ -3,10 +3,13 @@ metadata:
   reference:
     Spring Cloud Data Flow:
       version: 2.11.5
-      url: https://docs.spring.io/spring-cloud-dataflow/docs/current/reference/htmlsingle/
+      url:
+        - https://docs.spring.io/spring-cloud-dataflow/docs/current/reference/htmlsingle/
+        - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dataflow-server/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dataflow-server/2.11.5/spring-cloud-dataflow-server-2.11.5.pom
 name: spring-cloud-data-flow
 description: >-
-  Maintain or troubleshoot existing Spring Cloud Data Flow stream/task estates, app registrations, schedules, and platform operations.
+  Use Spring Cloud Data Flow to maintain existing stream/task estates, app registrations, schedules, and operations.
 ---
 
 # Spring Cloud Data Flow

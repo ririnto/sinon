@@ -2,13 +2,13 @@
 metadata:
   reference:
     Prometheus:
-      version: 3.14.0
+      version: 3.15.0
       license: Apache-2.0
       url:
-        - https://prometheus.io/docs/prometheus/3.14/configuration/unit_testing_rules/
-        - https://prometheus.io/docs/prometheus/3.14/querying/basics/
-        - https://prometheus.io/docs/prometheus/3.14/querying/functions/
-        - https://github.com/prometheus/prometheus/blob/v3.14.0/cmd/promtool/unittest.go
+        - https://prometheus.io/docs/prometheus/3.15/configuration/unit_testing_rules/
+        - https://prometheus.io/docs/prometheus/3.15/querying/basics/
+        - https://prometheus.io/docs/prometheus/3.15/querying/functions/
+        - https://github.com/prometheus/prometheus/blob/v3.15.0/cmd/promtool/unittest.go
     Prometheus releases:
       url: https://github.com/prometheus/prometheus/releases
     Native Histograms:
@@ -517,7 +517,9 @@ Review the affected assertions with these checks:
 - The test suite protects real regressions without becoming an unreadable fixture dump.
 - `promtool test rules` passes on the test file you intend to ship.
 - Each test case has a descriptive `name` field for filtered execution.
-- Alert `eval_time` values use a scheduled boundary when the exact evaluation matters; off-boundary values inspect the latest prior evaluation. PromQL assertions use the exact requested time.
+- Alert `eval_time` values use a scheduled boundary when the exact evaluation matters.
+  Off-boundary values inspect the latest prior evaluation.
+  PromQL assertions use the exact requested time.
 
 Local fixture execution does not deploy rules or prove live alert delivery.
 Report the tested behaviors and the exact command result before claiming those behaviors are verified.

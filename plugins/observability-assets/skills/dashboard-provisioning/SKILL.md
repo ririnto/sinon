@@ -4,8 +4,8 @@ metadata:
     Grafana provisioning:
       url: https://grafana.com/docs/grafana/latest/administration/provisioning/
     Grafana:
-      version: 13.2.1
-      url: https://github.com/grafana/grafana/releases/tag/v13.2.1
+      version: 13.2.3
+      url: https://github.com/grafana/grafana/releases/tag/v13.2.3
 name: dashboard-provisioning
 description: >-
   Use for Grafana dashboard provider YAML, folder and source-file mapping, file/UI drift, or dashboard delivery ownership.

@@ -1,6 +1,17 @@
 ---
 name: working-tree-hygiene
 description: Inspect staged, unstaged, untracked, stash, and upstream state to preserve work during a Git operation.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Git:
+      url:
+        - https://github.com/git/git/blob/master/Documentation/git-status.adoc
+        - https://github.com/git/git/blob/master/Documentation/git-diff.adoc
+        - https://github.com/git/git/blob/master/Documentation/git-stash.adoc
 ---
 
 # Working Tree Hygiene
@@ -50,7 +61,8 @@ git -C /path/to/repo stash list
 git -C /path/to/repo stash show --stat 'stash@{0}'
 ```
 
-Normal stashing omits untracked files; include `-u` only when those files belong to the authorized stash.
+Normal stashing omits untracked files.
+Include `-u` only when those files belong to the authorized stash.
 Inspect the selected stash and destination before restoring it:
 
 ```sh
@@ -58,7 +70,8 @@ git -C /path/to/repo stash apply 'stash@{0}'
 ```
 
 Resolve any conflicts without losing either side.
-Verify restoration before an authorized stash drop; `apply` retains the recovery copy.
+Verify restoration before an authorized stash drop.
+`apply` retains the recovery copy.
 Do not apply or drop another task's stash.
 
 ## Untracked Files
@@ -83,7 +96,8 @@ Never force-push merely to resolve a rejected push.
 ## Completion
 
 Verify the affected index, worktree, stash, or branch state after an authorized mutation.
-Reuse check evidence for unchanged content; run affected native checks after conflict resolution or integration changes.
+Reuse check evidence for unchanged content.
+Run affected native checks after conflict resolution or integration changes.
 Report the preserved baseline, action and result, and any unresolved blocker.
 Use repository-relative paths and portable examples in committed text.
 Do not include private local environment details, external work-item identifiers, or review URLs.

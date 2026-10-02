@@ -96,7 +96,8 @@ class RetryAndTimeoutTest {
 ```
 
 `expectTimeout(duration)` expects the publisher to time out after the duration, producing a `TimeoutException` error signal and cancelling the source.
-The verifier also waits to detect unexpected signals; this is distinct from a verifier-side timeout such as `verify(Duration)`.
+The verifier also waits to detect unexpected signals.
+This is distinct from a verifier-side timeout such as `verify(Duration)`.
 
 ## Virtual-time failure modes
 

@@ -1,6 +1,10 @@
 ---
 metadata:
   reference:
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    OpenAI project instructions:
+      url: https://developers.openai.com/codex/guides/agents-md
     Rethinking Skills and Prompts for GPT-6 Astra:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
 ---
@@ -26,6 +30,8 @@ Prefer an available AST, PSI, or parser.
 Use text or regex surgery only for lexical, small, or no-parser work, and name the edited node when you do.
 Preserve public declaration documentation and local comment conventions.
 Keep function bodies free of blank lines, and separate function or class declarations with one blank line.
+Inline single-use local variables when behavior and clarity stay unchanged.
+Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 
 Write all source documentation comments in English.
 Use the language's multiline documentation form.
@@ -38,7 +44,9 @@ Leave blank lines around headings, lists, and language-tagged fences.
 Use semantic line breaks, ASCII trees, and BCP 14 terms in stable rules.
 YAML uses the `.yaml` extension unless a host or tool contract requires `.yml` (for example `.gitlab-ci.yml` at a repository root).
 YAML uses plain or double-quoted short scalars, folded blocks for wrapped logical strings, and literal blocks for meaningful line breaks.
-YAML sequences use block style; keep a flow sequence only inside an explicit empty sequence (`key: []`), because a block form cannot express an empty sequence without changing it to null.
+YAML sequences use block style.
+Keep a flow sequence only for an explicit empty sequence (`key: []`).
+A block form cannot express an empty sequence without changing it to null.
 Do not quote a scalar when its parsed type and value already match the consumer's need.
 Use double quotes only when the actual consumer requires the exact string type or value, such as a YAML 1.1 scalar that would coerce, or a version-like or numeric-key scalar that must stay a string.
 
@@ -51,15 +59,21 @@ Keep fenced code blocks, YAML frontmatter, tables, and link syntax intact, and n
 Relative references that load instruction or implementation content must stay inside the same publishable plugin.
 Record authoritative public standards and vendor documentation citations in frontmatter, not in body prose.
 Use real `#` heading syntax for structural headings.
-Do not use bold text on its own line as a pseudo-heading; a natural prose lead-in to a code block does not need to become a heading.
+Do not use bold text on its own line as a pseudo-heading.
+A natural prose lead-in to a code block does not need to become a heading.
 
 ## Instruction And Skill Authoring
 
+Use official OpenAI guidance for instruction structure, activation, contextual references, and completion boundaries.
+Use the relevant official vendor documentation for language, runtime, and tool behavior.
+State repository-specific engineering choices as local rules rather than upstream requirements.
 Keep activation descriptions short and specific to the task that needs the skill.
-Use skill roots as small routers; name when each supporting reference applies.
+Use skill roots as small routers.
+Name when each supporting reference applies.
 Keep each rule with its existing owner instead of repeating it across consumers.
 Specify the required outcome, authority, and completion boundary rather than a fixed itinerary for every task.
-Match proof to acceptance criteria and changed behavior; do not add tests that only restate prose.
+Match proof to acceptance criteria and changed behavior.
+Do not add tests that only restate prose.
 Preserve explicit user requirements, safety boundaries, and required source standards when simplifying guidance.
 
 ## Dependency Selection
@@ -67,6 +81,8 @@ Preserve explicit user requirements, safety boundaries, and required source stan
 Before adding or upgrading a library or tool, check its registry for the latest stable version compatible with the target's runtime and dependency constraints.
 Use the relevant registry, such as npm, Maven Central, PyPI, or crates.io, rather than treating a version in guidance as current.
 Respect the target's lockfile, parent POM, BOM, version catalog, and existing pins.
+Use the package manager's or build tool's native catalog for dependency versions when it supports catalogs.
+Reference catalog entries instead of repeating version literals in consumers.
 Treat historical version examples as examples.
 Change a target pin only when the task authorizes that dependency change.
 

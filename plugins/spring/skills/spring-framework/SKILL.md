@@ -7,9 +7,11 @@ metadata:
         - https://docs.spring.io/spring-framework/reference/index.html
         - https://docs.spring.io/spring-framework/reference/7.0.9/core/aop/proxying.html
         - https://docs.spring.io/spring-framework/reference/core/aop/using-aspectj.html
+        - https://repo.maven.apache.org/maven2/org/springframework/spring-framework-bom/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/spring-framework-bom/7.0.9/spring-framework-bom-7.0.9.pom
 name: spring-framework
 description: >-
-  Configure or debug Spring container wiring, lifecycle, transactions, events, validation, scheduling, resilience, JDBC, and TestContext integration.
+  Use core Spring for containers, lifecycle, transactions, events, validation, scheduling, JDBC, and TestContext.
 ---
 
 # Spring Framework

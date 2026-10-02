@@ -7,26 +7,18 @@ metadata:
       url: https://github.com/spring-cloud/spring-cloud-release/wiki/Supported-Versions
     Spring Cloud BOM:
       - version: 2025.1.3
-        url: https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/2025.1.3/spring-cloud-dependencies-2025.1.3.pom
+        url:
+          - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/maven-metadata.xml
+          - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/2025.1.3/spring-cloud-dependencies-2025.1.3.pom
       - version: 2025.0.3
-        url: https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/2025.0.3/spring-cloud-dependencies-2025.0.3.pom
-    Spring Cloud Config Advisories:
-      - tag: CVE-2026-40982
-        url: https://spring.io/security/cve-2026-40982
-      - tag: CVE-2026-40981
-        url: https://spring.io/security/cve-2026-40981
-      - tag: CVE-2026-41002
-        url: https://spring.io/security/cve-2026-41002
-      - tag: CVE-2026-41004
-        url: https://spring.io/security/cve-2026-41004
-      - tag: CVE-2026-22739
-        url: https://spring.io/security/cve-2026-22739
-    Spring Cloud Gateway Advisory:
-      tag: CVE-2026-47825
-      url: https://spring.io/security/cve-2026-47825
+        url:
+          - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/maven-metadata.xml
+          - https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dependencies/2025.0.3/spring-cloud-dependencies-2025.0.3.pom
+    Spring Project Security Advisory Index:
+      url: https://spring.io/security
 name: spring-cloud
 description: >-
-  Configure Spring Cloud release trains, external configuration, discovery, load-balanced clients, circuit breakers, and related Cloud integrations.
+  Use Spring Cloud for release-train alignment, configuration, discovery, load balancing, and resilience.
 ---
 
 # Spring Cloud
@@ -546,20 +538,11 @@ Runtime verification applies after authorized operations, not as a reason to dep
 
 ## Production checklist
 
-### Security advisories (2025.1.2)
+### Security advisories
 
-| CVE | Severity | Fixed in | Summary |
-| --- | --- | --- | --- |
-| CVE-2026-40982 | Critical (9.1) | Config 5.0.3 | Directory traversal: crafted URL reads arbitrary server files |
-| CVE-2026-40981 | High (7.5) | Config 5.0.3 | GCP Secrets Manager cross-project access without auth |
-| CVE-2026-41002 | High (7.2) | Config 5.0.3 | Git base directory TOCTOU race condition |
-| CVE-2026-41004 | Medium | Config 5.0.3 | TRACE logging exposes secrets in plaintext |
-| CVE-2026-22739 | Medium | Config 5.0.2 | Earlier Config security fix |
-| CVE-2026-47825 | High | Gateway 5.0.2 | Untrusted proxy `X-Forwarded-For`/`Forwarded` forwarded |
-
-Spring Cloud 2025.1.2 includes the listed fixes and manages Spring Cloud Config 5.0.4.
-Spring Cloud 2025.1.3 followed that security baseline.
-Use the latest compatible stable train and verify current advisories before upgrading.
+Review Spring security advisories for the component versions used by the application.
+Choose a compatible stable release train with component versions that include every relevant fix.
+Verify the release train and managed component versions before deployment.
 
 ### Distributed-system wiring
 

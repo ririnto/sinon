@@ -9,7 +9,8 @@ description: >-
 ## Purpose
 
 Use this guide for section-by-section `SPEC.md` authoring depth.
-Complete the required content before its gate; the authoring order is flexible.
+Complete the required content before its gate.
+The authoring order is flexible.
 
 ## SPEC Placement and Naming
 

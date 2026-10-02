@@ -21,7 +21,7 @@ It covers isolated worktree work, working-tree discipline, history integration (
 | Skill | Job | Trigger |
 | --- | --- | --- |
 | git-worktree-management | Create, list, remove, and repair isolated git worktrees for parallel branch work | "create a worktree", "work on multiple branches at once", "remove a stale worktree" |
-| working-tree-hygiene | Inspect, stash, and maintain clean working-tree state before starting work or publishing | "check if the tree is clean", "stash changes", "verify branch sync", "prepare to push" |
+| working-tree-hygiene | Inspect and preserve working-tree, index, stash, and upstream state for the requested Git operation | "check working-tree state", "stash changes", "verify branch sync", "prepare to push" |
 | git-merge-strategies | Choose and execute merge mode (fast-forward, no-ff, squash, octopus) with conflict and rerere patterns | "merge a feature branch", "resolve a merge conflict", "decide between ff and no-ff" |
 | git-rebase-strategies | Run interactive rebase, autosquash, and `--onto` reapplication while protecting shared history | "squash commits", "reorder history", "rebase onto a new base", "recover a failed rebase" |
 | commit-convention | Author Conventional Commits messages with type, scope, body, footer, and split decisions | "write a commit message", "normalize history", "split a change into commits" |

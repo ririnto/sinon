@@ -25,7 +25,8 @@ This file covers what comes after framing: stateful decode logic, encode pattern
 ## Stateful decoder pattern
 
 Validate lengths from untrusted input against a protocol-specific maximum before allocating memory.
-The example uses a 1 MiB limit; choose the limit required by the protocol.
+The example uses a 1 MiB limit.
+Choose the limit required by the protocol.
 
 Minimum JDK for this example: Java 17.
 It uses arrow-form switch rules.

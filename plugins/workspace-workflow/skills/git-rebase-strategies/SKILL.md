@@ -1,12 +1,24 @@
 ---
 name: git-rebase-strategies
 description: Plan or perform an authorized Git rebase, autosquash, selective replay, or rebase-conflict recovery.
+metadata:
+  reference:
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    Git:
+      url:
+        - https://github.com/git/git/blob/master/Documentation/git-rebase.adoc
+        - https://github.com/git/git/blob/master/Documentation/git-range-diff.adoc
+        - https://github.com/git/git/blob/master/Documentation/git-push.adoc
 ---
 
 # Git Rebase Strategies
 
 Replay the intended commits onto an explicit base without losing work or rewriting history outside the grant.
-Rebase changes commit identities; it is not a substitute for choosing repository integration policy.
+Rebase changes commit identities.
+It is not a substitute for choosing repository integration policy.
 
 ## Authority And Preservation
 
@@ -32,7 +44,8 @@ Use the repository's actual base and reviewed range, not an arbitrary last-N-com
 | Apply existing fixup/squash markers | `git rebase -i --autosquash <old-base>` |
 | Replay a selected range onto a different base | `git rebase --onto <new-base> <old-base> <branch>` |
 
-Inspect merge commits before choosing a mode; ordinary rebase does not preserve their topology.
+Inspect merge commits before choosing a mode.
+Ordinary rebase does not preserve their topology.
 Prefer merge when published ancestry must remain intact or repository policy requires merge commits.
 
 Interactive actions have distinct effects:
@@ -64,7 +77,8 @@ git -C /path/to/repo show <old-tip>
 ```
 
 A reflog position is not a stable recovery target.
-Do not run `git reset --hard` from a canned recipe; it can discard current work and requires explicit authority.
+Do not run `git reset --hard` from a canned recipe.
+It can discard current work and requires explicit authority.
 
 ## Verification
 
@@ -76,7 +90,8 @@ git -C /path/to/repo status --short --branch
 ```
 
 Account for intended edits and conflict resolutions.
-Run affected native checks when content changed; preserve passing evidence for unchanged content and toolchain.
+Run affected native checks when content changed.
+Preserve passing evidence for unchanged content and toolchain.
 Update in-scope references to rewritten commits when their meaning depends on the old identities.
 Report external references needing separate coordination without modifying external systems.
 
@@ -85,7 +100,8 @@ Report external references needing separate coordination without modifying exter
 Rebase does not authorize pushing.
 If a separate grant explicitly permits replacing the named remote ref, use `--force-with-lease`, never bare `--force`.
 Verify the expected remote tip and all replacement commits before the authorized push.
-A lease guards a ref comparison; it does not prove that overwriting known remote changes is appropriate.
+A lease guards a ref comparison.
+It does not prove that overwriting known remote changes is appropriate.
 
 ## Completion
 

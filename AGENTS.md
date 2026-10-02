@@ -1,5 +1,13 @@
 ---
 description: Repository-wide guidance for the Sinon plugin marketplace.
+metadata:
+  reference:
+    OpenAI skills:
+      url: https://developers.openai.com/codex/skills
+    OpenAI project instructions:
+      url: https://developers.openai.com/codex/guides/agents-md
+    OpenAI instruction design:
+      url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
 ---
 
 # Repository Guidelines
@@ -22,6 +30,8 @@ Do not add legacy parallel surfaces or compatibility shims without an external c
 ## Authoring
 
 Write all repository guidance and agent-to-agent communication in English.
+Use official OpenAI documentation for instruction design and task boundaries.
+Use official vendor documentation for technical claims, and identify repository preferences as local rules.
 
 ## Task References
 
@@ -36,9 +46,11 @@ Continue through implementation, relevant proof, and proportional diff review.
 Preserve unrelated work and report a precise blocker when required evidence or authority is missing.
 When guidance blocks progress, name its file, quote the relevant instruction, and distinguish the requirement from your interpretation.
 Use the existing TypeScript and Bun commands.
-Choose checks for changed behavior and explicit acceptance criteria; reuse passing evidence for unaffected checks.
+Choose checks for changed behavior and explicit acceptance criteria.
+Reuse passing evidence for unaffected checks.
 Run `bun install` after authorized dependency changes.
-The repository-wide check is `bun run check`; its named `check:*` commands support narrower validation.
+The repository-wide check is `bun run check`.
+Its named `check:*` commands support narrower validation.
 Report exact commands, exit codes, and any required check that could not run.
 
 ## Authority And Publication

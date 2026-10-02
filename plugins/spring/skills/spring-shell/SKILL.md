@@ -1,7 +1,15 @@
 ---
+metadata:
+  reference:
+    Spring Shell:
+      version: 4.0.3
+      url:
+        - https://docs.spring.io/spring-shell/reference/
+        - https://repo.maven.apache.org/maven2/org/springframework/shell/spring-shell-starter/maven-metadata.xml
+        - https://repo.maven.apache.org/maven2/org/springframework/shell/spring-shell-starter/4.0.3/spring-shell-starter-4.0.3.pom
 name: spring-shell
 description: >-
-  Implement or troubleshoot Spring Shell commands, options, validation, availability, completion, terminal interaction, and CLI tests.
+  Use Spring Shell for interactive command parsing, validation, completion, terminal output, and tests.
 ---
 
 # Spring Shell
