@@ -33,8 +33,10 @@ Keep function bodies free of blank lines, and separate function or class declara
 Inline single-use local variables when behavior and clarity stay unchanged.
 Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 
-Write all source documentation comments in English.
+Write docstrings and source documentation comments in English.
 Use the language's multiline documentation form.
+Keep one-sentence docstrings multiline.
+When the language uses delimiters, put the opening and closing delimiters on separate lines.
 State a contract or reason instead of restating the identifier.
 
 ## Documentation and Configuration

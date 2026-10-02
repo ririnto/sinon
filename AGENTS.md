@@ -13,6 +13,7 @@ metadata:
 # Repository Guidelines
 
 Sinon publishes Claude Code plugins and portable Agent Skills.
+These contributor instructions apply only to the Sinon repository.
 
 ## Project Structure
 
