@@ -8,14 +8,25 @@ description: >-
 Use the Spring Test context only when the behavior depends on real wiring or transaction management.
 The Kotest BOM from `gradle-dependencies-and-config.md` manages `kotest-extensions-spring`.
 Spring and H2 versions come from the project's Spring Boot dependency management or its Spring BOM and version catalog.
+Merge these aliases into the target catalog only when its Spring or Boot platform supplies their versions:
+
+```toml
+[libraries]
+spring-test = { module = "org.springframework:spring-test" }
+spring-context = { module = "org.springframework:spring-context" }
+spring-jdbc = { module = "org.springframework:spring-jdbc" }
+spring-tx = { module = "org.springframework:spring-tx" }
+spring-boot-test = { module = "org.springframework.boot:spring-boot-test" }
+h2 = { module = "com.h2database:h2" }
+```
 
 For a plain Spring context, declare the required Spring libraries:
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-extensions-spring")
-    testImplementation("org.springframework:spring-test")
-    testImplementation("org.springframework:spring-context")
+    testImplementation(libs.kotest.extensions.spring)
+    testImplementation(libs.spring.test)
+    testImplementation(libs.spring.context)
 }
 ```
 
@@ -23,24 +34,26 @@ The transaction example also needs these plain-Spring dependencies:
 
 ```kotlin
 dependencies {
-    testImplementation("org.springframework:spring-jdbc")
-    testImplementation("org.springframework:spring-tx")
-    testRuntimeOnly("com.h2database:h2")
+    testImplementation(libs.spring.jdbc)
+    testImplementation(libs.spring.tx)
+    testRuntimeOnly(libs.h2)
 }
 ```
 
-For Spring Boot, use the project's managed starters instead of the plain-Spring setup:
+The plain-Spring aliases need the target's compatible Spring BOM or explicit catalog version references.
+
+For Spring Boot, use the Boot test artifact and the Kotest Spring extension:
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-extensions-spring")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-jdbc")
-    testRuntimeOnly("com.h2database:h2")
+    testImplementation(libs.kotest.extensions.spring)
+    testImplementation(libs.spring.boot.test)
 }
 ```
 
-The JDBC starter and H2 are needed only by the transaction example, not by the Boot bean-injection example.
+Use `spring-boot-test` for `@SpringBootTest` without adding JUnit or AssertJ through `spring-boot-starter-test`.
+The Boot aliases need the target's compatible Boot platform or explicit catalog version references.
+Spring JDBC and H2 are needed only by the transaction example, not by the Boot bean-injection example.
 Do not add every optional dependency to a plain unit test.
 
 ## Activate and inject
@@ -90,10 +103,11 @@ Project-wide registration replaces the Kotest annotation, not Spring's context c
 
 ```kotlin
 import io.kotest.core.config.AbstractProjectConfig
+import io.kotest.core.extensions.Extension
 import io.kotest.extensions.spring.SpringExtension
 
 class ProjectConfig : AbstractProjectConfig() {
-    override val extensions = listOf(SpringExtension())
+    override val extensions: List<Extension> = listOf(SpringExtension())
 }
 ```
 
@@ -168,7 +182,7 @@ A preemptive timeout or another thread can bypass rollback.
 
 `@SpringBootTest` loads an application context through Spring Boot rather than a plain Spring configuration.
 Supply an explicit test application when the test must not depend on package-scanning an existing application.
-The project's Boot starter-test and the Kotest Spring extension are required.
+`spring-boot-test` and the Kotest Spring extension are required.
 This example needs no database starter.
 
 `BootTestApplication.kt` (fixture):

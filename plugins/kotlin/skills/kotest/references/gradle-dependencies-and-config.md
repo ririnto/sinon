@@ -18,11 +18,39 @@ Kotest's BOM covers Kotest modules, not MockK, Turbine, or `kotlinx-coroutines-t
 
 This executable sample uses the Kotest 6.2.5 source baseline.
 Check Maven Central and the project's compatibility policy before choosing a version for a new installation.
+Merge the selected versions and aliases into the existing catalog.
+
+```toml
+[versions]
+kotest = "6.2.5"
+
+[libraries]
+kotest-bom = { module = "io.kotest:kotest-bom", version.ref = "kotest" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
+kotest-extensions-core = { module = "io.kotest:kotest-extensions" }
+kotest-extensions-jvm = { module = "io.kotest:kotest-extensions-jvm" }
+kotest-extensions-now = { module = "io.kotest:kotest-extensions-now" }
+kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin" }
+kotest-extensions-testcontainers = { module = "io.kotest:kotest-extensions-testcontainers" }
+kotest-extensions-wiremock = { module = "io.kotest:kotest-extensions-wiremock" }
+kotest-extensions-mockserver = { module = "io.kotest:kotest-extensions-mockserver" }
+kotest-extensions-spring = { module = "io.kotest:kotest-extensions-spring" }
+kotest-extensions-allure = { module = "io.kotest:kotest-extensions-allure" }
+kotest-extensions-blockhound = { module = "io.kotest:kotest-extensions-blockhound" }
+kotest-extensions-decoroutinator = { module = "io.kotest:kotest-extensions-decoroutinator" }
+kotest-extensions-pitest = { module = "io.kotest:kotest-extensions-pitest" }
+kotest-assertions-ktor = { module = "io.kotest:kotest-assertions-ktor" }
+```
+
+The optional Kotest aliases omit versions only when the selected Kotest BOM manages those artifacts.
+Add a catalog version reference when that BOM does not manage an artifact.
 
 ```kotlin
 dependencies {
-    testImplementation(platform("io.kotest:kotest-bom:6.2.5"))
-    testImplementation("io.kotest:kotest-runner-junit5")
+    testImplementation(platform(libs.kotest.bom))
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
 }
 ```
 
@@ -73,4 +101,5 @@ tasks.test {
 - configure the Gradle `test` task with `useJUnitPlatform()` for Kotest JVM execution
 - configure `maxParallelForks` only after confirming tests have no shared mutable state
 - use Kotest as the default for new JVM test suites, and preserve an existing suite's runner unless migration is authorized.
-  Tests for library internals, such as ktlint custom rules, should use their maintained harness (for example `KtLintAssertThat` from `com.pinterest.ktlint:ktlint-test`).
+  Use native library APIs with Kotest matchers when an authorized migration replaces a library-specific assertion harness.
+  For ktlint rules, compare native `KtLintRuleEngine` diagnostics and formatted output.

@@ -61,30 +61,33 @@ class SlfDirectLogging :
                                                 property.initializer
                                                     ?.collectDescendantsOfType<KtCallExpression>()
                                                     ?.any { callExpression ->
-                                                        (callExpression.calleeExpression as? KtNameReferenceExpression)
-                                                            ?.getReferencedName() == "getLogger" &&
-                                                            when (
-                                                                (callExpression.parent as? KtDotQualifiedExpression)
-                                                                    ?.receiverExpression
-                                                                    ?.text
-                                                            ) {
-                                                                "org.slf4j.LoggerFactory" -> true
-                                                                "LoggerFactory" -> loggerFactoryImported
-                                                                else -> false
-                                                            }
+                                                        callExpression
+                                                            .takeIf { call ->
+                                                                (call.calleeExpression as? KtNameReferenceExpression)
+                                                                    ?.getReferencedName() == "getLogger"
+                                                            }?.let { loggerCall ->
+                                                                when (
+                                                                    (loggerCall.parent as? KtDotQualifiedExpression)
+                                                                        ?.receiverExpression
+                                                                        ?.text
+                                                                ) {
+                                                                    "org.slf4j.LoggerFactory" -> true
+                                                                    "LoggerFactory" -> loggerFactoryImported
+                                                                    else -> false
+                                                                }
+                                                            } == true
                                                     } == true
                                         }?.let(::add)
                                 }
                                 ktFile.collectDescendantsOfType<KtParameter>().forEach { parameter ->
                                     parameter.name
-                                        ?.takeIf {
-                                            parameter.hasValOrVar() &&
-                                                parameter.typeReference.isLoggerTypeReference(loggerImported)
-                                        }?.let(::add)
+                                        ?.takeIf { parameter.hasValOrVar() }
+                                        ?.takeIf { parameter.typeReference.isLoggerTypeReference(loggerImported) }
+                                        ?.let(::add)
                                 }
                                 ktFile
                                     .collectDescendantsOfType<KtNamedFunction>()
-                                    .flatMap { function -> function.valueParameters }
+                                    .flatMap(KtNamedFunction::getValueParameters)
                                     .forEach { parameter ->
                                         parameter.name
                                             ?.takeIf {
@@ -108,7 +111,7 @@ class SlfDirectLogging :
                 else -> null
             }
         val referencedNames =
-            generateSequence(userType) { currentUserType -> currentUserType.qualifier }
+            generateSequence(userType, KtUserType::getQualifier)
                 .mapNotNull { currentUserType ->
                     (currentUserType.referenceExpression as? KtNameReferenceExpression)?.getReferencedName()
                 }.toList()
@@ -117,13 +120,24 @@ class SlfDirectLogging :
             (referencedNames == listOf("Logger") && loggerImported)
     }
 
-    private fun KtExpression?.unwrapNonNullAssertion(): KtExpression? {
-        val postfix = this as? KtPostfixExpression
-        return when {
-            postfix !== null && postfix.operationToken == KtTokens.EXCLEXCL -> postfix.baseExpression
-            else -> this
+    private fun KtExpression?.unwrapNonNullAssertion(): KtExpression? =
+        when (this) {
+            is KtPostfixExpression -> {
+                when (operationToken) {
+                    KtTokens.EXCLEXCL -> {
+                        baseExpression
+                    }
+
+                    else -> {
+                        this
+                    }
+                }
+            }
+
+            else -> {
+                this
+            }
         }
-    }
 
     private inner class DirectLoggingVisitor(
         private val loggerNames: Set<String>,
@@ -140,30 +154,34 @@ class SlfDirectLogging :
                 ?.getReferencedName()
                 ?.takeIf { name -> name in setOf("trace", "debug", "info", "warn", "error") }
                 ?.let { logLevel ->
-                    val receiverExpression =
-                        (expression.parent as? KtQualifiedExpression)
-                            ?.takeIf { qualified -> qualified.selectorExpression == expression }
-                            ?.let { qualified -> qualified.receiverExpression.unwrapNonNullAssertion() }
-                    if (receiverExpression !== null && receiverExpression.isLoggerReceiver()) {
-                        emit(
-                            expression.textOffset,
-                            "direct SLF4J logging `$logLevel`; use " +
-                                "`${receiverExpression.text}.at${logLevel.replaceFirstChar(Char::uppercase)}()` fluent logging",
-                            false
-                        )
-                    }
+                    (expression.parent as? KtQualifiedExpression)
+                        ?.takeIf { qualified -> qualified.selectorExpression == expression }
+                        ?.let { qualified -> qualified.receiverExpression.unwrapNonNullAssertion() }
+                        ?.takeIf { receiverExpression -> receiverExpression.isLoggerReceiver() }
+                        ?.let { receiverExpression ->
+                            emit(
+                                expression.textOffset,
+                                "direct SLF4J logging `$logLevel`; use " +
+                                    "`${receiverExpression.text}.at${logLevel.replaceFirstChar(Char::uppercase)}()` fluent logging",
+                                false
+                            )
+                        }
                 }
         }
 
         private fun KtExpression.isLoggerReceiver(): Boolean =
             (this as? KtNameReferenceExpression)?.getReferencedName() in loggerNames ||
                 collectDescendantsOfType<KtCallExpression>().any { callExpression ->
-                    (callExpression.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == "getLogger" &&
-                        when ((callExpression.parent as? KtDotQualifiedExpression)?.receiverExpression?.text) {
-                            "org.slf4j.LoggerFactory" -> true
-                            "LoggerFactory" -> loggerFactoryImported
-                            else -> false
-                        }
+                    callExpression
+                        .takeIf { call ->
+                            (call.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == "getLogger"
+                        }?.let { loggerCall ->
+                            when ((loggerCall.parent as? KtDotQualifiedExpression)?.receiverExpression?.text) {
+                                "org.slf4j.LoggerFactory" -> true
+                                "LoggerFactory" -> loggerFactoryImported
+                                else -> false
+                            }
+                        } == true
                 }
     }
 }

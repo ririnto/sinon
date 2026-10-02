@@ -1,68 +1,159 @@
-@file:Suppress("ktlint:harness:explicit-property-type")
-
 package com.ririnto.sinon.harness.ktlint
 
-import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
-import com.pinterest.ktlint.test.LintViolation
-import org.junit.jupiter.api.Test
+import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
-class NoLineCommentTest {
-    private val assertThat = assertThatRule { NoLineComment() }
+class NoLineCommentTest :
+    FunSpec({
+        test("standalone line comment is flagged") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "fun foo() {\n    // comment\n}\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        5,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun standaloneLineCommentIsFlagged() {
-        assertThat("fun foo() {\n    // comment\n}\n")
-            .hasLintViolationWithoutAutoCorrect(2, 5, "use KDoc (/** ... */) instead of // or /* */ comments")
-    }
+        test("trailing line comment is flagged") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "fun foo() {\n    val x = 1 // comment\n}\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        15,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun trailingLineCommentIsFlagged() {
-        assertThat("fun foo() {\n    val x = 1 // comment\n}\n")
-            .hasLintViolationWithoutAutoCorrect(2, 15, "use KDoc (/** ... */) instead of // or /* */ comments")
-    }
+        test("block comment is flagged") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "fun foo() {\n    /* block */\n}\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        5,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun blockCommentIsFlagged() {
-        assertThat("fun foo() {\n    /* block */\n}\n")
-            .hasLintViolationWithoutAutoCorrect(2, 5, "use KDoc (/** ... */) instead of // or /* */ comments")
-    }
+        test("mixed line and block comments are all flagged") {
+            val source = "fun foo() {\n    // one\n    val x = 1 // two\n    /* three */ val y = 2\n}\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        5,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    ),
+                    KtLintRuleTestEngine.Diagnostic(
+                        3,
+                        15,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    ),
+                    KtLintRuleTestEngine.Diagnostic(
+                        4,
+                        5,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun mixedLineAndBlockCommentsAreAllFlagged() {
-        val source = "fun foo() {\n    // one\n    val x = 1 // two\n    /* three */ val y = 2\n}\n"
-        assertThat(source).hasLintViolationsWithoutAutoCorrect(
-            LintViolation(2, 5, "use KDoc (/** ... */) instead of // or /* */ comments"),
-            LintViolation(3, 15, "use KDoc (/** ... */) instead of // or /* */ comments"),
-            LintViolation(4, 5, "use KDoc (/** ... */) instead of // or /* */ comments")
-        )
-    }
+        test("kdoc comment is not flagged") {
+            val lintResult1 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "/** docs */\nfun foo()\n"
+                )
+            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult1.formattedCode shouldBe "/** docs */\nfun foo()\n"
+        }
 
-    @Test
-    fun kdocCommentIsNotFlagged() {
-        assertThat("/** docs */\nfun foo()\n").hasNoLintViolations()
-    }
+        test("comment at top of file is flagged") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "// file-level comment\nfun foo()\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        1,
+                        1,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun commentAtTopOfFileIsFlagged() {
-        assertThat("// file-level comment\nfun foo()\n")
-            .hasLintViolationWithoutAutoCorrect(1, 1, "use KDoc (/** ... */) instead of // or /* */ comments")
-    }
+        test("line comment inside lambda body is flagged") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "fun foo() {\n    listOf(1).forEach {\n        // comment\n        it.inc()\n    }\n}\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        3,
+                        9,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun lineCommentInsideLambdaBodyIsFlagged() {
-        assertThat("fun foo() {\n    listOf(1).forEach {\n        // comment\n        it.inc()\n    }\n}\n")
-            .hasLintViolationWithoutAutoCorrect(3, 9, "use KDoc (/** ... */) instead of // or /* */ comments")
-    }
+        test("comment markers inside raw string are ignored") {
+            val lintResult1 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "val text = \"\"\"// not a comment /* also not a comment */\"\"\"\n"
+                )
+            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult1.formattedCode shouldBe "val text = \"\"\"// not a comment /* also not a comment */\"\"\"\n"
+        }
 
-    @Test
-    fun commentMarkersInsideRawStringAreIgnored() {
-        assertThat("val text = \"\"\"// not a comment /* also not a comment */\"\"\"\n").hasNoLintViolations()
-    }
-
-    @Test
-    fun formatLeavesCommentedSourceUnchanged() {
-        val source = "fun foo() {\n    // comment\n}\n"
-        assertThat(source)
-            .hasLintViolationWithoutAutoCorrect(2, 5, "use KDoc (/** ... */) instead of // or /* */ comments")
+        test("format leaves commented source unchanged") {
+            val source = "fun foo() {\n    // comment\n}\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        5,
+                        "use KDoc (/** ... */) instead of // or /* */ comments",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
+    }) {
+    companion object {
+        private val ruleProvider: RuleProvider = RuleProvider(::NoLineComment)
     }
 }

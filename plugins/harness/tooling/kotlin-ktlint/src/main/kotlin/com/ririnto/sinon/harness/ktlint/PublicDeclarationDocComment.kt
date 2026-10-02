@@ -61,7 +61,7 @@ class PublicDeclarationDocComment :
     ) {
         if (enabled) {
             (node.psi as? KtFile)
-                ?.takeUnless { file -> file.isScript() }
+                ?.takeUnless(KtFile::isScript)
                 ?.accept(PublicDocVisitor(emit))
         }
     }
@@ -73,7 +73,7 @@ class PublicDeclarationDocComment :
             super.visitClass(klass)
             if (klass.parent !is KtBlockExpression &&
                 shouldCheck(klass, KtTokens.CLASS_KEYWORD, KtTokens.INTERFACE_KEYWORD) &&
-                klass.docComment == null
+                klass.docComment === null
             ) {
                 report(klass, klass.name ?: "unknown", "public declaration")
             }
@@ -83,7 +83,7 @@ class PublicDeclarationDocComment :
             super.visitNamedFunction(function)
             if (!function.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
                 shouldCheck(function, KtTokens.FUN_KEYWORD) &&
-                function.docComment == null
+                function.docComment === null
             ) {
                 report(function, function.name ?: "unknown", "public declaration")
             }
@@ -91,17 +91,17 @@ class PublicDeclarationDocComment :
 
         override fun visitProperty(property: KtProperty) {
             super.visitProperty(property)
-            if (!property.isLocal && shouldCheck(property, KtTokens.VAL_KEYWORD, KtTokens.VAR_KEYWORD) && property.docComment == null) {
+            if (!property.isLocal && shouldCheck(property, KtTokens.VAL_KEYWORD, KtTokens.VAR_KEYWORD) && property.docComment === null) {
                 report(property, property.name ?: "property", "public declaration")
             }
         }
 
         override fun visitObjectDeclaration(declaration: KtObjectDeclaration) {
             super.visitObjectDeclaration(declaration)
-            if (declaration.name != null &&
+            if (declaration.name !== null &&
                 !declaration.isCompanion() &&
                 shouldCheck(declaration, KtTokens.OBJECT_KEYWORD) &&
-                declaration.docComment == null
+                declaration.docComment === null
             ) {
                 report(declaration, declaration.name ?: "object", "public declaration")
             }
@@ -125,15 +125,18 @@ class PublicDeclarationDocComment :
         ): Boolean {
             val visibility = declaration.visibilityModifierType()
             return !isEnclosedByNonPublic(declaration) &&
-                (visibility == null || visibility == KtTokens.PUBLIC_KEYWORD || visibility == KtTokens.PROTECTED_KEYWORD) &&
-                declarationTokens.any { token -> declaration.node.findChildByType(token) != null } &&
+                when (visibility) {
+                    null, KtTokens.PUBLIC_KEYWORD, KtTokens.PROTECTED_KEYWORD -> true
+                    else -> false
+                } &&
+                declarationTokens.any { token -> declaration.node.findChildByType(token) !== null } &&
                 (declaration !is KtNamedFunction || declaration.parent !is KtBlockExpression)
         }
 
         private fun isEnclosedByNonPublic(declaration: PsiElement): Boolean =
-            generateSequence(declaration.parent) { parent -> parent.parent }
+            generateSequence(declaration.parent, PsiElement::getParent)
                 .filterIsInstance<KtModifierListOwner>()
-                .mapNotNull { owner -> owner.visibilityModifierType() }
+                .mapNotNull(KtModifierListOwner::visibilityModifierType)
                 .any { token -> token in NON_PUBLIC_VISIBILITIES }
     }
 }

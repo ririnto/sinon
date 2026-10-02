@@ -11,43 +11,21 @@ Add only the modules for the behavior under test or the report your build consum
 
 ## JUnit XML and HTML reports
 
-Kotest's `JunitXmlReporter` can omit container-only cases and include the full nested test path.
-`HtmlReporter` reads the XML produced under `test-results/test`.
-Register both reporters for nested HTML output.
+Use Gradle's built-in XML and HTML reports for Kotest JVM suites.
+They are enabled by default for `Test` tasks.
+Keep existing report configuration unless the build's report contract requires a change.
+Kotest deprecated `JunitXmlReporter` in 6.2 and schedules its removal in 7.0.
+Use the native reports for new configuration and migrate the deprecated reporter when updating an existing suite.
 
 ```kotlin
-import io.kotest.core.config.AbstractProjectConfig
-import io.kotest.extensions.htmlreporter.HtmlReporter
-import io.kotest.extensions.junitxml.JunitXmlReporter
-
-class ProjectConfig : AbstractProjectConfig() {
-    override val extensions = listOf(
-        JunitXmlReporter(includeContainers = false, useTestPathAsName = true),
-        HtmlReporter()
-    )
-}
-```
-
-```kotlin
-dependencies {
-    testImplementation("io.kotest:kotest-extensions-junitxml")
-    testImplementation("io.kotest:kotest-extensions-htmlreporter")
-}
-
-tasks.named<Test>("test") {
+tasks.test {
     useJUnitPlatform()
-    reports {
-        junitXml.required.set(false)
-        html.required.set(false)
-    }
-    systemProperty("gradle.build.dir", layout.buildDirectory.get().asFile.absolutePath)
 }
 ```
 
-The Kotlin DSL `Test` type is `org.gradle.api.tasks.testing.Test`.
-Do not disable Gradle's reports unless the Kotest reporters replace both outputs.
-`HtmlReporter` defaults to `build/reports/tests/test`.
-`JunitXmlReporter` defaults to `build/test-results/test` when `gradle.build.dir` is set.
+The default `test` task writes XML under `build/test-results/test` and HTML under `build/reports/tests/test`.
+The XML format is an output contract, not a requirement to write tests with JUnit APIs.
+No separate Kotest reporting dependency or project extension is needed for these outputs.
 
 ## Allure
 
@@ -57,16 +35,17 @@ Register the reporter project-wide so all specs contribute results.
 
 ```kotlin
 import io.kotest.core.config.AbstractProjectConfig
+import io.kotest.core.extensions.Extension
 import io.kotest.extensions.allure.AllureTestReporter
 
 class ProjectConfig : AbstractProjectConfig() {
-    override val extensions = listOf(AllureTestReporter())
+    override val extensions: List<Extension> = listOf(AllureTestReporter())
 }
 ```
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-extensions-allure")
+    testImplementation(libs.kotest.extensions.allure)
 }
 
 tasks.named<Test>("test") {
@@ -90,18 +69,19 @@ Register it project-wide so its project-start hook runs before specs execute.
 
 ```kotlin
 import io.kotest.core.config.AbstractProjectConfig
+import io.kotest.core.extensions.Extension
 import io.kotest.extensions.blockhound.BlockHound
 import io.kotest.extensions.decoroutinator.DecoroutinatorExtension
 
 class ProjectConfig : AbstractProjectConfig() {
-    override val extensions = listOf(BlockHound(), DecoroutinatorExtension())
+    override val extensions: List<Extension> = listOf(BlockHound(), DecoroutinatorExtension())
 }
 ```
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-extensions-blockhound")
-    testImplementation("io.kotest:kotest-extensions-decoroutinator")
+    testImplementation(libs.kotest.extensions.blockhound)
+    testImplementation(libs.kotest.extensions.decoroutinator)
 }
 ```
 
@@ -120,8 +100,8 @@ Match the selected Kotest BOM version in both `testImplementation` and `pitest`.
 
 ```kotlin
 dependencies {
-    pitest(platform("io.kotest:kotest-bom:6.2.5"))
-    pitest("io.kotest:kotest-extensions-pitest")
+    pitest(platform(libs.kotest.bom))
+    pitest(libs.kotest.extensions.pitest)
 }
 ```
 
@@ -164,7 +144,7 @@ class HealthRouteTest : FunSpec({
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-assertions-ktor")
+    testImplementation(libs.kotest.assertions.ktor)
 }
 ```
 

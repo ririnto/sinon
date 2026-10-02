@@ -62,11 +62,28 @@ metadata:
     Kotest BOM:
       version: 6.2.5
       url: https://repo1.maven.org/maven2/io/kotest/kotest-bom/6.2.5/kotest-bom-6.2.5.pom
+    Gradle catalogs:
+      url: https://docs.gradle.org/current/userguide/version_catalogs.html
+    Gradle test reporting:
+      version: "9.8.0"
+      url: https://docs.gradle.org/9.8.0/userguide/java_testing.html
+    Kotest XML reporter deprecation:
+      tag: v6.2.5
+      url: https://github.com/kotest/kotest/blob/v6.2.5/kotest-extensions/kotest-extensions-junitxml/src/jvmMain/kotlin/io/kotest/extensions/junitxml/JunitXmlReporter.kt
+    ktlint rule engine:
+      version: 1.8.0
+      url: https://github.com/ktlint/ktlint/blob/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
     Kotest extension and Ktor matcher source:
       tag: 6.2.5
       url:
         - https://github.com/kotest/kotest/tree/6.2.5/kotest-extensions
         - https://github.com/kotest/kotest/tree/6.2.5/kotest-assertions/kotest-assertions-ktor/src/commonMain/kotlin/io/kotest/assertions/ktor/client
+    Kotest project configuration API:
+      tag: 6.2.5
+      url: https://github.com/kotest/kotest/blob/6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/config/AbstractProjectConfig.kt
+    Kotest mountable extension API:
+      tag: v6.2.5
+      url: https://github.com/kotest/kotest/blob/v6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/extensions/MountableExtension.kt
     WireMock configuration:
       url: https://wiremock.org/docs/configuration/
     Ktor test application:
@@ -79,6 +96,12 @@ metadata:
       url:
         - https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html
         - https://docs.spring.io/spring-boot/api/java/org/springframework/boot/SpringBootConfiguration.html
+        - https://docs.spring.io/spring-boot/api/java/org/springframework/boot/test/context/SpringBootTest.html
+    Spring Boot 4.1.1 test artifact metadata:
+      version: 4.1.1
+      url:
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-test/4.1.1/spring-boot-test-4.1.1.pom
+        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-test/4.1.1/spring-boot-starter-test-4.1.1.pom
     Kotest isolation modes:
       version: 6.2
       url: https://kotest.io/docs/framework/isolation-mode.html
@@ -113,6 +136,9 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 - SHOULD keep one observable behavior per test.
 - SHOULD name tests as `verbCondition` or `subjectVerb` describing the observable behavior (e.g., `returnsCachedProfile`, `emitsLoadingThenData`, `rejectsInvalidInput`).
 - SHOULD use Kotest `FunSpec` and matchers as the default surface for new JVM test suites.
+- SHOULD choose the spec style for the test's structure and declare tests through its constructor DSL.
+- MUST declare explicit types on class, object, and companion properties, including private test helpers.
+- SHOULD keep shared immutable class-level test configuration in a typed companion object property.
 - MUST enable Kotest `coroutineTestScope` when virtual scheduler control is required.
   Plain suspending tests need no wrapper.
 - SHOULD use `first()` for one emission and `take(n).toList()` for a known prefix.
@@ -161,6 +187,8 @@ Read the references that match the current decision.
 
 Use `FunSpec` and Kotest matchers for new JVM test suites.
 Use `assertSoftly` when several assertions describe one observable behavior.
+The snippet is an adapted spec fragment.
+Replace its application types and service with the target's fixtures.
 
 ```kotlin
 import io.kotest.assertions.assertSoftly
@@ -172,18 +200,22 @@ import io.kotest.matchers.shouldBe
 
 class ProfileServiceTest : FunSpec({
     test("returns cached profile") {
-        assertSoftly(service.loadProfile("user-1")) {
-            shouldBe(Profile("user-1"))
-            id shouldBe "user-1"
+        assertSoftly(service.loadProfile(PROFILE_ID)) {
+            shouldBe(Profile(PROFILE_ID))
+            id shouldBe PROFILE_ID
             isActive.shouldBeTrue()
             error.shouldBeNull()
         }
     }
 
     test("returns tags in contract order") {
-        service.loadTags("user-1") shouldContainExactly listOf("admin", "editor")
+        service.loadTags(PROFILE_ID) shouldContainExactly listOf("admin", "editor")
     }
-})
+}) {
+    companion object {
+        private const val PROFILE_ID: String = "user-1"
+    }
+}
 ```
 
 Use these common matchers:
@@ -213,9 +245,9 @@ Start the timed operation first, advance virtual time, then flush the scheduler 
 
 ```kotlin
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.async
-import io.kotest.core.test.testCoroutineScheduler
 
 class OrderServiceTest : FunSpec({
     test("returns fallback on timeout").config(coroutineTestScope = true) {

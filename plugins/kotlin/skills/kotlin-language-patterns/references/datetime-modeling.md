@@ -32,12 +32,22 @@ Version note:
   - For a new dependency or required upgrade, check Maven Central for the latest stable Kotlin-compatible release and record it in the project catalog.
   - Use a compatibility variant only when the project needs that variant's older API.
 
-This executable sample shows the 0.8.0 artifact, not a current install target.
+This catalog fragment shows the 0.8.0 source baseline, not a current install target.
 For a new installation, check Maven Central and Kotlin compatibility before recording the selected version in the project catalog.
+
+```toml
+[versions]
+kotlinxDatetime = "0.8.0"
+
+[libraries]
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+```
+
+Use the catalog alias in the target's Gradle dependency block:
 
 ```kotlin
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
+    implementation(libs.kotlinx.datetime)
 }
 ```
 

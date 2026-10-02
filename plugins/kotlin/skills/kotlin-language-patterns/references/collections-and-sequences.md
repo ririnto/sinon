@@ -13,6 +13,12 @@ Open this when collection shape and laziness tradeoffs are the hard part.
 - switch to `Sequence` only when laziness or single-pass processing materially improves the path
 - break long chains into named locals when business meaning is getting hidden
 - prefer simple `map`, `filter`, `associate`, and `groupBy` before clever pipeline tricks
+- use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged
+- split `filter` predicates containing `&&` when chained filters preserve their meaning
+  Preserve order, nullability, smart casts, side effects, and eager or lazy behavior.
+- chain independent positive `takeIf` predicates when each one qualifies the same object
+  Use `?.takeIf` after a nullable receiver so a rejected first predicate skips the next one.
+  Do not split `takeUnless` or mixed-polarity predicates when that changes the Boolean logic.
 
 ## Patterns
 
@@ -36,6 +42,30 @@ fun loadEnabledUsers(lines: List<String>): List<UserId> =
         .map(::UserId)
         .take(500)
         .toList()
+```
+
+Chain independent predicates and use callable references when they preserve the original behavior:
+
+```kotlin
+fun hasValidName(user: User): Boolean = user.name.isNotBlank()
+
+val enabledNames = users
+    .filter(User::enabled)
+    .filter(::hasValidName)
+    .map(User::name)
+```
+
+Keep one predicate if splitting changes evaluation order, short-circuiting, null handling, smart casts, side effects, or eager/lazy behavior.
+
+Use `takeIf` chains for independent positive criteria on one object:
+
+```kotlin
+data class AccountPolicy(val enabled: Boolean, val verified: Boolean)
+
+fun eligibleAccount(account: AccountPolicy?): AccountPolicy? =
+    account
+        ?.takeIf(AccountPolicy::enabled)
+        ?.takeIf(AccountPolicy::verified)
 ```
 
 ## Pitfalls

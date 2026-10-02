@@ -122,7 +122,7 @@ Use `StateFlow` when every collector should immediately see the latest state.
 StateFlow always conflates -- fast writers drop intermediate values so collectors see at most the most recent emission.
 
 ```kotlin
-private val mutableUiState = MutableStateFlow(UiState.Loading)
+private val mutableUiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Loading)
 val uiState: StateFlow<UiState> = mutableUiState
 
 fun markLoaded(orders: List<Order>) {
@@ -138,7 +138,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-private val mutableEvents = MutableSharedFlow<UiEvent>(
+private val mutableEvents: MutableSharedFlow<UiEvent> = MutableSharedFlow(
     replay = 0,
     extraBufferCapacity = 64,
     onBufferOverflow = BufferOverflow.DROP_OLDEST

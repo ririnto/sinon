@@ -9,6 +9,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -55,7 +56,7 @@ class ExplicitFunctionReturnType :
                                             modifierList?.hasModifier(KtTokens.OVERRIDE_KEYWORD) == true ||
                                                 modifierList?.hasModifier(KtTokens.EXTERNAL_KEYWORD) == true ||
                                                 modifierList?.hasModifier(KtTokens.SUSPEND_KEYWORD) == true ||
-                                                generateSequence(function.parent) { element -> element.parent }
+                                                generateSequence(function.parent, PsiElement::getParent)
                                                     .filterIsInstance<KtDeclaration>()
                                                     .any { declaration ->
                                                         declaration.modifierList?.hasModifier(KtTokens.EXPECT_KEYWORD) == true

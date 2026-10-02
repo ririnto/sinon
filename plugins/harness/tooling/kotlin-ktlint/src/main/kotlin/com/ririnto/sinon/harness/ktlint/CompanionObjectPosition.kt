@@ -29,7 +29,7 @@ class CompanionObjectPosition :
             ?.let { declarations ->
                 declarations
                     .filterIsInstance<KtObjectDeclaration>()
-                    .filter { declaration -> declaration.isCompanion() }
+                    .filter(KtObjectDeclaration::isCompanion)
                     .filter { declaration -> declarations.firstOrNull() != declaration }
                     .forEach { declaration ->
                         emit(

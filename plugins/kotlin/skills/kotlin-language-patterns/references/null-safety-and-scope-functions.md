@@ -10,7 +10,13 @@ Open this when nullable flow and scope-function readability are the hard part.
 ## Rules
 
 - prefer nullable types plus explicit handling over `!!`
-- use early returns when absence should stop the current path
+- use `?.let` when nullable data should trigger work only when present
+- use `?:` for an intentional default or a required-value failure
+- invert a guard condition to keep the main path positive instead of using `return`, `break`, or `continue`
+- apply that rewrite only when behavior stays the same and no nesting or mutable state is added
+- use `when (subject)` when one value determines the branches
+- chain independent positive `takeIf` predicates, and use `?.takeIf` at each nullable step
+- keep predicate order and short-circuit behavior when splitting a condition
 - use `let` for nullable handoff, `run` for scoped computation, `apply` for receiver configuration, and `also` for side-effect steps
 - stop nesting scope functions when the receiver or return value stops being obvious
 - prefer a named local when it makes ownership or intermediate meaning clearer
@@ -21,17 +27,28 @@ Nullable handoff with `?.`:
 
 ```kotlin
 fun primaryEmail(user: User?): String? =
-    user?.emails?.firstOrNull { email -> email.isPrimary }?.value
+    user?.emails?.firstOrNull(Email::isPrimary)?.value
 ```
 
 The same handoff when absence must stop the current path:
 
 ```kotlin
-fun requiredPrimaryEmail(user: User?): String {
-    val account = user ?: throw IllegalArgumentException("user must not be null")
-    return account.emails.firstOrNull { email -> email.isPrimary }?.value
-        ?: throw IllegalArgumentException("user has no primary email")
-}
+fun requiredPrimaryEmail(user: User?): String =
+    user?.let { account ->
+        account.emails.firstOrNull(Email::isPrimary)?.value
+            ?: throw IllegalArgumentException("user has no primary email")
+    } ?: throw IllegalArgumentException("user must not be null")
+```
+
+Use one safe-call step for each independent positive condition on a nullable receiver:
+
+```kotlin
+data class AccountPolicy(val enabled: Boolean, val verified: Boolean)
+
+fun eligibleAccount(account: AccountPolicy?): AccountPolicy? =
+    account
+        ?.takeIf(AccountPolicy::enabled)
+        ?.takeIf(AccountPolicy::verified)
 ```
 
 `let` only when it clarifies the next step:
@@ -54,7 +71,7 @@ val request = HttpRequest().apply {
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| chaining nullable scope functions until the receiver becomes unclear | readers lose track of the object flow | use a named local or early return |
+| chaining nullable scope functions until the receiver becomes unclear | readers lose track of the object flow | use a named local or one clear `?.let` boundary |
 | using `!!` to avoid making absence explicit | failure moves to runtime | keep the API nullable or validate at the boundary |
 | using `also` or `apply` when the return value matters more than the receiver | the chosen scope function hides intent | pick the scope function by intent, not habit |
 
@@ -93,7 +110,10 @@ class Container(val item: Any?)
 
 fun printLength(c: Container) {
     val value = c.item
-    if (value is String) { println(value.length) }
+    when (value) {
+        is String -> println(value.length)
+        else -> Unit
+    }
 }
 
 fun process(varValue: String?) {
@@ -102,4 +122,4 @@ fun process(varValue: String?) {
 ```
 
 Smart casts fail when a custom getter prevents the compiler from tracking the type.
-A nullable value captured in a lambda is handled with `?.let` and a named non-null parameter instead of a temporary `val` plus an early return.
+A nullable value captured in a lambda is handled with `?.let` and a named non-null parameter instead of a temporary `val` and guard return.

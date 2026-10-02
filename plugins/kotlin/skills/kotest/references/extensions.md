@@ -77,8 +77,6 @@ Add only the module required by the tested boundary.
 | Controllable `java.time.Clock` | `io.kotest:kotest-extensions` | Inject `TestClock` instead of reading wall time. |
 | Current time | `io.kotest:kotest-extensions-now` | Override the current instant when injection is unavailable. |
 | Allure | `io.kotest:kotest-extensions-allure` | Emit Allure test results. |
-| HTML reporting | `io.kotest:kotest-extensions-htmlreporter` | Write an HTML test report. |
-| JUnit XML reporting | `io.kotest:kotest-extensions-junitxml` | Write XML for build systems. |
 | BlockHound | `io.kotest:kotest-extensions-blockhound` | Detect blocking calls on nonblocking threads. |
 | Decoroutinator | `io.kotest:kotest-extensions-decoroutinator` | Improve coroutine stack traces. |
 | Pitest | `io.kotest:kotest-extensions-pitest` | Integrate mutation testing. |
@@ -87,6 +85,7 @@ Add only the module required by the tested boundary.
 For Koin, Testcontainers, WireMock, and MockServer setup, open `service-integration-extensions.md`.
 For JVM system state, `TestClock`, and current-time control, open `environment-and-time-extensions.md`.
 For reporting, diagnostics, Pitest, and Ktor matchers, open `tooling-extensions.md`.
+Use Gradle's built-in XML and HTML reports for Kotest JVM test output.
 For Spring injection and transaction lifecycle, open `spring-extension.md`.
 `TestClock` and Ktor assertions are utilities, not listener registration.
 Use the project's Kotest BOM for these modules.

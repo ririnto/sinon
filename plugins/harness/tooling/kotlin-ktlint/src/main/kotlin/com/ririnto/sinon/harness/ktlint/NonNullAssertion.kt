@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtPostfixExpression
@@ -45,7 +46,7 @@ class NonNullAssertion :
                     val file = postfixExpression.containingFile as? KtFile
                     val imports = file?.importDirectives.orEmpty()
                     val shadowNames =
-                        when (imports.any { directive -> directive.isAllUnder }) {
+                        when (imports.any(KtImportDirective::isAllUnder)) {
                             true -> {
                                 GUARD_FUNCTIONS
                             }
@@ -55,18 +56,16 @@ class NonNullAssertion :
                                     ?.let { kf ->
                                         PsiTreeUtil
                                             .findChildrenOfType(kf, KtNamedDeclaration::class.java)
-                                            .mapNotNull { declaration -> declaration.name }
+                                            .mapNotNull(KtNamedDeclaration::getName)
                                             .filter { name -> name in GUARD_FUNCTIONS }
                                             .toSet()
                                     }.orEmpty() +
                                     imports
                                         .asSequence()
-                                        .filter { directive -> !directive.isAllUnder }
-                                        .mapNotNull { directive ->
-                                            directive.aliasName?.let { aliasName ->
-                                                aliasName.takeIf { name -> name in GUARD_FUNCTIONS }
-                                            }
-                                        }.toSet() +
+                                        .filterNot(KtImportDirective::isAllUnder)
+                                        .mapNotNull(KtImportDirective::aliasName)
+                                        .filter { name -> name in GUARD_FUNCTIONS }
+                                        .toSet() +
                                     imports
                                         .asSequence()
                                         .filter { directive -> directive.aliasName === null }

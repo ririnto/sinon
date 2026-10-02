@@ -45,7 +45,7 @@ class ImportOverFqn :
                         directive.importedName?.asString()?.let { name ->
                             directive.importPath?.pathStr?.let { path -> name to path }
                         }
-                    }.groupBy({ pair -> pair.first }, { pair -> pair.second })
+                    }.groupBy(Pair<String, String>::first, Pair<String, String>::second)
             val aliasNames: Set<String> = imports.mapNotNull(KtImportDirective::aliasName).toSet()
             val aliasedImportPaths: Set<String> =
                 imports
@@ -55,14 +55,14 @@ class ImportOverFqn :
             val declaredNames: Set<String> =
                 PsiTreeUtil
                     .findChildrenOfType(ktFile, KtNamedDeclaration::class.java)
-                    .mapNotNull { declaration -> declaration.name }
+                    .mapNotNull(KtNamedDeclaration::getName)
                     .toSet()
             val existingPaths = imports.mapNotNull { directive -> directive.importPath?.pathStr }.toSet()
             val findings = collectFqnFindings(ktFile)
             val candidatePathsBySimpleName =
                 findings
-                    .groupBy { finding -> finding.simpleName }
-                    .mapValues { (_, group) -> group.map { finding -> finding.importPath }.toSet() }
+                    .groupBy(FqnFinding::simpleName)
+                    .mapValues { (_, group) -> group.map(FqnFinding::importPath).toSet() }
             val newImports =
                 buildSet {
                     findings.forEach { finding ->
@@ -78,7 +78,7 @@ class ImportOverFqn :
                                 finding.importPath !in aliasedImportPaths &&
                                 finding.simpleName !in aliasNames &&
                                 finding.simpleName !in declaredNames &&
-                                imports.none { directive -> directive.isAllUnder } &&
+                                imports.none(KtImportDirective::isAllUnder) &&
                                 ktFile.packageFqName.asString() != finding.nameParts.dropLast(1).joinToString(".")
                         ).ifAutocorrectAllowed {
                             finding.replacementElement.node.replaceWith(
@@ -167,7 +167,7 @@ class ImportOverFqn :
                     importList.node.addChild(
                         KtPsiFactory.contextual(ktFile, false).createWhiteSpace("\n").node,
                         when {
-                            anchor == null && imports.isNotEmpty() -> importNode
+                            anchor === null && imports.isNotEmpty() -> importNode
                             else -> anchor
                         }
                     )
@@ -241,14 +241,14 @@ class ImportOverFqn :
         override fun visitUserType(userType: KtUserType) {
             super.visitUserType(userType)
             if (
-                generateSequence(userType as PsiElement?) { element -> element.parent }.none { element ->
+                generateSequence(userType as PsiElement?, PsiElement::getParent).none { element ->
                     element is KtImportDirective
                 } &&
                 userType.parent !is KtUserType
             ) {
                 val fqnParts =
-                    generateSequence(userType) { parent -> parent.qualifier }
-                        .mapNotNull { ut -> ut.referencedName }
+                    generateSequence(userType, KtUserType::getQualifier)
+                        .mapNotNull(KtUserType::getReferencedName)
                         .toList()
                         .asReversed()
                 if (2 <= fqnParts.size) {
@@ -260,7 +260,7 @@ class ImportOverFqn :
         override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
             super.visitDotQualifiedExpression(expression)
             if (
-                generateSequence(expression as PsiElement?) { element -> element.parent }.none { element ->
+                generateSequence(expression as PsiElement?, PsiElement::getParent).none { element ->
                     element is KtImportDirective
                 } &&
                 expression.parent !is KtDotQualifiedExpression

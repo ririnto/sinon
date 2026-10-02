@@ -7,13 +7,19 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtIsExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Flags complete if-else chains that should use when instead.
+ * Flags complete if-else chains that compare one stable function parameter.
  */
 class TerminalBranchWhen :
     Rule(
@@ -25,31 +31,76 @@ class TerminalBranchWhen :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)?.accept(TerminalWhenVisitor(emit))
+        (node.psi as? KtIfExpression)?.let { expression -> expression.reportIfNecessary(emit) }
     }
 
-    private class TerminalWhenVisitor(
-        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
-    ) : KtTreeVisitorVoid() {
-        override fun visitIfExpression(expression: KtIfExpression) {
-            super.visitIfExpression(expression)
-            if (!expression.isElseIfBranch(expression.parent) && expression.`else`.hasFinalElseBranch()) {
-                emit(expression.textOffset, "if/else chain; use when instead", false)
+    private fun KtIfExpression.reportIfNecessary(
+        emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) {
+        takeUnless { branch -> branch.isElseIfBranch(parent) }
+            ?.completeIfElseChain()
+            ?.subjectName()
+            ?.takeIf { subjectName -> hasStableFunctionParameter(subjectName) }
+            ?.let { _ -> emit(textOffset, "if/else chain compares one subject; use `when (subject)`", false) }
+    }
+
+    private fun KtIfExpression.completeIfElseChain(): List<KtIfExpression>? =
+        generateSequence(this) { branch -> branch.`else` as? KtIfExpression }
+            .toList()
+            .takeIf { branches -> branches.lastOrNull()?.`else` !== null }
+
+    private fun List<KtIfExpression>.subjectName(): String? {
+        val subjectNames = map { branch -> branch.condition.subjectName() }
+        return subjectNames.firstOrNull()?.takeIf { name -> subjectNames.all { candidate -> candidate == name } }
+    }
+
+    private fun KtExpression?.subjectName(): String? =
+        when (this) {
+            is KtBinaryExpression -> {
+                when (operationReference.text) {
+                    "==" -> (left as? KtNameReferenceExpression)?.getReferencedName()
+                    else -> null
+                }
+            }
+
+            is KtIsExpression -> {
+                when (operationReference.text) {
+                    "is" -> (leftHandSide as? KtNameReferenceExpression)?.getReferencedName()
+                    else -> null
+                }
+            }
+
+            else -> {
+                null
             }
         }
 
-        private tailrec fun KtIfExpression.isElseIfBranch(ancestor: PsiElement?): Boolean =
-            when (ancestor) {
-                null, is KtFile -> false
-                is KtIfExpression -> ancestor.`else` == this
-                else -> this.isElseIfBranch(ancestor.parent)
+    private fun KtIfExpression.hasStableFunctionParameter(subjectName: String): Boolean {
+        val executionBoundary =
+            generateSequence(parent, PsiElement::getParent)
+                .firstOrNull { element -> element is KtLambdaExpression || element is KtNamedFunction }
+        return when (executionBoundary) {
+            is KtNamedFunction -> {
+                generateSequence(parent, PsiElement::getParent)
+                    .takeWhile { element -> element !== executionBoundary }
+                    .none { element -> element is KtLambdaExpression } &&
+                    executionBoundary.valueParameters.any { parameter -> parameter.name == subjectName } &&
+                    executionBoundary.bodyExpression
+                        ?.let { body ->
+                            body.collectDescendantsOfType<KtProperty>().none { property -> property.name == subjectName } &&
+                                body
+                                    .collectDescendantsOfType<KtDestructuringDeclarationEntry>()
+                                    .none { entry -> entry.name == subjectName }
+                        } == true
             }
 
-        private tailrec fun KtExpression?.hasFinalElseBranch(): Boolean =
-            when (this) {
-                null -> false
-                is KtIfExpression -> this.`else`.hasFinalElseBranch()
-                else -> true
+            else -> {
+                false
             }
+        }
     }
+
+    private fun KtIfExpression.isElseIfBranch(ancestor: PsiElement?): Boolean =
+        generateSequence(ancestor, PsiElement::getParent)
+            .any { element -> element is KtIfExpression && element.`else` === this }
 }

@@ -1,125 +1,152 @@
-@file:Suppress("ktlint:harness:explicit-property-type")
-
 package com.ririnto.sinon.harness.ktlint
 
-import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
-import com.pinterest.ktlint.test.LintViolation
-import org.junit.jupiter.api.Test
+import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
-class ExplicitUnitBranchTest {
-    private val assertThat = assertThatRule { ExplicitUnitBranch() }
-
-    @Test
-    fun flagsOnlyExplicitUnitResultsInMixedWhenBranches() {
-        val source =
-            """
-            fun sample(value: Int) {
-                when (value) {
-                    0 -> Unit
-                    1 -> value
-                    2 -> kotlin.Unit
-                    3 -> value.toString()
-                    4 -> kotlin . Unit
-                    5 -> (Unit)
-                    6 -> {
-                        val ignored = value
-                        Unit
-                    }
-                    else -> Unit
-                }
-            }
-            """.trimIndent() + "\n"
-        assertThat(source).hasLintViolationsWithoutAutoCorrect(
-            LintViolation(3, 14, "explicit Unit branch result is forbidden"),
-            LintViolation(5, 14, "explicit Unit branch result is forbidden"),
-            LintViolation(7, 14, "explicit Unit branch result is forbidden"),
-            LintViolation(8, 14, "explicit Unit branch result is forbidden"),
-            LintViolation(9, 14, "explicit Unit branch result is forbidden"),
-            LintViolation(13, 17, "explicit Unit branch result is forbidden")
-        )
-    }
-
-    @Test
-    fun ignoresNonExplicitUnitBranchResults() {
-        listOf(
-            "0 -> {}",
-            "0 -> value.toString()",
-            "0 -> branch@ Unit",
-            "0 -> return",
-            "0 -> other.Unit",
-            "0 -> { Unit; value }"
-        ).forEach { branch ->
+class ExplicitUnitBranchTest :
+    FunSpec({
+        test("flags only explicit unit results in mixed when branches") {
             val source =
                 """
                 fun sample(value: Int) {
                     when (value) {
-                        $branch
+                        0 -> Unit
+                        1 -> value
+                        2 -> kotlin.Unit
+                        3 -> value.toString()
+                        4 -> kotlin . Unit
+                        5 -> (Unit)
+                        6 -> {
+                            val ignored = value
+                            Unit
+                        }
+                        else -> Unit
+                    }
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(3, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(7, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(8, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(9, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(13, 17, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                )
+        }
+
+        test("ignores non explicit unit branch results") {
+            listOf(
+                "0 -> {}",
+                "0 -> value.toString()",
+                "0 -> branch@ Unit",
+                "0 -> return",
+                "0 -> other.Unit",
+                "0 -> { Unit; value }"
+            ).forEach { branch ->
+                val source =
+                    """
+                    fun sample(value: Int) {
+                        when (value) {
+                            $branch
+                            else -> value
+                        }
+                    }
+                    """.trimIndent() + "\n"
+                val lintResult1 =
+                    KtLintRuleTestEngine.execute(
+                        ruleProvider,
+                        source
+                    )
+                lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
+                lintResult1.formattedCode shouldBe source
+            }
+        }
+
+        test("flags unit result in if without else") {
+            val source =
+                """
+                fun sample(condition: Boolean) {
+                    if (condition) Unit
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(KtLintRuleTestEngine.Diagnostic(2, 20, "explicit Unit branch result is forbidden", canBeAutoCorrected = false))
+        }
+
+        test("flags both branches in simple if else") {
+            val source =
+                """
+                fun sample(condition: Boolean) {
+                    if (condition) Unit else Unit
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(2, 20, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(2, 30, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                )
+        }
+
+        test("flags each unit result once in else if chain") {
+            val source =
+                """
+                fun sample(first: Boolean, second: Boolean) {
+                    if (first) Unit else if (second) Unit else Unit
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(2, 16, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(2, 38, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(2, 48, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                )
+        }
+
+        test("traverses nested control flow without flagging outer branches") {
+            val source =
+                """
+                fun sample(value: Int, condition: Boolean) {
+                    when (value) {
+                        0 -> if (condition) Unit else value
+                        1 -> when (value) {
+                            0 -> Unit
+                            else -> value
+                        }
                         else -> value
                     }
                 }
                 """.trimIndent() + "\n"
-            assertThat(source).hasNoLintViolations()
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(3, 29, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 18, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                )
         }
-    }
-
-    @Test
-    fun flagsUnitResultInIfWithoutElse() {
-        val source =
-            """
-            fun sample(condition: Boolean) {
-                if (condition) Unit
-            }
-            """.trimIndent() + "\n"
-        assertThat(source).hasLintViolationWithoutAutoCorrect(2, 20, "explicit Unit branch result is forbidden")
-    }
-
-    @Test
-    fun flagsBothBranchesInSimpleIfElse() {
-        val source =
-            """
-            fun sample(condition: Boolean) {
-                if (condition) Unit else Unit
-            }
-            """.trimIndent() + "\n"
-        assertThat(source).hasLintViolationsWithoutAutoCorrect(
-            LintViolation(2, 20, "explicit Unit branch result is forbidden"),
-            LintViolation(2, 30, "explicit Unit branch result is forbidden")
-        )
-    }
-
-    @Test
-    fun flagsEachUnitResultOnceInElseIfChain() {
-        val source =
-            """
-            fun sample(first: Boolean, second: Boolean) {
-                if (first) Unit else if (second) Unit else Unit
-            }
-            """.trimIndent() + "\n"
-        assertThat(source).hasLintViolationsWithoutAutoCorrect(
-            LintViolation(2, 16, "explicit Unit branch result is forbidden"),
-            LintViolation(2, 38, "explicit Unit branch result is forbidden"),
-            LintViolation(2, 48, "explicit Unit branch result is forbidden")
-        )
-    }
-
-    @Test
-    fun traversesNestedControlFlowWithoutFlaggingOuterBranches() {
-        val source =
-            """
-            fun sample(value: Int, condition: Boolean) {
-                when (value) {
-                    0 -> if (condition) Unit else value
-                    1 -> when (value) {
-                        0 -> Unit
-                        else -> value
-                    }
-                    else -> value
-                }
-            }
-            """.trimIndent() + "\n"
-        assertThat(source).hasLintViolationsWithoutAutoCorrect(
-            LintViolation(3, 29, "explicit Unit branch result is forbidden"),
-            LintViolation(5, 18, "explicit Unit branch result is forbidden")
-        )
+    }) {
+    companion object {
+        private val ruleProvider: RuleProvider = RuleProvider(::ExplicitUnitBranch)
     }
 }

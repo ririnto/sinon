@@ -13,9 +13,16 @@ Choose the JVM filesystem operation for one boundary:
 - handle one closeable JVM resource with `use {}`
 - reason about `exists()`, parent creation, and normal filesystem helper behavior
 
+On the JVM, `Path` is the JDK type from `java.nio.file`.
+Kotlin's standard library adds `kotlin.io.path.*` extensions for common path composition, metadata, text I/O, directory creation, and line iteration.
+Prefer these extensions when they provide the needed operation.
+Use `java.nio.file.Files` when the standard library has no equivalent or when its options are required.
+Use `root / "child"` for path composition through `kotlin.io.path.div`, available since Kotlin 1.5.
+
 `Path` rules:
 
-- on JVM, prefer `java.nio.file.Path` plus `kotlin.io.path.*` extensions
+- use `java.nio.file.Path` as the JVM path type and prefer `kotlin.io.path.*` extensions for common operations
+- compose paths with `kotlin.io.path.div` (`root / "child"`) when targeting Kotlin 1.5 or later
 - prefer `Path` over raw `String` when joins, normalization, file names, or extensions matter
 - `readText()` and `writeText()` default to UTF-8
 - `readText()` is for normal-sized files, not unknown huge files

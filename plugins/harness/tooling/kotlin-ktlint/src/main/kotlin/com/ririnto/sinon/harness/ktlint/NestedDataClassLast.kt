@@ -46,7 +46,7 @@ class NestedDataClassLast :
                 val declarations = classOrObject.declarations
                 declarations
                     .filterIsInstance<KtClass>()
-                    .filter { declaration -> declaration.isData() }
+                    .filter(KtClass::isData)
                     .filter { declaration ->
                         declarations
                             .dropWhile { candidate -> candidate != declaration }
@@ -131,31 +131,22 @@ ${declarations
                     }
                 }
             return (
-                buildList {
-                    var sibling: ASTNode? = this@blockText.node.treePrev
-                    while (sibling !== null) {
-                        when (sibling.elementType) {
-                            KtTokens.EOL_COMMENT, KtTokens.BLOCK_COMMENT -> {
-                                add(sibling.text)
-                                sibling = sibling.treePrev
-                            }
-
-                            TokenType.WHITE_SPACE -> {
-                                val newlineCount = sibling.text.count { character -> character == '\n' }
-                                when {
-                                    2 <= newlineCount -> break
-                                    newlineCount == 0 -> break
-                                    else -> sibling = sibling.treePrev
-                                }
-                            }
-
-                            else -> {
-                                break
-                            }
-                        }
-                    }
-                }.asReversed() + normalizedDeclarationText
+                generateSequence(this@blockText.node.treePrev, ASTNode::getTreePrev)
+                    .takeWhile { sibling -> sibling.isCommentOrSingleNewlineWhitespace() }
+                    .filter { sibling -> sibling.isComment() }
+                    .map(ASTNode::getText)
+                    .toList()
+                    .asReversed() + normalizedDeclarationText
             ).joinToString("\n").prependIndent("    ")
         }
+
+        private fun ASTNode.isCommentOrSingleNewlineWhitespace(): Boolean =
+            when (elementType) {
+                KtTokens.EOL_COMMENT, KtTokens.BLOCK_COMMENT -> true
+                TokenType.WHITE_SPACE -> text.count { character -> character == '\n' } == 1
+                else -> false
+            }
+
+        private fun ASTNode.isComment(): Boolean = elementType == KtTokens.EOL_COMMENT || elementType == KtTokens.BLOCK_COMMENT
     }
 }

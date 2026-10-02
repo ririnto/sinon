@@ -24,7 +24,7 @@ class KotlinTopLevelDeclarationCount :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         (node.psi as? KtFile)
-            ?.takeUnless { ktFile -> ktFile.isScript() }
+            ?.takeUnless(KtFile::isScript)
             ?.let { ktFile ->
                 val declaration = ktFile.declarations.singleOrNull()
                 if (declaration !is KtClassOrObject && declaration !is KtTypeAlias) {

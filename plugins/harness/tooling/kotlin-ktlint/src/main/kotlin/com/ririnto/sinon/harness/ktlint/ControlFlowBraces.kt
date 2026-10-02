@@ -43,7 +43,8 @@ class ControlFlowBraces :
     ) : KtTreeVisitorVoid() {
         override fun visitIfExpression(expression: KtIfExpression) {
             expression.`else`
-                ?.takeIf { branch -> branch !is KtBlockExpression && branch !is KtIfExpression }
+                ?.takeIf { branch -> branch !is KtBlockExpression }
+                ?.takeIf { branch -> branch !is KtIfExpression }
                 ?.let { branch -> wrap(branch, "else") }
             expression.then
                 ?.takeIf { branch -> branch !is KtBlockExpression }
@@ -52,26 +53,23 @@ class ControlFlowBraces :
         }
 
         override fun visitForExpression(expression: KtForExpression) {
-            val body = expression.body
-            if (body !== null && body !is KtBlockExpression) {
-                wrap(body, "for")
-            }
+            expression.body
+                ?.takeIf { body -> body !is KtBlockExpression }
+                ?.let { body -> wrap(body, "for") }
             super.visitForExpression(expression)
         }
 
         override fun visitWhileExpression(expression: KtWhileExpression) {
-            val body = expression.body
-            if (body !== null && body !is KtBlockExpression) {
-                wrap(body, "while")
-            }
+            expression.body
+                ?.takeIf { body -> body !is KtBlockExpression }
+                ?.let { body -> wrap(body, "while") }
             super.visitWhileExpression(expression)
         }
 
         override fun visitDoWhileExpression(expression: KtDoWhileExpression) {
-            val body = expression.body
-            if (body !== null && body !is KtBlockExpression) {
-                wrap(body, "do-while")
-            }
+            expression.body
+                ?.takeIf { body -> body !is KtBlockExpression }
+                ?.let { body -> wrap(body, "do-while") }
             super.visitDoWhileExpression(expression)
         }
 
@@ -104,11 +102,10 @@ class ControlFlowBraces :
                         expression.containingFile.text.lastIndexOf('\n', expression.textOffset - 1) + 1,
                         expression.textOffset
                     ).takeWhile { character -> character == ' ' || character == '\t' }
-            val bodyText = expression.text
             val factory = KtPsiFactory.contextual(expression, false)
             return factory
                 .createBlock(
-                    "$lineIndentation    $bodyText"
+                    "$lineIndentation    ${expression.text}"
                 ).node
                 .also { node ->
                     node.addChild(

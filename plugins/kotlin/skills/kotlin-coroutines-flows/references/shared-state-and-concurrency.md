@@ -28,8 +28,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class OrderProcessor(private val scope: CoroutineScope) {
-    private val commands = Channel<Order>(capacity = 64)
-    private val mutableState = MutableStateFlow(emptyList<Order>())
+    private val commands: Channel<Order> = Channel(capacity = 64)
+    private val mutableState: MutableStateFlow<List<Order>> = MutableStateFlow(emptyList())
     val state: StateFlow<List<Order>> = mutableState
 
     fun start() {
@@ -54,8 +54,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class OrderAccumulator {
-    private val updates = Channel<Order>(capacity = 64)
-    private val mutableState = MutableStateFlow(emptyList<Order>())
+    private val updates: Channel<Order> = Channel(capacity = 64)
+    private val mutableState: MutableStateFlow<List<Order>> = MutableStateFlow(emptyList())
     val state: StateFlow<List<Order>> = mutableState
 
     suspend fun run() {
@@ -90,8 +90,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class Inventory {
-    private val mutex = Mutex()
-    private val stock = mutableMapOf<Sku, Int>()
+    private val mutex: Mutex = Mutex()
+    private val stock: MutableMap<Sku, Int> = mutableMapOf()
 
     suspend fun reserve(sku: Sku, amount: Int) {
         mutex.withLock {

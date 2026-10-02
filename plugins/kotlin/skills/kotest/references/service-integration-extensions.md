@@ -12,16 +12,17 @@ Declare only the modules needed by the test:
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-extensions-koin")
-    testImplementation("io.kotest:kotest-extensions-testcontainers")
-    testImplementation("io.kotest:kotest-extensions-wiremock")
-    testImplementation("io.kotest:kotest-extensions-mockserver")
+    testImplementation(libs.kotest.extensions.koin)
+    testImplementation(libs.kotest.extensions.testcontainers)
+    testImplementation(libs.kotest.extensions.wiremock)
+    testImplementation(libs.kotest.extensions.mockserver)
 }
 ```
 
 These are alternatives, not a required bundle.
-Koin's `KoinTest` needs `io.insert-koin:koin-test` on the test compile classpath.
-Testcontainers' `GenericContainer` needs `org.testcontainers:testcontainers` directly because Kotest does not expose it on the consumer compile classpath.
+The catalog aliases come from the Kotest dependency reference.
+Koin's `KoinTest` needs a version-catalog alias for `io.insert-koin:koin-test` on the test compile classpath.
+Testcontainers' `GenericContainer` needs a version-catalog alias for `org.testcontainers:testcontainers` because Kotest does not expose it on the consumer compile classpath.
 Use the project's Koin and Testcontainers versions.
 The Kotest BOM does not manage these external libraries.
 
@@ -38,17 +39,18 @@ import io.kotest.koin.KoinExtension
 import io.kotest.matchers.shouldBe
 import org.koin.dsl.module
 import org.koin.test.KoinTest
-import org.koin.test.inject
+import org.koin.test.get
 
-class KoinInjectionTest : FunSpec(), KoinTest {
-    init {
-        extension(KoinExtension { listOf(module { single { "ready" } }) })
-        test("resolves the configured value") {
-            val value by inject<String>()
-            value shouldBe "ready"
-        }
-    }
+private object KoinResolver : KoinTest {
+    fun resolveValue(): String = get()
 }
+
+class KoinInjectionTest : FunSpec({
+    extension(KoinExtension { listOf(module { single { "ready" } }) })
+    test("resolves the configured value") {
+        KoinResolver.resolveValue() shouldBe "ready"
+    }
+})
 ```
 
 ## Testcontainers
@@ -61,6 +63,7 @@ The `redis:7-alpine` tag is a sample fixture, not an image upgrade recommendatio
 Check the image registry and the application's Redis compatibility before selecting a tag.
 
 ```kotlin
+import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -117,6 +120,7 @@ Define expectations for each test.
 A fixed port can collide with another local process.
 
 ```kotlin
+import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.mockserver.MockServerExtension
 import io.kotest.matchers.shouldBe

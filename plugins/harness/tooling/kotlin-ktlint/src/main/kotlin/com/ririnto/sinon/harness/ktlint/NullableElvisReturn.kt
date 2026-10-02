@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 /**
  * Flags properties initialized from a nullable lookup that falls back to an early `return`.
  *
- * Prefer returning the lookup as an expression with `let` and an explicit parameter.
+ * Use `?.let` for optional work, and keep required failures explicit.
  */
 class NullableElvisReturn :
     Rule(
@@ -34,24 +34,38 @@ class NullableElvisReturn :
             (property.initializer as? KtBinaryExpression)?.let { initializer ->
                 val left = initializer.left
                 val isNullableLookup =
-                    left is KtArrayAccessExpression ||
-                        left is KtCallExpression ||
-                        left is KtNameReferenceExpression ||
-                        left is KtSafeQualifiedExpression ||
-                        (
-                            left is KtQualifiedExpression &&
-                                left.selectorExpression.let { selector ->
-                                    selector is KtCallExpression || selector is KtNameReferenceExpression
+                    when (left) {
+                        is KtArrayAccessExpression,
+                        is KtCallExpression,
+                        is KtNameReferenceExpression,
+                        is KtSafeQualifiedExpression -> {
+                            true
+                        }
+
+                        is KtQualifiedExpression -> {
+                            when (left.selectorExpression) {
+                                is KtCallExpression, is KtNameReferenceExpression -> {
+                                    true
                                 }
-                        )
+
+                                else -> {
+                                    false
+                                }
+                            }
+                        }
+
+                        else -> {
+                            false
+                        }
+                    }
                 if (
                     isNullableLookup &&
                     initializer.operationReference.text == "?:" &&
-                    (initializer.right as? KtReturnExpression)?.returnedExpression !== null
+                    initializer.right is KtReturnExpression
                 ) {
                     emit(
                         property.textOffset,
-                        "Return nullable lookups as an expression with let and an explicit parameter",
+                        "avoid an Elvis-return property guard; use ?.let for optional work and keep required failure explicit",
                         false
                     )
                 }

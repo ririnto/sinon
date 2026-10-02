@@ -8,6 +8,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.ifAutocorrectAllowed
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -43,15 +44,15 @@ class ImplicitLambdaIt :
                 val implicitItReferences =
                     lambdaExpression.bodyExpression
                         ?.collectDescendantsOfType<KtNameReferenceExpression>()
-                        ?.filter { reference ->
-                            reference.getReferencedName() == "it" && reference.resolvesTo(lambdaExpression)
-                        }.orEmpty()
+                        ?.filter { reference -> reference.getReferencedName() == "it" }
+                        ?.filter { reference -> reference.resolvesTo(lambdaExpression) }
+                        .orEmpty()
                 implicitItReferences.firstOrNull()?.let { reference ->
                     val parameterName = findParameterName(lambdaExpression)
                     emit(
                         reference.textOffset,
                         "use an explicit name for the implicit `it` lambda parameter",
-                        parameterName != null
+                        parameterName !== null
                     ).ifAutocorrectAllowed {
                         parameterName?.let { name ->
                             replaceImplicitParameter(lambdaExpression, implicitItReferences, name)
@@ -71,11 +72,11 @@ class ImplicitLambdaIt :
                     ?.collectDescendantsOfType<KtNameReferenceExpression>()
                     .orEmpty()
             val enclosingDeclarations =
-                generateSequence(lambdaExpression.parent) { element -> element.parent }
+                generateSequence(lambdaExpression.parent, PsiElement::getParent)
                     .filterIsInstance<KtNamedDeclaration>()
                     .toList()
             val enclosingParameters =
-                generateSequence(lambdaExpression.parent) { element -> element.parent }
+                generateSequence(lambdaExpression.parent, PsiElement::getParent)
                     .filterIsInstance<KtLambdaExpression>()
                     .flatMap { element -> element.valueParameters.asSequence() }
             return generateSequence("value") { name -> "${name}Value" }
@@ -88,14 +89,12 @@ class ImplicitLambdaIt :
         }
 
         private fun KtNameReferenceExpression.resolvesTo(lambdaExpression: KtLambdaExpression): Boolean {
-            val ancestors = generateSequence(parent) { element -> element.parent }.toList()
-            if (lambdaExpression !in ancestors) {
-                return false
-            }
-            return ancestors
-                .takeWhile { ancestor -> ancestor != lambdaExpression }
-                .filterIsInstance<KtLambdaExpression>()
-                .none { nestedLambda -> nestedLambda.shadowsImplicitIt() }
+            val ancestors = generateSequence(parent, PsiElement::getParent).toList()
+            return lambdaExpression in ancestors &&
+                ancestors
+                    .takeWhile { ancestor -> ancestor != lambdaExpression }
+                    .filterIsInstance<KtLambdaExpression>()
+                    .none { nestedLambda -> nestedLambda.shadowsImplicitIt() }
         }
 
         private fun KtLambdaExpression.shadowsImplicitIt(): Boolean =

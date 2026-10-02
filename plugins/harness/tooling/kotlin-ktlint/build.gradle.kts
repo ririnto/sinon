@@ -13,8 +13,10 @@ dependencies {
     testImplementation(platform(libs.ktlint.bom))
     testImplementation(libs.ktlint.cli.ruleset.core)
     testImplementation(libs.ktlint.rule.engine)
-    testImplementation(libs.ktlint.test)
-    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.ktlint.rule.engine.core)
+    testImplementation(platform(libs.kotest.bom))
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
     testRuntimeOnly(libs.slf4j.simple)
     ktlintRuleset(files(tasks.jar))
 }

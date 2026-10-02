@@ -23,7 +23,7 @@ class UiStateRepositoryTest : FunSpec({
             listOf(awaitItem(), awaitItem(), awaitItem()) shouldContainExactly listOf(
                 UiState.Loading,
                 UiState.Data(userId = "u-1"),
-                UiState.Idle,
+                UiState.Idle
             )
             awaitComplete()
         }

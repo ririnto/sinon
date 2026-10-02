@@ -65,8 +65,9 @@ class FunctionBodyBlankLines :
                 ?.contains("ktlint-enable") != true
         ) {
             ((node.psi.parent as? KtBlockExpression)?.parent as? KtNamedFunction)
-                ?.takeIf { function -> function.name != null && function.bodyBlockExpression == node.psi.parent }
-                ?.let {
+                ?.takeIf { function -> function.name !== null }
+                ?.takeIf { function -> function.bodyBlockExpression == node.psi.parent }
+                ?.let { _ ->
                     emit(
                         node.psi.textOffset,
                         "remove the decorative blank line from the function body",

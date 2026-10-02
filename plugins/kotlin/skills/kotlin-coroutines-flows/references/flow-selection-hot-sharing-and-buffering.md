@@ -105,11 +105,16 @@ import kotlinx.coroutines.flow.retryWhen
 rawEvents
     .map(::parseEvent)
     .retryWhen { cause, attempt ->
-        if (attempt < 3 && cause is IOException) {
-            delay((attempt + 1) * 1_000L)
-            true
-        } else {
-            false
+        when (cause) {
+            is IOException -> {
+                if (attempt < 3) {
+                    delay((attempt + 1) * 1_000L)
+                    true
+                } else {
+                    false
+                }
+            }
+            else -> false
         }
     }
     .catch { e ->
@@ -117,7 +122,12 @@ rawEvents
         emit(Event.Fallback)
     }
     .onStart { emit(Event.Connected) }
-    .onCompletion { cause -> if (cause == null) { emit(Event.Completed) } }
+    .onCompletion { cause ->
+        when (cause) {
+            null -> emit(Event.Completed)
+            else -> Unit
+        }
+    }
     .collect(::handle)
 ```
 

@@ -1,28 +1,62 @@
-@file:Suppress("ktlint:harness:explicit-property-type")
-
 package com.ririnto.sinon.harness.ktlint
 
-import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
-import org.junit.jupiter.api.Test
+import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
-class ComparisonDirectionTest {
-    private val assertThat = assertThatRule { ComparisonDirection() }
+class ComparisonDirectionTest :
+    FunSpec({
+        test("reports but never autocorrects") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "fun compare(a: Int, b: Int) = a > b\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        1,
+                        33,
+                        "avoid `>` in comparisons; prefer `<` with operands swapped",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun reportsButNeverAutocorrects() {
-        assertThat("fun compare(a: Int, b: Int) = a > b\n")
-            .hasLintViolationWithoutAutoCorrect(1, 33, "avoid `>` in comparisons; prefer `<` with operands swapped")
-    }
+        test("reports greater than or equal") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    "fun compare(a: Int, b: Int) = a >= b\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        1,
+                        33,
+                        "avoid `>=` in comparisons; prefer `<=` with operands swapped",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun reportsGreaterThanOrEqual() {
-        assertThat("fun compare(a: Int, b: Int) = a >= b\n")
-            .hasLintViolationWithoutAutoCorrect(1, 33, "avoid `>=` in comparisons; prefer `<=` with operands swapped")
-    }
-
-    @Test
-    fun leavesLessThanOperatorsUnflagged() {
-        assertThat("fun compare(a: Int, b: Int) = a < b\n").hasNoLintViolations()
-        assertThat("fun compare(a: Int, b: Int) = a <= b\n").hasNoLintViolations()
+        test("leaves less than operators unflagged") {
+            val lintResult1 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "fun compare(a: Int, b: Int) = a < b\n"
+                )
+            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult1.formattedCode shouldBe "fun compare(a: Int, b: Int) = a < b\n"
+            val lintResult2 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "fun compare(a: Int, b: Int) = a <= b\n"
+                )
+            lintResult2.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult2.formattedCode shouldBe "fun compare(a: Int, b: Int) = a <= b\n"
+        }
+    }) {
+    companion object {
+        private val ruleProvider: RuleProvider = RuleProvider(::ComparisonDirection)
     }
 }

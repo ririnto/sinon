@@ -1,45 +1,70 @@
-@file:Suppress("ktlint:harness:explicit-property-type")
-
 package com.ririnto.sinon.harness.ktlint
 
-import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
-import org.junit.jupiter.api.Test
+import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
-class FunctionBodyBlankLinesTest {
-    private val assertThat = assertThatRule { FunctionBodyBlankLines() }
+class FunctionBodyBlankLinesTest :
+    FunSpec({
+        test("removes decorative blank lines inside function bodies") {
+            val source =
+                """
+                fun work() {
+                    first()
 
-    @Test
-    fun removesDecorativeBlankLinesInsideFunctionBodies() {
-        val source =
-            """
-            fun work() {
-                first()
+                    second()
+                }
+                """.trimIndent() + "\n"
+            val expected =
+                """
+                fun work() {
+                    first()
+                    second()
+                }
+                """.trimIndent() + "\n"
+            val lintResult1 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    source
+                )
+            lintResult1.diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        12,
+                        "remove the decorative blank line from the function body",
+                        canBeAutoCorrected = true
+                    )
+                )
+            lintResult1.formattedCode shouldBe expected
+        }
 
-                second()
-            }
-            """.trimIndent() + "\n"
-        val expected =
-            """
-            fun work() {
-                first()
-                second()
-            }
-            """.trimIndent() + "\n"
-        assertThat(source)
-            .hasLintViolation(2, 12, "remove the decorative blank line from the function body")
-            .isFormattedAs(expected)
-    }
+        test("preserves blank lines used by tool directives") {
+            val source =
+                """
+                fun work() {
+                    first()
 
-    @Test
-    fun preservesBlankLinesUsedByToolDirectives() {
-        val source =
-            """
-            fun work() {
-                first()
-
-                second()
-            }
-            """.trimIndent() + "\n"
-        assertThat(source).hasLintViolation(2, 12, "remove the decorative blank line from the function body")
+                    second()
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        12,
+                        "remove the decorative blank line from the function body",
+                        canBeAutoCorrected = true
+                    )
+                )
+        }
+    }) {
+    companion object {
+        private val ruleProvider: RuleProvider = RuleProvider(::FunctionBodyBlankLines)
     }
 }

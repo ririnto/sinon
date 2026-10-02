@@ -51,8 +51,8 @@ internal object LiteralTypeInference {
                                         else -> cleaned to 10
                                     }
                                 when {
-                                    digits.toIntOrNull(radix) != null -> Int::class.simpleName
-                                    digits.toLongOrNull(radix) != null -> Long::class.simpleName
+                                    digits.toIntOrNull(radix) !== null -> Int::class.simpleName
+                                    digits.toLongOrNull(radix) !== null -> Long::class.simpleName
                                     else -> null
                                 }
                             }

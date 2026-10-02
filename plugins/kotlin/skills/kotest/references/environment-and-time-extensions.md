@@ -11,11 +11,13 @@ Install only the one needed by the test.
 
 ```kotlin
 dependencies {
-    testImplementation("io.kotest:kotest-extensions-jvm")
-    testImplementation("io.kotest:kotest-extensions")
-    testImplementation("io.kotest:kotest-extensions-now")
+    testImplementation(libs.kotest.extensions.jvm)
+    testImplementation(libs.kotest.extensions.core)
+    testImplementation(libs.kotest.extensions.now)
 }
 ```
+
+Merge the aliases listed in `gradle-dependencies-and-config.md` into the target catalog.
 
 These are alternatives, not a required bundle.
 

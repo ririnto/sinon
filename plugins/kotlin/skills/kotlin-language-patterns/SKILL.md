@@ -15,6 +15,18 @@ metadata:
         url: https://kotlinlang.org/docs/whatsnew24.html
     Kotlin standard library API:
       url: https://kotlinlang.org/api/core/kotlin-stdlib/
+    Kotlin scope functions:
+      url:
+        - https://kotlinlang.org/docs/scope-functions.html
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/take-if.html
+    Kotlin JVM path extensions:
+      url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.path/
+    Kotlin Path composition:
+      version: Kotlin 1.5+
+      url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.path/div.html
+    Java Path API:
+      version: Java SE 25
+      url: https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html
 name: kotlin-language-patterns
 description: >-
   Design or refactor Kotlin types, null handling, collections, extensions, Java interop, or stdlib boundaries.
@@ -47,6 +59,22 @@ For new dependencies or required upgrades, check Maven Central for the latest st
   - Use `var` only for backing fields, JavaBean compatibility, or circular construction dependencies.
 - SHOULD preserve evaluation order, evaluation count, exception timing, mutable snapshots, and closure capture when changing a binding to `val`.
 - SHOULD choose the smallest type shape that matches the domain.
+- SHOULD use `?.let` when nullable data should trigger work only when present.
+  Use `?:` for an intentional default or required-value failure.
+- SHOULD invert a guard condition to keep the main path positive instead of using `return`, `break`, or `continue`.
+  Do this only when behavior stays the same and no nesting or mutable state is added.
+- SHOULD use `when (subject)` when one value determines the branches.
+- SHOULD split `filter` predicates with `&&` into chained filters when their semantics stay unchanged.
+  Preserve evaluation order, nullability, smart casts, side effects, and eager or lazy behavior.
+  Keep one predicate when splitting changes any of those semantics.
+- SHOULD chain independent positive `takeIf` predicates instead of combining them with `&&`.
+  Use a safe call before each `takeIf` when the receiver is nullable.
+  Keep the original order and short-circuit behavior.
+  Do not split `takeUnless` or mixed positive and negative predicates when the Boolean logic changes.
+- SHOULD use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged.
+  Keep a lambda when a reference changes evaluation or meaning.
+- MUST declare an explicit type for every class, object, and companion object property, including private properties.
+- SHOULD prefer `kotlin.io.path.div` for JVM `Path` composition when the Kotlin standard library is available.
 - SHOULD expose read-only collection interfaces from public APIs rather than mutable variants.
 - SHOULD prefer direct string helpers before introducing `Regex`.
 - SHOULD pass an existing function reference instead of wrapping it in a lambda when the meaning, receiver binding, and overload resolution stay identical.
@@ -98,10 +126,26 @@ Model absence directly and keep the flow readable.
 
 ```kotlin
 fun primaryEmail(user: User?): String? =
-    user?.emails?.firstOrNull { email -> email.isPrimary }?.value
+    user?.emails?.firstOrNull(Email::isPrimary)?.value
 ```
 
-Use early returns, `?.`, `?:`, and `as?` before reaching for `!!`.
+For a nullable receiver with independent positive criteria, use a safe-call step for each predicate:
+
+```kotlin
+data class AccountPolicy(val enabled: Boolean, val verified: Boolean)
+
+fun eligibleAccount(account: AccountPolicy?): AccountPolicy? =
+    account
+        ?.takeIf(AccountPolicy::enabled)
+        ?.takeIf(AccountPolicy::verified)
+```
+
+Use `?.let` when nullable data should trigger work only when present.
+Use `?:` for an intentional default or required-value failure.
+Use `as?` for a safe cast.
+Invert a guard condition to keep the main path positive instead of using `return`, `break`, or `continue`.
+Do this only when behavior stays the same and no nesting or mutable state is added.
+Use `when (subject)` when one value determines the branches.
 When calling into Java code that returns a platform type (`T!`), pin nullability immediately at the interop edge:
 
 ```kotlin
@@ -231,7 +275,7 @@ Expose read-only collection interfaces and return a snapshot when callers must n
 
 ```kotlin
 class OrderRepository {
-    private val mutableOrders = mutableListOf<Order>()
+    private val mutableOrders: MutableList<Order> = mutableListOf()
 
     val orders: List<Order> get() = mutableOrders.toList()
 }
@@ -262,9 +306,7 @@ val request = HttpRequestBuilder().apply {
 val config = loadConfig().also { cfg -> log.debug("Loaded config: $cfg") }
 
 val result: Int = run {
-    val a = computeA()
-    val b = computeB()
-    a + b
+    computeA() + computeB()
 }
 
 val formatted = with(json) {
@@ -381,7 +423,7 @@ Write `${'$'}` when the content needs a literal dollar sign.
 A trailing newline before the closing delimiter remains part of a multi-line value, so account for it in exact comparisons.
 
 ```kotlin
-private val referencePattern = Regex("""([A-Z]+)-(\d+)""")
+private val referencePattern: Regex = Regex("""([A-Z]+)-(\d+)""")
 ```
 
 Use `trimIndent()` to strip leading whitespace from multi-line raw strings, and `trimMargin()` when you want custom prefix-based stripping:
@@ -411,12 +453,13 @@ Combine `Regex` with string helpers to extract structured data:
 
 ```kotlin
 class ReferenceKeyParser {
-    private val referencePattern = Regex("""([A-Z]+)-(\d+)""")
+    private val referencePattern: Regex = Regex("""([A-Z]+)-(\d+)""")
 
-    fun parse(input: String): Pair<String, Int>? {
-        val match = referencePattern.matchEntire(input.substringBefore('?').trim())
-        return match?.destructured?.let { (project, number) -> project to number.toInt() }
-    }
+    fun parse(input: String): Pair<String, Int>? =
+        referencePattern
+            .matchEntire(input.substringBefore('?').trim())
+            ?.destructured
+            ?.let { (project, number) -> project to number.toInt() }
 }
 ```
 
@@ -447,10 +490,9 @@ Use `recover()` to transform specific failures into success values while letting
 
 ```kotlin
 parsePort(portStr).recover { ex ->
-    if (ex is NumberFormatException) {
-        DEFAULT_PORT
-    } else {
-        throw ex
+    when (ex) {
+        is NumberFormatException -> DEFAULT_PORT
+        else -> throw ex
     }
 }
 ```
@@ -466,12 +508,9 @@ If Java calls the API, avoid surprising Kotlin-only assumptions around default p
 ```kotlin
 class OrderFormatter {
     @JvmOverloads
-    fun format(orderId: String, uppercase: Boolean = false): String {
-        return if (uppercase) {
-            orderId.uppercase()
-        } else {
-            orderId
-        }
+    fun format(orderId: String, uppercase: Boolean = false): String = when (uppercase) {
+        true -> orderId.uppercase()
+        false -> orderId
     }
 }
 ```
@@ -514,8 +553,12 @@ executor.execute { println("running") }
 Declare checked exceptions that Java callers must handle with `@Throws`:
 
 ```kotlin
+import java.io.IOException
+import java.nio.file.Path
+import kotlin.io.path.readText
+
 @Throws(IOException::class)
-fun readFile(path: String): String = File(path).readText()
+fun readFile(path: Path): String = path.readText()
 ```
 
 Without `@Throws`, Java sees the method as `throws nothing` and cannot catch the exception with a checked-exception handler.
@@ -526,7 +569,7 @@ Keep adjacent Kotlin-native boundaries in this skill even when their detailed im
 
 - use `kotlinx.serialization` when the boundary is Kotlin-first model encoding or decoding
 - use `kotlinx.datetime.Instant` for real moments in time on the Kotlin 2.1 baseline (stdlib `kotlin.time.Instant` is stable since Kotlin 2.3), and keep `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
-- use `java.nio.file.Path` plus `kotlin.io.path.*` on JVM when filesystem semantics matter more than raw strings
+- use the JVM `Path` type with Kotlin `kotlin.io.path.*` extensions for common filesystem operations
 
 ### Keep member ordering predictable
 
@@ -535,7 +578,7 @@ When one file defines a class with companion members, overrides, helper methods,
 ```kotlin
 class Example(private val value: String) {
     companion object {
-        private const val TYPE = "example"
+        private const val TYPE: String = "example"
 
         fun of(value: String): Example = Example(value)
     }
@@ -564,7 +607,7 @@ Do not review unrelated language features to complete a checklist.
 | using raw `String` or `Long` for meaningful IDs everywhere | domain meaning gets weaker | use a `value class` when one wrapped value has real semantic weight |
 | converting every pipeline to `asSequence()` | laziness adds noise to small in-memory code | keep collections by default |
 | using `Regex` for fixed delimiters or prefixes | parsing gets heavier than the real requirement | start with string helpers |
-| nesting scope functions until the receiver becomes unclear | ownership and flow become hard to scan | use named locals or early returns |
+| nesting scope functions until the receiver becomes unclear | ownership and flow become hard to scan | use named locals or `?.let` at the nullable boundary |
 | threading `Result` through ordinary business logic | local code becomes wrapper-heavy | keep `Result` at the boundary |
 | assuming extension dispatch is virtual | members always win because extension resolution is static on the declared type | put polymorphic behavior in members |
 | using data class `copy()` expecting deep copy | `copy()` is shallow -- nested mutable objects are shared | use immutable nested types or deep clone explicitly |

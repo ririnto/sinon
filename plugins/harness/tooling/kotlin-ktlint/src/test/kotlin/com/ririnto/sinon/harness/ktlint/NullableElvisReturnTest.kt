@@ -1,63 +1,109 @@
-@file:Suppress("ktlint:harness:explicit-property-type")
-
 package com.ririnto.sinon.harness.ktlint
 
-import com.pinterest.ktlint.test.KtLintAssertThat.Companion.assertThatRule
-import org.junit.jupiter.api.Test
+import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
-class NullableElvisReturnTest {
-    private val assertThat = assertThatRule { NullableElvisReturn() }
-
-    @Test
-    fun mapLookupWithReturnFallbackIsFlagged() {
-        val source =
-            """
-            class Example {
-                fun value(values: Map<String, String>, key: String): String {
-                    val value = values[key] ?: return "fallback"
-                    return value
+class NullableElvisReturnTest :
+    FunSpec({
+        test("map lookup with return fallback is flagged") {
+            val source =
+                """
+                class Example {
+                    fun value(values: Map<String, String>, key: String): String {
+                        val value = values[key] ?: return "fallback"
+                        return value
+                    }
                 }
-            }
-            """.trimIndent() + "\n"
-        assertThat(source)
-            .hasLintViolationWithoutAutoCorrect(
-                3,
-                13,
-                "Return nullable lookups as an expression with let and an explicit parameter"
-            )
-    }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        3,
+                        13,
+                        "avoid an Elvis-return property guard; use ?.let for optional work and keep required failure explicit",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun safeCallPropertyLookupWithReturnFallbackIsFlagged() {
-        val source =
-            """
-            class Example {
-                fun value(example: Example?): String {
-                    val value = example.field ?: return "fallback"
-                    return value
+        test("safe call property lookup with return fallback is flagged") {
+            val source =
+                """
+                class Example {
+                    fun value(example: Example?): String {
+                        val value = example.field ?: return "fallback"
+                        return value
+                    }
+
+                    val field: String
+                        get() = "value"
                 }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        3,
+                        13,
+                        "avoid an Elvis-return property guard; use ?.let for optional work and keep required failure explicit",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-                val field: String
-                    get() = "value"
-            }
-            """.trimIndent() + "\n"
-        assertThat(source)
-            .hasLintViolationWithoutAutoCorrect(
-                3,
-                13,
-                "Return nullable lookups as an expression with let and an explicit parameter"
-            )
-    }
+        test("bare return after nullable lookup is flagged") {
+            val source =
+                """
+                fun handle(requests: Map<String, String>, key: String) {
+                    val request = requests[key] ?: return
+                    process(request)
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    source
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        2,
+                        9,
+                        "avoid an Elvis-return property guard; use ?.let for optional work and keep required failure explicit",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
 
-    @Test
-    fun expressionBodyElvisIsSafe() {
-        assertThat("class Example {\n    fun value(value: String?): String = value ?: \"fallback\"\n}\n")
-            .hasNoLintViolations()
-    }
+        test("expression body elvis is safe") {
+            val lintResult1 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "class Example {\n    fun value(value: String?): String = value ?: \"fallback\"\n}\n"
+                )
+            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult1.formattedCode shouldBe "class Example {\n    fun value(value: String?): String = value ?: \"fallback\"\n}\n"
+        }
 
-    @Test
-    fun elvisWithoutReturnIsSafe() {
-        assertThat("class Example {\n    val value: String = compute() ?: \"fallback\"\n}\n")
-            .hasNoLintViolations()
+        test("elvis without return is safe") {
+            val lintResult1 =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "class Example {\n    val value: String = compute() ?: \"fallback\"\n}\n"
+                )
+            lintResult1.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            lintResult1.formattedCode shouldBe "class Example {\n    val value: String = compute() ?: \"fallback\"\n}\n"
+        }
+    }) {
+    companion object {
+        private val ruleProvider: RuleProvider = RuleProvider(::NullableElvisReturn)
     }
 }

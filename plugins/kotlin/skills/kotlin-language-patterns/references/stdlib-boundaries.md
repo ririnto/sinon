@@ -86,8 +86,8 @@ import kotlin.contracts.contract
 /** Requires a non-null name when the API needs a compiler-visible contract. */
 @OptIn(ExperimentalContracts::class)
 fun requireNotNullName(name: String?) {
-    contract { returns() implies (name != null) }
-    require(name != null)
+    contract { returns() implies (name !== null) }
+    require(name !== null)
 }
 ```
 

@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.ValueArgument
 
 /**
  * Verifies that @Suppress annotations do not use forbidden suppression tokens.
@@ -130,7 +131,7 @@ class UncheckedCastSuppression :
 
         private fun KtAnnotationEntry.suppressedTokens(): Set<String> =
             valueArguments
-                .mapNotNull { argument -> argument.getArgumentExpression() }
+                .mapNotNull(ValueArgument::getArgumentExpression)
                 .flatMap { expression ->
                     when (expression) {
                         is KtStringTemplateExpression -> {
@@ -157,7 +158,7 @@ class UncheckedCastSuppression :
 
         private fun KtStringTemplateExpression.extractStringValue(): String? =
             entries
-                .joinToString("") { entry -> entry.text }
+                .joinToString("", transform = PsiElement::getText)
                 .takeIf { entries.all { entry -> entry is KtLiteralStringTemplateEntry } }
     }
 }
