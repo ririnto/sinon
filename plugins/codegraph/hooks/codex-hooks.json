@@ -7,10 +7,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "set -e\nexport npm_config_cache=\"${CLAUDE_PLUGIN_DATA:-${PLUGIN_DATA:-${XDG_CACHE_HOME:-$HOME/.cache}/sinon/codegraph}}/npm-cache\"\nif [ \"$(git rev-parse --is-inside-work-tree)\" = true ]; then\n  if [ \"$(git rev-parse --absolute-git-dir)\" = \"$(git rev-parse --path-format=absolute --git-common-dir)\" ]; then\n    exclude=\"$(git rev-parse --path-format=absolute --git-path info/exclude)\"\n    mkdir -p \"$(dirname \"$exclude\")\"\n    if [ ! -e \"$exclude\" ]; then\n      touch \"$exclude\"\n    fi\n    if ! grep -qxE '\\.codegraph[[:space:]]*' \"$exclude\"; then\n      printf '\\n.codegraph\\n' >> \"$exclude\"\n    fi\n  fi\nfi\nnpx --yes --prefer-online @colbymchenry/codegraph init --yes >&2 && npx --yes --prefer-online @colbymchenry/codegraph index >&2",
-            "statusMessage": "Preparing CodeGraph repository",
+            "command": "(grep -qxE '[.]codegraph[[:space:]]*' \"$(git rev-parse --git-path info/exclude)\" || { echo; echo .codegraph; } >> \"$(git rev-parse --git-path info/exclude)\") >&2",
+            "timeout": 3600,
+            "statusMessage": "Configuring CodeGraph exclusion for Git checkout root",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "(cd \"$(git rev-parse --show-toplevel)\" && npx --yes @colbymchenry/codegraph init --yes && npx --yes @colbymchenry/codegraph index) >&2",
             "async": true,
-            "timeout": 3600
+            "timeout": 3600,
+            "statusMessage": "Initializing and indexing CodeGraph at Git checkout root"
           }
         ]
       }

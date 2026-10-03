@@ -1,6 +1,11 @@
 ---
 description: >-
   Overview of the Netty plugin, its included skills, and high-performance network application workflow coverage.
+metadata:
+  reference:
+    OpenAI Agent Plugins:
+      version: 1.0.0
+      url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
 # Netty
@@ -38,13 +43,15 @@ Project Reactor patterns without Netty or Reactor Netty context are outside this
 
 ## Runtime Model
 
-This plugin uses `.claude-plugin/plugin.json` at the plugin root.
+This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
+ChatGPT and Codex load skills from the default `skills/` directory.
 
 ## Plugin Layout
 
 ```text
 plugins/netty/
 +-- .claude-plugin/plugin.json
++-- plugin.json
 +-- README.md
 +-- skills/
     +-- netty/

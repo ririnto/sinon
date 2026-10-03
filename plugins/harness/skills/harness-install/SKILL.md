@@ -11,14 +11,14 @@ metadata:
 
 # Harness Install
 
-Install current Harness guidance as independent project files under `.claude/skills/`.
+Install current Harness guidance as independent project files under the target host's skill root.
 This skill owns target mapping, conflicts, and installation proof.
 Profile references own native configuration and build integration.
 Do not install this installer skill into the target.
 
 ## Target And Authority
 
-Obtain the target path and verify its repository identity, applicable host instructions, `.claude/` contents, and Git status before edits.
+Obtain the target path and verify its repository identity, host instructions, skill root contents, and Git status before edits.
 Inspect existing mapped paths before treating them as Harness-owned.
 Preserve unrelated changes, custom skills, configuration, and hooks.
 A dirty target is allowed when installation changes remain isolated.
@@ -48,10 +48,13 @@ Do not load unselected native integrations.
 
 ## Installed Layout
 
+Use `.claude/skills/` for Claude Code or `.agents/skills/` for Codex.
+Select the target host before composing the preview.
+Use `<skill-root>` for that selected path throughout the mapping.
 Create these paths relative to the target root:
 
 ```text
-.claude/skills/
+<skill-root>/
 +-- implement/SKILL.md
 +-- review/SKILL.md
 +-- docs/
@@ -72,22 +75,24 @@ Never leave a reference to a document that was not copied.
 
 Use ordinary target-owned files, not symlinks or source-checkout dependencies.
 Do not add installer manifests, caches, hash records, agents, execution-plan files, autonomous skills, or compatibility aliases.
-Native tooling belongs at target configuration or CI paths, not under `.claude/skills/`.
+Native tooling belongs at target configuration or CI paths, outside the selected skill root.
 
 ## Source Mapping
 
-Resolve the installed plugin root from `${CLAUDE_PLUGIN_ROOT}` or the absolute installed path supplied by the host.
+Use this skill's absolute `SKILL.md` path from the host's skill listing.
+Resolve `<plugin-root>` two levels above its containing skill directory.
+Claude Code can also provide that path through `CLAUDE_PLUGIN_ROOT`.
 Read current canonical inputs from that root, not a source checkout in the target repository.
 
 | Target path | Canonical source |
 | --- | --- |
-| `.claude/skills/implement/SKILL.md` | `${CLAUDE_PLUGIN_ROOT}/skills/implement/SKILL.md` |
-| `.claude/skills/review/SKILL.md` | `${CLAUDE_PLUGIN_ROOT}/skills/review/SKILL.md` |
-| `.claude/skills/docs/rules.md` | `${CLAUDE_PLUGIN_ROOT}/docs/rules.md` |
-| `.claude/skills/docs/languages/<name>.md` | `${CLAUDE_PLUGIN_ROOT}/docs/languages/<name>.md` |
-| `.claude/skills/docs/tools/<name>.md` | `${CLAUDE_PLUGIN_ROOT}/docs/tools/<name>.md` |
-| `<target-root>/.markdownlint-cli2.jsonc` | `${CLAUDE_PLUGIN_ROOT}/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm is selected |
-| `<target-tooling>/kotlin-ktlint/` | `${CLAUDE_PLUGIN_ROOT}/tooling/kotlin-ktlint/` when Kotlin is selected |
+| `<skill-root>/implement/SKILL.md` | `<plugin-root>/skills/implement/SKILL.md` |
+| `<skill-root>/review/SKILL.md` | `<plugin-root>/skills/review/SKILL.md` |
+| `<skill-root>/docs/rules.md` | `<plugin-root>/docs/rules.md` |
+| `<skill-root>/docs/languages/<name>.md` | `<plugin-root>/docs/languages/<name>.md` |
+| `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
+| `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm is selected |
+| `<target-tooling>/kotlin-ktlint/` | `<plugin-root>/tooling/kotlin-ktlint/` when Kotlin is selected |
 
 Read the two skills, common rules, and selected language and tool references before composing their target files.
 Preserve canonical content except for these location changes and an explicitly filtered reference index:

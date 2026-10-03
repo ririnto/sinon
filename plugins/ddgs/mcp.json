@@ -1,10 +1,10 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
-    "codegraph": {
+    "ddgs": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"]
+      "command": "uvx",
+      "args": ["--from", "ddgs[mcp]", "ddgs", "mcp"]
     }
   }
 }

@@ -1,6 +1,11 @@
 ---
 description: >-
   Overview of the JVM plugin, its included skills, and JVM tooling and diagnostics workflows.
+metadata:
+  reference:
+    OpenAI Agent Plugins:
+      version: 1.0.0
+      url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
 # JVM
@@ -31,13 +36,15 @@ Use existing evidence before starting a new capture.
 
 ## Runtime Model
 
-This plugin uses `.claude-plugin/plugin.json` at the plugin root.
+This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
+ChatGPT and Codex load skills from the default `skills/` directory.
 
 ## Plugin Layout
 
 ```text
 plugins/jvm/
 +-- .claude-plugin/plugin.json
++-- plugin.json
 +-- README.md
 +-- skills/
     +-- jvm-gc-diagnostics/

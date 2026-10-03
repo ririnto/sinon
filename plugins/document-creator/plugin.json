@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "name": "ririnto"
+  },
+  "description": "Skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md creation.",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/document-creator",
+  "keywords": [
+    "spec",
+    "requirements",
+    "documentation",
+    "authoring",
+    "ai-consumable",
+    "structured"
+  ],
+  "license": "MIT",
+  "name": "document-creator",
+  "repository": "https://github.com/ririnto/sinon",
+  "version": "2026.10.03.00"
+}

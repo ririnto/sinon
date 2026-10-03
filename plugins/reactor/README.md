@@ -1,6 +1,11 @@
 ---
 description: >-
   Overview of the Reactor plugin, its included skills, selection guidance, and reactive programming workflow coverage.
+metadata:
+  reference:
+    OpenAI Agent Plugins:
+      version: 1.0.0
+      url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
 # Reactor
@@ -63,13 +68,17 @@ WebFlux server configuration, handler setup, and transport wiring belong outside
 
 ## Runtime Model
 
-This plugin uses `.claude-plugin/plugin.json` at the plugin root.
+This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
+ChatGPT and Codex load skills from the default `skills/` directory.
+Claude Code also loads the plugin-root `reactor-architect` agent.
+Agent Plugins support covers the skills and does not expose that Claude Code agent.
 
 ## Plugin Layout
 
 ```text
 plugins/reactor/
 +-- .claude-plugin/plugin.json
++-- plugin.json
 +-- README.md
 +-- agents/
 |   +-- reactor-architect.md

@@ -12,12 +12,13 @@ metadata:
 
 # Repository Guidelines
 
-Sinon publishes Claude Code plugins and portable Agent Skills.
+Sinon publishes Claude Code and Codex plugins with portable Agent Skills.
 
 ## Project Structure
 
 - `plugins/` contains publishable packages.
-- `.claude-plugin/marketplace.json` lists local package roots and external catalog registrations.
+- `.claude-plugin/marketplace.json` owns local package roots and external catalog registrations.
+- `.agents/plugins/marketplace.json` is the generated Codex view of that inventory.
 - `docs/agent-references/` contains repository authoring conventions.
 - `scripts/` contains repository validation checks.
 - `rules/` contains repository Markdown custom lint rules.

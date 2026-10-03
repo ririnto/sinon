@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "author": {
+    "name": "ririnto"
+  },
+  "description": "DDGS web search and content extraction MCP tools.",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/ddgs",
+  "keywords": ["ddgs", "web-search", "mcp", "content-extraction"],
+  "license": "MIT",
+  "name": "ddgs",
+  "repository": "https://github.com/ririnto/sinon",
+  "version": "2026.10.03.00"
+}

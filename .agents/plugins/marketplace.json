@@ -1,0 +1,177 @@
+{
+  "interface": {
+    "displayName": "Sinon"
+  },
+  "name": "sinon",
+  "plugins": [
+    {
+      "category": "Development",
+      "name": "codegraph",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codegraph",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "ddgs",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/ddgs",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "document-creator",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/document-creator",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "harness",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/harness",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "java",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/java",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "jvm",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/jvm",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "kotlin",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/kotlin",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "netty",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/netty",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "observability-assets",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/observability-assets",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "reactor",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/reactor",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "spec-driven-development",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/spec-driven-development",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "spring",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/spring",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "workgraph",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "ref": "main",
+        "source": "url",
+        "url": "https://github.com/ririnto/workgraph.git"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "workspace-workflow",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/workspace-workflow",
+        "source": "local"
+      }
+    }
+  ]
+}

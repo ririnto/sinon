@@ -12,6 +12,7 @@ metadata:
       url:
         - https://github.com/colbymchenry/codegraph/tree/v1.6.1
         - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/sync/worktree.ts
+        - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/mcp/tools.ts
     OpenAI plugin packaging:
       url: https://developers.openai.com/plugins/build/plugins
     Agent Plugins:
@@ -35,18 +36,24 @@ The plugin provides CodeGraph as an MCP server for repository-aware tools.
 
 The plugin runs the official CodeGraph package directly through `npx`.
 The runtime requires Node.js, npm, Git, and a POSIX shell on a platform supported by CodeGraph.
-On first use, npm prepares CodeGraph automatically in the plugin's writable data directory.
-Claude Code supplies `CLAUDE_PLUGIN_DATA`, and Codex supplies `PLUGIN_DATA`.
-Without a host data directory, hooks use `XDG_CACHE_HOME` or the user's cache directory under `sinon/codegraph`.
+On first use, npm prepares CodeGraph automatically with its standard cache and user settings.
 The command uses the unversioned `@colbymchenry/codegraph` package.
 Npm may reuse a project-local installation and otherwise resolves the package from the registry.
-The `--prefer-online` option checks cached registry metadata for updates.
 The MCP server and lifecycle hooks use the same `npx` package command.
-The lifecycle hooks run `codegraph init --yes` before `codegraph index` in the host's current working directory.
-In Git repositories, the hook adds only `.codegraph` to the Git info exclude file for the primary checkout.
-Linked worktrees skip exclude changes and still run initialization and indexing.
+The preparation handler resolves the Git checkout root and runs `codegraph init --yes` before `codegraph index` there.
+Initialization builds the first index, and the separate index command also reindexes existing checkouts.
+The `init --yes` option skips prompts and selects upstream defaults.
+When file watching is unavailable, that default can install Git sync hooks, including in an already initialized repository.
+A separate startup handler configures Git exclusion.
+Both hosts declare a one-hour timeout and a preparation status message.
+Claude Code does not enforce the timeout for asynchronous command hooks.
+At startup, the exclusion handler uses Git to find the info exclude file and adds only `.codegraph` when missing.
+Linked worktrees use their shared Git exclude file.
+The `EnterWorktree` hook runs preparation only.
 Each linked worktree needs its own index to query that branch.
-Non-Git directories skip Git exclusion and still run initialization and indexing.
+For an existing MCP connection, pass the worktree root as `projectPath` in tool calls.
+Git exclusion errors do not block the independent asynchronous preparation handler.
+Git lookup failures are logged, and the simplified preparation command can continue in the current directory.
 
 ## Install And Use
 
@@ -70,8 +77,8 @@ Codex uses startup preparation, while Claude Code also prepares a repository aft
 Run CodeGraph directly in a project:
 
 ```sh
-npx --yes --prefer-online @colbymchenry/codegraph --version
-npx --yes --prefer-online @colbymchenry/codegraph status
+npx --yes @colbymchenry/codegraph --version
+npx --yes @colbymchenry/codegraph status
 ```
 
 ## Package Contents

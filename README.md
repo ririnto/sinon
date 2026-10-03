@@ -1,6 +1,6 @@
 ---
 description: >-
-  Repository overview for the Sinon Claude Code plugin marketplace, including structure, marketplace layout, and publishing model.
+  Repository overview for the Sinon Claude Code and Codex plugin marketplace, including structure, marketplace layout, and publishing model.
 metadata:
   reference:
     OpenAI skills:
@@ -17,20 +17,22 @@ metadata:
 
 # Sinon
 
-Sinon is a Claude Code plugin marketplace repository.
+Sinon is a plugin marketplace for Claude Code and Codex.
 It publishes curated local plugins and selected external plugins.
 
 Sinon-maintained plugins live under `plugins/`.
-Selected external plugins are registered in the Claude marketplace catalog and remain maintained in their upstream repositories.
-The Claude marketplace catalog lives at the repository root.
-The codegraph plugin also provides a portable Agent Plugins manifest and Codex startup hooks.
+Selected external plugins remain maintained in their upstream repositories.
+The Claude catalog owns the shared plugin inventory.
+The native Codex catalog is generated from that inventory.
+Each local plugin provides a portable Agent Plugins manifest alongside its Claude manifest.
 
 ## Repository Structure
 
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
-- `.claude-plugin/marketplace.json`: Claude marketplace catalog.
+- `.claude-plugin/marketplace.json`: authoritative plugin inventory and Claude marketplace catalog.
+- `.agents/plugins/marketplace.json`: generated Codex marketplace catalog.
 - `docs/agent-references/`: source and instruction authoring conventions.
 - `scripts/`: repository checks and native example fixtures.
 - `rules/`: repository Markdown lint rules.
@@ -39,11 +41,14 @@ The codegraph plugin also provides a portable Agent Plugins manifest and Codex s
 
 ## Plugin Layout
 
-Each Sinon-maintained plugin directory may expose a Claude Code manifest from the same plugin root:
+Each local plugin exposes both host manifests from the same package root:
 
+- `plugin.json`: portable Agent Plugins manifest for Codex.
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 
-The codegraph package also contains portable `plugin.json` and `mcp.json` files for Codex.
+Codex discovers portable skills from `skills/` and bundled MCP servers from `mcp.json`.
+Claude Code uses `.mcp.json` for its MCP servers.
+Claude-specific agents and LSP configuration retain their host contracts.
 
 Optional assets live beside the manifest at the plugin root.
 Common plugin assets include:
@@ -72,10 +77,11 @@ That component verifies and runs the official release executable without a separ
 
 ## Current Plugins
 
-The following plugins are maintained in this repository and may be published to the Claude marketplace catalog.
+The following local plugins are listed in both marketplace catalogs.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - [codegraph](./plugins/codegraph/README.md)
+- [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
@@ -210,12 +216,34 @@ If you are working from a local checkout instead of a registered marketplace, yo
 claude --plugin-dir /path/to/sinon/plugins/java
 ```
 
-### CodeGraph in Codex
+## Registering This Marketplace in Codex
 
-Codex can discover the existing `.claude-plugin/marketplace.json` as a compatible repository marketplace.
-Install `codegraph` from Sinon through the plugin browser, then start a new session and trust its startup hook.
-The package's portable manifest selects the Codex hook configuration.
-See the [CodeGraph package](./plugins/codegraph/README.md) for runtime requirements and host behavior.
+Add the repository marketplace and install a plugin with the supported Codex CLI:
+
+```sh
+codex plugin marketplace add ririnto/sinon --ref main
+codex plugin list --available --marketplace sinon
+codex plugin add ddgs@sinon
+```
+
+For a local checkout, use `codex plugin marketplace add /path/to/sinon`.
+The repository catalog at `.agents/plugins/marketplace.json` exposes the same entries as the Claude catalog.
+Its local source paths are relative to the repository root.
+External Workgraph continues to follow its upstream `main` branch.
+
+Install plugins through the Codex plugin browser when using the desktop app.
+Start a new session after installation and trust hooks when the host requests it.
+CodeGraph provides separate Codex startup hooks and Claude startup and `EnterWorktree` hooks.
+DDGS and CodeGraph prepare their upstream tools on demand with native package caches.
+See each package README for runtime requirements and host-specific capabilities.
+
+## Maintaining The Catalogs
+
+Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
+Keep each local package's portable and Claude manifest identities aligned.
+Generate the native Codex view with `pnpm run marketplace:generate`.
+Commit the generated catalog with its source changes.
+The repository checks reject stale catalogs and invalid local package mappings.
 
 ## License
 

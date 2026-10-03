@@ -1,6 +1,11 @@
 ---
 description: >-
   Overview of the Harness plugin for shared implementation, review, and target-repository installation guidance.
+metadata:
+  reference:
+    OpenAI Agent Plugins:
+      version: 1.0.0
+      url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
 # Harness
@@ -9,6 +14,7 @@ Harness provides three skills: `implement`, `review`, and `harness-install`.
 The installer materializes the implementation and review skills and their canonical documentation in a target repository.
 The skills route each task to shared rules and context-specific language and tool guidance.
 The installed skills are project-local copies derived from the current canonical files.
+The installer selects `.claude/skills/` for Claude Code and `.agents/skills/` for Codex.
 
 ## Skills
 
@@ -20,9 +26,13 @@ The installed skills are project-local copies derived from the current canonical
 
 The skills use the instruction files selected by the active host.
 
+ChatGPT and Codex load skills from the default `skills/` directory through the root Agent Plugins `plugin.json`.
+Claude Code uses `.claude-plugin/plugin.json`.
+
 ## Package Inventory
 
-- `.claude-plugin/plugin.json`: plugin metadata.
+- `.claude-plugin/plugin.json`: Claude Code plugin metadata.
+- `plugin.json`: portable Agent Plugins identity for the packaged skills.
 - `skills/implement/SKILL.md`: implementation procedure.
 - `skills/review/SKILL.md`: review procedure.
 - `skills/harness-install/SKILL.md`: target-repository installation procedure.
