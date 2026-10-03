@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "command": "npx",
+      "args": [
+        "--yes",
+        "--prefer-online",
+        "@colbymchenry/codegraph",
+        "serve",
+        "--mcp"
+      ],
+      "env": {
+        "npm_config_cache": "${CLAUDE_PLUGIN_DATA}/npm-cache"
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
+    "check:codegraph": "vitest run scripts/tests/codegraph",
     "check:lint-rules": "vitest run plugins/harness/tooling/pnpm/plugins",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:promtool-release": "vitest run scripts/tests/promtool/release.test.ts",
