@@ -48,14 +48,12 @@ const makeHarness = () => {
     "#!/usr/bin/env node",
     'import { appendFileSync } from "node:fs";',
     "const argv = process.argv.slice(2);",
-    'const command = argv.includes("init") ? "INIT" : argv.includes("index") ? "INDEX" : "OTHER";',
     'appendFileSync(process.env.CODEGRAPH_STUB_LOG, JSON.stringify({ argv, cache: process.env.npm_config_cache ?? null, cwd: process.cwd() }) + "\\n");',
-    'process.exit(Number(process.env["CODEGRAPH_STUB_EXIT_" + command] ?? "0"));'
+    'process.exit(Number(process.env.CODEGRAPH_STUB_EXIT_INIT ?? "0"));'
   ].join("\n");
   writeFileSync(npxPath, npxSource, { mode: 0o755 });
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    CODEGRAPH_STUB_EXIT_INDEX: "0",
     CODEGRAPH_STUB_EXIT_INIT: "0",
     CODEGRAPH_STUB_LOG: logPath,
     PATH: binaryDirectory + path.delimiter + (process.env.PATH ?? ""),
@@ -104,7 +102,7 @@ const makeRepository = (root: string): void => {
 const expectPreparation = (hook: HookDefinition | undefined): void => {
   expect(hook).toMatchObject({
     async: true,
-    statusMessage: "Initializing and indexing CodeGraph at Git checkout root",
+    statusMessage: "Initializing CodeGraph at Git checkout root",
     timeout: 3600,
     type: "command"
   });
@@ -190,11 +188,19 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
   const claudeMcp = JSON.parse(
     readFileSync(path.join(pluginRoot, ".mcp.json"), "utf-8")
   ) as {
+    $schema?: string;
     mcpServers: {
-      codegraph: { args: string[]; command: string; type: string };
+      codegraph: {
+        alwaysLoad: boolean;
+        args: string[];
+        command: string;
+        type: string;
+      };
     };
   };
+  expect(claudeMcp.$schema).toBeUndefined();
   expect(claudeMcp.mcpServers.codegraph).toEqual({
+    alwaysLoad: true,
     args: ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
     command: "npx",
     type: "stdio"
@@ -213,6 +219,7 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
   const codexMcp = JSON.parse(
     readFileSync(path.join(pluginRoot, "mcp.json"), "utf-8")
   ) as {
+    $schema: string;
     mcpServers: {
       codegraph: {
         args: string[];
@@ -221,6 +228,9 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
       };
     };
   };
+  expect(codexMcp.$schema).toBe(
+    "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
+  );
   expect(codexMcp.mcpServers.codegraph).toEqual({
     args: ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
     command: "npx",
@@ -228,7 +238,7 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
   });
 });
 
-test("configured handlers use active cwd and preserve npm cache settings", () => {
+test("configured handlers prepare at Git checkout root and preserve npm cache settings", () => {
   const harness = makeHarness();
   const repository = path.join(harness.root, "consumer repository with spaces");
   makeRepository(repository);
@@ -252,17 +262,14 @@ test("configured handlers use active cwd and preserve npm cache settings", () =>
     }
   }
   const calls = callsFrom(harness.logPath);
-  expect(calls).toHaveLength(6);
+  expect(calls).toHaveLength(3);
   expect(calls.map((call) => call.cwd)).toEqual(
-    Array.from({ length: 6 }, () => realpathSync(repository))
+    Array.from({ length: 3 }, () => realpathSync(repository))
   );
   expect(calls.map((call) => call.argv)).toEqual([
     ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"],
     ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"],
-    ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"]
+    ["--yes", "@colbymchenry/codegraph", "init", "--yes"]
   ]);
   expect(readFileSync(excludePath(nestedCwd), "utf-8")).toContain(
     ".codegraph\n"
@@ -348,11 +355,9 @@ test("linked worktree updates its shared exclude idempotently and prepares on en
     ).status
   ).toBe(0);
   expect(callsFrom(harness.logPath).map((call) => call.argv)).toEqual([
-    ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"]
+    ["--yes", "@colbymchenry/codegraph", "init", "--yes"]
   ]);
   expect(callsFrom(harness.logPath).map((call) => call.cwd)).toEqual([
-    realpathSync(linked),
     realpathSync(linked)
   ]);
 });
@@ -387,15 +392,11 @@ test("bare repository uses Git's exclude path and non-Git handlers fail independ
   ).toBe(0);
   expect(callsFrom(harness.logPath).map((call) => call.cwd)).toEqual([
     realpathSync(bare),
-    realpathSync(bare),
-    realpathSync(nonGit),
     realpathSync(nonGit)
   ]);
   expect(callsFrom(harness.logPath).map((call) => call.argv)).toEqual([
     ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"],
-    ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"]
+    ["--yes", "@colbymchenry/codegraph", "init", "--yes"]
   ]);
 });
 
@@ -436,7 +437,9 @@ test("missing Git exclusion fails independently from preparation", () => {
     ).status
   ).toBe(0);
   expect(readFileSync(exclude, "utf-8")).toBe(original);
-  expect(callsFrom(harness.logPath)).toHaveLength(2);
+  expect(callsFrom(harness.logPath).map((call) => call.argv)).toEqual([
+    ["--yes", "@colbymchenry/codegraph", "init", "--yes"]
+  ]);
 });
 
 test("preparation preserves the caller-supplied npm cache setting", () => {
@@ -449,16 +452,14 @@ test("preparation preserves the caller-supplied npm cache setting", () => {
     runHook("claude", "SessionStart", "startup", cwd, harness).status
   ).toBe(0);
   expect(callsFrom(harness.logPath).map((call) => call.cache)).toEqual([
-    harness.env.npm_config_cache,
     harness.env.npm_config_cache
   ]);
   expect(callsFrom(harness.logPath).map((call) => call.cwd)).toEqual([
-    realpathSync(repository),
     realpathSync(repository)
   ]);
 });
 
-test("init failure prevents index and preserves its exit status", () => {
+test("init-only preparation preserves the init failure exit status", () => {
   const harness = makeHarness();
   const cwd = path.join(harness.root, "repository");
   makeRepository(cwd);
@@ -470,21 +471,5 @@ test("init failure prevents index and preserves its exit status", () => {
   ).toBe(19);
   expect(callsFrom(harness.logPath).map((call) => call.argv)).toEqual([
     ["--yes", "@colbymchenry/codegraph", "init", "--yes"]
-  ]);
-});
-
-test("index failure is returned after successful initialization", () => {
-  const harness = makeHarness();
-  const cwd = path.join(harness.root, "repository");
-  makeRepository(cwd);
-  const nestedCwd = path.join(cwd, "nested");
-  mkdirSync(nestedCwd);
-  harness.env.CODEGRAPH_STUB_EXIT_INDEX = "23";
-  expect(
-    runHook("claude", "SessionStart", "startup", nestedCwd, harness).status
-  ).toBe(23);
-  expect(callsFrom(harness.logPath).map((call) => call.argv)).toEqual([
-    ["--yes", "@colbymchenry/codegraph", "init", "--yes"],
-    ["--yes", "@colbymchenry/codegraph", "index"]
   ]);
 });
