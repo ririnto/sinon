@@ -1,16 +1,19 @@
 ---
 description: >-
-  CodeGraph repository indexing and MCP integration for Claude Code and Codex.
+  CodeGraph repository initialization and MCP integration for Claude Code and Codex.
 metadata:
   reference:
     Claude Code plugin manifests:
       url: https://code.claude.com/docs/en/plugins/manifest-reference
     Claude Code hooks:
       url: https://code.claude.com/docs/en/hooks
+    Claude Code MCP:
+      url: https://code.claude.com/docs/en/mcp#exempt-a-server-from-deferral
     CodeGraph:
       version: v1.6.1
       url:
         - https://github.com/colbymchenry/codegraph/tree/v1.6.1
+        - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/bin/codegraph.ts
         - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/sync/worktree.ts
         - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/mcp/tools.ts
     OpenAI plugin packaging:
@@ -28,8 +31,8 @@ metadata:
 
 # CodeGraph
 
-CodeGraph indexes the active repository when a Claude Code session starts or enters a worktree.
-Codex startup also initializes and indexes the active repository.
+CodeGraph initializes the active repository when a Claude Code session starts or enters a worktree.
+Codex startup also initializes the active repository.
 The plugin provides CodeGraph as an MCP server for repository-aware tools.
 
 ## Runtime
@@ -40,9 +43,12 @@ On first use, npm prepares CodeGraph automatically with its standard cache and u
 The command uses the unversioned `@colbymchenry/codegraph` package.
 Npm may reuse a project-local installation and otherwise resolves the package from the registry.
 The MCP server and lifecycle hooks use the same `npx` package command.
-The preparation handler resolves the Git checkout root and runs `codegraph init --yes` before `codegraph index` there.
-Initialization builds the first index, and the separate index command also reindexes existing checkouts.
-The `init --yes` option skips prompts and selects upstream defaults.
+Claude Code loads CodeGraph tools upfront through `alwaysLoad: true`.
+That Claude-specific field is outside the portable MCP schema, so `.mcp.json` does not declare that schema.
+The preparation handler resolves the Git checkout root and runs `codegraph init --yes` there.
+Initialization builds the first index, and the MCP server then synchronizes changes automatically.
+The lifecycle hooks do not run a separate full index command.
+CodeGraph 1.6.1 supports `init --yes` to skip prompts and select upstream defaults.
 When file watching is unavailable, that default can install Git sync hooks, including in an already initialized repository.
 A separate startup handler configures Git exclusion.
 Both hosts declare a one-hour timeout and a preparation status message.

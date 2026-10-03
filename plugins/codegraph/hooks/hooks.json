@@ -14,10 +14,10 @@
           },
           {
             "type": "command",
-            "command": "(cd \"$(git rev-parse --show-toplevel)\" && npx --yes @colbymchenry/codegraph init --yes && npx --yes @colbymchenry/codegraph index) >&2",
+            "command": "(cd \"$(git rev-parse --show-toplevel)\" && npx --yes @colbymchenry/codegraph init --yes) >&2",
             "async": true,
             "timeout": 3600,
-            "statusMessage": "Initializing and indexing CodeGraph at Git checkout root"
+            "statusMessage": "Initializing CodeGraph at Git checkout root"
           }
         ]
       }
@@ -28,10 +28,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "(cd \"$(git rev-parse --show-toplevel)\" && npx --yes @colbymchenry/codegraph init --yes && npx --yes @colbymchenry/codegraph index) >&2",
+            "command": "(cd \"$(git rev-parse --show-toplevel)\" && npx --yes @colbymchenry/codegraph init --yes) >&2",
             "async": true,
             "timeout": 3600,
-            "statusMessage": "Initializing and indexing CodeGraph at Git checkout root"
+            "statusMessage": "Initializing CodeGraph at Git checkout root"
           }
         ]
       }
