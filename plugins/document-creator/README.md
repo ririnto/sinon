@@ -2,6 +2,11 @@
 description: >-
   Plugin hosting skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria.
   Currently provides `SPEC.md` authoring.
+metadata:
+  reference:
+    OpenAI Agent Plugins:
+      version: 1.0.0
+      url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
 # Document Creator
@@ -23,13 +28,15 @@ Use `spec-creator` when the requested deliverable is the specification document 
 
 ## Runtime Model
 
-This plugin uses `.claude-plugin/plugin.json` at the plugin root.
+This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
+ChatGPT and Codex load the skill from the default `skills/` directory.
 
 ## Plugin Layout
 
 ```text
 plugins/document-creator/
 +-- .claude-plugin/plugin.json
++-- plugin.json
 +-- README.md
 +-- skills/
     +-- spec-creator/

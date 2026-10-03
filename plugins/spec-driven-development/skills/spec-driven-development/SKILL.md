@@ -83,9 +83,11 @@ OpenAPI 3.2.1 is current, while the bundled scaffold uses the latest 3.1 patch f
 
 The installed plugin requires Node.js and its declared `tsx`, `yaml`, and `fast-sort` dependencies.
 Use pnpm to prepare those dependencies before offline use:
+Set `PLUGIN_ROOT` to the absolute installed package path supplied by the host.
+Replace the example path in each invocation.
 
 ```sh
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
+PLUGIN_ROOT="/absolute/path/to/installed/plugin"
 pnpm --dir "${PLUGIN_ROOT}" install --prod --frozen-lockfile
 ```
 
@@ -94,12 +96,12 @@ Reuse the installation while its dependency declarations stay unchanged.
 Resolve `SKILL_ROOT` from the installed plugin for each shell invocation that uses it:
 
 ```sh
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
+PLUGIN_ROOT="/absolute/path/to/installed/plugin"
 SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
 ```
 
-If the host does not provide `CLAUDE_PLUGIN_ROOT`, use the absolute installed skill path it supplies.
+In Claude Code, `CLAUDE_PLUGIN_ROOT` can supply the installed package path.
 Do not write consuming artifacts into that installation.
 
 Run `node --import "${SKILL_ROOT}/../../node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate <spec-root-or-subtree>` before Spec Review closes and after final spec sync.

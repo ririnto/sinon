@@ -6,6 +6,7 @@
     "check": "run-p check:*",
     "check:codegraph": "vitest run scripts/tests/codegraph",
     "check:lint-rules": "vitest run plugins/harness/tooling/pnpm/plugins",
+    "check:marketplace": "tsx scripts/marketplace/generate.ts --check && vitest run scripts/tests/marketplace",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:promtool-release": "vitest run scripts/tests/promtool/release.test.ts",
     "check:sdd": "vitest run scripts/tests/sdd",
@@ -14,6 +15,7 @@
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "fix:ultracite": "ultracite fix",
+    "marketplace:generate": "tsx scripts/marketplace/generate.ts",
     "test:promtool": "tsx scripts/tests/promtool/run.ts"
   },
   "devDependencies": {
