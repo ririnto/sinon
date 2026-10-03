@@ -7,7 +7,7 @@ allowBuilds:
 catalog:
   "@oxc-project/types": ^0.152.0
   "@tsconfig/node-lts": ^24.0.1
-  "@types/node": ^24.19.1
+  "@types/node": ^26.6.3
   fast-sort: ^3.4.1
   markdownlint: ^0.41.1
   markdownlint-cli2: ^0.23.3
