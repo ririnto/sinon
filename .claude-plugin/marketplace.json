@@ -13,6 +13,17 @@
         "name": "ririnto"
       },
       "category": "development",
+      "description": "CodeGraph CLI and MCP tools with automatic project initialization, indexing, and local Git exclusion.",
+      "license": "MIT",
+      "name": "codegraph",
+      "source": "./plugins/codegraph",
+      "version": "2026.10.03.00"
+    },
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
       "description": "Skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md creation.",
       "license": "MIT",
       "name": "document-creator",

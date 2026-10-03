@@ -5,6 +5,8 @@ metadata:
   reference:
     OpenAI skills:
       url: https://developers.openai.com/codex/skills
+    OpenAI plugin packaging:
+      url: https://developers.openai.com/plugins/build/plugins
     Claude plugin marketplaces:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference
     Claude plugin components:
@@ -21,6 +23,7 @@ It publishes curated local plugins and selected external plugins.
 Sinon-maintained plugins live under `plugins/`.
 Selected external plugins are registered in the Claude marketplace catalog and remain maintained in their upstream repositories.
 The Claude marketplace catalog lives at the repository root.
+The codegraph plugin also provides a portable Agent Plugins manifest and Codex startup hooks.
 
 ## Repository Structure
 
@@ -39,6 +42,8 @@ The Claude marketplace catalog lives at the repository root.
 Each Sinon-maintained plugin directory may expose a Claude Code manifest from the same plugin root:
 
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
+
+The codegraph package also contains portable `plugin.json` and `mcp.json` files for Codex.
 
 Optional assets live beside the manifest at the plugin root.
 Common plugin assets include:
@@ -70,6 +75,7 @@ That component verifies and runs the official release executable without a separ
 The following plugins are maintained in this repository and may be published to the Claude marketplace catalog.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
+- [codegraph](./plugins/codegraph/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
@@ -131,6 +137,7 @@ Examples:
 
 ```sh
 claude plugin install document-creator@sinon
+claude plugin install codegraph@sinon
 claude plugin install harness@sinon
 claude plugin install workgraph@sinon
 claude plugin install java@sinon
@@ -202,6 +209,13 @@ If you are working from a local checkout instead of a registered marketplace, yo
 ```sh
 claude --plugin-dir /path/to/sinon/plugins/java
 ```
+
+### CodeGraph in Codex
+
+Codex can discover the existing `.claude-plugin/marketplace.json` as a compatible repository marketplace.
+Install `codegraph` from Sinon through the plugin browser, then start a new session and trust its startup hook.
+The package's portable manifest selects the Codex hook configuration.
+See the [CodeGraph package](./plugins/codegraph/README.md) for runtime requirements and host behavior.
 
 ## License
 
