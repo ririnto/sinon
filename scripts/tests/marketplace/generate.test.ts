@@ -29,31 +29,25 @@ const writePlugin = (
   root: string,
   directory: string,
   overrides: {
-    claude?: Record<string, unknown>;
-    portable?: Record<string, unknown>;
+    native?: Record<string, unknown>;
   } = {}
 ): void => {
   const pluginRoot = path.join(root, "plugins", directory);
-  const manifest = {
+  const baseManifest = {
     author: { name: "Sinon" },
-    description: "Portable plugin description.",
+    description: "Native plugin description.",
     license: "MIT",
     name: directory,
-    version: "1.0.0",
-    ...overrides.portable
+    version: "1.0.0"
   };
-  const claudeManifest = {
-    ...manifest,
-    ...overrides.claude
+  const nativeManifest = {
+    ...baseManifest,
+    ...overrides.native
   };
-  mkdirSync(path.join(pluginRoot, ".claude-plugin"), { recursive: true });
+  mkdirSync(path.join(pluginRoot, ".codex-plugin"), { recursive: true });
   writeFileSync(
-    path.join(pluginRoot, "plugin.json"),
-    `${JSON.stringify(manifest, null, 2)}\n`
-  );
-  writeFileSync(
-    path.join(pluginRoot, ".claude-plugin/plugin.json"),
-    `${JSON.stringify(claudeManifest, null, 2)}\n`
+    path.join(pluginRoot, ".codex-plugin/plugin.json"),
+    `${JSON.stringify(nativeManifest, null, 2)}\n`
   );
 };
 
@@ -157,25 +151,26 @@ test("rejects unsupported source types and duplicate local identities", async ()
 
 test("rejects package identity and metadata disagreement", async () => {
   const root = makeRoot();
-  writePlugin(root, "helper", { portable: { name: "different" } });
+  writePlugin(root, "helper", { native: { name: "different" } });
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow("Source marketplace name for helper does not match");
   writePlugin(root, "helper", {
-    claude: { description: "Different package description." }
+    native: { description: "" }
   });
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow(
-    "Portable manifest description for helper does not match Claude manifest"
+    "Native manifest for helper description must be a non-empty string"
   );
+  writePlugin(root, "helper");
   await expect(
     createCodexMarketplace(
       catalog([{ ...localEntry("helper"), license: "Apache-2.0" }]),
       root
     )
   ).rejects.toThrow(
-    "Source marketplace license for helper does not match portable manifest"
+    "Source marketplace license for helper does not match native manifest"
   );
   await expect(
     createCodexMarketplace(
@@ -189,6 +184,43 @@ test("rejects package identity and metadata disagreement", async () => {
       root
     )
   ).rejects.toThrow("Source marketplace author name for helper does not match");
+});
+
+test("accepts an absent Claude manifest and rejects one when present", async () => {
+  const root = makeRoot();
+  writePlugin(root, "helper");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).resolves.toMatchObject({
+    plugins: [{ name: "helper" }]
+  });
+  const claudePluginDirectory = path.join(
+    root,
+    "plugins/helper/.claude-plugin"
+  );
+  mkdirSync(claudePluginDirectory, { recursive: true });
+  writeFileSync(path.join(claudePluginDirectory, "plugin.json"), "{}\n");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow("Claude plugin manifest for helper is not allowed");
+});
+
+test("requires a native manifest and rejects the root manifest shadow", async () => {
+  const root = makeRoot();
+  writePlugin(root, "helper");
+  const nativeManifest = path.join(
+    root,
+    "plugins/helper/.codex-plugin/plugin.json"
+  );
+  rmSync(nativeManifest);
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow("Cannot read native manifest for helper");
+  writePlugin(root, "helper");
+  writeFileSync(path.join(root, "plugins/helper/plugin.json"), "{}\n");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow("Root plugin.json is not allowed for helper");
 });
 
 test("rejects local plugin paths that resolve through symlinks outside the repository", async () => {

@@ -1,0 +1,10 @@
+{
+  "name": "ddgs",
+  "version": "2026.10.03.02",
+  "description": "DDGS web search and content extraction MCP tools.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT",
+  "mcpServers": "./mcp.json"
+}

@@ -4,8 +4,9 @@ description: >-
   Currently provides `SPEC.md` authoring.
 metadata:
   reference:
-    OpenAI Agent Plugins:
-      version: 1.0.0
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
+    OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
@@ -28,15 +29,14 @@ Use `spec-creator` when the requested deliverable is the specification document 
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
-ChatGPT and Codex load the skill from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 
 ## Plugin Layout
 
 ```text
 plugins/document-creator/
-+-- .claude-plugin/plugin.json
-+-- plugin.json
++-- .codex-plugin/plugin.json
 +-- README.md
 +-- skills/
     +-- spec-creator/

@@ -1,4 +1,4 @@
-import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -223,7 +223,7 @@ const validateCatalogMetadata = (
       plugin[field],
       manifest[field],
       "Source marketplace",
-      "portable manifest"
+      "native manifest"
     );
   }
   if (plugin.license !== undefined) {
@@ -233,13 +233,13 @@ const validateCatalogMetadata = (
       plugin.license,
       manifest.license,
       "Source marketplace",
-      "portable manifest"
+      "native manifest"
     );
   }
   if (plugin.author?.name !== undefined) {
     if (!isRecord(manifest.author)) {
       throw new Error(
-        `Portable manifest for ${plugin.name} is missing its author`
+        `Native manifest for ${plugin.name} is missing its author`
       );
     }
     assertManifestFieldMatches(
@@ -248,51 +248,31 @@ const validateCatalogMetadata = (
       plugin.author.name,
       manifest.author.name,
       "Source marketplace",
-      "portable manifest"
+      "native manifest"
     );
   }
 };
 
-const validatePackageMetadata = (
+const assertManifestAbsent = async (
+  manifestPath: string,
   pluginName: string,
-  manifest: Record<string, unknown>,
-  claudeManifest: Record<string, unknown>
-): void => {
-  for (const field of ["name", "version", "description"] as const) {
-    assertManifestFieldMatches(
-      pluginName,
-      field,
-      manifest[field],
-      claudeManifest[field],
-      "Portable manifest",
-      "Claude manifest"
-    );
-  }
-  if (manifest.license !== undefined || claudeManifest.license !== undefined) {
-    assertManifestFieldMatches(
-      pluginName,
-      "license",
-      manifest.license,
-      claudeManifest.license,
-      "Portable manifest",
-      "Claude manifest"
-    );
-  }
-  if (manifest.author !== undefined || claudeManifest.author !== undefined) {
-    if (!isRecord(manifest.author) || !isRecord(claudeManifest.author)) {
-      throw new Error(
-        `Portable and Claude manifest authors for ${pluginName} do not match`
-      );
+  errorMessage: string
+): Promise<void> => {
+  try {
+    await lstat(manifestPath);
+  } catch (error) {
+    if (isRecord(error) && error.code === "ENOENT") {
+      return;
     }
-    assertManifestFieldMatches(
-      pluginName,
-      "author name",
-      manifest.author.name,
-      claudeManifest.author.name,
-      "Portable manifest",
-      "Claude manifest"
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Cannot check manifest absence for ${pluginName}: ${reason}`,
+      {
+        cause: error
+      }
     );
   }
+  throw new Error(errorMessage);
 };
 
 const resolveLocalPluginPath = async (
@@ -320,20 +300,25 @@ const validateLocalPlugin = async (
   plugin: CatalogPlugin,
   pluginPath: string
 ): Promise<void> => {
-  const manifest = await readManifest(
+  await assertManifestAbsent(
     path.resolve(pluginPath, "plugin.json"),
-    `portable manifest for ${plugin.name}`
+    plugin.name,
+    `Root plugin.json is not allowed for ${plugin.name}; use .codex-plugin/plugin.json`
+  );
+  await assertManifestAbsent(
+    path.resolve(pluginPath, ".claude-plugin/plugin.json"),
+    plugin.name,
+    `Claude plugin manifest for ${plugin.name} is not allowed; keep metadata in the marketplace catalog`
+  );
+  const manifest = await readManifest(
+    path.resolve(pluginPath, ".codex-plugin/plugin.json"),
+    `native manifest for ${plugin.name}`
   );
   requiredString(
     manifest.description,
-    `Portable manifest for ${plugin.name} description`
+    `Native manifest for ${plugin.name} description`
   );
   validateCatalogMetadata(plugin, manifest);
-  const claudeManifest = await readManifest(
-    path.resolve(pluginPath, ".claude-plugin/plugin.json"),
-    `Claude manifest for ${plugin.name}`
-  );
-  validatePackageMetadata(plugin.name, manifest, claudeManifest);
 };
 
 const categoryLabel = (category: string | undefined): string => {

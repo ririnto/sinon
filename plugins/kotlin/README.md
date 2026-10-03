@@ -3,8 +3,9 @@ description: >-
   Overview of the Kotlin plugin, its included skills, and practical Kotlin workflow coverage.
 metadata:
   reference:
-    OpenAI Agent Plugins:
-      version: 1.0.0
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
+    OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
@@ -49,18 +50,17 @@ Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
-ChatGPT and Codex load the three skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 Claude Code also provides the Kotlin LSP integration described below.
-Agent Plugins support covers the skills and does not include `.lsp.json`.
+The `.lsp.json` language-server integration remains a Claude Code surface.
 Local language-server support files live at the package root.
 
 ## Plugin Layout
 
 ```text
 plugins/kotlin/
-+-- .claude-plugin/plugin.json
-+-- plugin.json
++-- .codex-plugin/plugin.json
 +-- .lsp.json
 +-- README.md
 +-- skills/

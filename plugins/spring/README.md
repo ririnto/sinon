@@ -3,8 +3,9 @@ description: >-
   Spring plugin skills, architecture routing, scope boundaries, and installation.
 metadata:
   reference:
-    OpenAI Agent Plugins:
-      version: 1.0.0
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
+    OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
@@ -93,17 +94,16 @@ General coroutine and Flow design outside Spring framework behavior belongs in r
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
-ChatGPT and Codex load skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 Claude Code also loads the plugin-root `spring-architect` agent.
-Agent Plugins support covers the skills and does not expose that Claude Code agent.
+The listed plugin-root agent remains a Claude Code surface.
 
 ## Plugin Layout
 
 ```text
 plugins/spring/
-+-- .claude-plugin/plugin.json
-+-- plugin.json
++-- .codex-plugin/plugin.json
 +-- README.md
 +-- agents/
 |   +-- spring-architect.md

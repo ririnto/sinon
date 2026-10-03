@@ -1,0 +1,9 @@
+{
+  "name": "observability-assets",
+  "version": "2026.10.03.02",
+  "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT"
+}
