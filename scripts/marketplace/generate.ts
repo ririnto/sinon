@@ -239,7 +239,7 @@ const validateCatalogMetadata = (
   if (plugin.author?.name !== undefined) {
     if (!isRecord(manifest.author)) {
       throw new Error(
-        `Portable manifest for ${plugin.name} is missing its author`
+        `Native manifest for ${plugin.name} is missing its author`
       );
     }
     assertManifestFieldMatches(
@@ -253,69 +253,26 @@ const validateCatalogMetadata = (
   }
 };
 
-const validatePackageMetadata = (
+const assertManifestAbsent = async (
+  manifestPath: string,
   pluginName: string,
-  manifest: Record<string, unknown>,
-  claudeManifest: Record<string, unknown>
-): void => {
-  for (const field of ["name", "version", "description"] as const) {
-    assertManifestFieldMatches(
-      pluginName,
-      field,
-      manifest[field],
-      claudeManifest[field],
-      "Native manifest",
-      "Claude manifest"
-    );
-  }
-  if (manifest.license !== undefined || claudeManifest.license !== undefined) {
-    assertManifestFieldMatches(
-      pluginName,
-      "license",
-      manifest.license,
-      claudeManifest.license,
-      "Native manifest",
-      "Claude manifest"
-    );
-  }
-  if (manifest.author !== undefined || claudeManifest.author !== undefined) {
-    if (!isRecord(manifest.author) || !isRecord(claudeManifest.author)) {
-      throw new Error(
-        `Native and Claude manifest authors for ${pluginName} do not match`
-      );
-    }
-    assertManifestFieldMatches(
-      pluginName,
-      "author name",
-      manifest.author.name,
-      claudeManifest.author.name,
-      "Native manifest",
-      "Claude manifest"
-    );
-  }
-};
-
-const assertNoRootPluginManifest = async (
-  pluginName: string,
-  pluginPath: string
+  errorMessage: string
 ): Promise<void> => {
   try {
-    await lstat(path.resolve(pluginPath, "plugin.json"));
+    await lstat(manifestPath);
   } catch (error) {
     if (isRecord(error) && error.code === "ENOENT") {
       return;
     }
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `Cannot check root plugin manifest for ${pluginName}: ${reason}`,
+      `Cannot check manifest absence for ${pluginName}: ${reason}`,
       {
         cause: error
       }
     );
   }
-  throw new Error(
-    `Root plugin.json is not allowed for ${pluginName}; use .codex-plugin/plugin.json`
-  );
+  throw new Error(errorMessage);
 };
 
 const resolveLocalPluginPath = async (
@@ -343,7 +300,16 @@ const validateLocalPlugin = async (
   plugin: CatalogPlugin,
   pluginPath: string
 ): Promise<void> => {
-  await assertNoRootPluginManifest(plugin.name, pluginPath);
+  await assertManifestAbsent(
+    path.resolve(pluginPath, "plugin.json"),
+    plugin.name,
+    `Root plugin.json is not allowed for ${plugin.name}; use .codex-plugin/plugin.json`
+  );
+  await assertManifestAbsent(
+    path.resolve(pluginPath, ".claude-plugin/plugin.json"),
+    plugin.name,
+    `Claude plugin manifest for ${plugin.name} is not allowed; keep metadata in the marketplace catalog`
+  );
   const manifest = await readManifest(
     path.resolve(pluginPath, ".codex-plugin/plugin.json"),
     `native manifest for ${plugin.name}`
@@ -352,12 +318,7 @@ const validateLocalPlugin = async (
     manifest.description,
     `Native manifest for ${plugin.name} description`
   );
-  const claudeManifest = await readManifest(
-    path.resolve(pluginPath, ".claude-plugin/plugin.json"),
-    `Claude manifest for ${plugin.name}`
-  );
   validateCatalogMetadata(plugin, manifest);
-  validatePackageMetadata(plugin.name, manifest, claudeManifest);
 };
 
 const categoryLabel = (category: string | undefined): string => {

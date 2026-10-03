@@ -7,8 +7,9 @@ The package root is the containment boundary for declared paths and packaged con
 
 Keep the marketplace manifest aligned with package roots.
 Keep manifests schema-valid, use object-form authors, and keep declared paths inside the package root.
-Declare Codex identity in `.codex-plugin/plugin.json` and Claude Code identity in `.claude-plugin/plugin.json`.
-Keep their shared identity metadata aligned with each other and the authoritative catalog.
+Declare Codex identity in `.codex-plugin/plugin.json` and Claude Code identity in the authoritative marketplace entry.
+Keep Codex identity metadata aligned with the authoritative catalog.
+Do not add local `.claude-plugin/plugin.json` files because they override marketplace metadata.
 Do not add root `plugin.json` files because they shadow native Codex manifests.
 Use `mcp.json` and Claude `.mcp.json` for their respective MCP consumers.
 Declare each MCP transport explicitly and use a schema that matches its configuration.
@@ -23,5 +24,5 @@ Local reference filenames omit parts redundant with the owning skill's subject w
 
 ## Validation
 
-Run `claude plugin validate plugins/<plugin>` after changing that package.
+Run `claude plugin validate .` after changing a package or its marketplace entry.
 Portable Agent Skill structure belongs to the affected skill's contract.

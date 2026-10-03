@@ -16,6 +16,7 @@ metadata:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference
     Claude plugin components:
       url:
+        - https://code.claude.com/docs/en/plugins/manifest-reference
         - https://code.claude.com/docs/en/plugins/cli-reference
         - https://code.claude.com/docs/en/plugins/troubleshooting
 ---
@@ -29,7 +30,8 @@ Sinon-maintained plugins live under `plugins/`.
 Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
-Each local plugin provides native Codex and Claude Code manifests.
+Each local plugin provides a native Codex manifest.
+Claude Code uses each plugin's marketplace entry as its manifest.
 
 ## Repository Structure
 
@@ -46,14 +48,15 @@ Each local plugin provides native Codex and Claude Code manifests.
 
 ## Plugin Layout
 
-Each local plugin exposes both host manifests from the same package root:
+Each host reads its own plugin metadata:
 
 - `.codex-plugin/plugin.json`: native Codex plugin manifest.
-- `.claude-plugin/plugin.json`: Claude plugin manifest.
+- `.claude-plugin/marketplace.json`: Claude plugin entries and metadata.
 
 Codex discovers shared skills from `skills/` and loads MCP files declared by its manifest.
 Root `plugin.json` files are excluded because they shadow native manifests and skip hooks in Codex CLI 0.160.0.
 Claude Code uses `.mcp.json` for its MCP servers.
+Claude Code discovers shared skills, agents, LSP configuration, and hooks from their default package paths.
 Claude-specific agents and LSP configuration retain their host contracts.
 
 Optional assets live beside the manifest at the plugin root.
@@ -68,7 +71,7 @@ Common plugin assets include:
 - Executable `bin/`.
 
 Use each plugin's `README.md` for its runtime surfaces and scope.
-Portable skills follow OpenAI's task-focused authoring guidance, while Claude manifests retain Claude's component contract.
+Portable skills follow OpenAI's task-focused authoring guidance, while Claude marketplace entries retain Claude's component contract.
 
 ## Development
 
@@ -246,7 +249,7 @@ See each package README for runtime requirements and host-specific capabilities.
 ## Maintaining The Catalogs
 
 Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
-Keep each local package's Codex and Claude manifest identities aligned.
+Keep each local package's Codex identity aligned with its Claude marketplace entry.
 Generate the native Codex view with `pnpm run marketplace:generate`.
 Commit the generated catalog with its source changes.
 The repository checks reject stale catalogs and invalid local package mappings.

@@ -1,6 +1,6 @@
 {
   "name": "spring",
-  "version": "2026.10.03.02",
+  "version": "2026.10.03.03",
   "description": "Spring development skills for Boot, Web, Data, transactions, security, messaging, Cloud, and Batch workflows.",
   "author": {
     "name": "ririnto"

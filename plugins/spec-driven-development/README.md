@@ -3,6 +3,8 @@ description: >-
   Plugin for an explicitly requested end-to-end specification-driven delivery lifecycle with research, approval, implementation, and verification gates.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -36,8 +38,8 @@ Standalone `SPEC.md` creation or review is outside this trigger.
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
-Codex loads the skill from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 Claude Code also loads the agent under `agents/`.
 The listed agent remains a Claude Code surface.
 
@@ -45,7 +47,6 @@ The listed agent remains a Claude Code surface.
 
 ```text
 plugins/spec-driven-development/
-+-- .claude-plugin/plugin.json
 +-- .codex-plugin/plugin.json
 +-- README.md
 +-- package.json            # Standalone Node.js runtime dependencies

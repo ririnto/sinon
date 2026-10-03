@@ -1,6 +1,6 @@
 {
   "name": "harness",
-  "version": "2026.10.03.02",
+  "version": "2026.10.03.03",
   "description": "Shared implementation and review guidance for agent-driven engineering work, with portable skills for implementing, reviewing, and installing current Harness guidance into target repositories.",
   "author": {
     "name": "ririnto"

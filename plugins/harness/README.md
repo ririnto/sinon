@@ -3,6 +3,8 @@ description: >-
   Overview of the Harness plugin for shared implementation, review, and target-repository installation guidance.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -25,12 +27,11 @@ The installer selects `.claude/skills/` for Claude Code and `.agents/skills/` fo
 
 The skills use the instruction files selected by the active host.
 
-Codex loads skills from the default `skills/` directory through `.codex-plugin/plugin.json`.
-Claude Code uses `.claude-plugin/plugin.json`.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 
 ## Package Inventory
 
-- `.claude-plugin/plugin.json`: Claude Code plugin metadata.
 - `.codex-plugin/plugin.json`: Codex plugin manifest for the packaged skills.
 - `skills/implement/SKILL.md`: implementation procedure.
 - `skills/review/SKILL.md`: review procedure.

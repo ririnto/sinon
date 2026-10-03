@@ -1,6 +1,6 @@
 {
   "name": "jvm",
-  "version": "2026.10.03.01",
+  "version": "2026.10.03.02",
   "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
   "author": {
     "name": "ririnto"

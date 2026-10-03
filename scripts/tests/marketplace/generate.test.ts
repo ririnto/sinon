@@ -29,7 +29,6 @@ const writePlugin = (
   root: string,
   directory: string,
   overrides: {
-    claude?: Record<string, unknown>;
     native?: Record<string, unknown>;
   } = {}
 ): void => {
@@ -45,19 +44,10 @@ const writePlugin = (
     ...baseManifest,
     ...overrides.native
   };
-  const claudeManifest = {
-    ...baseManifest,
-    ...overrides.claude
-  };
   mkdirSync(path.join(pluginRoot, ".codex-plugin"), { recursive: true });
-  mkdirSync(path.join(pluginRoot, ".claude-plugin"), { recursive: true });
   writeFileSync(
     path.join(pluginRoot, ".codex-plugin/plugin.json"),
     `${JSON.stringify(nativeManifest, null, 2)}\n`
-  );
-  writeFileSync(
-    path.join(pluginRoot, ".claude-plugin/plugin.json"),
-    `${JSON.stringify(claudeManifest, null, 2)}\n`
   );
 };
 
@@ -166,13 +156,14 @@ test("rejects package identity and metadata disagreement", async () => {
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow("Source marketplace name for helper does not match");
   writePlugin(root, "helper", {
-    native: { description: "Different package description." }
+    native: { description: "" }
   });
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow(
-    "Native manifest description for helper does not match Claude manifest"
+    "Native manifest for helper description must be a non-empty string"
   );
+  writePlugin(root, "helper");
   await expect(
     createCodexMarketplace(
       catalog([{ ...localEntry("helper"), license: "Apache-2.0" }]),
@@ -193,18 +184,25 @@ test("rejects package identity and metadata disagreement", async () => {
       root
     )
   ).rejects.toThrow("Source marketplace author name for helper does not match");
-  writePlugin(root, "helper", {
-    claude: { author: { name: "Sinon" } },
-    native: { author: { name: "Other" } }
-  });
+});
+
+test("accepts an absent Claude manifest and rejects one when present", async () => {
+  const root = makeRoot();
+  writePlugin(root, "helper");
   await expect(
-    createCodexMarketplace(
-      catalog([{ ...localEntry("helper"), author: { name: "Other" } }]),
-      root
-    )
-  ).rejects.toThrow(
-    "Native manifest author name for helper does not match Claude manifest"
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).resolves.toMatchObject({
+    plugins: [{ name: "helper" }]
+  });
+  const claudePluginDirectory = path.join(
+    root,
+    "plugins/helper/.claude-plugin"
   );
+  mkdirSync(claudePluginDirectory, { recursive: true });
+  writeFileSync(path.join(claudePluginDirectory, "plugin.json"), "{}\n");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow("Claude plugin manifest for helper is not allowed");
 });
 
 test("requires a native manifest and rejects the root manifest shadow", async () => {

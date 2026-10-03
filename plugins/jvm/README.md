@@ -3,6 +3,8 @@ description: >-
   Overview of the JVM plugin, its included skills, and JVM tooling and diagnostics workflows.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -35,14 +37,13 @@ Use existing evidence before starting a new capture.
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
-Codex loads skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 
 ## Plugin Layout
 
 ```text
 plugins/jvm/
-+-- .claude-plugin/plugin.json
 +-- .codex-plugin/plugin.json
 +-- README.md
 +-- skills/

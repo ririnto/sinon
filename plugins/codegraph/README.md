@@ -89,7 +89,7 @@ npx --yes @colbymchenry/codegraph status
 
 ## Package Contents
 
-- `.claude-plugin/plugin.json` declares the Claude Code plugin.
+- The Sinon Claude marketplace entry declares the plugin metadata.
 - `.codex-plugin/plugin.json` declares the Codex plugin and its startup hooks.
 - `.mcp.json` registers CodeGraph's MCP server.
 - `mcp.json` registers the portable MCP server configuration.

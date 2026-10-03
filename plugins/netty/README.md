@@ -3,6 +3,8 @@ description: >-
   Overview of the Netty plugin, its included skills, and high-performance network application workflow coverage.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -42,14 +44,13 @@ Project Reactor patterns without Netty or Reactor Netty context are outside this
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
-Codex loads skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 
 ## Plugin Layout
 
 ```text
 plugins/netty/
-+-- .claude-plugin/plugin.json
 +-- .codex-plugin/plugin.json
 +-- README.md
 +-- skills/

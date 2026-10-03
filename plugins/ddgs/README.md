@@ -70,7 +70,7 @@ The upstream server exposes these tools:
 
 ## Package Contents
 
-- `.claude-plugin/plugin.json` declares the Claude Code plugin.
+- The Sinon Claude marketplace entry declares the plugin metadata.
 - `.codex-plugin/plugin.json` declares the Codex plugin.
 - `.mcp.json` registers the Claude Code MCP server.
 - `mcp.json` registers the portable MCP server configuration.

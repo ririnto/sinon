@@ -3,6 +3,8 @@ description: >-
   Overview of the Kotlin plugin, its included skills, and practical Kotlin workflow coverage.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -48,8 +50,8 @@ Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
-Codex loads the three skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 Claude Code also provides the Kotlin LSP integration described below.
 The `.lsp.json` language-server integration remains a Claude Code surface.
 Local language-server support files live at the package root.
@@ -58,7 +60,6 @@ Local language-server support files live at the package root.
 
 ```text
 plugins/kotlin/
-+-- .claude-plugin/plugin.json
 +-- .codex-plugin/plugin.json
 +-- .lsp.json
 +-- README.md

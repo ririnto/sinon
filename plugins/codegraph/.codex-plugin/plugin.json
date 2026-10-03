@@ -1,6 +1,6 @@
 {
   "name": "codegraph",
-  "version": "2026.10.03.03",
+  "version": "2026.10.03.04",
   "description": "CodeGraph indexing and MCP access for engineering repositories.",
   "author": {
     "name": "ririnto"

@@ -3,6 +3,8 @@ description: >-
   Overview of the Java plugin, its included skills, runtime model, skill selection guidance, and Java LSP setup guidance.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -46,8 +48,8 @@ implementation blocker instead of turning the answer into transfer instructions.
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
-Codex loads the five skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 Claude Code also loads `java-architect` and the local JDTLS integration.
 The `java-architect` agent and `.lsp.json` integration remain Claude Code surfaces.
 Local JDTLS support files live at the package root.
@@ -56,7 +58,6 @@ Local JDTLS support files live at the package root.
 
 ```text
 plugins/java/
-+-- .claude-plugin/plugin.json
 +-- .codex-plugin/plugin.json
 +-- .lsp.json
 +-- README.md

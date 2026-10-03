@@ -3,6 +3,8 @@ description: >-
   Overview of the Workspace Workflow plugin: skills for worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and change description composition, plus workspace agents for everyday workflow.
 metadata:
   reference:
+    Claude Code plugins:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
@@ -36,8 +38,8 @@ They may load workspace skills but do not delegate, mutate Git state, or publish
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
-Codex loads skills from the default `skills/` directory.
+Claude Code loads this package through the Sinon marketplace entry and its default component paths.
+Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/` directory.
 Claude Code also loads the three plugin-root agents listed above.
 The listed plugin-root agents remain Claude Code surfaces.
 
@@ -45,7 +47,6 @@ The listed plugin-root agents remain Claude Code surfaces.
 
 ```text
 plugins/workspace-workflow/
-+-- .claude-plugin/plugin.json
 +-- .codex-plugin/plugin.json
 +-- LICENSE
 +-- README.md
