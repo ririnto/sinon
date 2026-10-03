@@ -2,9 +2,9 @@
 metadata:
   reference:
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     OpenAI project instructions:
-      url: https://developers.openai.com/codex/guides/agents-md
+      url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     WCAG:

@@ -30,7 +30,7 @@ metadata:
       version: 4.1.1
       url:
         - https://docs.spring.io/spring-boot/4.1/reference/io/spring-batch.html
-        - https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-batch/src/main/java/org/springframework/boot/batch/autoconfigure/BatchAutoConfiguration.java
+        - https://raw.githubusercontent.com/spring-projects/spring-boot/v4.1.1/module/spring-boot-batch/src/main/java/org/springframework/boot/batch/autoconfigure/BatchAutoConfiguration.java
     Spring Boot 4.0:
       version: 4.0.8
       url: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-dependencies/4.0.8/spring-boot-dependencies-4.0.8.pom

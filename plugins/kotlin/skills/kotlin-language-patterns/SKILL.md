@@ -5,14 +5,14 @@ metadata:
       version: 2.4.20
       url: https://github.com/JetBrains/kotlin/releases/tag/v2.4.20
     Kotlin EAP documentation:
-      url: https://kotlinlang.org/docs/eap.html
+      url: https://kotlinlang.org/docs/_llms/eap.txt
     Kotlin release notes:
       - version: 2.2.0
-        url: https://kotlinlang.org/docs/whatsnew22.html
+        url: https://kotlinlang.org/docs/_llms/whatsnew22.txt
       - version: 2.3.0
-        url: https://kotlinlang.org/docs/whatsnew23.html
+        url: https://kotlinlang.org/docs/_llms/whatsnew23.txt
       - version: 2.4.0
-        url: https://kotlinlang.org/docs/whatsnew24.html
+        url: https://kotlinlang.org/docs/_llms/whatsnew24.txt
     Kotlin standard library API:
       url:
         - https://kotlinlang.org/api/core/kotlin-stdlib/
@@ -21,7 +21,7 @@ metadata:
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/to-regex.html
     Kotlin scope functions:
       url:
-        - https://kotlinlang.org/docs/scope-functions.html
+        - https://kotlinlang.org/docs/_llms/scope-functions.txt
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/take-if.html
     Kotlin JVM path extensions:
       url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.path/
@@ -30,13 +30,13 @@ metadata:
       url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.path/div.html
     kotlinx-datetime:
       version: 0.8.0
-      url: https://github.com/Kotlin/kotlinx-datetime/blob/v0.8.0/README.md
+      url: https://raw.githubusercontent.com/Kotlin/kotlinx-datetime/v0.8.0/README.md
     kotlinx.serialization Instant support:
       version: 1.9.0
-      url: https://github.com/Kotlin/kotlinx.serialization/blob/v1.9.0/CHANGELOG.md
+      url: https://raw.githubusercontent.com/Kotlin/kotlinx.serialization/v1.9.0/CHANGELOG.md
     kotlinx.serialization Instant component serializer:
       version: 1.11.0
-      url: https://github.com/Kotlin/kotlinx.serialization/blob/v1.11.0/core/commonMain/src/kotlinx/serialization/builtins/InstantComponentSerializer.kt
+      url: https://raw.githubusercontent.com/Kotlin/kotlinx.serialization/v1.11.0/core/commonMain/src/kotlinx/serialization/builtins/InstantComponentSerializer.kt
     Java Path API:
       version: Java SE 25
       url: https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html

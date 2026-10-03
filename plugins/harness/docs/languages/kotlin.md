@@ -2,7 +2,7 @@
 metadata:
   reference:
     Kotlin Coding Conventions:
-      url: https://kotlinlang.org/docs/coding-conventions.html
+      url: https://kotlinlang.org/docs/_llms/coding-conventions.txt
     Kotlin Callable References:
       url: https://kotlinlang.org/docs/reflection.html#callable-references
     Kotlin Java Interoperability:
@@ -17,7 +17,7 @@ metadata:
       url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/to-regex.html
     Kotlin Scope Functions:
       url:
-        - https://kotlinlang.org/docs/scope-functions.html
+        - https://kotlinlang.org/docs/_llms/scope-functions.txt
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/take-if.html
     Kotest:
       version: 6.2.5
@@ -45,8 +45,8 @@ metadata:
     ktlint:
       version: "1.8.0"
       url:
-        - https://github.com/ktlint/ktlint/blob/1.8.0/ktlint-rule-engine-core/src/main/kotlin/com/pinterest/ktlint/rule/engine/core/api/RuleAutocorrectApproveHandler.kt
-        - https://github.com/ktlint/ktlint/blob/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
+        - https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-rule-engine-core/src/main/kotlin/com/pinterest/ktlint/rule/engine/core/api/RuleAutocorrectApproveHandler.kt
+        - https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
 ---
 
 # Kotlin Rules

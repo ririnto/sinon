@@ -9,7 +9,7 @@ metadata:
       url: https://hub.docker.com/v2/repositories/library/maven/tags/3.10.0-eclipse-temurin-25
     Spotless Maven Plugin:
       version: 3.10.3
-      url: https://github.com/diffplug/spotless/blob/maven/3.10.3/plugin-maven/README.md
+      url: https://raw.githubusercontent.com/diffplug/spotless/maven/3.10.3/plugin-maven/README.md
     Spotless Releases:
       url: https://github.com/diffplug/spotless/releases
     Palantir Java Format:
@@ -19,7 +19,7 @@ metadata:
       version: 14.3.0
       url:
         - https://github.com/checkstyle/checkstyle/releases/tag/checkstyle-14.3.0
-        - https://github.com/checkstyle/checkstyle/blob/checkstyle-14.3.0/pom.xml
+        - https://raw.githubusercontent.com/checkstyle/checkstyle/checkstyle-14.3.0/pom.xml
     Maven Checkstyle Plugin:
       url: https://maven.apache.org/plugins/maven-checkstyle-plugin/
     Checkstyle Checks:

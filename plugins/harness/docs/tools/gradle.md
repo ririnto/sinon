@@ -4,23 +4,23 @@ metadata:
     Spotless Gradle Plugin:
       version: 8.10.3
       url:
-        - https://github.com/diffplug/spotless/blob/gradle/8.10.3/plugin-gradle/README.md
-        - https://github.com/diffplug/spotless/blob/gradle/8.10.3/plugin-gradle/src/main/java/com/diffplug/gradle/spotless/JavaExtension.java
+        - https://raw.githubusercontent.com/diffplug/spotless/gradle/8.10.3/plugin-gradle/README.md
+        - https://raw.githubusercontent.com/diffplug/spotless/gradle/8.10.3/plugin-gradle/src/main/java/com/diffplug/gradle/spotless/JavaExtension.java
     Gradle Plugin Portal:
       url: https://plugins.gradle.org/plugin/com.diffplug.spotless
     Gradle Version Catalogs:
       url: https://docs.gradle.org/current/userguide/version_catalogs.html
     Gradle CI:
       tag: v6.4.0
-      url: https://github.com/gradle/actions/blob/v6.4.0/setup-gradle/README.md
+      url: https://raw.githubusercontent.com/gradle/actions/v6.4.0/setup-gradle/README.md
     ktlint:
       version: 1.8.0
       url:
-        - https://github.com/ktlint/ktlint/blob/1.8.0/documentation/release-latest/docs/api/custom-rule-set.md
-        - https://github.com/ktlint/ktlint/blob/1.8.0/ktlint-cli-ruleset-core/src/main/kotlin/com/pinterest/ktlint/cli/ruleset/core/api/RuleSetProviderV3.kt
+        - https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/documentation/release-latest/docs/api/custom-rule-set.md
+        - https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-cli-ruleset-core/src/main/kotlin/com/pinterest/ktlint/cli/ruleset/core/api/RuleSetProviderV3.kt
     ktlint Gradle:
       version: 14.2.0
-      url: https://github.com/JLLeitschuh/ktlint-gradle/blob/v14.2.0/README.md
+      url: https://raw.githubusercontent.com/JLLeitschuh/ktlint-gradle/v14.2.0/README.md
     Kotest:
       version: 6.2.5
       url:
@@ -33,14 +33,14 @@ metadata:
       version: 14.3.0
       url:
         - https://github.com/checkstyle/checkstyle/releases/tag/checkstyle-14.3.0
-        - https://github.com/checkstyle/checkstyle/blob/checkstyle-14.3.0/pom.xml
+        - https://raw.githubusercontent.com/checkstyle/checkstyle/checkstyle-14.3.0/pom.xml
     Gradle Checkstyle Plugin:
       url: https://docs.gradle.org/current/userguide/checkstyle_plugin.html
     Checkstyle Checks:
       url: https://checkstyle.org/checks.html
     Dependabot:
       tag: v0.397.0
-      url: https://github.com/dependabot/dependabot-core/blob/v0.397.0/gradle/lib/dependabot/gradle/file_parser.rb
+      url: https://raw.githubusercontent.com/dependabot/dependabot-core/v0.397.0/gradle/lib/dependabot/gradle/file_parser.rb
     Dependabot Configuration:
       url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 ---

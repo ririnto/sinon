@@ -5,7 +5,7 @@ metadata:
       tag: v2.14.0
       url:
         - https://github.com/golangci/golangci-lint/releases/tag/v2.14.0
-        - https://github.com/golangci/golangci-lint/blob/v2.14.0/.golangci.reference.yml
+        - https://raw.githubusercontent.com/golangci/golangci-lint/v2.14.0/.golangci.reference.yml
     NilAway:
       url: https://github.com/uber-go/nilaway
     Go tool dependencies:

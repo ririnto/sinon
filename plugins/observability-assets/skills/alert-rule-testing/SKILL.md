@@ -8,7 +8,7 @@ metadata:
         - https://prometheus.io/docs/prometheus/3.15/configuration/unit_testing_rules/
         - https://prometheus.io/docs/prometheus/3.15/querying/basics/
         - https://prometheus.io/docs/prometheus/3.15/querying/functions/
-        - https://github.com/prometheus/prometheus/blob/v3.15.0/cmd/promtool/unittest.go
+        - https://raw.githubusercontent.com/prometheus/prometheus/v3.15.0/cmd/promtool/unittest.go
     Prometheus releases:
       url: https://github.com/prometheus/prometheus/releases
     Native Histograms:

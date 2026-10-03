@@ -19,7 +19,7 @@ metadata:
         - https://kotest.io/docs/assertions/exceptions.html
     kotlinx.coroutines:
       - version: 1.7.0
-        url: https://github.com/Kotlin/kotlinx.coroutines/blob/1.7.0/CHANGES.md
+        url: https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.7.0/CHANGES.md
       - version: 1.11.0
         url: https://github.com/Kotlin/kotlinx.coroutines/tree/1.11.0/kotlinx-coroutines-test
     Kotest timeout documentation:
@@ -30,7 +30,7 @@ metadata:
       url: https://github.com/mockk/mockk
     Turbine:
       version: 1.2.1
-      url: https://github.com/cashapp/turbine/blob/1.2.1/README.md
+      url: https://raw.githubusercontent.com/cashapp/turbine/1.2.1/README.md
     Kotest coroutine dispatcher:
       version: 6.2
       url: https://kotest.io/docs/framework/coroutines/test-coroutine-dispatcher.html
@@ -69,10 +69,10 @@ metadata:
       url: https://docs.gradle.org/9.8.0/userguide/java_testing.html
     Kotest XML reporter deprecation:
       tag: v6.2.5
-      url: https://github.com/kotest/kotest/blob/v6.2.5/kotest-extensions/kotest-extensions-junitxml/src/jvmMain/kotlin/io/kotest/extensions/junitxml/JunitXmlReporter.kt
+      url: https://raw.githubusercontent.com/kotest/kotest/v6.2.5/kotest-extensions/kotest-extensions-junitxml/src/jvmMain/kotlin/io/kotest/extensions/junitxml/JunitXmlReporter.kt
     ktlint rule engine:
       version: 1.8.0
-      url: https://github.com/ktlint/ktlint/blob/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
+      url: https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
     Kotest extension and Ktor matcher source:
       tag: 6.2.5
       url:
@@ -80,10 +80,10 @@ metadata:
         - https://github.com/kotest/kotest/tree/6.2.5/kotest-assertions/kotest-assertions-ktor/src/commonMain/kotlin/io/kotest/assertions/ktor/client
     Kotest project configuration API:
       tag: 6.2.5
-      url: https://github.com/kotest/kotest/blob/6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/config/AbstractProjectConfig.kt
+      url: https://raw.githubusercontent.com/kotest/kotest/6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/config/AbstractProjectConfig.kt
     Kotest mountable extension API:
       tag: v6.2.5
-      url: https://github.com/kotest/kotest/blob/v6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/extensions/MountableExtension.kt
+      url: https://raw.githubusercontent.com/kotest/kotest/v6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/extensions/MountableExtension.kt
     WireMock configuration:
       url: https://wiremock.org/docs/configuration/
     Ktor test application:

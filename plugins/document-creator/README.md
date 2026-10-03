@@ -5,7 +5,7 @@ description: >-
 metadata:
   reference:
     Claude Code plugins:
-      url: https://code.claude.com/docs/en/plugins/manifest-reference
+      url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---

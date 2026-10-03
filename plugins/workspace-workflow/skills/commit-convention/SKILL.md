@@ -6,7 +6,7 @@ metadata:
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     Conventional Commits:
       version: 1.0.0
       url: https://www.conventionalcommits.org/en/v1.0.0/

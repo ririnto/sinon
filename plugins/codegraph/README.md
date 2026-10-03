@@ -4,25 +4,25 @@ description: >-
 metadata:
   reference:
     Claude Code plugin manifests:
-      url: https://code.claude.com/docs/en/plugins/manifest-reference
+      url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     Claude Code hooks:
-      url: https://code.claude.com/docs/en/hooks
+      url: https://code.claude.com/docs/en/hooks.md
     Claude Code MCP:
-      url: https://code.claude.com/docs/en/mcp#exempt-a-server-from-deferral
+      url: https://code.claude.com/docs/en/mcp.md#exempt-a-server-from-deferral
     CodeGraph:
       version: v1.6.1
       url:
         - https://github.com/colbymchenry/codegraph/tree/v1.6.1
-        - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/bin/codegraph.ts
-        - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/sync/worktree.ts
-        - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/mcp/tools.ts
+        - https://raw.githubusercontent.com/colbymchenry/codegraph/v1.6.1/src/bin/codegraph.ts
+        - https://raw.githubusercontent.com/colbymchenry/codegraph/v1.6.1/src/sync/worktree.ts
+        - https://raw.githubusercontent.com/colbymchenry/codegraph/v1.6.1/src/mcp/tools.ts
     OpenAI plugin packaging:
-      url: https://developers.openai.com/plugins/build/plugins
+      url: https://developers.openai.com/plugins/build/plugins.md
     Agent Plugins:
       version: 1.0.0
-      url: https://agent-plugins.org/specification
+      url: https://agent-plugins.org/specification.md
     Codex hooks:
-      url: https://learn.chatgpt.com/docs/hooks
+      url: https://learn.chatgpt.com/docs/hooks.md
     npm exec:
       url: https://docs.npmjs.com/cli/v11/commands/npx
     Git:
