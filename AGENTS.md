@@ -1,5 +1,4 @@
 ---
-description: Repository-wide guidance for the Sinon plugin marketplace.
 metadata:
   reference:
     OpenAI skills:
@@ -31,13 +30,15 @@ Do not add legacy parallel surfaces or compatibility shims without an external c
 ## Authoring
 
 Write all repository guidance and agent-to-agent communication in English.
-Use official OpenAI documentation for instruction design and task boundaries.
+Use official OpenAI documentation for Codex behavior and shared instruction design.
+Use matching host and model documentation for host-specific or model-specific behavior.
 Use official vendor documentation for technical claims, and identify repository preferences as local rules.
 
 ## Task References
 
 Use [repository conventions](docs/agent-references/repository-conventions.md) for the language or file type under change.
 Use [TypeScript conventions](docs/agent-references/typescript.md) for TypeScript source under `scripts/` or `rules/`.
+Use [instruction authoring](docs/agent-references/instruction-authoring.md) when changing agent guidance, skill activation or content, host hooks, or model prompts.
 
 ## Completion And Checks
 

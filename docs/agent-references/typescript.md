@@ -20,6 +20,7 @@ metadata:
 # TypeScript Conventions
 
 Apply these rules to TypeScript source under `scripts/` and `rules/`.
+Use [Source Changes](repository-conventions.md#source-changes) for shared source rules, including function-body spacing.
 
 ## Runtime And Tooling
 
@@ -39,7 +40,6 @@ An unexported helper needs no TSDoc.
 
 ## Function Bodies And Comments
 
-Keep no blank lines inside a function body.
 Blank lines between functions and lint-required spacing stay.
 Put no inline comments inside a function body.
 An explanation that must survive becomes a TSDoc comment on the relevant declaration.
@@ -63,7 +63,6 @@ The repository formatter configuration enforces removal (`trailingComma: "none"`
 
 ## Type-Safe Inlining
 
-Apply the inlining rules in [repository conventions](repository-conventions.md#source-changes).
 Preserve the binding's TypeScript type.
 
 Prefer an expression body for a function that consists of a single returned expression when the return type, nullability, and API semantics stay unchanged.
