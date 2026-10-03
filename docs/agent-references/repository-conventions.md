@@ -62,24 +62,13 @@ Do not pack multiple sentences into one line with semicolons.
 Indent nested-list continuation lines to align under their item text.
 Keep fenced code blocks, YAML frontmatter, tables, and link syntax intact, and never split a sentence inside code, URLs, or version strings.
 Relative references that load instruction or implementation content must stay inside the same publishable plugin.
-Record authoritative public standards and vendor documentation citations in frontmatter, not in body prose.
 Use real `#` heading syntax for structural headings.
 Do not use bold text on its own line as a pseudo-heading.
 A natural prose lead-in to a code block does not need to become a heading.
 
 ## Instruction And Skill Authoring
 
-Use official OpenAI guidance for instruction structure, activation, contextual references, and completion boundaries.
-Use the relevant official vendor documentation for language, runtime, and tool behavior.
-State repository-specific engineering choices as local rules rather than upstream requirements.
-Keep activation descriptions short and specific to the task that needs the skill.
-Use skill roots as small routers.
-Name when each supporting reference applies.
-Keep each rule with its existing owner instead of repeating it across consumers.
-Specify the required outcome, authority, and completion boundary rather than a fixed itinerary for every task.
-Match proof to acceptance criteria and changed behavior.
-Do not add tests that only restate prose.
-Preserve explicit user requirements, safety boundaries, and required source standards when simplifying guidance.
+Use [instruction authoring](instruction-authoring.md) when changing agent guidance, skills, host hooks, or model prompts.
 
 ## Dependency Selection
 
@@ -95,6 +84,7 @@ Change a target pin only when the task authorizes that dependency change.
 ## Official References
 
 Reference content derived from an official source requires reading the authoritative upstream documentation directly.
+Keep authoritative citations out of body prose.
 Record sources for a skill and its child references once in the owning `SKILL.md` frontmatter under `metadata.reference`.
 Use concise source names as keys.
 For documents without an owning skill, keep source metadata in that document's frontmatter.
