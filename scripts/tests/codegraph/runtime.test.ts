@@ -104,7 +104,7 @@ const makeRepository = (root: string): void => {
 const expectPreparation = (hook: HookDefinition | undefined): void => {
   expect(hook).toMatchObject({
     async: true,
-    statusMessage: "Preparing CodeGraph repository",
+    statusMessage: "Initializing and indexing CodeGraph at Git checkout root",
     timeout: 3600,
     type: "command"
   });
@@ -116,7 +116,7 @@ const expectHookPair = (hooks: HookDefinition[]): void => {
   const prepare = hooks.find((hook) => hook.command.includes("npx --yes"));
   expect(exclude).toMatchObject({
     async: true,
-    statusMessage: "Configuring CodeGraph Git exclusion",
+    statusMessage: "Configuring CodeGraph exclusion for Git checkout root",
     timeout: 3600,
     type: "command"
   });
