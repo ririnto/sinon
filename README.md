@@ -4,21 +4,21 @@ description: >-
 metadata:
   reference:
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     OpenAI plugin packaging:
-      url: https://developers.openai.com/plugins/build/plugins
+      url: https://developers.openai.com/plugins/build/plugins.md
     Codex plugin loading:
       version: 0.160.0
       url:
-        - https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/utils/plugins/src/plugin_namespace.rs
-        - https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/core-plugins/src/loader.rs
+        - https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/utils/plugins/src/plugin_namespace.rs
+        - https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/core-plugins/src/loader.rs
     Claude plugin marketplaces:
-      url: https://code.claude.com/docs/en/plugins/marketplace-reference
+      url: https://code.claude.com/docs/en/plugins/marketplace-reference.md
     Claude plugin components:
       url:
-        - https://code.claude.com/docs/en/plugins/manifest-reference
-        - https://code.claude.com/docs/en/plugins/cli-reference
-        - https://code.claude.com/docs/en/plugins/troubleshooting
+        - https://code.claude.com/docs/en/plugins/manifest-reference.md
+        - https://code.claude.com/docs/en/plugins/cli-reference.md
+        - https://code.claude.com/docs/en/plugins/troubleshooting.md
 ---
 
 # Sinon

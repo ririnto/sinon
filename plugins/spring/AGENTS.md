@@ -2,7 +2,7 @@
 metadata:
   reference:
     OpenAI Codex Skills:
-      url: https://developers.openai.com/codex/skills.md
+      url: https://learn.chatgpt.com/docs/build-skills.md
     Rethinking Skills and Prompts:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
 ---

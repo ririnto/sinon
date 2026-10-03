@@ -6,11 +6,11 @@ metadata:
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     Git:
       url:
-        - https://github.com/git/git/blob/master/Documentation/git-diff.adoc
-        - https://github.com/git/git/blob/master/Documentation/git-log.adoc
+        - https://raw.githubusercontent.com/git/git/master/Documentation/git-diff.adoc
+        - https://raw.githubusercontent.com/git/git/master/Documentation/git-log.adoc
 ---
 
 # Change Description

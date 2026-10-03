@@ -5,13 +5,13 @@ metadata:
   reference:
     Agent Plugins:
       version: 1.0.0
-      url: https://agent-plugins.org/specification
+      url: https://agent-plugins.org/specification.md
     Claude Code plugin manifests:
-      url: https://code.claude.com/docs/en/plugins/manifest-reference
+      url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     DDGS:
       url:
-        - https://github.com/deedy5/ddgs/blob/main/README.md
-        - https://github.com/deedy5/ddgs/blob/main/pyproject.toml
+        - https://raw.githubusercontent.com/deedy5/ddgs/main/README.md
+        - https://raw.githubusercontent.com/deedy5/ddgs/main/pyproject.toml
         - https://pypi.org/project/ddgs/
     uv:
       url:

@@ -4,9 +4,9 @@ metadata:
     pnpm:
       url: https://pnpm.io/catalogs
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     OpenAI project instructions:
-      url: https://developers.openai.com/codex/guides/agents-md
+      url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     Rethinking Skills and Prompts for GPT-6 Astra:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
 ---
@@ -83,7 +83,15 @@ Change a target pin only when the task authorizes that dependency change.
 
 ## Official References
 
-Reference content derived from an official source requires reading the authoritative upstream documentation directly.
+Read the authoritative upstream documentation before deriving reference content from it.
+Prefer vendor-provided Markdown or plain-text pages for the same subject and version.
+Request `Accept: text/markdown` when the publisher supports that response format at the cited URL.
+Use an official `llms.txt` or documentation index to find a page when its format or location is unclear.
+Cite the specific page rather than replacing it with the discovery index.
+Verify the response body and preserve the topic, version, and meaningful fragment when changing a source URL.
+Use upstream raw-file URLs for source citations when the exact file and ref are verified.
+Retain authoritative HTML pages when no equivalent text page exists.
+Keep schemas, package artifacts, registry endpoints, and executable URLs in their native formats.
 Keep authoritative citations out of body prose.
 Record sources for a skill and its child references once in the owning `SKILL.md` frontmatter under `metadata.reference`.
 Use concise source names as keys.

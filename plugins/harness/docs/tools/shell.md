@@ -6,7 +6,7 @@ metadata:
       url: https://github.com/koalaman/shellcheck/releases/tag/v0.11.0
     shfmt:
       version: 3.14.1
-      url: https://github.com/mvdan/sh/blob/v3.14.1/cmd/shfmt/shfmt.1.scd
+      url: https://raw.githubusercontent.com/mvdan/sh/v3.14.1/cmd/shfmt/shfmt.1.scd
 ---
 
 # Shell Tool Reference

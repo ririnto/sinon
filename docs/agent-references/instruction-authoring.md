@@ -5,39 +5,39 @@ metadata:
   reference:
     GPT-6 Astra model:
       model: gpt-6-astra
-      url: https://developers.openai.com/api/docs/models/gpt-6-astra
+      url: https://developers.openai.com/api/docs/models/gpt-6-astra.md
     GPT-6.1 Sol model:
       model: gpt-6.1-sol
-      url: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+      url: https://developers.openai.com/api/docs/models/gpt-6.1-sol.md
     GPT-6 Luna model:
       model: gpt-6-luna
-      url: https://developers.openai.com/api/docs/models/gpt-6-luna
+      url: https://developers.openai.com/api/docs/models/gpt-6-luna.md
     GPT-6 instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     Using GPT-6:
-      url: https://developers.openai.com/api/docs/guides/latest-model
+      url: https://developers.openai.com/api/docs/guides/latest-model.md
     Claude Fable 5.1 model:
       model: claude-fable-5-1
-      url: https://platform.claude.com/docs/en/models/fable-5-1/overview
+      url: https://platform.claude.com/docs/en/models/fable-5-1/overview.md
     Claude Opus 5.5 model:
       model: claude-opus-5-5
-      url: https://platform.claude.com/docs/en/models/opus-5-5/overview
+      url: https://platform.claude.com/docs/en/models/opus-5-5/overview.md
     Claude Sonnet 5.5 model:
       model: claude-sonnet-5-5
-      url: https://platform.claude.com/docs/en/models/sonnet-5-5/overview
+      url: https://platform.claude.com/docs/en/models/sonnet-5-5/overview.md
     Prompting Claude Fable 5.1:
       model: claude-fable-5-1
-      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1
+      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1.md
     Prompting Claude Opus 5.5:
       model: claude-opus-5-5
-      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5
+      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5.md
     Prompting Claude Sonnet 5.5:
       model: claude-sonnet-5-5
-      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5
+      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5.md
     Codex skills:
-      url: https://learn.chatgpt.com/docs/build-skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     Codex project instructions:
-      url: https://learn.chatgpt.com/docs/agent-configuration/agents-md
+      url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
 ---
 
 # Instruction Authoring

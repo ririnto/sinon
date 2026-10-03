@@ -3,13 +3,13 @@ metadata:
   reference:
     kotlinx.coroutines changelog:
       - version: 1.7.0
-        url: https://github.com/Kotlin/kotlinx.coroutines/blob/1.7.0/CHANGES.md
+        url: https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.7.0/CHANGES.md
       - version: 1.9.0
-        url: https://github.com/Kotlin/kotlinx.coroutines/blob/1.9.0/CHANGES.md
+        url: https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.9.0/CHANGES.md
     kotlinx.coroutines API:
       version: 1.11.0
       url:
-        - https://github.com/Kotlin/kotlinx.coroutines/blob/1.11.0/kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt
+        - https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.11.0/kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt
         - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/coroutine-scope.html
         - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/supervisor-scope.html
         - https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/cancel-children.html

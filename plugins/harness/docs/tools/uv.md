@@ -17,7 +17,7 @@ metadata:
       url: https://pre-commit.com/#local-hooks
     setup-uv:
       tag: v10.2.0
-      url: https://github.com/astral-sh/setup-uv/blob/v10.2.0/README.md
+      url: https://raw.githubusercontent.com/astral-sh/setup-uv/v10.2.0/README.md
     Dependabot:
       url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 ---

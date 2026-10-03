@@ -9,23 +9,23 @@ metadata:
         - https://pnpm.io/cli/install
     pnpm setup:
       version: 3.0.0
-      url: https://github.com/pnpm/setup/blob/v3.0.0/README.md
+      url: https://raw.githubusercontent.com/pnpm/setup/v3.0.0/README.md
     Node.js:
       url: https://nodejs.org/en/about/previous-releases
     Corepack:
       url: https://nodejs.org/docs/latest-v24.x/api/corepack.html
     Oxlint:
       url:
-        - https://oxc.rs/docs/guide/usage/linter/config.html
-        - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.html
+        - https://oxc.rs/docs/guide/usage/linter/config.md
+        - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.md
     Oxfmt:
-      url: https://oxc.rs/docs/guide/usage/formatter/config.html
+      url: https://oxc.rs/docs/guide/usage/formatter/config.md
     Markdownlint CLI2:
       version: 0.23.3
-      url: https://github.com/DavidAnson/markdownlint-cli2/blob/v0.23.3/README.md
+      url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.23.3/README.md
     Ultracite:
       version: 7.12.2
-      url: https://github.com/haydenbleasel/ultracite/blob/ultracite%407.12.2/packages/cli/README.md
+      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%407.12.2/packages/cli/README.md
     npm-run-all2:
       version: 9.0.3
       url: https://registry.npmjs.org/npm-run-all2/9.0.3

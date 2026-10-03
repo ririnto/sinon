@@ -5,7 +5,7 @@ metadata:
       version: 4.2.18.Final
       url:
         - https://github.com/netty/netty/releases/tag/netty-4.2.18.Final
-        - https://github.com/netty/netty/blob/netty-4.2.18.Final/transport-native-io_uring/README.md
+        - https://raw.githubusercontent.com/netty/netty/netty-4.2.18.Final/transport-native-io_uring/README.md
     Netty BOM:
       url: https://repo.maven.apache.org/maven2/io/netty/netty-bom/maven-metadata.xml
     Netty native transports:

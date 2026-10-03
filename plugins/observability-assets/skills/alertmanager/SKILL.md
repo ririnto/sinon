@@ -5,15 +5,15 @@ metadata:
       - version: v0.34.1
         license: Apache-2.0
         url:
-          - https://github.com/prometheus/alertmanager/blob/v0.34.1/docs/configuration.md
-          - https://github.com/prometheus/alertmanager/blob/v0.34.1/tracing/config.go
+          - https://raw.githubusercontent.com/prometheus/alertmanager/v0.34.1/docs/configuration.md
+          - https://raw.githubusercontent.com/prometheus/alertmanager/v0.34.1/tracing/config.go
       - version: v0.34.0
         license: Apache-2.0
         url:
-          - https://github.com/prometheus/alertmanager/blob/v0.34.0/docs/configuration.md
-          - https://github.com/prometheus/alertmanager/blob/v0.34.0/docs/notifications.md
-          - https://github.com/prometheus/alertmanager/blob/v0.34.0/docs/notification_examples.md
-          - https://github.com/prometheus/alertmanager/blob/v0.34.0/LICENSE
+          - https://raw.githubusercontent.com/prometheus/alertmanager/v0.34.0/docs/configuration.md
+          - https://raw.githubusercontent.com/prometheus/alertmanager/v0.34.0/docs/notifications.md
+          - https://raw.githubusercontent.com/prometheus/alertmanager/v0.34.0/docs/notification_examples.md
+          - https://raw.githubusercontent.com/prometheus/alertmanager/v0.34.0/LICENSE
     Alertmanager releases:
       url: https://github.com/prometheus/alertmanager/releases
     Alertmanager configuration:

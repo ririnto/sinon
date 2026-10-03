@@ -4,18 +4,18 @@ metadata:
     Node.js:
       version: 18
       url:
-        - https://nodejs.org/docs/latest-v18.x/api/crypto.html
-        - https://nodejs.org/docs/latest-v18.x/api/fs.html
-        - https://nodejs.org/docs/latest-v18.x/api/child_process.html
+        - https://nodejs.org/docs/latest-v18.x/api/crypto.md
+        - https://nodejs.org/docs/latest-v18.x/api/fs.md
+        - https://nodejs.org/docs/latest-v18.x/api/child_process.md
     node-tar:
       version: 7.5.22
-      url: https://github.com/isaacs/node-tar/blob/v7.5.22/README.md
+      url: https://raw.githubusercontent.com/isaacs/node-tar/v7.5.22/README.md
     Prometheus:
       version: 3.15.0
       url:
         - https://github.com/prometheus/prometheus/releases/tag/v3.15.0
         - https://github.com/prometheus/prometheus/releases/download/v3.15.0/sha256sums.txt
-        - https://github.com/prometheus/prometheus/blob/v3.15.0/docs/configuration/unit_testing_rules.md
+        - https://raw.githubusercontent.com/prometheus/prometheus/v3.15.0/docs/configuration/unit_testing_rules.md
 ---
 
 # Prometheus Rule Tests

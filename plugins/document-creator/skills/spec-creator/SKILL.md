@@ -6,11 +6,11 @@ metadata:
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     Requirement keywords:
       url:
-        - https://www.rfc-editor.org/rfc/rfc2119
-        - https://www.rfc-editor.org/rfc/rfc8174
+        - https://www.rfc-editor.org/rfc/rfc2119.txt
+        - https://www.rfc-editor.org/rfc/rfc8174.txt
 ---
 
 # Spec Creator

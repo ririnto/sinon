@@ -7,8 +7,8 @@ metadata:
     JFR presets:
       version: JDK 25
       url:
-        - https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/default.jfc
-        - https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/profile.jfc
+        - https://raw.githubusercontent.com/openjdk/jdk/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/default.jfc
+        - https://raw.githubusercontent.com/openjdk/jdk/jdk-25%2B36/src/jdk.jfr/share/conf/jfr/profile.jfc
     OpenJDK JDK 27 release:
       version: JDK 27
       url: https://openjdk.org/projects/jdk/27/

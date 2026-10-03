@@ -6,7 +6,7 @@ metadata:
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     OpenAI skills:
-      url: https://developers.openai.com/codex/skills
+      url: https://learn.chatgpt.com/docs/build-skills.md
     tsx Node.js integration:
       url: https://tsx.hirok.io/dev-api/node-cli
     YAML parser:
@@ -16,8 +16,8 @@ metadata:
       url: https://github.com/snovakovic/fast-sort
     Requirement keywords:
       url:
-        - https://www.rfc-editor.org/rfc/rfc2119
-        - https://www.rfc-editor.org/rfc/rfc8174
+        - https://www.rfc-editor.org/rfc/rfc2119.txt
+        - https://www.rfc-editor.org/rfc/rfc8174.txt
     OpenAPI:
       - version: 3.2.1
         url: https://spec.openapis.org/oas/v3.2.1.html
