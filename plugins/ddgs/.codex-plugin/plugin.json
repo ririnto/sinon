@@ -1,10 +1,10 @@
 {
-  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ddgs",
-  "version": "2026.10.03.00",
+  "version": "2026.10.03.01",
   "description": "DDGS web search and content extraction MCP tools.",
   "author": {
     "name": "ririnto"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "mcpServers": "./mcp.json"
 }

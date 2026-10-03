@@ -206,11 +206,10 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
     type: "stdio"
   });
   const plugin = JSON.parse(
-    readFileSync(path.join(pluginRoot, "plugin.json"), "utf-8")
-  ) as { extensions: { "com.openai": { hooks: string } } };
-  expect(plugin.extensions["com.openai"].hooks).toBe(
-    "./hooks/codex-hooks.json"
-  );
+    readFileSync(path.join(pluginRoot, ".codex-plugin/plugin.json"), "utf-8")
+  ) as { hooks: string; mcpServers: string };
+  expect(plugin.hooks).toBe("./hooks/codex-hooks.json");
+  expect(plugin.mcpServers).toBe("./mcp.json");
   const codexHooks = readCodexHooks();
   expect(codexHooks.hooks.SessionStart.map((entry) => entry.matcher)).toEqual([
     "^startup$"

@@ -1,0 +1,9 @@
+{
+  "name": "netty",
+  "version": "2026.10.03.01",
+  "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT"
+}

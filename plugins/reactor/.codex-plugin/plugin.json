@@ -1,0 +1,9 @@
+{
+  "name": "reactor",
+  "version": "2026.10.03.01",
+  "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT"
+}

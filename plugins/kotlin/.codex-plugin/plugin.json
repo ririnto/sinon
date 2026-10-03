@@ -1,0 +1,9 @@
+{
+  "name": "kotlin",
+  "version": "2026.10.03.02",
+  "description": "Kotlin development skills for idiomatic language design, coroutines, Flow, and testing workflows.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT"
+}

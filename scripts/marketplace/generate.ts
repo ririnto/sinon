@@ -1,4 +1,4 @@
-import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -223,7 +223,7 @@ const validateCatalogMetadata = (
       plugin[field],
       manifest[field],
       "Source marketplace",
-      "portable manifest"
+      "native manifest"
     );
   }
   if (plugin.license !== undefined) {
@@ -233,7 +233,7 @@ const validateCatalogMetadata = (
       plugin.license,
       manifest.license,
       "Source marketplace",
-      "portable manifest"
+      "native manifest"
     );
   }
   if (plugin.author?.name !== undefined) {
@@ -248,7 +248,7 @@ const validateCatalogMetadata = (
       plugin.author.name,
       manifest.author.name,
       "Source marketplace",
-      "portable manifest"
+      "native manifest"
     );
   }
 };
@@ -264,7 +264,7 @@ const validatePackageMetadata = (
       field,
       manifest[field],
       claudeManifest[field],
-      "Portable manifest",
+      "Native manifest",
       "Claude manifest"
     );
   }
@@ -274,14 +274,14 @@ const validatePackageMetadata = (
       "license",
       manifest.license,
       claudeManifest.license,
-      "Portable manifest",
+      "Native manifest",
       "Claude manifest"
     );
   }
   if (manifest.author !== undefined || claudeManifest.author !== undefined) {
     if (!isRecord(manifest.author) || !isRecord(claudeManifest.author)) {
       throw new Error(
-        `Portable and Claude manifest authors for ${pluginName} do not match`
+        `Native and Claude manifest authors for ${pluginName} do not match`
       );
     }
     assertManifestFieldMatches(
@@ -289,10 +289,33 @@ const validatePackageMetadata = (
       "author name",
       manifest.author.name,
       claudeManifest.author.name,
-      "Portable manifest",
+      "Native manifest",
       "Claude manifest"
     );
   }
+};
+
+const assertNoRootPluginManifest = async (
+  pluginName: string,
+  pluginPath: string
+): Promise<void> => {
+  try {
+    await lstat(path.resolve(pluginPath, "plugin.json"));
+  } catch (error) {
+    if (isRecord(error) && error.code === "ENOENT") {
+      return;
+    }
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Cannot check root plugin manifest for ${pluginName}: ${reason}`,
+      {
+        cause: error
+      }
+    );
+  }
+  throw new Error(
+    `Root plugin.json is not allowed for ${pluginName}; use .codex-plugin/plugin.json`
+  );
 };
 
 const resolveLocalPluginPath = async (
@@ -320,19 +343,20 @@ const validateLocalPlugin = async (
   plugin: CatalogPlugin,
   pluginPath: string
 ): Promise<void> => {
+  await assertNoRootPluginManifest(plugin.name, pluginPath);
   const manifest = await readManifest(
-    path.resolve(pluginPath, "plugin.json"),
-    `portable manifest for ${plugin.name}`
+    path.resolve(pluginPath, ".codex-plugin/plugin.json"),
+    `native manifest for ${plugin.name}`
   );
   requiredString(
     manifest.description,
-    `Portable manifest for ${plugin.name} description`
+    `Native manifest for ${plugin.name} description`
   );
-  validateCatalogMetadata(plugin, manifest);
   const claudeManifest = await readManifest(
     path.resolve(pluginPath, ".claude-plugin/plugin.json"),
     `Claude manifest for ${plugin.name}`
   );
+  validateCatalogMetadata(plugin, manifest);
   validatePackageMetadata(plugin.name, manifest, claudeManifest);
 };
 

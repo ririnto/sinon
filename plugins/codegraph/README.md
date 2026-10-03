@@ -90,7 +90,7 @@ npx --yes @colbymchenry/codegraph status
 ## Package Contents
 
 - `.claude-plugin/plugin.json` declares the Claude Code plugin.
-- `plugin.json` declares the Codex plugin.
+- `.codex-plugin/plugin.json` declares the Codex plugin and its startup hooks.
 - `.mcp.json` registers CodeGraph's MCP server.
 - `mcp.json` registers the portable MCP server configuration.
 - `hooks/hooks.json` runs repository preparation at Claude Code startup and after `EnterWorktree`.

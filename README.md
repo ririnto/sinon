@@ -7,6 +7,11 @@ metadata:
       url: https://developers.openai.com/codex/skills
     OpenAI plugin packaging:
       url: https://developers.openai.com/plugins/build/plugins
+    Codex plugin loading:
+      version: 0.160.0
+      url:
+        - https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/utils/plugins/src/plugin_namespace.rs
+        - https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/core-plugins/src/loader.rs
     Claude plugin marketplaces:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference
     Claude plugin components:
@@ -24,7 +29,7 @@ Sinon-maintained plugins live under `plugins/`.
 Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
-Each local plugin provides a portable Agent Plugins manifest alongside its Claude manifest.
+Each local plugin provides native Codex and Claude Code manifests.
 
 ## Repository Structure
 
@@ -43,10 +48,11 @@ Each local plugin provides a portable Agent Plugins manifest alongside its Claud
 
 Each local plugin exposes both host manifests from the same package root:
 
-- `plugin.json`: portable Agent Plugins manifest for Codex.
+- `.codex-plugin/plugin.json`: native Codex plugin manifest.
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 
-Codex discovers portable skills from `skills/` and bundled MCP servers from `mcp.json`.
+Codex discovers shared skills from `skills/` and loads MCP files declared by its manifest.
+Root `plugin.json` files are excluded because they shadow native manifests and skip hooks in Codex CLI 0.160.0.
 Claude Code uses `.mcp.json` for its MCP servers.
 Claude-specific agents and LSP configuration retain their host contracts.
 
@@ -240,7 +246,7 @@ See each package README for runtime requirements and host-specific capabilities.
 ## Maintaining The Catalogs
 
 Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
-Keep each local package's portable and Claude manifest identities aligned.
+Keep each local package's Codex and Claude manifest identities aligned.
 Generate the native Codex view with `pnpm run marketplace:generate`.
 Commit the generated catalog with its source changes.
 The repository checks reject stale catalogs and invalid local package mappings.

@@ -3,8 +3,7 @@ description: >-
   Plugin for an explicitly requested end-to-end specification-driven delivery lifecycle with research, approval, implementation, and verification gates.
 metadata:
   reference:
-    OpenAI Agent Plugins:
-      version: 1.0.0
+    OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
 
@@ -37,17 +36,17 @@ Standalone `SPEC.md` creation or review is outside this trigger.
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
-ChatGPT and Codex load the skill from the default `skills/` directory.
+This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
+Codex loads the skill from the default `skills/` directory.
 Claude Code also loads the agent under `agents/`.
-Agent Plugins support covers the skill and does not expose that Claude Code agent.
+The listed agent remains a Claude Code surface.
 
 ## Plugin Layout
 
 ```text
 plugins/spec-driven-development/
 +-- .claude-plugin/plugin.json
-+-- plugin.json
++-- .codex-plugin/plugin.json
 +-- README.md
 +-- package.json            # Standalone Node.js runtime dependencies
 +-- pnpm-workspace.yaml     # Runtime dependency catalog

@@ -1,8 +1,7 @@
 ---
 metadata:
   reference:
-    OpenAI Agent Plugins:
-      version: 1.0.0
+    OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
     Prometheus:
       version: 3.15.0
@@ -71,17 +70,17 @@ These topics fall outside Observability Assets' scope:
 
 ## Runtime Model
 
-This package uses `.claude-plugin/plugin.json` in Claude Code and the root `plugin.json` for Agent Plugins hosts.
-ChatGPT and Codex load skills from the default `skills/` directory.
+This package uses `.claude-plugin/plugin.json` in Claude Code and `.codex-plugin/plugin.json` in Codex.
+Codex loads skills from the default `skills/` directory.
 Claude Code also loads the plugin-root `observability-architect` agent.
-Agent Plugins support covers the skills and does not expose that Claude Code agent.
+The listed plugin-root agent remains a Claude Code surface.
 
 ## Plugin Layout
 
 ```text
 plugins/observability-assets/
 +-- .claude-plugin/plugin.json
-+-- plugin.json
++-- .codex-plugin/plugin.json
 +-- README.md
 +-- agents/
 |   +-- observability-architect.md

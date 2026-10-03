@@ -1,0 +1,11 @@
+{
+  "name": "codegraph",
+  "version": "2026.10.03.03",
+  "description": "CodeGraph indexing and MCP access for engineering repositories.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT",
+  "mcpServers": "./mcp.json",
+  "hooks": "./hooks/codex-hooks.json"
+}
