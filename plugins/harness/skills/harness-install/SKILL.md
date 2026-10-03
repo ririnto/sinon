@@ -79,7 +79,8 @@ Native tooling belongs at target configuration or CI paths, outside the selected
 
 ## Source Mapping
 
-Resolve `<plugin-root>` from the absolute installed package path supplied by the host.
+Use this skill's absolute `SKILL.md` path from the host's skill listing.
+Resolve `<plugin-root>` two levels above its containing skill directory.
 Claude Code can also provide that path through `CLAUDE_PLUGIN_ROOT`.
 Read current canonical inputs from that root, not a source checkout in the target repository.
 

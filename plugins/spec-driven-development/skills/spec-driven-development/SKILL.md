@@ -83,7 +83,9 @@ OpenAPI 3.2.1 is current, while the bundled scaffold uses the latest 3.1 patch f
 
 The installed plugin requires Node.js and its declared `tsx`, `yaml`, and `fast-sort` dependencies.
 Use pnpm to prepare those dependencies before offline use:
-Set `PLUGIN_ROOT` to the absolute installed package path supplied by the host.
+Use this skill's absolute `SKILL.md` path from the host's skill listing.
+Resolve the package root two levels above its containing skill directory.
+Set `PLUGIN_ROOT` to that absolute package path.
 Replace the example path in each invocation.
 
 ```sh

@@ -98,9 +98,11 @@ These dependencies belong to the installed plugin and do not depend on the consu
 After installation, commands work offline.
 
 Run the CLI from the consuming repository:
+Resolve the package root two levels above the installed skill directory.
+Replace the example package path with that absolute path.
 
 ```sh
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
+PLUGIN_ROOT="/absolute/path/to/installed/plugin"
 SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 node --import "${PLUGIN_ROOT}/node_modules/tsx/dist/loader.mjs" "${SKILL_ROOT}/scripts/sdd.ts" validate ./spec
 ```

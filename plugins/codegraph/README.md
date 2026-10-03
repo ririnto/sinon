@@ -12,6 +12,7 @@ metadata:
       url:
         - https://github.com/colbymchenry/codegraph/tree/v1.6.1
         - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/sync/worktree.ts
+        - https://github.com/colbymchenry/codegraph/blob/v1.6.1/src/mcp/tools.ts
     OpenAI plugin packaging:
       url: https://developers.openai.com/plugins/build/plugins
     Agent Plugins:
@@ -40,6 +41,7 @@ The command uses the unversioned `@colbymchenry/codegraph` package.
 Npm may reuse a project-local installation and otherwise resolves the package from the registry.
 The MCP server and lifecycle hooks use the same `npx` package command.
 The preparation handler resolves the Git checkout root and runs `codegraph init --yes` before `codegraph index` there.
+Initialization builds the first index, and the separate index command also reindexes existing checkouts.
 The `init --yes` option skips prompts and selects upstream defaults.
 When file watching is unavailable, that default can install Git sync hooks, including in an already initialized repository.
 A separate startup handler configures Git exclusion.
@@ -49,6 +51,7 @@ At startup, the exclusion handler uses Git to find the info exclude file and add
 Linked worktrees use their shared Git exclude file.
 The `EnterWorktree` hook runs preparation only.
 Each linked worktree needs its own index to query that branch.
+For an existing MCP connection, pass the worktree root as `projectPath` in tool calls.
 Git exclusion errors do not block the independent asynchronous preparation handler.
 Git lookup failures are logged, and the simplified preparation command can continue in the current directory.
 
