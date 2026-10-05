@@ -14,7 +14,7 @@
           },
           {
             "type": "command",
-            "command": "(cd \"$(git rev-parse --show-toplevel)\" && npx --yes @colbymchenry/codegraph init --yes) >&2",
+            "command": "(cd \"$(git rev-parse --show-toplevel)\" && NODE_USE_SYSTEM_CA=1 npx --yes @colbymchenry/codegraph init --yes) >&2",
             "async": true,
             "timeout": 3600,
             "statusMessage": "Initializing CodeGraph at Git checkout root"

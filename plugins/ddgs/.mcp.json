@@ -3,7 +3,14 @@
   "mcpServers": {
     "ddgs": {
       "command": "uvx",
-      "args": ["--from", "ddgs[mcp]", "ddgs", "mcp"],
+      "args": [
+        "--from",
+        "ddgs[mcp]",
+        "--with",
+        "pip-system-certs",
+        "ddgs",
+        "mcp"
+      ],
       "type": "stdio"
     }
   }

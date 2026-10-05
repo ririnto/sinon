@@ -3,6 +3,7 @@
     "codegraph": {
       "command": "npx",
       "args": ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
+      "env": { "NODE_USE_SYSTEM_CA": "1" },
       "type": "stdio",
       "alwaysLoad": true
     }
