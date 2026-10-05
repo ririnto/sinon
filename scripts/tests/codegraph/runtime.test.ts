@@ -18,6 +18,7 @@ interface NpxCall {
   argv: string[];
   cache: string | null;
   cwd: string;
+  readonly systemCa: string | null;
 }
 
 interface HookDefinition {
@@ -48,7 +49,7 @@ const makeHarness = () => {
     "#!/usr/bin/env node",
     'import { appendFileSync } from "node:fs";',
     "const argv = process.argv.slice(2);",
-    'appendFileSync(process.env.CODEGRAPH_STUB_LOG, JSON.stringify({ argv, cache: process.env.npm_config_cache ?? null, cwd: process.cwd() }) + "\\n");',
+    'appendFileSync(process.env.CODEGRAPH_STUB_LOG, JSON.stringify({ argv, cache: process.env.npm_config_cache ?? null, cwd: process.cwd(), systemCa: process.env.NODE_USE_SYSTEM_CA ?? null }) + "\\n");',
     'process.exit(Number(process.env.CODEGRAPH_STUB_EXIT_INIT ?? "0"));'
   ].join("\n");
   writeFileSync(npxPath, npxSource, { mode: 0o755 });
@@ -203,6 +204,7 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
     alwaysLoad: true,
     args: ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
     command: "npx",
+    env: { NODE_USE_SYSTEM_CA: "1" },
     type: "stdio"
   });
   const plugin = JSON.parse(
@@ -233,6 +235,7 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
   expect(codexMcp.mcpServers.codegraph).toEqual({
     args: ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
     command: "npx",
+    env: { NODE_USE_SYSTEM_CA: "1" },
     type: "stdio"
   });
 });
@@ -262,6 +265,7 @@ test("configured handlers prepare at Git checkout root and preserve npm cache se
   }
   const calls = callsFrom(harness.logPath);
   expect(calls).toHaveLength(3);
+  expect(calls.map((call) => call.systemCa)).toEqual(["1", "1", "1"]);
   expect(calls.map((call) => call.cwd)).toEqual(
     Array.from({ length: 3 }, () => realpathSync(repository))
   );

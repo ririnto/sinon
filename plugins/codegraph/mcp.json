@@ -4,7 +4,8 @@
     "codegraph": {
       "type": "stdio",
       "command": "npx",
-      "args": ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"]
+      "args": ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
+      "env": { "NODE_USE_SYSTEM_CA": "1" }
     }
   }
 }

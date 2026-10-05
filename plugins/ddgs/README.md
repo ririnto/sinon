@@ -18,6 +18,8 @@ metadata:
         - https://docs.astral.sh/uv/guides/tools/
         - https://docs.astral.sh/uv/reference/cli/#uv-tool-run
         - https://docs.astral.sh/uv/reference/cli/#uv-cache-clean
+    pip-system-certs:
+      url: https://pypi.org/project/pip-system-certs/
 ---
 
 # DDGS
@@ -31,6 +33,8 @@ The plugin runs the upstream `ddgs` package through `uvx`.
 The `ddgs[mcp]` requirement installs the optional dependencies needed by the MCP server.
 The runtime requires `uv`, and the current upstream package supports Python 3.10 or newer.
 The `--from` option requests the unversioned package and its `mcp` extra.
+The `--with pip-system-certs` option adds system certificate support to the same tool environment.
+Python loads that package at startup and uses the operating system certificate store through `truststore`.
 `uvx` reuses its ephemeral tool environment in the default uv cache between launches.
 Run `uv cache clean` when you want uv to resolve the package again.
 
