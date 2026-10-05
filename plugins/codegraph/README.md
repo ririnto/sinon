@@ -26,8 +26,10 @@ metadata:
     npm exec:
       url: https://docs.npmjs.com/cli/v11/commands/npx
     Node.js system certificates:
-      version: 24.15.0
-      url: https://nodejs.org/download/release/v24.15.0/docs/api/cli.html#node_use_system_ca1
+      - version: 22.19.0
+        url: https://nodejs.org/download/release/v22.19.0/docs/api/cli.html#node_use_system_ca1
+      - version: 24.15.0
+        url: https://nodejs.org/download/release/v24.15.0/docs/api/cli.html#node_use_system_ca1
     Git:
       url: https://git-scm.com/docs/git-rev-parse
 ---
@@ -41,7 +43,8 @@ The plugin provides CodeGraph as an MCP server for repository-aware tools.
 ## Runtime
 
 The plugin runs the official CodeGraph package directly through `npx`.
-The runtime requires Node.js 24.6 or newer, npm, Git, and a POSIX shell on a platform supported by CodeGraph.
+The runtime requires npm, Git, and a POSIX shell on a platform supported by CodeGraph.
+Use Node.js 22.19 or newer on 22.x, or 24.6 or newer on 24.x.
 The MCP server and preparation hooks set `NODE_USE_SYSTEM_CA=1`, equivalent to the Node.js `--use-system-ca` option.
 This enables system certificates alongside bundled certificates without replacing the caller's `NODE_OPTIONS`.
 On first use, npm prepares CodeGraph automatically with its standard cache and user settings.
