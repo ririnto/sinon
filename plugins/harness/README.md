@@ -54,6 +54,6 @@ References from language and tool documents to common rules stay `../rules.md` i
 The installer reads current canonical inputs and writes only mapped target paths.
 It manages only `implement` and `review` skills and their supporting documents, preserving other target skills.
 Its preview separates safe creates and unchanged files from conflicts that require explicit replacement authority.
-For Kotlin, it also materializes the complete target-owned `tooling/kotlin-ktlint/` Gradle module when the Kotlin profile is selected.
+For Kotlin, it also materializes the complete target-owned `tooling/kotlin/` Gradle module when the Kotlin profile is selected.
 The target must attach its produced JAR to the actual ktlint runtime through `ktlintRuleset(...)`.
 BuildSrc classes alone are not sufficient.

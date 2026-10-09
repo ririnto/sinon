@@ -92,7 +92,7 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<skill-root>/docs/languages/<name>.md` | `<plugin-root>/docs/languages/<name>.md` |
 | `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
 | `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm is selected |
-| `<target-tooling>/kotlin-ktlint/` | `<plugin-root>/tooling/kotlin-ktlint/` when Kotlin is selected |
+| `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |
 
 Read the two skills, common rules, and selected language and tool references before composing their target files.
 Preserve canonical content except for these location changes and an explicitly filtered reference index:

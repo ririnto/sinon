@@ -12,4 +12,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "harness-kotlin-ktlint"
+rootProject.name = "harness-kotlin"

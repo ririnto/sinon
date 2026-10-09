@@ -19,11 +19,11 @@ updates:
           - minor
           - patch
   - package-ecosystem: gradle
-    directory: /plugins/harness/tooling/kotlin-ktlint
+    directory: /plugins/harness/tooling/kotlin
     schedule:
       interval: weekly
     groups:
-      kotlin-ktlint-toolchain:
+      kotlin-toolchain:
         patterns:
           - "org.jetbrains.kotlin.jvm"
           - "org.jlleitschuh.gradle.ktlint"

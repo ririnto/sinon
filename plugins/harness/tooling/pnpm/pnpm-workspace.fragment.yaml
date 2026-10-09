@@ -1,9 +1,9 @@
 catalog:
-  "@oxc-project/types": ^0.152.0
+  "@oxc-project/types": ^0.153.0
   markdownlint: ^0.41.1
   markdownlint-cli2: ^0.23.3
   npm-run-all2: ^9.0.3
-  oxfmt: ^0.71.0
-  oxlint: ^1.86.0
+  oxfmt: ^0.72.0
+  oxlint: ^1.87.0
   ultracite: ^7.12.2
   vitest: ^5.0.3

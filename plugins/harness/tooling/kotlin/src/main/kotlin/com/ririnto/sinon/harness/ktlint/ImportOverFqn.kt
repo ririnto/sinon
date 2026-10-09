@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.resolve.ImportPath
 
 /**
- * Flags inline fully qualified Kotlin names that could be imported instead.
+ * Flags fully qualified Kotlin type references that could be imported instead.
  */
 class ImportOverFqn :
     Rule(
@@ -59,27 +59,41 @@ class ImportOverFqn :
                     .toSet()
             val existingPaths = imports.mapNotNull { directive -> directive.importPath?.pathStr }.toSet()
             val findings = collectFqnFindings(ktFile)
+            val unqualifiedNames =
+                buildSet {
+                    PsiTreeUtil
+                        .findChildrenOfType(ktFile, KtNameReferenceExpression::class.java)
+                        .filterNot { reference -> reference.isPartOfQualifiedName() || reference.isPartOfTypeName() }
+                        .mapTo(this, KtNameReferenceExpression::getReferencedName)
+                    PsiTreeUtil
+                        .findChildrenOfType(ktFile, KtUserType::class.java)
+                        .filter { userType -> userType.qualifier === null }
+                        .mapNotNullTo(this, KtUserType::getReferencedName)
+                }
             val candidatePathsBySimpleName =
                 findings
                     .groupBy(FqnFinding::simpleName)
                     .mapValues { (_, group) -> group.map(FqnFinding::importPath).toSet() }
+            val reportableFindings =
+                findings.filter { finding ->
+                    candidatePathsBySimpleName[finding.simpleName] == setOf(finding.importPath) &&
+                        importNamesToPaths[finding.simpleName].orEmpty().all { path -> path == finding.importPath } &&
+                        finding.importPath !in aliasedImportPaths &&
+                        finding.simpleName !in aliasNames &&
+                        finding.simpleName !in declaredNames &&
+                        finding.simpleName !in unqualifiedNames &&
+                        imports.none(KtImportDirective::isAllUnder) &&
+                        ktFile.packageFqName.asString() != finding.nameParts.dropLast(1).joinToString(".")
+                }
             val newImports =
                 buildSet {
-                    findings.forEach { finding ->
-                        val resolvesUnambiguously =
-                            candidatePathsBySimpleName[finding.simpleName].orEmpty().all { path -> path == finding.importPath } &&
-                                importNamesToPaths[finding.simpleName].orEmpty().all { path -> path == finding.importPath }
+                    reportableFindings.forEach { finding ->
                         emit(
                             finding.replacementElement.textOffset,
                             "fully qualified name `${finding.nameParts.joinToString(
                                 "."
                             )}` used inline; add an import and use the simple name",
-                            resolvesUnambiguously &&
-                                finding.importPath !in aliasedImportPaths &&
-                                finding.simpleName !in aliasNames &&
-                                finding.simpleName !in declaredNames &&
-                                imports.none(KtImportDirective::isAllUnder) &&
-                                ktFile.packageFqName.asString() != finding.nameParts.dropLast(1).joinToString(".")
+                            true
                         ).ifAutocorrectAllowed {
                             finding.replacementElement.node.replaceWith(
                                 KtPsiFactory
@@ -119,6 +133,24 @@ class ImportOverFqn :
                     }
                 }
             )
+        }
+
+    private fun KtNameReferenceExpression.isPartOfQualifiedName(): Boolean =
+        PsiTreeUtil
+            .getParentOfType(this, KtDotQualifiedExpression::class.java)
+            ?.containsInQualifiedName(this) == true
+
+    private fun KtNameReferenceExpression.isPartOfTypeName(): Boolean = PsiTreeUtil.getParentOfType(this, KtUserType::class.java) !== null
+
+    private fun KtDotQualifiedExpression.containsInQualifiedName(reference: KtNameReferenceExpression): Boolean =
+        selectorExpression?.containsInQualifiedName(reference) == true
+
+    private fun KtExpression.containsInQualifiedName(reference: KtNameReferenceExpression): Boolean =
+        when (this) {
+            is KtNameReferenceExpression -> this == reference
+            is KtDotQualifiedExpression -> containsInQualifiedName(reference)
+            is KtCallExpression -> calleeExpression?.containsInQualifiedName(reference) == true
+            else -> false
         }
 
     /**
@@ -256,42 +288,6 @@ class ImportOverFqn :
                 }
             }
         }
-
-        override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
-            super.visitDotQualifiedExpression(expression)
-            if (
-                generateSequence(expression as PsiElement?, PsiElement::getParent).none { element ->
-                    element is KtImportDirective
-                } &&
-                expression.parent !is KtDotQualifiedExpression
-            ) {
-                val parts = expression.expressionParts()
-                val classIndex = parts.indexOfFirst { part -> part.firstOrNull()?.isUpperCase() == true }
-                if (2 <= classIndex) {
-                    onFqnFinding(parts.take(classIndex + 1), expression)
-                }
-            }
-        }
-
-        private fun KtExpression.expressionParts(): List<String> =
-            when (this) {
-                is KtNameReferenceExpression -> {
-                    listOf(getReferencedName())
-                }
-
-                is KtDotQualifiedExpression -> {
-                    receiverExpression.expressionParts() +
-                        selectorExpression?.expressionParts().orEmpty()
-                }
-
-                is KtCallExpression -> {
-                    calleeExpression?.expressionParts().orEmpty()
-                }
-
-                else -> {
-                    emptyList()
-                }
-            }
     }
 
     private data class FqnFinding(

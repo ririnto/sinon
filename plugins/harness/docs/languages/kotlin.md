@@ -124,6 +124,17 @@ Do not confuse the Kotest DSL form `it("description")` with an implicit lambda p
 Use extension functions when ownership or the call site benefits.
 Do not add factories, DSLs, or layers for appearance.
 
+## Imports
+
+Prefer a class import when its simple name is unambiguous.
+Keep a fully qualified name when importing it would collide with a declaration, another imported type, or an alias.
+Wildcard imports are permitted.
+The Kotlin profile disables ktlint's standard wildcard-import ban to honor this repository rule.
+Meaningful Kotlin aliases remain available when two imported declarations share a simple name.
+The `harness:import-over-fqn` rule examines fully qualified type references only and reports candidates with one import path for their simple name and no conflicting declaration, import, alias, wildcard import, same-package reference, or existing unqualified use.
+The rule uses the current file's syntax and imports without compiler symbol resolution, so it leaves expression chains unchanged because a lowercase receiver can resolve to a local or imported value.
+The `harness:no-import-alias` rule rejects only aliases that repeat the imported simple name.
+
 ## Raw Strings
 
 Use raw strings (`"""`) for regular expressions and JSON fixtures.
