@@ -1,6 +1,6 @@
 [versions]
-spotless = "8.10.3"
-palantirJavaFormat = "2.101.0"
+spotless = "8.10.4"
+palantirJavaFormat = "2.102.0"
 checkstyle = "14.3.0"
 
 [plugins]

@@ -2,7 +2,7 @@
 metadata:
   reference:
     pnpm:
-      version: 12.8.1
+      version: 12.10.1
       url:
         - https://pnpm.io/installation
         - https://pnpm.io/catalogs
@@ -30,8 +30,14 @@ metadata:
       version: 9.0.3
       url: https://registry.npmjs.org/npm-run-all2/9.0.3
     Oxc Project Types:
-      version: 0.152.0
-      url: https://registry.npmjs.org/@oxc-project/types/0.152.0
+      version: 0.153.0
+      url: https://registry.npmjs.org/@oxc-project/types/0.153.0
+    Oxlint:
+      version: 1.87.0
+      url: https://www.npmjs.com/package/oxlint/v/1.87.0
+    Oxfmt:
+      version: 0.72.0
+      url: https://www.npmjs.com/package/oxfmt/v/0.72.0
 ---
 
 # pnpm
@@ -135,7 +141,7 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects pnpm `12.8.1`, Oxlint `1.86.0`, Oxfmt `0.71.0`, Ultracite `7.12.2`, Markdownlint CLI2 `0.23.3`, and `@oxc-project/types` `0.152.0`.
+The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `7.12.2`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
 The target owns final dependency versions through its manifest and lockfile.
 The fragment's catalog ranges are source-profile evidence, not mandatory target pins.
 Check npm before merging them.

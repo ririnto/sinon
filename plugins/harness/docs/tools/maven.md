@@ -8,13 +8,13 @@ metadata:
       tag: 3.10.0-eclipse-temurin-25
       url: https://hub.docker.com/v2/repositories/library/maven/tags/3.10.0-eclipse-temurin-25
     Spotless Maven Plugin:
-      version: 3.10.3
-      url: https://raw.githubusercontent.com/diffplug/spotless/maven/3.10.3/plugin-maven/README.md
+      version: 3.10.4
+      url: https://raw.githubusercontent.com/diffplug/spotless/maven/3.10.4/plugin-maven/README.md
     Spotless Releases:
       url: https://github.com/diffplug/spotless/releases
     Palantir Java Format:
-      version: 2.101.0
-      url: https://github.com/palantir/palantir-java-format/releases/tag/2.101.0
+      version: 2.102.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.102.0
     Checkstyle:
       version: 14.3.0
       url:
@@ -35,18 +35,17 @@ In a monorepo, repeat the profile for each independent Maven root.
 ## Native setup
 
 Add the Spotless Maven plugin only when the target has no existing formatter with overlapping Java ownership.
-The fragment selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.3` and `palantir-java-format` `2.101.0` as profile baselines.
-They do not establish current releases.
-Before adding or upgrading Spotless, Palantir Java Format, or Checkstyle, check Maven Central for the latest stable compatible versions against the target's Java baseline, parent POM, BOM, and dependency management.
-Use the checked versions for a new integration, and keep compatible target-managed versions unless the task authorizes changing them.
+The source profile selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.4`, `palantir-java-format` `2.102.0`, and Checkstyle `14.3.0`.
+Before merging any of these tools into a target, check Maven Central for the latest stable compatible versions against the target's Java baseline, parent POM, BOM, and dependency management.
+Keep compatible target-managed versions unless the task authorizes changing them.
 Use the existing repositories and plugin-management policy.
 
 Merge these version properties into the existing `<project><properties>` section, keeping compatible target-managed values:
 
 ```xml
 <properties>
-  <spotless.maven.version>3.10.3</spotless.maven.version>
-  <palantir.java.format.version>2.101.0</palantir.java.format.version>
+  <spotless.maven.version>3.10.4</spotless.maven.version>
+  <palantir.java.format.version>2.102.0</palantir.java.format.version>
 </properties>
 ```
 
@@ -95,7 +94,7 @@ The fragment's `configLocation` path must remain aligned with the installed targ
 Set the Checkstyle engine to `14.3.0` through the plugin dependency when the target permits a managed engine override.
 Bind the `checkstyle:check` goal to the target's existing validation phase without replacing its lifecycle.
 
-The native configuration enforces braces, import hygiene, public Javadoc, Java naming, line length, and prohibited direct standard streams.
+The native configuration enforces braces, unused-import hygiene, public Javadoc, Java naming, line length, and prohibited direct standard streams.
 It does not invent Maven coordinates, Java packages, release levels, module names, or test runners.
 
 ## Existing target merge
@@ -108,15 +107,15 @@ Do not overwrite the whole POM or replace an incompatible parent, compiler relea
 Keep the target's existing groupId, artifactId, version, source roots, and toolchain.
 
 Kotlin Maven support is conditional.
-Select it only when the target already has a supported Kotlin Maven plugin and a verified way to attach the canonical ruleset at `tooling/kotlin-ktlint/`.
+Select it only when the target already has a supported Kotlin Maven plugin and a verified way to attach the canonical ruleset at `tooling/kotlin/`.
 This Java profile does not claim to configure arbitrary Kotlin Maven builds.
 
-For an existing supported Kotlin Maven build, copy the complete `tooling/kotlin-ktlint/` module into a target-owned tooling directory and build its JAR with the target's normal Gradle task.
+For an existing supported Kotlin Maven build, copy the complete `tooling/kotlin/` module into a target-owned tooling directory and build its JAR with the target's normal Gradle task.
 Run KtLint through the target's existing Maven integration, such as `exec-maven-plugin`, and put the produced JAR on the KtLint CLI classpath.
 Make the Maven lint execution depend on the native Gradle `jar` task through the target's existing build orchestration when the two builds are coupled.
 If that orchestration cannot express the dependency, report the gap rather than requiring a hidden manual build step.
 KtLint discovers `com.ririnto.sinon.harness.ktlint.RuleSetProvider` through its `RuleSetProviderV3` service descriptor.
-Use the module coordinates `com.ririnto.sinon.harness:harness-kotlin-ktlint:1.0.0` only as the local artifact identity.
+Use the module coordinates `com.ririnto.sinon.harness:harness-kotlin:1.0.0` only as the local artifact identity.
 Do not claim that arbitrary Maven builds can consume the ruleset.
 Do not use a machine-specific `systemPath` or require a Maven publication for local installation.
 If the target cannot express the local JAR classpath and its build dependency, report the integration gap instead of documenting a stale prebuilt JAR.
@@ -128,7 +127,7 @@ Run `./mvnw spotless:check checkstyle:check` for the focused Java gate when the 
 Run `./mvnw verify` for the target's normal full lifecycle.
 Run `./mvnw spotless:apply` only after reviewing the resulting Java diff.
 
-Spotless Maven plugin `3.10.3` requires Maven to run on Java 17 or newer.
+Spotless Maven plugin `3.10.4` requires Maven to run on Java 17 or newer.
 Checkstyle engine `14.3.0` is the selected version for this profile.
 If the target's Java baseline is older, retain compatible existing tools or obtain explicit approval for an upgrade.
 
