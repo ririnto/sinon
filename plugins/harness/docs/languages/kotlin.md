@@ -131,8 +131,8 @@ Keep a fully qualified name when importing it would collide with a declaration, 
 Wildcard imports are permitted.
 The Kotlin profile disables ktlint's standard wildcard-import ban to honor this repository rule.
 Meaningful Kotlin aliases remain available when two imported declarations share a simple name.
-The `harness:import-over-fqn` rule reports only candidates with one import path for their simple name and no conflicting declaration, import, alias, wildcard import, same-package reference, or existing unqualified use.
-The rule uses the current file's syntax and imports without compiler symbol resolution, so it skips uncertain cases instead of guessing.
+The `harness:import-over-fqn` rule examines fully qualified type references only and reports candidates with one import path for their simple name and no conflicting declaration, import, alias, wildcard import, same-package reference, or existing unqualified use.
+The rule uses the current file's syntax and imports without compiler symbol resolution, so it leaves expression chains unchanged because a lowercase receiver can resolve to a local or imported value.
 The `harness:no-import-alias` rule rejects only aliases that repeat the imported simple name.
 
 ## Raw Strings

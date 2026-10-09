@@ -8,13 +8,18 @@ import io.kotest.matchers.shouldBe
 
 class ImportOverFqnTest :
     FunSpec({
-        test("simple fqn is rewritten and imported") {
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "val value = kotlin.collections.ArrayList<String>()\n")) {
+        test("fully qualified type is rewritten and imported") {
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "val value: kotlin.collections.ArrayList<String> = kotlin.collections.ArrayList<String>()\n"
+                )
+            ) {
                 diagnostics shouldContainExactlyInAnyOrder
                     listOf(
                         KtLintRuleTestEngine.Diagnostic(
                             1,
-                            13,
+                            12,
                             "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
                             canBeAutoCorrected = true
                         )
@@ -23,18 +28,18 @@ class ImportOverFqnTest :
                     """
                     import kotlin.collections.ArrayList
 
-                    val value = ArrayList<String>()
+                    val value: ArrayList<String> = kotlin.collections.ArrayList<String>()
                     """.trimIndent() + "\n"
             }
         }
 
-        test("multiple packages add multiple imports") {
+        test("multiple type packages add multiple imports") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
-                    val a = java.util.ArrayList<String>()
-                    val b = kotlin.collections.LinkedList<String>()
+                    val a: java.util.ArrayList<String>? = null
+                    val b: kotlin.collections.LinkedList<String>? = null
                     """.trimIndent() + "\n"
                 )
             ) {
@@ -42,12 +47,12 @@ class ImportOverFqnTest :
                     listOf(
                         KtLintRuleTestEngine.Diagnostic(
                             1,
-                            9,
+                            8,
                             "fully qualified name `java.util.ArrayList` used inline; add an import and use the simple name"
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             2,
-                            9,
+                            8,
                             "fully qualified name `kotlin.collections.LinkedList` used inline; add an import and use the simple name"
                         )
                     )
@@ -56,20 +61,20 @@ class ImportOverFqnTest :
                     import java.util.ArrayList
                     import kotlin.collections.LinkedList
 
-                    val a = ArrayList<String>()
-                    val b = LinkedList<String>()
+                    val a: ArrayList<String>? = null
+                    val b: LinkedList<String>? = null
                     """.trimIndent() + "\n"
             }
         }
 
-        test("inserts new import in alphabetical order with existing imports") {
+        test("new type import is inserted alphabetically with existing imports") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import gamma.delta.Baz
 
-                    val value = alpha.beta.Foo()
+                    val value: alpha.beta.Foo? = null
                     """.trimIndent() + "\n"
                 )
             ) {
@@ -77,7 +82,7 @@ class ImportOverFqnTest :
                     listOf(
                         KtLintRuleTestEngine.Diagnostic(
                             3,
-                            13,
+                            12,
                             "fully qualified name `alpha.beta.Foo` used inline; add an import and use the simple name",
                             canBeAutoCorrected = true
                         )
@@ -87,13 +92,18 @@ class ImportOverFqnTest :
                     import alpha.beta.Foo
                     import gamma.delta.Baz
 
-                    val value = Foo()
+                    val value: Foo? = null
                     """.trimIndent() + "\n"
             }
         }
 
-        test("local name collision is left unchanged") {
-            val source = "fun test() { val ArrayList = 1; println(java.util.ArrayList<String>()) }\n"
+        test("a declaration with the candidate name is left unchanged") {
+            val source =
+                """
+                typealias ArrayList = Any
+
+                val value: java.util.ArrayList<String>? = null
+                """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
                 formattedCode shouldBe source
@@ -104,7 +114,8 @@ class ImportOverFqnTest :
             val source =
                 """
                 import other.ArrayList
-                val value = java.util.ArrayList<String>()
+
+                val value: java.util.ArrayList<String>? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -112,14 +123,14 @@ class ImportOverFqnTest :
             }
         }
 
-        test("same path import allows shortening") {
+        test("same path import allows shortening a type") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import kotlin.collections.ArrayList
 
-                    val value = kotlin.collections.ArrayList<String>()
+                    val value: kotlin.collections.ArrayList<String>? = null
                     """.trimIndent() + "\n"
                 )
             ) {
@@ -127,7 +138,7 @@ class ImportOverFqnTest :
                     listOf(
                         KtLintRuleTestEngine.Diagnostic(
                             3,
-                            13,
+                            12,
                             "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
                             canBeAutoCorrected = true
                         )
@@ -136,7 +147,7 @@ class ImportOverFqnTest :
                     """
                     import kotlin.collections.ArrayList
 
-                    val value = ArrayList<String>()
+                    val value: ArrayList<String>? = null
                     """.trimIndent() + "\n"
             }
         }
@@ -146,7 +157,7 @@ class ImportOverFqnTest :
                 """
                 import kotlin.collections.ArrayList as JList
 
-                val value = kotlin.collections.ArrayList<String>()
+                val value: kotlin.collections.ArrayList<String>? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -159,7 +170,7 @@ class ImportOverFqnTest :
                 """
                 import other.Widget as ArrayList
 
-                val value = java.util.ArrayList<String>()
+                val value: java.util.ArrayList<String>? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -167,11 +178,11 @@ class ImportOverFqnTest :
             }
         }
 
-        test("distinct fqns with the same simple name are left unchanged") {
+        test("distinct fully qualified types with one simple name are left unchanged") {
             val source =
                 """
-                val first = alpha.one.Widget()
-                val second = beta.two.Widget()
+                val first: alpha.one.Widget? = null
+                val second: beta.two.Widget? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -184,7 +195,7 @@ class ImportOverFqnTest :
                 """
                 package java.util
 
-                val value = java.util.ArrayList<String>()
+                val value: java.util.ArrayList<String>? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -196,7 +207,8 @@ class ImportOverFqnTest :
             val source =
                 """
                 import other.*
-                val value = java.util.ArrayList<String>()
+
+                val value: java.util.ArrayList<String>? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -207,8 +219,8 @@ class ImportOverFqnTest :
         test("existing implicit type use suppresses a conflicting import preference") {
             val source =
                 """
-                val kotlinList: List<String> = emptyList()
-                val javaList: java.util.List<List<String>> = emptyList()
+                val kotlinList: List<String>? = null
+                val javaList: java.util.List<List<String>>? = null
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
@@ -216,13 +228,20 @@ class ImportOverFqnTest :
             }
         }
 
-        test("existing implicit constructor use suppresses a conflicting import preference") {
+        test("expression chains are left unchanged without compiler symbol resolution") {
             val source =
                 """
+                object WidgetRoot {
+                    const val WIDGET: Int = 1
+                }
+
+                class FooHolder {
+                    val foo: WidgetRoot = WidgetRoot
+                }
+
                 fun test() {
-                    val javaThread = com.example.Thread()
-                    val kotlinThread = Thread()
-                    val threadName = Thread().name
+                    val com: FooHolder = FooHolder()
+                    val value = com.foo.WIDGET
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
@@ -231,10 +250,15 @@ class ImportOverFqnTest :
             }
         }
 
-        test("already short name is no op") {
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "val value = ArrayList<String>()\n")) {
+        test("shadowed receiver fixture keeps its value semantics") {
+            ImportOverFqnShadowedReceiverFixture().receiverChain() shouldBe 1
+        }
+
+        test("already short type name is a no op") {
+            val source = "val value: ArrayList<String> = ArrayList()\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
-                formattedCode shouldBe "val value = ArrayList<String>()\n"
+                formattedCode shouldBe source
             }
         }
     }) {

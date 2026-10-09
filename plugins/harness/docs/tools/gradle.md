@@ -21,6 +21,10 @@ metadata:
     ktlint Gradle:
       version: 14.2.0
       url: https://raw.githubusercontent.com/JLLeitschuh/ktlint-gradle/v14.2.0/README.md
+    Kotlin Releases:
+      url: https://kotlinlang.org/docs/releases.html
+    Kotlin Gradle Compatibility:
+      url: https://kotlinlang.org/docs/gradle-configure-project.html
     Kotest:
       version: 6.2.5
       url:
@@ -123,8 +127,8 @@ Copy the complete `tooling/kotlin/` module into a target-owned tooling directory
 Do not copy only its JAR or place its source under `buildSrc`.
 
 The module coordinates are `com.ririnto.sinon.harness:harness-kotlin:1.0.0`.
-It uses Kotlin `2.4.20`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
-Kotlin `2.4.20` is fully supported with Gradle `7.6.3` through `9.7.0`.
+It uses Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
+Kotlin `2.4.21` is fully supported with Gradle `7.6.3` through `9.7.0`.
 The current GitLab catalog uses Gradle `9.7.0` so this module stays within that supported range.
 The registered rules are exposed by `com.ririnto.sinon.harness.ktlint.RuleSetProvider` through the `RuleSetProviderV3` service descriptor.
 
@@ -172,7 +176,7 @@ Use the target's supported lint runtime or retain a compatible Checkstyle engine
 If the target's Java or Gradle baseline is older, retain its compatible existing tools or obtain explicit approval for an upgrade.
 The GitLab catalog uses the `gradle:9.7-jdk25-ubi10` image and does not install a separate Gradle distribution.
 Gradle has no official LTS line.
-The newer stable Gradle `9.8.1` falls outside Kotlin `2.4.20`'s fully supported range.
+The newer stable Gradle `9.8.1` falls outside Kotlin `2.4.21`'s fully supported range.
 Before adopting that image or the GitHub action versions, check their official releases and the target's Gradle wrapper and Java policy.
 Keep compatible target pins.
 The CI catalog assumes that the target contains a checked-in `./gradlew` wrapper.

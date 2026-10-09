@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.resolve.ImportPath
 
 /**
- * Flags inline fully qualified Kotlin names that could be imported instead.
+ * Flags fully qualified Kotlin type references that could be imported instead.
  */
 class ImportOverFqn :
     Rule(
@@ -63,7 +63,7 @@ class ImportOverFqn :
                 buildSet {
                     PsiTreeUtil
                         .findChildrenOfType(ktFile, KtNameReferenceExpression::class.java)
-                        .filterNot { reference -> reference.isPartOfQualifiedName() }
+                        .filterNot { reference -> reference.isPartOfQualifiedName() || reference.isPartOfTypeName() }
                         .mapTo(this, KtNameReferenceExpression::getReferencedName)
                     PsiTreeUtil
                         .findChildrenOfType(ktFile, KtUserType::class.java)
@@ -139,6 +139,8 @@ class ImportOverFqn :
         PsiTreeUtil
             .getParentOfType(this, KtDotQualifiedExpression::class.java)
             ?.containsInQualifiedName(this) == true
+
+    private fun KtNameReferenceExpression.isPartOfTypeName(): Boolean = PsiTreeUtil.getParentOfType(this, KtUserType::class.java) !== null
 
     private fun KtDotQualifiedExpression.containsInQualifiedName(reference: KtNameReferenceExpression): Boolean =
         selectorExpression?.containsInQualifiedName(reference) == true
@@ -286,42 +288,6 @@ class ImportOverFqn :
                 }
             }
         }
-
-        override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
-            super.visitDotQualifiedExpression(expression)
-            if (
-                generateSequence(expression as PsiElement?, PsiElement::getParent).none { element ->
-                    element is KtImportDirective
-                } &&
-                expression.parent !is KtDotQualifiedExpression
-            ) {
-                val parts = expression.expressionParts()
-                val classIndex = parts.indexOfFirst { part -> part.firstOrNull()?.isUpperCase() == true }
-                if (2 <= classIndex) {
-                    onFqnFinding(parts.take(classIndex + 1), expression)
-                }
-            }
-        }
-
-        private fun KtExpression.expressionParts(): List<String> =
-            when (this) {
-                is KtNameReferenceExpression -> {
-                    listOf(getReferencedName())
-                }
-
-                is KtDotQualifiedExpression -> {
-                    receiverExpression.expressionParts() +
-                        selectorExpression?.expressionParts().orEmpty()
-                }
-
-                is KtCallExpression -> {
-                    calleeExpression?.expressionParts().orEmpty()
-                }
-
-                else -> {
-                    emptyList()
-                }
-            }
     }
 
     private data class FqnFinding(

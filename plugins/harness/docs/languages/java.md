@@ -80,4 +80,4 @@ The mappings below record where Java has a safe language or tool equivalent.
 | `companion-object-position`, `explicit-unit-branch`, `nested-data-class-last`, `no-import-alias`, `no-java-path-api`, `non-null-assertion`, `null-comparison-identity`, `nullable-elvis-return`, `no-regex-constructor`, `slf-direct-logging` | These rules depend on Kotlin syntax, Kotlin null semantics, Kotlin-specific constructs, or Kotlin APIs and have no direct Java equivalent. Java null comparisons already use reference identity. |
 
 The Java profile permits wildcard imports.
-The Kotlin ruleset also permits wildcard imports and skips uncertain FQN-to-import findings for colliding names, conflicting aliases, same-package references, existing unqualified uses, and files with any wildcard import.
+The Kotlin ruleset also permits wildcard imports, checks fully qualified type references only, and skips candidates with colliding names, conflicting aliases, same-package references, existing unqualified uses, or any wildcard import.
