@@ -29,6 +29,8 @@ Do not add legacy parallel surfaces or compatibility shims without an external c
 
 ## Authoring
 
+Use [contribution guidance](CONTRIBUTING.md) for issue and PR templates, commit bodies, and documentation formatting.
+
 Write all repository guidance and agent-to-agent communication in English.
 Use official OpenAI documentation for Codex behavior and shared instruction design.
 Use matching host and model documentation for host-specific or model-specific behavior.

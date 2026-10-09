@@ -67,7 +67,8 @@ Assumes linear interpolation (uniform distribution of observations within the bu
 Given buckets `{le="1": 50, le="5": 70}` and asking for phi=0.86:
 
 - The quantile falls between 1 and 5.
-- 50 observations are at or below 1. 20 observations are between 1 and 5.
+- 50 observations are at or below 1.
+  20 observations are between 1 and 5.
 - The quantile rank is `0.86 * 70 = 60.2` observations, and Prometheus uses this continuous rank without rounding.
 - Linear interpolation places it at: `1 + (5 - 1) * (60.2 - 50) / (70 - 50)` = `1 + 4 * (10.2/20)` = `3.04`.
 
