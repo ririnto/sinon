@@ -219,7 +219,8 @@ Important semantics:
   - If your rule sets `alertname` via labels (unusual), include it explicitly.
 - `exp_labels` and `exp_annotations` are exact expected maps for the alert instance.
   - Include every label and annotation the rule emits and do not rely on extra actual keys being ignored.
-- An empty `exp_alerts: []` means "this alert should not be firing at this eval time." This covers both truly-inactive and pending states.
+- An empty `exp_alerts: []` means "this alert should not be firing at this eval time."
+  This covers both truly-inactive and pending states.
 
 Example with full assertion:
 

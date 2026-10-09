@@ -43,7 +43,7 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 - `docs/agent-references/`: source and instruction authoring conventions.
 - `scripts/`: repository checks and native example fixtures.
 - `rules/`: repository Markdown lint rules.
-- `.github/`: dependency update configuration.
+- `.github/`: dependency update configuration and contribution templates.
 - `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
@@ -74,6 +74,8 @@ Use each plugin's `README.md` for its runtime surfaces and scope.
 Portable skills follow OpenAI's task-focused authoring guidance, while Claude marketplace entries retain Claude's component contract.
 
 ## Development
+
+Use the [contribution guide](CONTRIBUTING.md) for issues, pull requests, writing rules, and commit evidence.
 
 Use the Node range in `package.json` and the repository's pnpm toolchain.
 Run `pnpm install` after dependency changes.

@@ -41,8 +41,7 @@ Activate this skill for:
 
 - choosing between `Flux<T>` and `Mono<T>`
 - creating a sequence from fixed values, collections, one lazy value, a future, or one blocking call
-- composing a pipeline with transformation, filtering, sequencing, merging, zipping,
-  cancellation-aware fan-out, time-bounded operations, and collection operators
+- composing a pipeline with transformation, filtering, sequencing, merging, zipping, cancellation-aware fan-out, time-bounded operations, and collection operators
 - making empty behavior, error translation, fallback, cleanup, completion-side repeat, bounded retry, and timeout explicit
 - deciding whether ordinary backpressure defaults are enough or an overflow policy must be chosen
 - carrying tracing, request, tenant, or auth metadata through `Context`

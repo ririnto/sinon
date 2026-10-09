@@ -20,10 +20,8 @@ Netty provides skills for core Netty APIs and Reactor Netty clients and servers.
 
 ## When to Use Which Skill
 
-- Core Netty API, bootstrap configuration, channel lifecycle management, pipeline building,
-  ByteBuf manipulation, and custom codec development belong in the Netty core guidance.
-- Reactive HTTP servers/clients, TCP/UDP with reactive streams, Mono/Flux transformation,
-  and Project Reactor integration belong in Reactor Netty guidance.
+- Core Netty API, bootstrap configuration, channel lifecycle management, pipeline building, ByteBuf manipulation, and custom codec development belong in the Netty core guidance.
+- Reactive HTTP servers/clients, TCP/UDP with reactive streams, Mono/Flux transformation, and Project Reactor integration belong in Reactor Netty guidance.
 
 Select the skill for the API under change, not a sequence from core Netty to reactive transport.
 Use low-level guidance only when channel, pipeline, codec, or buffer ownership behavior requires it.

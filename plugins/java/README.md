@@ -25,8 +25,7 @@ Java provides language, API design, testing, dependency, and concurrency skills 
 
 ## Included Agents
 
-- `java-architect`: coordinates Java language, testing, dependency, performance, and API design
-  decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
+- `java-architect`: coordinates Java language, testing, dependency, performance, and API design decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
 
 `java-architect` is a read-only leaf domain router for cross-skill Java decisions.
 It may load Java skills but does not delegate to other agents.
@@ -43,8 +42,7 @@ Current-release confirmation requires live registry access.
 ### Scope boundaries
 
 Each skill states its own scope and exclusions.
-When work lands on a boundary, keep the active task inside the skill that owns the current
-implementation blocker instead of turning the answer into transfer instructions.
+When work lands on a boundary, keep the active task inside the skill that owns the current implementation blocker instead of turning the answer into transfer instructions.
 
 ## Runtime Model
 

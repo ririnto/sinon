@@ -14,9 +14,9 @@ Open this when collection shape and laziness tradeoffs are the hard part.
 - break long chains into named locals when business meaning is getting hidden
 - prefer simple `map`, `filter`, `associate`, and `groupBy` before clever pipeline tricks
 - use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged
-- split `filter` predicates containing `&&` when chained filters preserve their meaning
+- split `filter` predicates containing `&&` when chained filters preserve their meaning.
   Preserve order, nullability, smart casts, side effects, and eager or lazy behavior.
-- chain independent positive `takeIf` predicates when each one qualifies the same object
+- chain independent positive `takeIf` predicates when each one qualifies the same object.
   Use `?.takeIf` after a nullable receiver so a rejected first predicate skips the next one.
   Keep `takeUnless` and `filterNot` predicates intact.
   Do not split mixed-polarity predicates when that changes the Boolean logic.
