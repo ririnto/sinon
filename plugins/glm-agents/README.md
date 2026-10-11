@@ -15,6 +15,8 @@ metadata:
         - https://code.claude.com/docs/en/llm-gateway-protocol.md
     Codex plugins:
       url: https://developers.openai.com/codex/plugins/build.md
+    Z.ai Claude Code setup:
+      url: https://docs.z.ai/devpack/tool/claude.md
     Z.ai models:
       url:
         - https://docs.z.ai/guides/llm/glm-5.3.md
@@ -34,25 +36,38 @@ Codex plugin manifests declare skills, MCP servers, apps, and hooks, but not cus
 
 ## Gateway Prerequisites
 
-Before installing, configure an Anthropic Messages-compatible gateway that routes `glm-5.3` and `glm-5.3-flash` to Z.ai.
+Before installing, connect Claude Code to Z.ai's native Anthropic-compatible endpoint or a gateway that routes `glm-5.3` and `glm-5.3-flash` to Z.ai.
 The gateway must expose `/v1/messages`, support streaming and tool use, and translate Anthropic-format requests and responses to the upstream provider's format.
-Pointing Claude Code at the upstream Z.ai API without that compatibility layer is not sufficient.
+Z.ai provides that compatibility at `https://api.z.ai/api/anthropic`, so a separate translator is not required for the vendor-supported connection.
+The OpenAI-format Z.ai endpoint is not interchangeable with this Anthropic-compatible endpoint.
 Anthropic does not support routing Claude Code to non-Claude models through a gateway.
 The plugin provides agent definitions only and does not configure a gateway or credentials.
 
 Follow the gateway operator's setup instructions and the [Claude Code connection guide](https://code.claude.com/docs/en/llm-gateway-connect.md).
-For a gateway that uses bearer authentication, set the following before launching Claude Code:
+For Z.ai's native endpoint, follow its [official Claude Code setup](https://docs.z.ai/devpack/tool/claude.md) and set:
 
 ```sh
-export ANTHROPIC_BASE_URL='https://gateway.example.com'
-export ANTHROPIC_AUTH_TOKEN='<gateway-issued-token>'
+export ANTHROPIC_BASE_URL='https://api.z.ai/api/anthropic'
+export ANTHROPIC_AUTH_TOKEN='<zai-api-key>'
 ```
 
-Replace the placeholders with your gateway's base URL and credential.
+Replace the key placeholder with your Z.ai API key.
+If using a custom gateway instead, replace the base URL and credential with the values issued by its operator.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
 Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
 
 ### Effort And Context
+
+Leave `CLAUDE_CODE_EFFORT_LEVEL` unset so each agent's frontmatter controls effort.
+Before launching a new session, clear an inherited override with:
+
+```sh
+unset CLAUDE_CODE_EFFORT_LEVEL
+```
+
+Do not supply a per-invocation effort override when selecting an agent by its listed effort.
+Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
+Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
 
 The gateway must translate `output_config.effort` to the upstream model's supported reasoning setting and honor every effort listed below.
 Verify distinct effort values in gateway request diagnostics without exposing credentials or conversation content.

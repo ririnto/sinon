@@ -55,6 +55,17 @@ Confirm the gateway URL in `/status` and test each agent through the gateway bef
 
 ### Effort And Context
 
+Leave `CLAUDE_CODE_EFFORT_LEVEL` unset so each agent's frontmatter controls effort.
+Before launching a new session, clear an inherited override with:
+
+```sh
+unset CLAUDE_CODE_EFFORT_LEVEL
+```
+
+Do not supply a per-invocation effort override when selecting an agent by its listed effort.
+Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
+Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
+
 The gateway must translate `output_config.effort` to the upstream model's supported reasoning setting and honor every effort listed below.
 Verify distinct effort values in gateway request diagnostics without exposing credentials or conversation content.
 A gateway that drops effort or rejects it can make the high and max agents behave identically.
