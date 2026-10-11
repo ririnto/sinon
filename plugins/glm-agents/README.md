@@ -12,7 +12,7 @@ metadata:
     Z.ai models:
       url:
         - https://docs.z.ai/guides/llm/glm-5.3.md
-        - https://docs.z.ai/guides/llm/glm-5.3-flash.md
+        - https://docs.z.ai/guides/vlm/glm-5.3-flash.md
 ---
 
 # GLM Agents
