@@ -92,6 +92,7 @@ The following local plugins are listed in both marketplace catalogs.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - [codegraph](./plugins/codegraph/README.md)
+- [codex-app-server](./plugins/codex-app-server/README.md)
 - [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
