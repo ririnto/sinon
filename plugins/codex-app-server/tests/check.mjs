@@ -9,7 +9,9 @@ const temporary = await mkdtemp(path.join(tmpdir(), "sinon-mcp-tests-"));
 try {
   await Promise.all(
     ["package.json", "server.mjs", "lib", "tests/server.test.mjs"].map((file) =>
-      cp(path.join(root, file), path.join(temporary, file), { recursive: true })
+      cp(path.join(root, file), path.join(temporary, file), {
+        recursive: true
+      })
     )
   );
   const installed = spawnSync(

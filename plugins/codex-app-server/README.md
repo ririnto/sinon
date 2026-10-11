@@ -22,7 +22,7 @@ metadata:
 
 # Codex App-Server
 
-This plugin exposes the running Codex app-server through six stdio MCP tools.
+This plugin exposes the running Codex app-server through guarded stdio MCP tools and an installed-version method catalog.
 The server instructions, tool descriptions, and input descriptions carry usage and safety guidance without a separate skill.
 
 Install `codex-app-server` from the Sinon marketplace in Claude Code:
@@ -74,12 +74,65 @@ The first launch requires registry access unless the dependencies are already ca
 
 | Tool | Operation |
 | --- | --- |
-| `codex_threads` | List a newest-first page of non-archived threads from all supported source kinds using state metadata, without rollout repair. |
-| `codex_tail` | Read trailing user and agent messages without resuming the thread. |
-| `codex_start` | Create a thread, optionally name it, and optionally send its first turn. |
-| `codex_send` | Resume a thread, start a turn, and optionally wait for its completion. |
+| `codex_threads` | List stored, non-archived threads using state metadata without rollout repair. |
+| `codex_tail` | Read trailing messages with each turn's ID and status without resuming the thread. |
+| `codex_start` | Create a thread and optionally name it or send its first turn. |
+| `codex_send` | Resume a thread, start a turn, and optionally wait for completion. |
+| `codex_steer` | Read the active turn and send steering text with its expected turn ID. |
+| `codex_interrupt` | Read the active turn and interrupt it by ID. |
+| `codex_fork` | Copy a thread's history into a new thread without starting a turn. |
+| `codex_rename` | Set a thread's display name. |
+| `codex_goal` | Read, set, or clear a thread's goal. |
+| `codex_loaded` | List a page of thread IDs loaded in daemon memory. |
+| `codex_compact` | Request context compaction without waiting for completion. |
 | `codex_mcp_tool` | Call a configured MCP tool inside a temporary ephemeral thread. |
-| `codex_call` | Send a raw app-server request, refusing reset-credit consumption before connecting. |
+| `codex_call` | Send a raw request while refusing reset-credit consumption and thread cleanup. |
+| `codex_methods` | Discover installed-version methods and inspect their parameter schemas when generation succeeds. |
+
+`codex_steer` and `codex_interrupt` refuse when the last turn is not `inProgress`.
+They read the turn ID themselves and never resume the thread or start a new turn.
+The daemon checks `expectedTurnId` for steering, preventing a stale read from steering a replacement turn.
+Read the thread first and use these tools only under authorized steering instructions.
+Keep one writer per thread.
+On an active-writer error, let the existing writer release the thread instead of deleting its lock.
+
+## Installed-Version Catalog
+
+At startup, the server runs `codex app-server generate-json-schema` into a disposable directory.
+It reads `ClientRequest.json` and removes the directory after reading the schema.
+Set `CODEX_BIN` to an executable path when `codex` is not available through `PATH`.
+The executable must match the daemon version, especially when the socket points to a different installation.
+The generated ClientRequest catalog contains client requests, not server-initiated approval requests.
+No daemon schema-discovery request is needed.
+Restart the MCP server after upgrading Codex to regenerate the catalog without a plugin release.
+
+By default, the server exposes 13 curated tools plus `codex_methods` when generation succeeds.
+The catalog does not add every protocol method to the default tool list.
+Use `codex_methods` to list names, or supply `method` to retrieve one parameter schema for `codex_call`.
+Set `CODEX_APP_SERVER_METHODS` to comma-separated method names or namespace prefixes to expose generated tools.
+For example, `fs,config/read` exposes filesystem methods and the configuration read method.
+Generated names replace slashes with underscores, such as `codex_fs_readFile`.
+Restart the MCP server after changing this setting.
+The plugin does not edit host configuration or credentials.
+
+The startup schema from Codex 0.162.1 contains 105 client methods.
+Enabling entire namespaces increases tool count and tool-schema context size.
+Keep the allowlist narrow and fetch individual schemas through `codex_methods` when needed.
+Read-only annotations use a reviewed method allowlist.
+Unknown methods conservatively carry a mutating annotation, regardless of their name.
+Annotations describe behavior and do not authorize calls.
+Generated mutations require a direct human instruction or an assigned contract authorizing the operation.
+
+Curated operations never get duplicate generated tools, even when their namespaces are enabled.
+Reset-credit consumption is always refused, and thread archive, unarchive, and delete remain native CLI operations.
+Usage methods are not exposed as generated tools and remain reserved for the Orchestrator through `codex_call`.
+Server-initiated requests, including approvals, remain refused by the connection layer.
+
+If schema generation, parsing, or conversion fails, startup reports the reason on stderr.
+Only curated tools remain available in that case.
+The generator has a 30-second deadline and never starts a daemon.
+
+## Package Contents
 
 Thread cleanup uses native `codex archive`, `codex unarchive`, and `codex delete` with `--remote unix://`.
 The plugin adds no dedicated cleanup tools.
@@ -91,7 +144,12 @@ The plugin adds no dedicated cleanup tools.
 - `lib/connection.mjs` owns control-socket transport, JSON-RPC requests, and per-call connection cleanup.
 - `lib/thread-tools.mjs` registers thread inspection and steering tools, including turn completion handling.
 - `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
-- `lib/raw-call.mjs` registers raw app-server requests and the reset-credit refusal.
+- `lib/raw-call.mjs` registers raw requests with the shared refusals.
+- `lib/turn-tools.mjs` owns active-turn guards for steering and interruption.
+- `lib/thread-admin.mjs` registers small thread administration tools.
+- `lib/catalog.mjs` generates, converts, filters, and exposes installed-version method schemas.
+- `lib/policy.mjs` separates curated, refused, native CLI, and usage methods.
+- `AGENTS.md` records catalog and policy maintenance requirements.
 - `tests/` verifies the stdio server against a disposable Unix-socket fixture.
 - The Sinon marketplace entry declares Claude Code identity and the package root.
 
