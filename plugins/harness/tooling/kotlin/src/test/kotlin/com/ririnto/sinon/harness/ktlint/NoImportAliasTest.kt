@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the no import alias rule.
+ */
 class NoImportAliasTest :
     FunSpec({
         test("alias matching simple name is flagged") {

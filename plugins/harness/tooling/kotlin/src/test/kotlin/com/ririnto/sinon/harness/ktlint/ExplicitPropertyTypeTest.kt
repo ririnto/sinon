@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the explicit property type rule.
+ */
 class ExplicitPropertyTypeTest :
     FunSpec({
         test("autocorrects literal member properties") {
@@ -85,13 +88,55 @@ class ExplicitPropertyTypeTest :
         test("flags only untyped member properties") {
             listOf(
                 "fun f() { val x = 42 }",
-                "val top = 42",
+                "val top: Int = 42",
+                "private val top: Int = 42",
                 "class C { val x: Int = 42 }"
             ).forEach { source ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                     diagnostics shouldContainExactlyInAnyOrder emptyList()
                     formattedCode shouldBe source
                 }
+            }
+        }
+
+        test("autocorrects top level properties") {
+            listOf(
+                "val top = 42" to "val top: Int = 42",
+                "private val top = \"text\"" to "private val top: String = \"text\"",
+                "internal var top = true" to "internal var top: Boolean = true"
+            ).forEach { (source, expected) ->
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics shouldContainExactlyInAnyOrder
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.indexOf("top") + 1,
+                                "declare an explicit type on top-level property `top`",
+                                canBeAutoCorrected = true
+                            )
+                        )
+                    formattedCode shouldBe expected
+                }
+            }
+        }
+
+        test("leaves unsafe top level initializers lint only") {
+            KtLintRuleTestEngine.execute(ruleProvider, "private val top = compute()").diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        1,
+                        13,
+                        "declare an explicit type on top-level property `top`",
+                        canBeAutoCorrected = false
+                    )
+                )
+        }
+
+        test("ignores script properties") {
+            val source = "val top = 42\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
             }
         }
 

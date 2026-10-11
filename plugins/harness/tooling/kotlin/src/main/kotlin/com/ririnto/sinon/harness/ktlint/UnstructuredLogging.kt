@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Flags forbidden unstructured logging calls.
+ * Flags unstructured console output through `print`, `println`, `System.out` and `System.err` print calls, and `printStackTrace`.
  *
  * Recommend structured logging instead.
  */
@@ -27,12 +27,13 @@ class UnstructuredLogging :
     ),
     RuleAutocorrectApproveHandler {
     private companion object {
-        val PRINTLN_PATHS: Set<String> =
-            setOf(
-                "println",
-                "kotlin.println",
-                "kotlin.io.println"
-            )
+        val CONSOLE_FUNCTIONS: Set<String> = setOf("print", "println")
+        val CONSOLE_STREAMS: Set<String> = setOf("System.out", "System.err", "java.lang.System.out", "java.lang.System.err")
+        val STREAM_FUNCTIONS: Set<String> = setOf("print", "println", "printf")
+        val CONSOLE_PATHS: Set<String> =
+            CONSOLE_FUNCTIONS.flatMapTo(mutableSetOf()) { function -> listOf(function, "kotlin.$function", "kotlin.io.$function") } +
+                CONSOLE_STREAMS.flatMap { stream -> STREAM_FUNCTIONS.map { function -> "$stream.$function" } }
+        const val PRINT_STACK_TRACE: String = "printStackTrace"
     }
 
     override fun beforeVisitChildNodes(
@@ -58,8 +59,14 @@ class UnstructuredLogging :
                                 ?.plus(callName)
                                 ?.joinToString(".")
                         }
-                if (qualifiedCall?.let { call -> call in PRINTLN_PATHS } == true ||
-                    (qualifiedCall === null && expression.parent !is KtQualifiedExpression && callName in PRINTLN_PATHS)
+                if (callName == PRINT_STACK_TRACE ||
+                    qualifiedCall?.let { call ->
+                        call in CONSOLE_PATHS && isStandardName(call.substringBefore('.'), expression)
+                    } == true ||
+                    (
+                        qualifiedCall === null && expression.parent !is KtQualifiedExpression &&
+                            callName in CONSOLE_FUNCTIONS && isStandardName(callName, expression)
+                    )
                 ) {
                     emit(
                         expression.textOffset,
@@ -69,6 +76,23 @@ class UnstructuredLogging :
                 }
             }
         }
+
+        private fun isStandardName(
+            name: String,
+            expression: KtCallExpression
+        ): Boolean =
+            !KotlinLexicalScope.isDeclared(name, expression) &&
+                (expression.containingFile as? KtFile)?.importDirectives?.none { directive ->
+                    val path = directive.importedFqName?.asString()
+                    val visibleName = directive.aliasName ?: directive.importedFqName?.shortName()?.asString()
+                    when {
+                        directive.isAllUnder -> path !in setOf("kotlin.io", "java.lang")
+                        visibleName != name -> false
+                        name == "System" -> path != "java.lang.System"
+                        name in CONSOLE_FUNCTIONS -> path != "kotlin.io.$name"
+                        else -> true
+                    }
+                } == true
 
         private fun KtCallExpression.calleeName(): String? =
             (calleeExpression as? KtNameReferenceExpression)
@@ -84,10 +108,6 @@ class UnstructuredLogging :
                 is KtDotQualifiedExpression -> {
                     receiverExpression.expressionParts() +
                         selectorExpression?.expressionParts().orEmpty()
-                }
-
-                is KtCallExpression -> {
-                    listOfNotNull(calleeName())
                 }
 
                 else -> {

@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the explicit unit branch rule.
+ */
 class ExplicitUnitBranchTest :
     FunSpec({
         test("flags only explicit unit results in mixed when branches") {

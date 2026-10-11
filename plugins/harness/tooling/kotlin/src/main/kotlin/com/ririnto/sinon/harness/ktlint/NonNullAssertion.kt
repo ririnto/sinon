@@ -13,18 +13,17 @@ import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtPostfixExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
- * Flags every Kotlin non-null assertion operator (`!!`) and rewrites it to an explicit `requireNotNull(...)` guard.
+ * Flags every Kotlin non-null assertion operator (`!!`).
  *
- * When the operand is already wrapped in `requireNotNull(...)` or `checkNotNull(...)`, the redundant `!!` is simply stripped.
- *
- * A user-defined callable in the same file with a guard name (function, property, or import) disables autocorrect so the rewritten call never silently resolves to the user declaration instead of the Kotlin standard library guard.
+ * The rule never rewrites an assertion into a guard because `requireNotNull` throws `IllegalArgumentException` where `!!` throws `NullPointerException`.
+ * The only correction strips a redundant `!!` from a standard library `requireNotNull(...)` or `checkNotNull(...)` call, whose result is already non-null.
+ * A same-named user declaration, alias, or import disables that correction because its result type is unknown.
  */
 class NonNullAssertion :
     Rule(
@@ -42,77 +41,44 @@ class NonNullAssertion :
     ) {
         if (node.elementType == OPERATION_REFERENCE && node.firstChildNode?.elementType == KtTokens.EXCLEXCL) {
             (node.treeParent?.psi as? KtPostfixExpression)?.let { postfixExpression ->
-                postfixExpression.baseExpression?.let { baseExpression ->
-                    val file = postfixExpression.containingFile as? KtFile
-                    val imports = file?.importDirectives.orEmpty()
-                    val shadowNames =
-                        when (imports.any(KtImportDirective::isAllUnder)) {
-                            true -> {
-                                GUARD_FUNCTIONS
-                            }
-
-                            else -> {
-                                file
-                                    ?.let { kf ->
-                                        PsiTreeUtil
-                                            .findChildrenOfType(kf, KtNamedDeclaration::class.java)
-                                            .mapNotNull(KtNamedDeclaration::getName)
-                                            .filter { name -> name in GUARD_FUNCTIONS }
-                                            .toSet()
-                                    }.orEmpty() +
-                                    imports
-                                        .asSequence()
-                                        .filterNot(KtImportDirective::isAllUnder)
-                                        .mapNotNull(KtImportDirective::aliasName)
-                                        .filter { name -> name in GUARD_FUNCTIONS }
-                                        .toSet() +
-                                    imports
-                                        .asSequence()
-                                        .filter { directive -> directive.aliasName === null }
-                                        .mapNotNull { directive ->
-                                            directive.importedFqName
-                                                ?.takeIf { fqName ->
-                                                    fqName.parent().asString() != "kotlin"
-                                                }?.shortName()
-                                                ?.asString()
-                                                ?.takeIf { name -> name in GUARD_FUNCTIONS }
-                                        }.toSet()
-                            }
-                        }
-                    val canCorrect = shadowNames.isEmpty()
-                    val safeCallMessage =
-                        "avoid non-null assertion `${KtTokens.EXCLEXCL.value}`; use safe call (${KtTokens.SAFE_ACCESS.value}), Elvis (${KtTokens.ELVIS.value}), or an explicit `requireNotNull` guard"
-                    val shadowMessage: String by lazy {
-                        "avoid non-null assertion `${KtTokens.EXCLEXCL.value}`; a user-defined `${shadowNames.first()}` shadows the standard library guard, so rewrite it manually with `requireNotNull(...)` or rename the shadow"
-                    }
-                    val message =
-                        when (canCorrect) {
-                            true -> safeCallMessage
-                            else -> shadowMessage
-                        }
-                    emit(
-                        node.startOffset,
-                        message,
-                        canCorrect
-                    ).ifAutocorrectAllowed {
+                val redundantGuard: KtCallExpression? =
+                    (postfixExpression.baseExpression as? KtCallExpression)
+                        ?.takeIf { call -> isStandardGuardCall(call) }
+                emit(
+                    node.startOffset,
+                    "avoid non-null assertion `${KtTokens.EXCLEXCL.value}`; use safe call (${KtTokens.SAFE_ACCESS.value}), " +
+                        "Elvis (${KtTokens.ELVIS.value}), or an explicit `requireNotNull` or `checkNotNull` guard",
+                    redundantGuard !== null
+                ).ifAutocorrectAllowed {
+                    redundantGuard?.let { guard ->
                         postfixExpression.node.replaceWith(
                             KtPsiFactory
                                 .contextual(postfixExpression, false)
-                                .createExpression(
-                                    when (
-                                        (baseExpression as? KtCallExpression)
-                                            ?.calleeExpression
-                                            ?.let { callee -> callee as? KtNameReferenceExpression }
-                                            ?.getReferencedName() in GUARD_FUNCTIONS
-                                    ) {
-                                        true -> baseExpression.text
-                                        else -> "requireNotNull(${baseExpression.text})"
-                                    }
-                                ).node
+                                .createExpression(guard.text)
+                                .node
                         )
                     }
                 }
             }
         }
     }
+
+    private fun isStandardGuardCall(call: KtCallExpression): Boolean =
+        (call.calleeExpression as? KtNameReferenceExpression)
+            ?.getReferencedName()
+            ?.takeIf { name -> name in GUARD_FUNCTIONS }
+            ?.let { name -> (call.containingFile as? KtFile)?.let { file -> !file.shadows(name) } } == true
+
+    private fun KtFile.shadows(name: String): Boolean =
+        importDirectives.any { directive ->
+            directive.isAllUnder ||
+                directive.aliasName == name ||
+                (
+                    directive.aliasName === null &&
+                        directive.importedFqName?.let { fqName ->
+                            fqName.parent().asString() != "kotlin" && fqName.shortName().asString() == name
+                        } == true
+                )
+        } ||
+            PsiTreeUtil.findChildrenOfType(this, KtNamedDeclaration::class.java).any { declaration -> declaration.name == name }
 }

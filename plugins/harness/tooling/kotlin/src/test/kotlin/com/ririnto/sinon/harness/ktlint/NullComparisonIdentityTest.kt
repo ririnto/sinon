@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the null comparison identity rule.
+ */
 class NullComparisonIdentityTest :
     FunSpec({
         test("flags structural null comparisons on either side including parentheses") {

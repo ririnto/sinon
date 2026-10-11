@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the companion object position rule.
+ */
 class CompanionObjectPositionTest :
     FunSpec({
         test("flags companion object after other declarations") {

@@ -32,6 +32,9 @@ class UncheckedCastSuppression :
     ),
     RuleAutocorrectApproveHandler {
     companion object {
+        /**
+         * Names the comma separated suppression tokens that `@Suppress` must not use.
+         */
         val FORBIDDEN_SUPPRESSIONS: EditorConfigProperty<String> =
             EditorConfigProperty(
                 type =
@@ -43,6 +46,9 @@ class UncheckedCastSuppression :
                 defaultValue = "UNCHECKED_CAST"
             )
 
+        /**
+         * Names the comma separated suppression tokens exempted from the forbidden list.
+         */
         val ALLOWED_SUPPRESSIONS: EditorConfigProperty<String> =
             EditorConfigProperty(
                 type =

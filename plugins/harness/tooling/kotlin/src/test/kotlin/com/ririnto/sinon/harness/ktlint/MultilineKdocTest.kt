@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the multiline kdoc rule.
+ */
 class MultilineKdocTest :
     FunSpec({
         test("expands single line kdoc") {

@@ -7,6 +7,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the unchecked cast suppression rule.
+ */
 class UncheckedCastSuppressionTest :
     FunSpec({
         test("stale suppress on function without cast autocorrects by removing annotation") {

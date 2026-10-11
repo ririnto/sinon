@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the leading underscore rule.
+ */
 class LeadingUnderscoreTest :
     FunSpec({
         test("autocorrects unreferenced private function parameter") {

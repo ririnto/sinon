@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Flags Kotlin member properties without explicit type declarations.
+ * Flags Kotlin class, object, companion object, and top-level properties without explicit type declarations.
  */
 class ExplicitPropertyType :
     Rule(
@@ -36,7 +36,7 @@ class ExplicitPropertyType :
     ) : KtTreeVisitorVoid() {
         override fun visitProperty(property: KtProperty) {
             super.visitProperty(property)
-            if (!property.isLocal && property.parent is KtClassBody && property.typeReference === null) {
+            if (!property.isLocal && (property.parent is KtClassBody || property.parent is KtFile) && property.typeReference === null) {
                 val typeName =
                     property.initializer?.let { initializer ->
                         with(LiteralTypeInference) { initializer.inferLiteralType() }
@@ -44,8 +44,9 @@ class ExplicitPropertyType :
                 emit(
                     property.textOffset,
                     "declare an explicit type on ${
-                        when ((property.parent?.parent as? KtObjectDeclaration)?.isCompanion()) {
-                            true -> "companion object property"
+                        when {
+                            property.parent is KtFile -> "top-level property"
+                            (property.parent?.parent as? KtObjectDeclaration)?.isCompanion() == true -> "companion object property"
                             else -> "member property"
                         }
                     } `${property.name ?: "property"}`",

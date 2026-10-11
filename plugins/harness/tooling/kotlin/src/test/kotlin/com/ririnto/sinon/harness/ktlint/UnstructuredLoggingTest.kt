@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the unstructured logging rule.
+ */
 class UnstructuredLoggingTest :
     FunSpec({
         test("println is flagged") {
@@ -83,25 +86,127 @@ class UnstructuredLoggingTest :
             }
         }
 
-        test("non kotlin callee is safe") {
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun log(error: Throwable) = error.printStackTrace()\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
-                formattedCode shouldBe "fun log(error: Throwable) = error.printStackTrace()\n"
-            }
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
+        test("print and standard stream calls are flagged") {
+            KtLintRuleTestEngine
+                .execute(
                     ruleProvider,
                     """
-                    fun log() = print("message")
+                    fun log() {
+                        print("one")
+                        kotlin.io.print("two")
+                        System.out.println("three")
+                        System.out.print("four")
+                        System.out.printf("five %s", "x")
+                        System.err.println("six")
+                        System.err.print("seven")
+                        java.lang.System.out.println("eight")
+                    }
                     """.trimIndent() + "\n"
+                ).diagnostics
+                .map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                listOf(
+                    "unstructured logging `print`; use structured logger",
+                    "unstructured logging `kotlin.io.print`; use structured logger",
+                    "unstructured logging `System.out.println`; use structured logger",
+                    "unstructured logging `System.out.print`; use structured logger",
+                    "unstructured logging `System.out.printf`; use structured logger",
+                    "unstructured logging `System.err.println`; use structured logger",
+                    "unstructured logging `System.err.print`; use structured logger",
+                    "unstructured logging `java.lang.System.out.println`; use structured logger"
                 )
-            ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
-                formattedCode shouldBe
+        }
+
+        test("print stack trace is flagged") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
                     """
-                    fun log() = print("message")
+                    fun log(error: Throwable) {
+                        error.printStackTrace()
+                        this.printStackTrace()
+                    }
                     """.trimIndent() + "\n"
+                ).diagnostics
+                .map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(2, 3)
+        }
+
+        test("receiver print calls and other standard stream members are safe") {
+            val source =
+                """
+                class Printer {
+                    fun print(message: String) {}
+                }
+
+                fun log(printer: Printer) {
+                    printer.print("message")
+                    System.out.flush()
+                    System.lineSeparator()
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
             }
+        }
+
+        test("shadowed console functions and stream roots are safe") {
+            listOf(
+                """
+                fun print(message: String) {}
+                fun log() = print("message")
+                """.trimIndent() + "\n",
+                """
+                fun log(println: (String) -> Unit, System: Console) {
+                    println("message")
+                    System.out.println("message")
+                }
+                """.trimIndent() + "\n",
+                """
+                import example.println
+
+                fun log() = println("message")
+                """.trimIndent() + "\n",
+                """
+                fun log(pairs: List<Pair<Console, Console>>) {
+                    pairs.forEach { (System, other) ->
+                        System.out.println("message")
+                    }
+                    for ((System, other) in pairs) {
+                        System.err.print("message")
+                    }
+                }
+                """.trimIndent() + "\n",
+                """
+                fun log() = System().out.println("message")
+                """.trimIndent() + "\n"
+            ).forEach { source ->
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    formattedCode shouldBe source
+                }
+            }
+        }
+
+        test("a console-like member in another class does not hide standard output") {
+            KtLintRuleTestEngine
+                .execute(
+                    ruleProvider,
+                    """
+                    class Printer {
+                        fun println(message: String) {}
+                    }
+
+                    fun log() = println("message")
+                    """.trimIndent() + "\n"
+                ).diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(
+                        5,
+                        13,
+                        "unstructured logging `println`; use structured logger",
+                        canBeAutoCorrected = false
+                    )
+                )
         }
 
         test("safe access and not null assertion receivers are safe") {

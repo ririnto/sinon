@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the import over fqn rule.
+ */
 class ImportOverFqnTest :
     FunSpec({
         test("fully qualified type is rewritten and imported") {

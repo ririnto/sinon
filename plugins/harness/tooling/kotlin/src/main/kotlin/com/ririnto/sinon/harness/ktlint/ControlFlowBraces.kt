@@ -108,10 +108,12 @@ class ControlFlowBraces :
                     "$lineIndentation    ${expression.text}"
                 ).node
                 .also { node ->
-                    node.addChild(
-                        factory.createWhiteSpace(lineIndentation).node,
-                        checkNotNull(node.findChildByType(KtTokens.RBRACE))
-                    )
+                    lineIndentation.takeIf(String::isNotEmpty)?.let { indentation ->
+                        node.addChild(
+                            factory.createWhiteSpace(indentation).node,
+                            checkNotNull(node.findChildByType(KtTokens.RBRACE))
+                        )
+                    }
                 }
         }
 

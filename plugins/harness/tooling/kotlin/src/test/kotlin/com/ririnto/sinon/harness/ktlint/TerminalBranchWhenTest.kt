@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the terminal branch when rule.
+ */
 class TerminalBranchWhenTest :
     FunSpec({
         test("reports only outermost same subject equality chain with final else") {
