@@ -42,7 +42,7 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 - `.agents/plugins/marketplace.json`: generated Codex marketplace catalog.
 - `docs/agent-references/`: source and instruction authoring conventions.
 - `scripts/`: repository checks and native example fixtures.
-- `rules/`: repository Markdown lint rules.
+- `plugins/harness/tooling/pnpm/rules/`: shared profile and repository Markdown lint rules.
 - `.github/`: dependency update configuration and contribution templates.
 - `plugins/`: plugins maintained in this repository.
 

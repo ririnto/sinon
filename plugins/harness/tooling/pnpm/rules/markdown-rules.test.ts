@@ -159,13 +159,32 @@ describe("docs/sentence-per-line", () => {
       { detail: multiple, lineNumber: 1, range: [column, 1] }
     ]);
   });
-  test("rejects multiple sentences in a table cell", () => {
-    expect(
-      violations(
-        sentencePerLine,
-        "| Area | Evidence |\n| --- | --- |\n| Reasoning | First sentence. Second sentence follows. |\n"
-      ).found
-    ).toEqual([{ detail: multiple, lineNumber: 3, range: [29, 1] }]);
+  test.each([
+    [
+      "table headers and cells",
+      "| First sentence. Second follows. | Evidence; therefore check it. |\n| --- | --- |\n| First sentence. Second follows. | First stands; therefore second follows. |\n"
+    ],
+    [
+      "pipeless tables",
+      "First sentence. Second follows. | Evidence; therefore check it.\n--- | ---\nFirst sentence. Second follows. | First stands; therefore second follows.\n"
+    ],
+    [
+      "blockquoted tables",
+      "> | First sentence. Second follows. | Evidence; therefore check it. |\n> | --- | --- |\n> | First sentence. Second follows. | First stands; therefore second follows. |\n"
+    ]
+  ])("preserves %s without diagnostics or fixes", (_name, input) => {
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: []
+    });
+  });
+  test("checks blockquote prose surrounding a protected table", () => {
+    const input =
+      "> First sentence. Second follows.\n>\n> | First sentence. Second follows. |\n> | --- |\n> | First stands; therefore second follows. |\n>\n> - First stands; therefore second follows.\n";
+    expect(violations(sentencePerLine, input).found).toEqual([
+      { detail: multiple, lineNumber: 1, range: [17, 1] },
+      { detail: semicolon, lineNumber: 7, range: [17, 1] }
+    ]);
   });
   test.each([
     [

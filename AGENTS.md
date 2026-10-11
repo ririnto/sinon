@@ -39,7 +39,7 @@ Use official vendor documentation for technical claims, and identify repository 
 ## Task References
 
 Use [repository conventions](docs/agent-references/repository-conventions.md) for the language or file type under change.
-Use [TypeScript conventions](docs/agent-references/typescript.md) for TypeScript source under `scripts/` or `rules/`.
+Use [TypeScript conventions](docs/agent-references/typescript.md) for repository scripts, profile plugins, and `plugins/harness/tooling/pnpm/rules/`.
 Use [instruction authoring](docs/agent-references/instruction-authoring.md) when changing agent guidance, skill activation or content, host hooks, or model prompts.
 
 ## Completion And Checks

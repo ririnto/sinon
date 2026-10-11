@@ -28,7 +28,6 @@ const skippedContainerTypes = new Set([
   "codeIndented",
   "htmlFlowData"
 ]);
-const proseCellTypes = new Set<string>(["tableData", "tableHeader"]);
 
 interface Segment {
   startColumn: number;
@@ -46,7 +45,7 @@ interface Finding {
 const proseBlocks = (tokens: readonly MicromarkToken[]): MicromarkToken[] => {
   const blocks: MicromarkToken[] = [];
   const visit = (token: MicromarkToken) => {
-    if (token.type === "paragraph" || proseCellTypes.has(token.type)) {
+    if (token.type === "paragraph") {
       blocks.push(token);
       return;
     }

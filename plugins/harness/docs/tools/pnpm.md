@@ -104,13 +104,14 @@ Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existin
 The profile ships three custom Markdownlint rules under `rules/`.
 `docs/no-box-drawing` rejects Unicode box drawing characters.
 `docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and ignores fenced code and ordinary data rows.
-`docs/sentence-per-line` requires one prose sentence per source line, including table cells, and ignores code, HTML blocks, links, and headings.
-The profile enables `docs/sentence-per-line`, so a target with prose tables that pack several sentences into one cell must reformat them or disable that rule in its copied configuration.
+`docs/sentence-per-line` requires one prose sentence per source line in paragraphs, list items, and blockquotes.
+It ignores code, HTML blocks, links, headings, and protected table syntax, including blockquoted tables.
+The profile enables this rule without requiring table cells to split across source lines.
 Copy that directory alongside the config so the `customRules` paths resolve.
 The profile-owned `ignores` entry excludes `node_modules` even when a fresh target has no `.gitignore`.
 Retain the target's existing ignore configuration when merging.
 Do not copy the root-only custom rule paths from other repositories.
-The Sinon repository root loads these same rule files in place and leaves `docs/sentence-per-line` disabled because existing tables pack several sentences into one cell.
+The Sinon repository root loads its selected Markdown rules directly from `tooling/pnpm/rules/` inside this package.
 Add `markdownlint-cli2` as a development dependency and `check:markdownlint-cli2` plus `fix:markdownlint-cli2` script entries through the manifest merge above.
 The `check:markdownlint-cli2` task runs the plain `markdownlint-cli2` command.
 The `fix:markdownlint-cli2` task adds `--fix`.
