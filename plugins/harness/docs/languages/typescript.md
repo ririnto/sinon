@@ -15,7 +15,9 @@ The [pnpm tool reference](../tools/pnpm.md) owns TypeScript project detection, O
 
 ## Exports And TSDoc
 
-Every exported declaration, exported type, re-export, and default export carries a TSDoc comment.
+Every exported declaration, exported type, re-export statement, export list, default export, and export assignment carries a TSDoc comment.
+Place the comment directly above the declaration or the export statement.
+Document each public class method, abstract method, accessor, and function-valued property as well.
 Write TSDoc in English in the multiline form: an opening `/**` line, meaningful English sentences on lines that begin with an asterisk, and a closing `*/` line.
 Concise TSDoc states the contract, not a restatement of the name.
 Add `@param` only when it clarifies a constraint, unit, nullability, or other meaning beyond the identifier and type.
@@ -24,6 +26,7 @@ An unexported helper needs no TSDoc.
 
 ## Function Bodies And Comments
 
+Tool directive comments such as `@ts-expect-error` and `oxlint-disable-next-line` are the only inline comments allowed in a function body.
 Put braces around every `if` and `else` branch, including guard returns and one-line branches.
 Use no trailing comma in TypeScript.
 

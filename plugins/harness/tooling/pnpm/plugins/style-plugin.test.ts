@@ -83,6 +83,36 @@ describe("pnpm style rules", () => {
     }
     expect(messages).toEqual(["noInlineComments"]);
   });
+  test.each([
+    " @ts-expect-error reason",
+    " @ts-ignore",
+    " eslint-disable-next-line no-console",
+    " oxlint-disable-next-line no-console -- reason",
+    " oxfmt-ignore",
+    " v8 ignore next"
+  ])("allows the tool directive comment %s inside a function body", (value) => {
+    const text = `function valid() {\n  //${value}\n  return 1;\n}`;
+    const comments = [
+      { end: text.indexOf("\n  return"), start: 21, type: "Line", value }
+    ];
+    const { context, messages } = makeContext(text, comments);
+    const visitor =
+      style.rules["no-inline-comments-in-functions"].create(context);
+    visitor["FunctionDeclaration:exit"]?.(makeNode(text));
+    expect(messages).toEqual([]);
+  });
+  test("reports a comment that only resembles a tool directive", () => {
+    const value = " @ts-expect-errors are discouraged";
+    const text = `function invalid() {\n  //${value}\n  return 1;\n}`;
+    const comments = [
+      { end: text.indexOf("\n  return"), start: 23, type: "Line", value }
+    ];
+    const { context, messages } = makeContext(text, comments);
+    const visitor =
+      style.rules["no-inline-comments-in-functions"].create(context);
+    visitor["FunctionDeclaration:exit"]?.(makeNode(text));
+    expect(messages).toEqual(["noInlineComments"]);
+  });
   test("allows documentation comments inside a function body", () => {
     const text =
       "function valid() {\n  /**\n   * Document the return contract.\n   */\n  return 1;\n}";
@@ -132,8 +162,31 @@ test("native Oxlint checks physical function body style", async () => {
         "blank(); windows(); unicode(); nested();"
       ].join("\n")
     );
+    await writeFile(
+      path.join(directory, "directives.tsx"),
+      [
+        "export function view(value: string) {",
+        "// @ts-expect-error intentional mismatch",
+        "const mismatch: number = value;",
+        "/* oxlint-disable-next-line no-console */",
+        "console.log(mismatch);",
+        "return <div>{/* eslint-disable-next-line react/no-danger */}{value}</div>;",
+        "}"
+      ].join("\n")
+    );
+    await writeFile(
+      path.join(directory, "comments.tsx"),
+      [
+        "export function view(value: string) {",
+        "/* plain */",
+        "return <div>{/* note */}{value}</div>;",
+        "}"
+      ].join("\n")
+    );
     for (const [filename, diagnosticCount] of [
       ["valid.ts", 0],
+      ["directives.tsx", 0],
+      ["comments.tsx", 2],
       ["invalid.ts", 4]
     ] as const) {
       const result = spawnSync(
