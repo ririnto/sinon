@@ -8,6 +8,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
@@ -202,7 +203,18 @@ class SlfDirectLogging :
                 }
 
                 is KtClassOrObject -> {
-                    memberNamed(name)
+                    primaryConstructorParameters
+                        .firstOrNull { parameter ->
+                            parameter.name == name &&
+                                declarations.any { declaration ->
+                                    when (declaration) {
+                                        is KtAnonymousInitializer -> declaration.body?.textRange?.containsOffset(referenceOffset) == true
+                                        is KtProperty -> declaration.initializer?.textRange?.containsOffset(referenceOffset) == true
+                                        else -> false
+                                    }
+                                }
+                        }
+                        ?: memberNamed(name)
                 }
 
                 is KtFile -> {

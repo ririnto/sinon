@@ -7,25 +7,45 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 /**
- * Verifies that non-null assertions are reported and only provably redundant ones are rewritten.
+ * Verifies that non-null assertions are reported without changing program behavior.
  */
 class NonNullAssertionTest :
     FunSpec({
-        test("autocorrects redundant non null assertion on require not null") {
+        test("keeps assertions on inherited nullable guards declared in another file") {
+            val base = "open class Base { fun requireNotNull(value: String?): String? = value }\n"
+            val source = "class Child : Base() { fun sample(value: String?): String = requireNotNull(value)!! }\n"
+            assertSoftly {
+                KtLintRuleTestEngine.execute(ruleProvider, base).formattedCode shouldBe base
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 82, canBeAutoCorrected = false))
+                    formattedCode shouldBe source
+                }
+            }
+        }
+
+        test("keeps qualified nullable guard calls with a shadowed kotlin receiver") {
+            val source = "fun sample(kotlin: Guards, value: String?): String = kotlin.requireNotNull(value)!!\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 82, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("keeps unresolved non null assertion on require not null") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun sample(value: String?): String = requireNotNull(value)!!\n")) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 59, canBeAutoCorrected = true))
-                formattedCode shouldBe "fun sample(value: String?): String = requireNotNull(value)\n"
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 59, canBeAutoCorrected = false))
+                formattedCode shouldBe "fun sample(value: String?): String = requireNotNull(value)!!\n"
             }
         }
 
-        test("autocorrects redundant non null assertion on check not null") {
+        test("keeps unresolved non null assertion on check not null") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun sample(value: String?): String = checkNotNull(value)!!\n")) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 57, canBeAutoCorrected = true))
-                formattedCode shouldBe "fun sample(value: String?): String = checkNotNull(value)\n"
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 57, canBeAutoCorrected = false))
+                formattedCode shouldBe "fun sample(value: String?): String = checkNotNull(value)!!\n"
             }
         }
 
-        test("keeps explicit stdlib guard import autocorrectable") {
+        test("keeps assertion with an explicit stdlib guard import") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
@@ -36,12 +56,12 @@ class NonNullAssertionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(3, 59, canBeAutoCorrected = true))
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(3, 59, canBeAutoCorrected = false))
                 formattedCode shouldBe
                     """
                     import kotlin.requireNotNull
 
-                    fun sample(value: String?): String = requireNotNull(value)
+                    fun sample(value: String?): String = requireNotNull(value)!!
                     """.trimIndent() + "\n"
             }
         }

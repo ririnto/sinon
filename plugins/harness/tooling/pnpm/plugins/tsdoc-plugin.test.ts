@@ -286,3 +286,51 @@ test("native Oxlint requires TSDoc on every exported form and public member", as
     await rm(directory, { force: true, recursive: true });
   }
 });
+
+test.each(["ts", "tsx", "mts", "cts"])(
+  "native Oxlint checks indirectly exported class members in .%s",
+  async (extension) => {
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "sinon-tsdoc-indirect-")
+    );
+    const doc = "/**\n * Document it.\n */\n";
+    try {
+      await writeConfig(directory);
+      const fixtures = [
+        "export { Service };",
+        "export { Service as PublicService };",
+        "export default Service;",
+        `export { Service };\n${doc}export default Service;`
+      ].flatMap((statement, index) =>
+        [false, true].map((documented) => ({
+          documented,
+          filename: `source-${index}-${documented}.${extension}`,
+          source: `class Service {\n${documented ? doc : ""}run() {}\n}\n${doc}${statement}\n`
+        }))
+      );
+      await Promise.all(
+        fixtures.map(({ filename, source }) =>
+          writeFile(path.join(directory, filename), source)
+        )
+      );
+      for (const { documented, filename } of fixtures) {
+        const result = runOxlint(directory, filename);
+        expect(result.status).toBe(documented ? 0 : 1);
+        expect(result.diagnostics.map(({ message }) => message)).toEqual(
+          documented
+            ? []
+            : ['Missing TSDoc for exported public API method "run".']
+        );
+      }
+      await writeFile(
+        path.join(directory, `direct.${extension}`),
+        "export class Service { run() {} }\n"
+      );
+      expect(
+        runOxlint(directory, `direct.${extension}`).diagnostics
+      ).toHaveLength(2);
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }
+);

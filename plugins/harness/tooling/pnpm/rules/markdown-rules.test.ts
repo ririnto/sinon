@@ -114,6 +114,14 @@ describe("docs/sentence-per-line", () => {
     "Semicolon-joined sentences on one line; put each sentence on its own line.";
   test.each([
     ["one sentence per line", "First stands alone.\nSecond follows.\n"],
+    [
+      "inline link labels",
+      "See [First sentence. Second sentence.](https://example.com).\n"
+    ],
+    [
+      "reference link labels",
+      "See [First sentence. Second sentence.][target].\n\n[target]: https://example.com\n"
+    ],
     ["a single sentence", "Only one sentence here.\n"],
     [
       "a noun-phrase tail with a verb-like word",
@@ -150,6 +158,16 @@ describe("docs/sentence-per-line", () => {
   });
   test.each([
     ["a paragraph", "First sentence. Second sentence follows.\n", 15],
+    [
+      "prose before a link",
+      "First sentence. Second sentence [label](https://example.com).\n",
+      15
+    ],
+    [
+      "prose after a link",
+      "See [label](https://example.com) then stop. Second sentence.\n",
+      43
+    ],
     ["a list item", "- Item one. Item two follows.\n", 11],
     ["a blockquote", "> Quoted one. Quoted two follows.\n", 13],
     ["three sentences", "One here. Two here. Three here.\n", 9],

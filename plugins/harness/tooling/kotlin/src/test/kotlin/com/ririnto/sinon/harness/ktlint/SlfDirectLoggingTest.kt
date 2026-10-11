@@ -11,6 +11,36 @@ import io.kotest.matchers.shouldBe
  */
 class SlfDirectLoggingTest :
     FunSpec({
+        test("plain constructor parameters shadow outer loggers only during initialization") {
+            val source =
+                """
+                import org.slf4j.Logger
+
+                val logger: Logger = TODO()
+                class Service(logger: Sink) {
+                    val value: Unit = logger.info("property")
+                    init {
+                        logger.info("init")
+                    }
+                    fun record() {
+                        logger.info("member")
+                    }
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            10,
+                            16,
+                            "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                            false
+                        )
+                    )
+                formattedCode shouldBe source
+            }
+        }
+
         test("each direct log level is flagged") {
             KtLintRuleTestEngine
                 .execute(

@@ -68,6 +68,9 @@ const proseBlocks = (tokens: readonly MicromarkToken[]): MicromarkToken[] => {
 const segmentsByLine = (paragraph: MicromarkToken): Map<number, Segment[]> => {
   const byLine = new Map<number, Segment[]>();
   const visit = (token: MicromarkToken) => {
+    if (token.type === "link") {
+      return;
+    }
     if (token.type === "data" && token.text.trim() !== "") {
       const lines = token.text.split(/\r\n|\r|\n/u);
       for (const [index, text] of lines.entries()) {

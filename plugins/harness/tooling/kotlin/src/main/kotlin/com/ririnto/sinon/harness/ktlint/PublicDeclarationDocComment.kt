@@ -137,8 +137,12 @@ class PublicDeclarationDocComment :
 
         private fun isEnclosedByNonPublic(scopeStart: PsiElement?): Boolean =
             generateSequence(scopeStart, PsiElement::getParent)
-                .filterIsInstance<KtModifierListOwner>()
-                .mapNotNull(KtModifierListOwner::visibilityModifierType)
-                .any { token -> token in NON_PUBLIC_VISIBILITIES }
+                .any { enclosing ->
+                    (enclosing as? KtModifierListOwner)?.visibilityModifierType()?.let { token ->
+                        token in NON_PUBLIC_VISIBILITIES
+                    } == true ||
+                        (enclosing is KtClass && enclosing.parent is KtBlockExpression) ||
+                        (enclosing is KtObjectDeclaration && enclosing.isObjectLiteral())
+                }
     }
 }

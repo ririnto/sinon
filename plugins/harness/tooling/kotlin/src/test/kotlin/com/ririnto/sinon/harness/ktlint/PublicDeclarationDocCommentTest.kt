@@ -14,6 +14,44 @@ import io.kotest.matchers.shouldBe
  */
 class PublicDeclarationDocCommentTest :
     FunSpec({
+        test("ignores local class members and constructor properties") {
+            val source =
+                """
+                /**
+                 * Performs local work.
+                 */
+                fun sample() {
+                    class Local(val value: String) {
+                        val label: String = value
+                        fun run() {}
+                    }
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
+        test("ignores members of locally held anonymous objects") {
+            val source =
+                """
+                /**
+                 * Performs local work.
+                 */
+                fun sample() {
+                    val local = object {
+                        val value: String = "value"
+                        fun run() {}
+                    }
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
         test("is enabled by default for effective public declarations") {
             KtLintRuleTestEngine
                 .execute(

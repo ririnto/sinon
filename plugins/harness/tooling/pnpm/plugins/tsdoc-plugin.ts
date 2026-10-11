@@ -161,6 +161,7 @@ const exportStatementName = (
 const exportTsdocRule = {
   create(context: RuleContext) {
     const { sourceCode } = context;
+    const checkedClasses = new WeakSet<Class>();
     /**
      * Find TSDoc blocks before a node or its export wrapper.
      *
@@ -210,13 +211,16 @@ const exportTsdocRule = {
       }
     };
     /**
-     * Validate TSDoc on an exported class and its public members.
+     * Validate an exposed class's public members once, regardless of export count.
      *
-     * @param node Exported class declaration node to validate.
+     * @param node Exposed class declaration node to validate.
      * @returns Nothing.
      */
-    const validateExportedClass = (node: Class): void => {
-      report(node, "class", nodeName(node));
+    const validateClassMembers = (node: Class): void => {
+      if (checkedClasses.has(node)) {
+        return;
+      }
+      checkedClasses.add(node);
       for (const element of node.body.body) {
         if (isPublicClassElement(element)) {
           report(
@@ -241,7 +245,8 @@ const exportTsdocRule = {
       }
       const kind = declarationKinds[node.type];
       if (isClassDeclaration(node)) {
-        validateExportedClass(node);
+        report(node, "class", nodeName(node));
+        validateClassMembers(node);
       } else if (kind !== undefined) {
         report(
           node,
@@ -252,8 +257,40 @@ const exportTsdocRule = {
         );
       }
     };
+    /**
+     * Resolve a class declaration in the export statement's enclosing statement list.
+     *
+     * @param node Export statement referencing a local binding.
+     * @param name Local identifier to resolve.
+     * @returns Nothing.
+     */
+    const validateLocalClass = (node: Node, name: string | undefined): void => {
+      const scope = node.parent;
+      if (
+        name !== undefined &&
+        scope &&
+        "body" in scope &&
+        Array.isArray(scope.body)
+      ) {
+        for (const statement of scope.body) {
+          const declaration =
+            statement.type === "ExportNamedDeclaration"
+              ? statement.declaration
+              : statement;
+          if (
+            declaration &&
+            isClassDeclaration(declaration) &&
+            declaration.id?.name === name
+          ) {
+            validateClassMembers(declaration);
+          }
+        }
+      }
+    };
     if (
-      !/\.(?:ts|tsx)$/u.test(context.filename ?? context.getFilename?.() ?? "")
+      !/\.(?:[cm]?ts|tsx)$/u.test(
+        context.filename ?? context.getFilename?.() ?? ""
+      )
     ) {
       return {};
     }
@@ -266,6 +303,9 @@ const exportTsdocRule = {
           validateExportedDeclaration(node.declaration);
         } else {
           report(node, "default export", "default");
+          if (node.declaration.type === "Identifier") {
+            validateLocalClass(node, node.declaration.name);
+          }
         }
       },
       ExportNamedDeclaration(node: ExportNamedDeclaration) {
@@ -277,6 +317,11 @@ const exportTsdocRule = {
             node.source ? "re-export" : "export list",
             exportStatementName(node)
           );
+          if (!node.source) {
+            for (const specifier of node.specifiers) {
+              validateLocalClass(node, nameOf(specifier.local));
+            }
+          }
         }
       },
       TSExportAssignment(node: TSExportAssignment) {

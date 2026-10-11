@@ -131,7 +131,8 @@ Kotlin also treats `== null` as equivalent to a reference identity check.
 The `harness:null-comparison-identity` rule reports `==` or `!=` when either operand is a literal null.
 It preserves structural equality for other values and does not apply automatic corrections.
 The `harness:non-null-assertion` rule reports every `!!` and never rewrites it into a guard, because `requireNotNull` throws `IllegalArgumentException` where `!!` throws `NullPointerException`.
-Its only correction strips a redundant `!!` after a standard library `requireNotNull` or `checkNotNull` call.
+The rule is diagnostic-only because syntax cannot prove a guard call's identity or non-null return type.
+Inherited declarations and lexical shadowing can change even apparently standard-library calls.
 Prefer `requireNotNull` for required arguments and `checkNotNull` for required state over Boolean null preconditions.
 Keep the original exception type, message, evaluation order, wrapper contract, and `Unit` return type.
 `requireNotNull` throws `IllegalArgumentException`, while `checkNotNull` throws `IllegalStateException` for null values.
