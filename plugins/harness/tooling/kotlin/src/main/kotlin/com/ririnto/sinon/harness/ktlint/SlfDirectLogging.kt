@@ -208,9 +208,17 @@ class SlfDirectLogging :
                             parameter.name == name &&
                                 declarations.any { declaration ->
                                     when (declaration) {
-                                        is KtAnonymousInitializer -> declaration.body?.textRange?.containsOffset(referenceOffset) == true
-                                        is KtProperty -> declaration.initializer?.textRange?.containsOffset(referenceOffset) == true
-                                        else -> false
+                                        is KtAnonymousInitializer -> {
+                                            declaration.body?.textRange?.containsOffset(referenceOffset) == true
+                                        }
+
+                                        is KtProperty -> {
+                                            declaration.delegateExpressionOrInitializer?.textRange?.containsOffset(referenceOffset) == true
+                                        }
+
+                                        else -> {
+                                            false
+                                        }
                                     }
                                 }
                         }

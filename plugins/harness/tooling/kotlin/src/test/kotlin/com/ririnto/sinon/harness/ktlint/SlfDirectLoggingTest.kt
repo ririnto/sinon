@@ -41,6 +41,68 @@ class SlfDirectLoggingTest :
             }
         }
 
+        test("plain constructor sinks shadow outer loggers in property delegates only") {
+            val source =
+                """
+                import org.slf4j.Logger
+
+                class Sink {
+                    fun info(message: String): Lazy<String> = lazy { message }
+                }
+
+                val logger: Logger = TODO()
+                class Service(logger: Sink) {
+                    val value: String by logger.info("delegate")
+                    fun record() {
+                        logger.info("member")
+                    }
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            11,
+                            16,
+                            "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                            false
+                        )
+                    )
+                formattedCode shouldBe source
+            }
+        }
+
+        test("plain constructor loggers shadow outer sinks in property delegate lambdas only") {
+            val source =
+                """
+                import org.slf4j.Logger
+
+                class Sink {
+                    fun info(message: String) {}
+                }
+
+                val logger: Sink = TODO()
+                class Service(logger: Logger) {
+                    val value: Unit by lazy { logger.info("delegate") }
+                    fun record() {
+                        logger.info("member")
+                    }
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            9,
+                            38,
+                            "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                            false
+                        )
+                    )
+                formattedCode shouldBe source
+            }
+        }
+
         test("each direct log level is flagged") {
             KtLintRuleTestEngine
                 .execute(
