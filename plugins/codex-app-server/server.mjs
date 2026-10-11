@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import { on, once } from "node:events";
+import { createConnection } from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -21,6 +23,18 @@ const REQUEST_TIMEOUT_MS = 300_000;
  */
 const BLOCKED_METHODS = new Set(["account/rateLimitResetCredit/consume"]);
 const READ_ONLY = { openWorldHint: false, readOnlyHint: true };
+const THREAD_SOURCE_KINDS = [
+  "cli",
+  "vscode",
+  "exec",
+  "appServer",
+  "subAgent",
+  "subAgentReview",
+  "subAgentCompact",
+  "subAgentThreadSpawn",
+  "subAgentOther",
+  "unknown"
+];
 
 /**
  * Return the control socket path from the environment or from CODEX_HOME.
@@ -37,18 +51,42 @@ const defaultSocket = () =>
  * Connect over the Unix control socket, perform the initialize handshake, and return a JSON-RPC client.
  */
 const openClient = async () => {
-  const ws = new WebSocket(`ws+unix://${defaultSocket()}:/`, {
+  const ws = new WebSocket("ws://localhost/", {
+    createConnection: () => createConnection({ path: defaultSocket() }),
     maxPayload: 0
   });
   const events = new EventTarget();
+  const closed = new AbortController();
   const emit = (name, detail) =>
     events.dispatchEvent(new CustomEvent(name, { detail }));
+  const fail = (error) => {
+    if (!closed.signal.aborted) {
+      closed.abort(error);
+    }
+  };
+  const send = async (message) => {
+    try {
+      await promisify(ws.send.bind(ws))(JSON.stringify(message));
+    } catch (error) {
+      fail(error);
+      ws.terminate();
+      throw error;
+    }
+  };
+  ws.on("error", (error) => {
+    fail(error);
+    ws.terminate();
+  });
+  ws.on("close", () => fail(new Error("App-server connection closed")));
   let nextId = 0;
-  ws.on("message", (data) => {
+  ws.on("message", async (data) => {
     let message;
     try {
       message = JSON.parse(data.toString());
     } catch {
+      return;
+    }
+    if (message === null || typeof message !== "object") {
       return;
     }
     if ("id" in message && ("result" in message || "error" in message)) {
@@ -56,45 +94,59 @@ const openClient = async () => {
       return;
     }
     if ("id" in message && "method" in message) {
-      ws.send(
-        JSON.stringify({
+      try {
+        await send({
           error: { code: -32_601, message: "not handled by this client" },
           id: message.id
-        })
-      );
+        });
+      } catch (error) {
+        fail(error);
+      }
     }
     emit("notification", message);
   });
-  ws.on("close", () => emit("close"));
-  await once(ws, "open");
   const request = async (method, params) => {
+    closed.signal.throwIfAborted();
     nextId += 1;
     const id = nextId;
-    const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+    const signal = AbortSignal.any([
+      AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      closed.signal
+    ]);
     const response = once(events, `response:${id}`, { signal });
-    ws.send(
-      JSON.stringify({
-        id,
-        method,
-        ...(params === undefined ? {} : { params })
-      })
-    );
-    const [{ detail: message }] = await response;
-    if (message.error) {
-      throw new Error(`${method}: ${JSON.stringify(message.error)}`);
+    try {
+      const [[{ detail: message }]] = await Promise.all([
+        response,
+        send({
+          id,
+          method,
+          ...(params === undefined ? {} : { params })
+        })
+      ]);
+      if (message.error) {
+        throw new Error(`${method}: ${JSON.stringify(message.error)}`);
+      }
+      return message.result;
+    } catch (error) {
+      throw closed.signal.aborted ? closed.signal.reason : error;
     }
-    return message.result;
   };
-  await request("initialize", {
-    capabilities: { experimentalApi: true },
-    clientInfo: {
-      name: "orchestrator-codex-app-server-mcp",
-      title: "Orchestrator MCP client",
-      version: "1"
-    }
-  });
-  ws.send(JSON.stringify({ method: "initialized" }));
-  return { close: () => ws.close(), events, request };
+  try {
+    await once(ws, "open", { signal: closed.signal });
+    await request("initialize", {
+      capabilities: { experimentalApi: true },
+      clientInfo: {
+        name: "orchestrator-codex-app-server-mcp",
+        title: "Orchestrator MCP client",
+        version: "1"
+      }
+    });
+    await send({ method: "initialized" });
+    return { close: () => ws.close(), events, request, signal: closed.signal };
+  } catch (error) {
+    ws.terminate();
+    throw closed.signal.aborted ? closed.signal.reason : error;
+  }
 };
 
 /**
@@ -119,18 +171,17 @@ const messageText = (item) => {
 /**
  * Wait for the turn's completion and collect its final agent message until the deadline.
  */
-const awaitTurn = async (client, turnId, waitSeconds) => {
+const awaitTurn = async (
+  client,
+  notifications,
+  turnId,
+  waitSeconds,
+  waiting
+) => {
   const result = { finalMessage: null, status: "waitTimedOut", turnId };
-  const closed = new AbortController();
-  client.events.addEventListener("close", () => closed.abort(), { once: true });
-  const signal = AbortSignal.any([
-    AbortSignal.timeout(waitSeconds * 1000),
-    closed.signal
-  ]);
+  const timer = setTimeout(() => waiting.abort(), waitSeconds * 1000);
   try {
-    for await (const [{ detail: note }] of on(client.events, "notification", {
-      signal
-    })) {
+    for await (const [{ detail: note }] of notifications) {
       const params = note.params ?? {};
       if (
         note.method === "item/completed" &&
@@ -140,33 +191,49 @@ const awaitTurn = async (client, turnId, waitSeconds) => {
         result.finalMessage = params.item.text ?? null;
       }
       if (note.method === "turn/completed" && params.turn?.id === turnId) {
-        return { ...result, status: params.turn.status };
+        return {
+          ...result,
+          ...(params.turn.error ? { error: params.turn.error } : {}),
+          status: params.turn.status
+        };
       }
     }
   } catch (error) {
     if (error.name !== "AbortError") {
       throw error;
     }
+  } finally {
+    clearTimeout(timer);
   }
-  return closed.signal.aborted
+  return client.signal.aborted
     ? { ...result, status: "connectionClosed" }
     : result;
 };
 
 /**
- * Resume a thread, start one turn, and optionally wait for completion and the final agent message.
+ * Start one turn with completion notifications buffered before the request is sent.
  */
-const sendTurn = async (client, threadId, text, waitSeconds = 0) => {
-  await client.request("thread/resume", { excludeTurns: true, threadId });
-  const started = await client.request("turn/start", {
-    input: [{ text, type: "text" }],
-    threadId
-  });
-  const turnId = started.turn.id;
-  if (waitSeconds <= 0) {
-    return { finalMessage: null, status: "started", turnId };
+const startTurn = async (client, threadId, text, waitSeconds = 0) => {
+  const waiting = new AbortController();
+  const notifications =
+    waitSeconds > 0
+      ? on(client.events, "notification", {
+          signal: AbortSignal.any([waiting.signal, client.signal])
+        })
+      : null;
+  try {
+    const started = await client.request("turn/start", {
+      input: [{ text, type: "text" }],
+      threadId
+    });
+    const turnId = started.turn.id;
+    if (!notifications) {
+      return { finalMessage: null, status: "started", turnId };
+    }
+    return await awaitTurn(client, notifications, turnId, waitSeconds, waiting);
+  } finally {
+    await notifications?.return();
   }
-  return awaitTurn(client, turnId, waitSeconds);
 };
 
 /**
@@ -224,7 +291,8 @@ server.registerTool(
   {
     annotations: READ_ONLY,
     description:
-      "List Codex threads newest first with ID, status, update time, working directory, and title. " +
+      "List a newest-first page of non-archived Codex threads from all supported source kinds, including exec and subagents, using the state database without repairing rollout metadata. " +
+      "Returns ID, status, update time, working directory, and title; threads absent from the state database are not included. " +
       "Read this list and codex_tail before authorized steering; keep one writer per thread. " +
       "Do not start a turn while its last turn is in progress or another host holds it. " +
       "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +
@@ -249,6 +317,8 @@ server.registerTool(
     const page = await client.request("thread/list", {
       limit,
       sortKey: "updated_at",
+      sourceKinds: THREAD_SOURCE_KINDS,
+      useStateDbOnly: true,
       ...(search ? { searchTerm: search } : {})
     });
     return (page.data ?? []).map((thread) => ({
@@ -280,9 +350,10 @@ server.registerTool(
       turns: z
         .number()
         .int()
+        .positive()
         .optional()
         .describe(
-          "Trailing turns to return; defaults to 2. Uses slice(-turns): 0 returns all; negative values omit leading turns. Includes user and agent messages only."
+          "Positive number of trailing turns to return; defaults to 2. Includes user and agent messages only. Zero and negative counts are rejected."
         )
     }
   },
@@ -336,7 +407,7 @@ server.registerTool(
     if (name) {
       await client.request("thread/name/set", { name, threadId: thread.id });
     }
-    const turn = text ? await sendTurn(client, thread.id, text) : null;
+    const turn = text ? await startTurn(client, thread.id, text) : null;
     return { threadId: thread.id, turn };
   })
 );
@@ -373,8 +444,13 @@ server.registerTool(
     }
   },
   withClient(
-    (client, { text, thread_id: threadId, wait_seconds: waitSeconds }) =>
-      sendTurn(client, threadId, text, waitSeconds)
+    async (
+      client,
+      { text, thread_id: threadId, wait_seconds: waitSeconds }
+    ) => {
+      await client.request("thread/resume", { excludeTurns: true, threadId });
+      return startTurn(client, threadId, text, waitSeconds);
+    }
   )
 );
 

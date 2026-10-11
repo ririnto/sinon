@@ -74,7 +74,7 @@ The first launch requires registry access unless the dependencies are already ca
 
 | Tool | Operation |
 | --- | --- |
-| `codex_threads` | List threads newest first with status, update time, directory, and title. |
+| `codex_threads` | List a newest-first page of non-archived threads from all supported source kinds using state metadata, without rollout repair. |
 | `codex_tail` | Read trailing user and agent messages without resuming the thread. |
 | `codex_start` | Create a thread, optionally name it, and optionally send its first turn. |
 | `codex_send` | Resume a thread, start a turn, and optionally wait for its completion. |
@@ -88,4 +88,9 @@ The plugin adds no dedicated cleanup tools.
 - `mcp.json` and `.mcp.json` register the Codex and Claude Code stdio server.
 - `package.json` declares the executable and its MCP SDK, WebSocket, and schema dependencies.
 - `server.mjs` implements the six tools and their shared instructions.
+- `tests/` verifies the stdio server against a disposable Unix-socket fixture.
 - The Sinon marketplace entry declares Claude Code identity and the package root.
+
+Run `pnpm run check:codex-app-server` from the repository to test the runtime.
+The check installs the package's pinned dependencies in a temporary directory and removes that directory afterward.
+It exercises a fixture daemon only.
