@@ -52,17 +52,23 @@ export ANTHROPIC_AUTH_TOKEN='<gateway-issued-token>'
 Replace the placeholders with your gateway's base URL and credential.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
 Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
+While an agent runs, use `/tasks` to verify its actual model and effort match the inventory below.
+This display requires Claude Code v2.1.242 or later.
 
 ### Effort And Context
 
 Leave `CLAUDE_CODE_EFFORT_LEVEL` unset so each agent's frontmatter controls effort.
+Leave `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` unset so Claude Code honors each definition's model instead of forcing a shared model.
 Before launching a new session, clear an inherited override with:
 
 ```sh
 unset CLAUDE_CODE_EFFORT_LEVEL
+unset CLAUDE_CODE_SUBAGENT_MODEL_FORCE
 ```
 
-Do not supply a per-invocation effort override when selecting an agent by its listed effort.
+Ensure user, project, and managed settings do not reintroduce either override when Claude Code starts.
+If managed policy enforces an override, these definitions cannot guarantee their listed model and effort.
+Do not supply per-invocation model or effort overrides when selecting an agent by its listed configuration.
 Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
 Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
 
