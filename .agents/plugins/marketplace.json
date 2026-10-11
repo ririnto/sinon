@@ -6,6 +6,18 @@
   "plugins": [
     {
       "category": "Development",
+      "name": "claude-agents",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/claude-agents",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
       "name": "codegraph",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -49,6 +61,18 @@
       },
       "source": {
         "path": "./plugins/document-creator",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "glm-agents",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/glm-agents",
         "source": "local"
       }
     },

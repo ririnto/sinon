@@ -30,7 +30,8 @@ Sinon-maintained plugins live under `plugins/`.
 Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
-Each local plugin provides a native Codex manifest.
+Each local plugin that Codex should list provides a native Codex manifest, and a local plugin without one stays Claude-only.
+A package with a native manifest that the Claude catalog omits is listed only in the Codex catalog, as `claude-agents` is, because Claude Code reserves the `claude-` name prefix.
 Claude Code uses each plugin's marketplace entry as its manifest.
 
 ## Repository Structure
@@ -88,13 +89,16 @@ That component verifies and runs the official release executable without a separ
 
 ## Current Plugins
 
-The following local plugins are listed in both marketplace catalogs.
+The following local plugins are listed in both marketplace catalogs, except where a package README names a single host.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - [codegraph](./plugins/codegraph/README.md)
 - [codex-app-server](./plugins/codex-app-server/README.md)
 - [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)
+- [claude-agents](./plugins/claude-agents/README.md)
+- [glm-agents](./plugins/glm-agents/README.md)
+- [gpt-agents](./plugins/gpt-agents/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
@@ -239,7 +243,7 @@ codex plugin add ddgs@sinon
 ```
 
 For a local checkout, use `codex plugin marketplace add /path/to/sinon`.
-The repository catalog at `.agents/plugins/marketplace.json` exposes the same entries as the Claude catalog.
+The repository catalog at `.agents/plugins/marketplace.json` exposes the Claude catalog entries that have a native Codex manifest, plus Codex-only packages.
 Its local source paths are relative to the repository root.
 External Workgraph continues to follow its upstream `main` branch.
 
@@ -260,6 +264,7 @@ The repository checks reject stale catalogs and invalid local package mappings.
 ## License
 
 The repository root and plugins whose manifests declare `MIT` use the [MIT License](./LICENSE).
+The `claude-agents`, `glm-agents`, and `gpt-agents` packages also include a local copy of that notice.
 
 The following plugins use their local canonical Apache-2.0 license:
 

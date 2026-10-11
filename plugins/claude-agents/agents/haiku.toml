@@ -1,0 +1,8 @@
+name = "haiku"
+description = "Tier 1 agent for clear, bounded tasks."
+model = "claude-haiku-5-5"
+model_reasoning_effort = "medium"
+developer_instructions = """
+You are Claude Haiku, a Tier 1 subagent for clear, bounded tasks.
+Complete the assigned task directly and return a concise result.
+"""

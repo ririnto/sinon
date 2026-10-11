@@ -1,4 +1,11 @@
-import { lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  readdir,
+  readFile,
+  realpath,
+  writeFile
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -296,22 +303,51 @@ const resolveLocalPluginPath = async (
   return pluginPath;
 };
 
-const validateLocalPlugin = async (
-  plugin: CatalogPlugin,
+const pathExists = async (targetPath: string): Promise<boolean> => {
+  try {
+    await lstat(targetPath);
+    return true;
+  } catch (error) {
+    if (isRecord(error) && error.code === "ENOENT") {
+      return false;
+    }
+    throw error;
+  }
+};
+
+const nativeManifestPath = (pluginPath: string): string =>
+  path.resolve(pluginPath, ".codex-plugin/plugin.json");
+
+const assertShadowManifestsAbsent = async (
+  pluginName: string,
   pluginPath: string
 ): Promise<void> => {
   await assertManifestAbsent(
     path.resolve(pluginPath, "plugin.json"),
-    plugin.name,
-    `Root plugin.json is not allowed for ${plugin.name}; use .codex-plugin/plugin.json`
+    pluginName,
+    `Root plugin.json is not allowed for ${pluginName}; use .codex-plugin/plugin.json`
   );
   await assertManifestAbsent(
     path.resolve(pluginPath, ".claude-plugin/plugin.json"),
-    plugin.name,
-    `Claude plugin manifest for ${plugin.name} is not allowed; keep metadata in the marketplace catalog`
+    pluginName,
+    `Claude plugin manifest for ${pluginName} is not allowed; keep metadata in the marketplace catalog`
   );
+};
+
+/**
+ * Validates a catalog package and reports whether it has a native Codex manifest.
+ * A package without one is Claude-only and stays out of the Codex view.
+ */
+const validateLocalPlugin = async (
+  plugin: CatalogPlugin,
+  pluginPath: string
+): Promise<boolean> => {
+  await assertShadowManifestsAbsent(plugin.name, pluginPath);
+  if (!(await pathExists(nativeManifestPath(pluginPath)))) {
+    return false;
+  }
   const manifest = await readManifest(
-    path.resolve(pluginPath, ".codex-plugin/plugin.json"),
+    nativeManifestPath(pluginPath),
     `native manifest for ${plugin.name}`
   );
   requiredString(
@@ -319,17 +355,95 @@ const validateLocalPlugin = async (
     `Native manifest for ${plugin.name} description`
   );
   validateCatalogMetadata(plugin, manifest);
+  return true;
 };
 
-const categoryLabel = (category: string | undefined): string => {
+const categoryLabel = (category?: string): string => {
   if (category === undefined) {
     return "Development";
   }
   return category.charAt(0).toUpperCase() + category.slice(1);
 };
 
+const validateCodexOnlyPlugin = async (
+  directory: string,
+  pluginPath: string,
+  catalogNames: ReadonlySet<string>
+): Promise<NativePlugin> => {
+  const manifest = await readManifest(
+    nativeManifestPath(pluginPath),
+    `native manifest for ${directory}`
+  );
+  const name = requiredString(
+    manifest.name,
+    `Native manifest for ${directory} name`
+  );
+  if (name !== directory) {
+    throw new Error(
+      `Native manifest name for ${directory} does not match its directory`
+    );
+  }
+  if (catalogNames.has(name)) {
+    throw new Error(`Duplicate marketplace plugin name: ${name}`);
+  }
+  for (const field of ["description", "license", "version"] as const) {
+    requiredString(manifest[field], `Native manifest for ${name} ${field}`);
+  }
+  await assertShadowManifestsAbsent(name, pluginPath);
+  return {
+    category: categoryLabel(),
+    name,
+    policy: {
+      authentication: "ON_INSTALL",
+      installation: "AVAILABLE"
+    },
+    source: { path: `./plugins/${directory}`, source: "local" }
+  };
+};
+
 /**
- * Builds a native Codex marketplace from the authoritative Claude catalog.
+ * Finds Codex-only packages: directories under plugins/ with a native manifest
+ * that the Claude catalog does not list.
+ */
+const findCodexOnlyPlugins = async (
+  repositoryRoot: string,
+  catalogRealPaths: ReadonlySet<string>,
+  catalogNames: ReadonlySet<string>
+): Promise<NativePlugin[]> => {
+  const pluginsRoot = path.resolve(repositoryRoot, "plugins");
+  const entries = await readdir(pluginsRoot, { withFileTypes: true });
+  const candidates = await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory())
+      .map(async (entry) => {
+        const pluginPath = await realpath(
+          path.resolve(pluginsRoot, entry.name)
+        );
+        const listed =
+          catalogRealPaths.has(pluginPath) ||
+          !(await pathExists(nativeManifestPath(pluginPath)));
+        return listed ? null : { directory: entry.name, pluginPath };
+      })
+  );
+  const plugins = await Promise.all(
+    candidates.flatMap((candidate) =>
+      candidate === null
+        ? []
+        : [
+            validateCodexOnlyPlugin(
+              candidate.directory,
+              candidate.pluginPath,
+              catalogNames
+            )
+          ]
+    )
+  );
+  return plugins;
+};
+
+/**
+ * Builds a native Codex marketplace from the authoritative Claude catalog and
+ * Codex-only packages, omitting Claude-only packages.
  * Local plugin manifests and real paths are checked before the result is returned.
  */
 export const createCodexMarketplace = async (
@@ -382,23 +496,38 @@ export const createCodexMarketplace = async (
       seenRealPaths.add(pluginPath);
     }
   }
-  await Promise.all(
+  const hasNativeManifest = await Promise.all(
     catalog.plugins.map((plugin, index) => {
       const pluginPath = localPluginPaths[index];
       return pluginPath === undefined
-        ? null
+        ? true
         : validateLocalPlugin(plugin, pluginPath);
     })
   );
-  const plugins = catalog.plugins.map((plugin, index): NativePlugin => ({
-    category: categoryLabel(plugin.category),
-    name: plugin.name,
-    policy: {
-      authentication: "ON_INSTALL",
-      installation: "AVAILABLE"
-    },
-    source: sources[index] as PluginSource
-  }));
+  const catalogPlugins = catalog.plugins.flatMap(
+    (plugin, index): NativePlugin[] =>
+      hasNativeManifest[index]
+        ? [
+            {
+              category: categoryLabel(plugin.category),
+              name: plugin.name,
+              policy: {
+                authentication: "ON_INSTALL",
+                installation: "AVAILABLE"
+              },
+              source: sources[index] as PluginSource
+            }
+          ]
+        : []
+  );
+  const codexOnlyPlugins = await findCodexOnlyPlugins(
+    repositoryRoot,
+    seenRealPaths,
+    seenNames
+  );
+  const plugins = [...catalogPlugins, ...codexOnlyPlugins].toSorted((a, b) =>
+    a.name < b.name ? -1 : Number(a.name > b.name)
+  );
   return {
     interface: { displayName: "Sinon" },
     name: catalog.name,

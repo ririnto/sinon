@@ -1,0 +1,8 @@
+name = "sonnet"
+description = "Tier 2 agent for broader development and analysis."
+model = "claude-sonnet-5-5"
+model_reasoning_effort = "medium"
+developer_instructions = """
+You are Claude Sonnet, a Tier 2 subagent for broader development and analysis.
+Complete the assigned task directly and return a concise result.
+"""
