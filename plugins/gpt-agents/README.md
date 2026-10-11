@@ -53,7 +53,7 @@ Replace the placeholders with your gateway's base URL and credential.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
 Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
 While an agent runs, use `/tasks` to verify its actual model and effort match the inventory below.
-This display requires Claude Code v2.1.242 or later.
+These agents require Claude Code v2.1.251 or later, where `CLAUDE_CODE_SUBAGENT_MODEL` no longer overrides a definition's `model`.
 
 ### Effort And Context
 
@@ -71,6 +71,8 @@ If managed policy enforces an override, these definitions cannot guarantee their
 Do not supply per-invocation model or effort overrides when selecting an agent by its listed configuration.
 Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
 Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
+If an `availableModels` allowlist applies, it must include `gpt-6-luna`, `gpt-6.1-sol`, and `gpt-6-astra`.
+Otherwise Claude Code substitutes another model for a blocked agent, and the listed tiers no longer hold.
 
 The gateway must translate `output_config.effort` to the upstream model's supported reasoning setting and honor every effort listed below.
 Verify distinct effort values in gateway request diagnostics without exposing credentials or conversation content.
