@@ -88,8 +88,8 @@ const openClient = async () => {
   await request("initialize", {
     capabilities: { experimentalApi: true },
     clientInfo: {
-      name: "sinon-codex-app-server-mcp",
-      title: "Sinon Codex app-server MCP client",
+      name: "orchestrator-codex-app-server-mcp",
+      title: "Orchestrator MCP client",
       version: "1"
     }
   });
@@ -227,7 +227,8 @@ server.registerTool(
       "List Codex threads newest first with ID, status, update time, working directory, and title. " +
       "Read this list and codex_tail before authorized steering; keep one writer per thread. " +
       "Do not start a turn while its last turn is in progress or another host holds it. " +
-      "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup.",
+      "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +
+      "Archive only after pending work ends. Delete only when the transcript is no longer needed.",
     inputSchema: {
       limit: z
         .number()
@@ -268,7 +269,8 @@ server.registerTool(
       "Read the last turns' user and agent messages of one Codex thread without resuming it. " +
       "Use codex_threads and this tool before authorized steering. " +
       "Do not send a new turn when the last turn is in progress or another host holds the thread. " +
-      "Keep one writer per thread and use native codex archive|unarchive|delete --remote unix:// for cleanup.",
+      "Keep one writer per thread and use native codex archive|unarchive|delete --remote unix:// for cleanup. " +
+      "Archive only after pending work ends. Delete only when the transcript is no longer needed.",
     inputSchema: {
       thread_id: z
         .string()
@@ -280,7 +282,7 @@ server.registerTool(
         .int()
         .optional()
         .describe(
-          "Number of trailing turns to return; defaults to 2. Includes user and agent messages only."
+          "Trailing turns to return; defaults to 2. Uses slice(-turns): 0 returns all; negative values omit leading turns. Includes user and agent messages only."
         )
     }
   },
@@ -309,7 +311,8 @@ server.registerTool(
       "Use only under a direct human instruction or assigned contract authorizing this steering. " +
       "Read existing threads with codex_threads/codex_tail before choosing whether to create or steer a thread. " +
       "Keep one writer per thread; never start a turn while its last turn is in progress or another host holds it. " +
-      "Use native codex archive|unarchive|delete --remote unix:// for cleanup after pending work ends.",
+      "Use native codex archive|unarchive|delete --remote unix:// for cleanup after pending work ends. " +
+      "Delete only when the transcript is no longer needed.",
     inputSchema: {
       cwd: z
         .string()
@@ -348,7 +351,8 @@ server.registerTool(
       "Do not start a turn on a thread whose last turn is in progress or that another host holds. " +
       "On an active-writer error, identify the holder through thread-writer-locks/THREAD_ID.lock under CODEX_HOME (default ~/.codex). " +
       "Let that host release it; never delete locks or force a second writer. " +
-      "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup.",
+      "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +
+      "Archive only after pending work ends. Delete only when the transcript is no longer needed.",
     inputSchema: {
       text: z
         .string()
@@ -437,7 +441,8 @@ server.registerTool(
       "Never delete writer locks or force another writer. " +
       "This tool refuses account/rateLimitResetCredit/consume before connecting; consumption needs a separate direct human instruction outside this tool. " +
       "Only the Orchestrator reads usage with account/rateLimits/read; do not delegate usage or monitoring duties. " +
-      "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup.",
+      "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +
+      "Archive only after pending work ends. Delete only when the transcript is no longer needed.",
     inputSchema: {
       method: z
         .string()

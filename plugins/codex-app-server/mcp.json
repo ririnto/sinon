@@ -8,11 +8,12 @@
         "exec",
         "--yes",
         "--install-links",
-        "--package=${CLAUDE_PLUGIN_ROOT}",
+        "--package=.",
         "--",
         "codex-app-server"
       ],
-      "env": { "NODE_USE_SYSTEM_CA": "1" }
+      "env": { "NODE_USE_SYSTEM_CA": "1" },
+      "cwd": "./"
     }
   }
 }
