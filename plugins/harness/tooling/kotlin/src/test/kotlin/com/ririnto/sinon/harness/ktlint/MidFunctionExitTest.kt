@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the mid function exit rule.
+ */
 class MidFunctionExitTest :
     FunSpec({
         test("flags function return before later statements") {

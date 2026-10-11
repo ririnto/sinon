@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the regex constructor rule.
+ */
 class RegexConstructorTest :
     FunSpec({
         test("autocorrects one positional string template expression") {

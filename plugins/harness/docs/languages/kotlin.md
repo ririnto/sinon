@@ -66,6 +66,11 @@ Put the opening `/**` and closing `*/` delimiters on separate lines, including f
 Write meaningful English sentences on lines beginning with `*`.
 Concise KDoc states the contract, not a restatement of the name.
 A purely private helper needs no KDoc.
+The `harness:public-declaration-doc-comment` rule is on by default and reports effective public declarations without KDoc.
+It skips `override` functions and properties.
+It accepts a public primary-constructor `val` or `var` parameter that has its own KDoc or an `@property` tag in the class KDoc.
+A `private` primary constructor does not hide its properties.
+Disable the rule for a target with `ktlint_harness_public-declaration-doc-comment = disabled` in `.editorconfig`.
 
 ## Function Bodies And Comments
 
@@ -95,6 +100,16 @@ Invert the condition or move a loop exit into the loop condition when behavior a
 Put braces around every `if` and `else` branch, including expression branches, guard returns, and one-line branches.
 Write function and constructor argument lists without a trailing comma.
 Keep short calls on one line when they fit the configured line limit.
+The `harness:function-body-blank-lines` rule removes decorative blank lines inside function, lambda, initializer, accessor, and secondary-constructor blocks at every nesting depth.
+It keeps the separation around local functions, local classes, annotations, and comments.
+It leaves Kotest registration scopes to `harness:kotest-sibling-spacing`.
+The `harness:no-line-comment` rule reports `//` and `/* */` comments inside function, lambda, initializer, accessor, and secondary-constructor bodies.
+It leaves KDoc and comments outside bodies alone, and it allows tool directives that start with `@formatter:`.
+Put rationale in KDoc on the declaration instead.
+The `harness:unstructured-logging` rule reports `print`, `println`, `System.out` and `System.err` print calls, and `printStackTrace`.
+It skips console functions and stream roots shadowed by lexical declarations or conflicting imports.
+The `harness:slf-direct-logging` rule reports `trace`, `debug`, `info`, `warn`, and `error` calls only on receivers that resolve lexically to an SLF4J logger.
+A same-named local, parameter, or member that is not a logger is never reported.
 
 ## Registered Components And Required Values
 
@@ -115,6 +130,9 @@ This is a repository style rule.
 Kotlin also treats `== null` as equivalent to a reference identity check.
 The `harness:null-comparison-identity` rule reports `==` or `!=` when either operand is a literal null.
 It preserves structural equality for other values and does not apply automatic corrections.
+The `harness:non-null-assertion` rule reports every `!!` and never rewrites it into a guard, because `requireNotNull` throws `IllegalArgumentException` where `!!` throws `NullPointerException`.
+The rule is diagnostic-only because syntax cannot prove a guard call's identity or non-null return type.
+Inherited declarations and lexical shadowing can change even apparently standard-library calls.
 Prefer `requireNotNull` for required arguments and `checkNotNull` for required state over Boolean null preconditions.
 Keep the original exception type, message, evaluation order, wrapper contract, and `Unit` return type.
 `requireNotNull` throws `IllegalArgumentException`, while `checkNotNull` throws `IllegalStateException` for null values.
@@ -189,10 +207,18 @@ Use `?.let` for optional nullable work, and keep required failures explicit.
 
 Declare explicit types on every class, object, and companion object property, including private test helpers.
 The `harness:explicit-property-type` rule applies to these members.
-Give private top-level properties explicit types too.
+The rule also reports top-level properties, whatever their visibility.
+Local variables keep inference.
+It fixes literal initializers automatically and reports other initializers without a correction.
+The `harness:kotlin-top-level-declaration-count` rule requires exactly one top-level class, object, interface, or type alias in each non-script file.
+It does not count empty files, private top-level functions, properties, and type aliases, or a single top-level `fun main`.
 Use Kotest specs for Kotlin tests and Kotest matchers for their assertions.
 Choose the spec style for the test's structure.
 Declare tests through the spec constructor DSL.
+Separate sibling tests and lifecycle hooks with exactly one blank line.
+The `harness:kotest-sibling-spacing` rule enforces this only where the registration scope is proven.
+That scope is a `StringSpec` or `FunSpec` imported by its Kotest name or alias, its constructor lambda or `init` block, and nested `context` blocks.
+It leaves star imports, shadowed `test`, `context`, hook, `invoke`, and `config` names, same-line registrations, and other statements unchanged.
 Keep shared immutable class-level test configuration in a typed companion object property.
 Use the native ktlint rule engine for lint and formatting behavior.
 Do not add suppressions to avoid declaring a member type.

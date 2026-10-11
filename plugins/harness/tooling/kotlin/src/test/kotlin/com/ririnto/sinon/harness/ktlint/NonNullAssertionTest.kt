@@ -6,213 +6,158 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies that non-null assertions are reported without changing program behavior.
+ */
 class NonNullAssertionTest :
     FunSpec({
-        test("autocorrects redundant non null assertion on require not null") {
+        test("keeps assertions on inherited nullable guards declared in another file") {
+            val base = "open class Base { fun requireNotNull(value: String?): String? = value }\n"
+            val source = "class Child : Base() { fun sample(value: String?): String = requireNotNull(value)!! }\n"
+            assertSoftly {
+                KtLintRuleTestEngine.execute(ruleProvider, base).formattedCode shouldBe base
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 82, canBeAutoCorrected = false))
+                    formattedCode shouldBe source
+                }
+            }
+        }
+
+        test("keeps qualified nullable guard calls with a shadowed kotlin receiver") {
+            val source = "fun sample(kotlin: Guards, value: String?): String = kotlin.requireNotNull(value)!!\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 82, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("keeps unresolved non null assertion on require not null") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun sample(value: String?): String = requireNotNull(value)!!\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            59,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
-                formattedCode shouldBe "fun sample(value: String?): String = requireNotNull(value)\n"
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 59, canBeAutoCorrected = false))
+                formattedCode shouldBe "fun sample(value: String?): String = requireNotNull(value)!!\n"
             }
         }
 
-        test("autocorrects redundant non null assertion on check not null") {
+        test("keeps unresolved non null assertion on check not null") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun sample(value: String?): String = checkNotNull(value)!!\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            57,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
-                formattedCode shouldBe "fun sample(value: String?): String = checkNotNull(value)\n"
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 57, canBeAutoCorrected = false))
+                formattedCode shouldBe "fun sample(value: String?): String = checkNotNull(value)!!\n"
             }
         }
 
-        test("autocorrects bare variable assertion to require not null") {
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun sample(value: String?): String = value!!\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            43,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
-                formattedCode shouldBe "fun sample(value: String?): String = requireNotNull(value)\n"
-            }
-        }
-
-        test("autocorrects member access on nullable receiver") {
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun sample(value: String?): Int = value!!.length\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            40,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
-                formattedCode shouldBe "fun sample(value: String?): Int = requireNotNull(value).length\n"
-            }
-        }
-
-        test("autocorrects index access") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    fun sample(map: Map<String, String>): String = map["key"]!!
-                    """.trimIndent() + "\n"
-                )
-            ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            58,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
-                formattedCode shouldBe
-                    """
-                    fun sample(map: Map<String, String>): String = requireNotNull(map["key"])
-                    """.trimIndent() + "\n"
-            }
-        }
-
-        test("autocorrects member function with similar name") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    class Service {
-                        fun requireNonNull(): String = "value"
-                    }
-                    fun sample(service: Service): String = service.requireNonNull()!!
-                    """.trimIndent() + "\n"
-                )
-            ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            4,
-                            64,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
-                formattedCode shouldBe
-                    """
-                    class Service {
-                        fun requireNonNull(): String = "value"
-                    }
-                    fun sample(service: Service): String = requireNotNull(service.requireNonNull())
-                    """.trimIndent() + "\n"
-            }
-        }
-
-        test("disables autocorrect when user defined guard shadows stdlib") {
-            KtLintRuleTestEngine
-                .execute(
-                    ruleProvider,
-                    """
-                    fun requireNotNull(value: Any?): String = value.toString()
-                    fun sample(value: String?): String = value!!
-                    """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        43,
-                        "avoid non-null assertion `!!`; a user-defined `requireNotNull` shadows the standard library guard, so rewrite it manually with `requireNotNull(...)` or rename the shadow",
-                        canBeAutoCorrected = false
-                    )
-                )
-        }
-
-        test("disables autocorrect when star import could provide guard") {
-            KtLintRuleTestEngine
-                .execute(
-                    ruleProvider,
-                    """
-                    import custom.guards.*
-
-                    fun sample(value: String?): String = value!!
-                    """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        43,
-                        "avoid non-null assertion `!!`; a user-defined `requireNotNull` shadows the standard library guard, so rewrite it manually with `requireNotNull(...)` or rename the shadow",
-                        canBeAutoCorrected = false
-                    )
-                )
-        }
-
-        test("keeps autocorrect when only stdlib guard is imported explicitly") {
+        test("keeps assertion with an explicit stdlib guard import") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import kotlin.requireNotNull
 
-                    fun sample(value: String?): String = value!!
+                    fun sample(value: String?): String = requireNotNull(value)!!
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            43,
-                            "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` guard",
-                            canBeAutoCorrected = true
-                        )
-                    )
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(3, 59, canBeAutoCorrected = false))
                 formattedCode shouldBe
                     """
                     import kotlin.requireNotNull
 
-                    fun sample(value: String?): String = requireNotNull(value)
+                    fun sample(value: String?): String = requireNotNull(value)!!
                     """.trimIndent() + "\n"
             }
         }
 
-        test("unaliased custom guard import disables autocorrect") {
-            KtLintRuleTestEngine
-                .execute(
-                    ruleProvider,
-                    """
-                    import com.example.requireNotNull
+        test("reports bare variable assertion without changing the exception type") {
+            val source = "fun sample(value: String?): String = value!!\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 43, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
 
-                    fun sample(value: Any?): Int = value!!
-                    """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        37,
-                        "avoid non-null assertion `!!`; a user-defined `requireNotNull` shadows the standard library guard, so rewrite it manually with `requireNotNull(...)` or rename the shadow",
-                        canBeAutoCorrected = false
-                    )
-                )
+        test("reports member access on nullable receiver without rewriting") {
+            val source = "fun sample(value: String?): Int = value!!.length\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 40, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("reports index access without rewriting") {
+            val source =
+                """
+                fun sample(map: Map<String, String>): String = map["key"]!!
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(1, 58, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("reports member function with a guard like name without rewriting") {
+            val source =
+                """
+                class Service {
+                    fun requireNonNull(): String = "value"
+                }
+                fun sample(service: Service): String = service.requireNonNull()!!
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(4, 64, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("keeps assertion on a user defined guard") {
+            val source =
+                """
+                fun requireNotNull(value: Any?): String? = value?.toString()
+                fun sample(value: String?): String = requireNotNull(value)!!
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(2, 59, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("keeps assertion when a star import could provide the guard") {
+            val source =
+                """
+                import custom.guards.*
+
+                fun sample(value: String?): String = requireNotNull(value)!!
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(3, 59, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("keeps assertion when a custom guard is imported") {
+            val source =
+                """
+                import com.example.requireNotNull
+
+                fun sample(value: Any?): Int = requireNotNull(value)!!
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(diagnostic(3, 53, canBeAutoCorrected = false))
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {
         private val ruleProvider: RuleProvider = RuleProvider(::NonNullAssertion)
+
+        private fun diagnostic(
+            line: Int,
+            column: Int,
+            canBeAutoCorrected: Boolean
+        ): KtLintRuleTestEngine.Diagnostic =
+            KtLintRuleTestEngine.Diagnostic(
+                line,
+                column,
+                "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` or `checkNotNull` guard",
+                canBeAutoCorrected
+            )
     }
 }

@@ -1,12 +1,13 @@
 import type {
   Class,
   ClassElement,
+  ExportAllDeclaration,
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
-  Function as OxcFunction,
   MethodDefinition,
   Node,
-  PropertyKey,
+  PropertyDefinition,
+  TSExportAssignment,
   VariableDeclaration
 } from "@oxc-project/types";
 
@@ -38,74 +39,83 @@ interface RuleContext {
 }
 
 /**
- * Extract a printable property key name from an OXC AST property key.
+ * Extract a printable name from an identifier, literal, or qualified name node.
  *
- * @param key Property key node from a class method definition.
- * @returns The identifier or literal key name, or undefined for computed keys.
+ * @param value Candidate AST node or nullish value.
+ * @returns The printable name, or undefined when the node carries none.
  */
-const literalKeyName = (key: PropertyKey): string | undefined =>
-  "value" in key &&
-  (typeof key.value === "string" ||
-    typeof key.value === "number" ||
-    typeof key.value === "boolean" ||
-    typeof key.value === "bigint")
-    ? String(key.value)
-    : undefined;
-
-const propertyKeyName = (key: PropertyKey): string | undefined =>
-  "name" in key && typeof key.name === "string"
-    ? key.name
-    : literalKeyName(key);
-
-/**
- * Extract the display name for a declaration or method node.
- *
- * @param node Class, function, or method node to name for diagnostics.
- * @returns The declared name or "[anonymous]" when no stable name exists.
- */
-const nodeName = (node: Class | MethodDefinition | OxcFunction): string => {
-  if ("id" in node && node.id?.name) {
-    return node.id.name;
+const nameOf = (value: unknown): string | undefined => {
+  if (typeof value !== "object" || value === null) {
+    return undefined;
   }
-  return "key" in node
-    ? (propertyKeyName(node.key) ?? "[anonymous]")
-    : "[anonymous]";
+  if ("name" in value && typeof value.name === "string") {
+    return value.name;
+  }
+  if (
+    "value" in value &&
+    (typeof value.value === "string" ||
+      typeof value.value === "number" ||
+      typeof value.value === "boolean" ||
+      typeof value.value === "bigint")
+  ) {
+    return String(value.value);
+  }
+  if ("left" in value && "right" in value) {
+    const left = nameOf(value.left);
+    const right = nameOf(value.right);
+    return left !== undefined && right !== undefined
+      ? `${left}.${right}`
+      : undefined;
+  }
+  return undefined;
 };
 
 /**
- * Narrow a class element to public method definitions requiring TSDoc.
+ * Extract the display name for a declaration, method, or property node.
+ *
+ * @param node Declaration, method, or property node to name for diagnostics.
+ * @returns The declared name or "[anonymous]" when no stable name exists.
+ */
+const nodeName = (node: Node): string =>
+  nameOf("id" in node ? node.id : undefined) ??
+  nameOf("key" in node ? node.key : undefined) ??
+  "[anonymous]";
+
+/**
+ * Narrow a class element to public members that require TSDoc.
  *
  * @param element Class body element to inspect.
- * @returns True when the element is a non-constructor public method.
+ * @returns True for non-constructor public methods, including abstract ones,
+ *   and for public properties initialized with a function.
  */
 const isPublicClassElement = (
   element: ClassElement
-): element is MethodDefinition =>
-  element.type === "MethodDefinition" &&
-  element.kind !== "constructor" &&
+): element is MethodDefinition | PropertyDefinition =>
+  (element.type === "MethodDefinition" ||
+    element.type === "TSAbstractMethodDefinition" ||
+    ((element.type === "PropertyDefinition" ||
+      element.type === "TSAbstractPropertyDefinition") &&
+      (element.value?.type === "ArrowFunctionExpression" ||
+        element.value?.type === "FunctionExpression"))) &&
+  !("kind" in element && element.kind === "constructor") &&
   element.key.type !== "PrivateIdentifier" &&
   element.accessibility !== "private" &&
   element.accessibility !== "protected";
 
 /**
- * Narrow an AST node to a function declaration.
- *
- * @param node AST node to inspect.
- * @returns True when the node is a function declaration.
+ * Diagnostic labels for exported declaration node types.
  */
-const isFunctionDeclaration = (
-  node: Node
-): node is OxcFunction & { type: "FunctionDeclaration" } =>
-  node.type === "FunctionDeclaration";
-
-/**
- * Narrow an AST node to a variable declaration.
- *
- * @param node AST node to inspect.
- * @returns True when the node is a variable declaration.
- */
-const isVariableDeclaration = (node: Node): node is VariableDeclaration =>
-  node.type === "VariableDeclaration";
+const declarationKinds: Readonly<Record<string, string>> = {
+  ClassDeclaration: "class",
+  FunctionDeclaration: "function",
+  TSDeclareFunction: "function",
+  TSEnumDeclaration: "enum",
+  TSImportEqualsDeclaration: "import alias",
+  TSInterfaceDeclaration: "interface",
+  TSModuleDeclaration: "namespace",
+  TSTypeAliasDeclaration: "type alias",
+  VariableDeclaration: "variable"
+};
 
 /**
  * Narrow an AST node to a class declaration.
@@ -125,11 +135,25 @@ const isClassDeclaration = (
  * @returns The first binding identifier name, or a generic declaration label.
  */
 const variableName = (node: VariableDeclaration): string =>
-  node.declarations[0]?.id &&
-  "name" in node.declarations[0].id &&
-  typeof node.declarations[0].id.name === "string"
-    ? node.declarations[0].id.name
-    : "variable declaration";
+  nameOf(node.declarations[0]?.id) ?? "variable declaration";
+
+/**
+ * Describe an export statement that has no inline declaration for diagnostics.
+ *
+ * @param node Export list or re-export statement.
+ * @returns The exported names followed by the re-export source when present.
+ */
+const exportStatementName = (
+  node: ExportAllDeclaration | ExportNamedDeclaration
+): string => {
+  const names =
+    node.type === "ExportAllDeclaration"
+      ? "*"
+      : node.specifiers
+          .map((specifier) => nameOf(specifier.exported) ?? "[anonymous]")
+          .join(", ");
+  return node.source ? `${names} from "${node.source.value}"` : names;
+};
 
 /**
  * Require multiline TSDoc on exported TypeScript public API declarations.
@@ -137,6 +161,7 @@ const variableName = (node: VariableDeclaration): string =>
 const exportTsdocRule = {
   create(context: RuleContext) {
     const { sourceCode } = context;
+    const checkedClasses = new WeakSet<Class>();
     /**
      * Find TSDoc blocks before a node or its export wrapper.
      *
@@ -186,16 +211,23 @@ const exportTsdocRule = {
       }
     };
     /**
-     * Validate TSDoc on an exported class and its public methods.
+     * Validate an exposed class's public members once, regardless of export count.
      *
-     * @param node Exported class declaration node to validate.
+     * @param node Exposed class declaration node to validate.
      * @returns Nothing.
      */
-    const validateExportedClass = (node: Class): void => {
-      report(node, "class", nodeName(node));
+    const validateClassMembers = (node: Class): void => {
+      if (checkedClasses.has(node)) {
+        return;
+      }
+      checkedClasses.add(node);
       for (const element of node.body.body) {
         if (isPublicClassElement(element)) {
-          report(element, "method", nodeName(element));
+          report(
+            element,
+            element.type.endsWith("PropertyDefinition") ? "property" : "method",
+            nodeName(element)
+          );
         }
       }
     };
@@ -211,25 +243,89 @@ const exportTsdocRule = {
       if (!node) {
         return;
       }
-      if (isFunctionDeclaration(node)) {
-        report(node, "function", nodeName(node));
-      } else if (isVariableDeclaration(node)) {
-        report(node, "variable", variableName(node));
-      } else if (isClassDeclaration(node)) {
-        validateExportedClass(node);
+      const kind = declarationKinds[node.type];
+      if (isClassDeclaration(node)) {
+        report(node, "class", nodeName(node));
+        validateClassMembers(node);
+      } else if (kind !== undefined) {
+        report(
+          node,
+          kind,
+          node.type === "VariableDeclaration"
+            ? variableName(node)
+            : nodeName(node)
+        );
+      }
+    };
+    /**
+     * Resolve a class declaration in the export statement's enclosing statement list.
+     *
+     * @param node Export statement referencing a local binding.
+     * @param name Local identifier to resolve.
+     * @returns Nothing.
+     */
+    const validateLocalClass = (node: Node, name: string | undefined): void => {
+      const scope = node.parent;
+      if (
+        name !== undefined &&
+        scope &&
+        "body" in scope &&
+        Array.isArray(scope.body)
+      ) {
+        for (const statement of scope.body) {
+          const declaration =
+            statement.type === "ExportNamedDeclaration"
+              ? statement.declaration
+              : statement;
+          if (
+            declaration &&
+            isClassDeclaration(declaration) &&
+            declaration.id?.name === name
+          ) {
+            validateClassMembers(declaration);
+          }
+        }
       }
     };
     if (
-      !/\.(?:ts|tsx)$/u.test(context.filename ?? context.getFilename?.() ?? "")
+      !/\.(?:[cm]?ts|tsx)$/u.test(
+        context.filename ?? context.getFilename?.() ?? ""
+      )
     ) {
       return {};
     }
     return {
+      ExportAllDeclaration(node: ExportAllDeclaration) {
+        report(node, "re-export", exportStatementName(node));
+      },
       ExportDefaultDeclaration(node: ExportDefaultDeclaration) {
-        validateExportedDeclaration(node.declaration);
+        if (node.declaration.type in declarationKinds) {
+          validateExportedDeclaration(node.declaration);
+        } else {
+          report(node, "default export", "default");
+          if (node.declaration.type === "Identifier") {
+            validateLocalClass(node, node.declaration.name);
+          }
+        }
       },
       ExportNamedDeclaration(node: ExportNamedDeclaration) {
-        validateExportedDeclaration(node.declaration);
+        if (node.declaration) {
+          validateExportedDeclaration(node.declaration);
+        } else if (node.source || node.specifiers.length > 0) {
+          report(
+            node,
+            node.source ? "re-export" : "export list",
+            exportStatementName(node)
+          );
+          if (!node.source) {
+            for (const specifier of node.specifiers) {
+              validateLocalClass(node, nameOf(specifier.local));
+            }
+          }
+        }
+      },
+      TSExportAssignment(node: TSExportAssignment) {
+        report(node, "export assignment", "=");
       }
     };
   },

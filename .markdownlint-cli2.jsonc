@@ -16,9 +16,13 @@
       "style": "fenced"
     },
     "no-emphasis-as-heading": true,
-    "docs/no-box-drawing": true
+    "docs/no-box-drawing": true,
+    "docs/table-separators": true
   },
-  "customRules": ["./rules/no-box-drawing.ts"],
+  "customRules": [
+    "./plugins/harness/tooling/pnpm/rules/no-box-drawing.ts",
+    "./plugins/harness/tooling/pnpm/rules/table-separators.ts"
+  ],
   "gitignore": ".gitignore",
   "globs": ["**/*.md"]
 }

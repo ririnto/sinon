@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the implicit lambda it rule.
+ */
 class ImplicitLambdaItTest :
     FunSpec({
         test("names implicit parameter and preserves escapes") {

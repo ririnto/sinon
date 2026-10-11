@@ -38,7 +38,8 @@ The commands below are the whole gate.
 | --- | --- | --- |
 | `tooling/shell/.editorconfig` | merge into existing `.editorconfig` | merge only missing sections and keys |
 
-The `[*.sh]` tab-indent section matches shfmt's default style.
+The shell section selects two-space indentation through EditorConfig.
+Without parser or printer flags, shfmt reads these settings instead of using its default tab indentation.
 When the target already owns an `.editorconfig`, keep its shell section and resolve conflicts in favor of the target.
 
 ## Validation Commands

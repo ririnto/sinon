@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the nullable elvis return rule.
+ */
 class NullableElvisReturnTest :
     FunSpec({
         test("map lookup with return fallback is flagged") {

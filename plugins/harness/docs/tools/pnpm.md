@@ -24,8 +24,13 @@ metadata:
       version: 0.23.3
       url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.23.3/README.md
     Ultracite:
-      version: 7.12.2
-      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%407.12.2/packages/cli/README.md
+      version: 7.12.4
+      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%407.12.4/packages/cli/README.md
+    TypeScript compiler options:
+      url:
+        - https://www.typescriptlang.org/tsconfig/exactOptionalPropertyTypes.html
+        - https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html
+        - https://www.typescriptlang.org/tsconfig/verbatimModuleSyntax.html
     npm-run-all2:
       version: 9.0.3
       url: https://registry.npmjs.org/npm-run-all2/9.0.3
@@ -54,11 +59,14 @@ Inspect each package root in a monorepo and install the profile at each selected
 ## Managed Sources
 
 The profile provides `oxlint.config.ts`, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as one native lint and format source.
+Copy `plugins/` next to `oxlint.config.ts` because its `jsPlugins` entries use `./plugins/*.ts` paths.
+Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `./rules/*.ts` paths.
+Omit the `*.test.ts` files from both copies.
 It provides `.editorconfig` only when the target has no existing editor configuration or when the user approves a bounded merge.
 The fragment is a regular source file, not an instruction to overwrite an existing editor configuration.
 It does not provide a complete replacement `package.json`.
-Copy `package.fragment.json` and `pnpm-workspace.fragment.yaml` as merge guidance only.
-Do not copy either fragment over an existing manifest or workspace configuration.
+Copy `package.fragment.json`, `pnpm-workspace.fragment.yaml`, and `tsconfig.fragment.json` as merge guidance only.
+Do not copy any fragment over an existing manifest, workspace configuration, or compiler configuration.
 
 ## Bounded Manifest Merge
 
@@ -81,7 +89,11 @@ Do not add Husky or create hooks automatically.
 
 The source configuration extends the target-installed Ultracite Oxc presets.
 The style plugin preserves the historical checks for blank lines and non-documentation comments inside block function bodies.
-The TSDoc plugin checks exported TypeScript function, variable, and class declarations and public class methods.
+It exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
+The TSDoc plugin checks every exported TypeScript declaration kind: functions, variables, classes, interfaces, type aliases, enums, namespaces, and import aliases.
+It also checks default exports, export lists, `export * from` and `export { a } from` re-exports, and export assignments on the statement itself.
+For exported classes, it checks public methods, including abstract methods and accessors, and public properties initialized with a function.
+Protected, private, and `#private` members and constructors are exempt.
 It requires multiline TSDoc with opening and closing delimiters on separate lines.
 This format is a local rule.
 It reports missing documentation separately from invalid delimiter placement.
@@ -89,16 +101,32 @@ The JavaScript override keeps the historical JSDoc parameter and return checks w
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
-The profile ships two custom Markdownlint rules, `docs/no-box-drawing` and `docs/table-separators`, under `rules/`.
+The profile ships three custom Markdownlint rules under `rules/`.
+`docs/no-box-drawing` rejects Unicode box drawing characters.
+`docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and ignores fenced code and ordinary data rows.
+`docs/sentence-per-line` requires one prose sentence per source line in paragraphs, list items, and blockquotes.
+It ignores code, HTML blocks, links, headings, and protected table syntax, including blockquoted tables.
+The profile enables this rule without requiring table cells to split across source lines.
 Copy that directory alongside the config so the `customRules` paths resolve.
 The profile-owned `ignores` entry excludes `node_modules` even when a fresh target has no `.gitignore`.
 Retain the target's existing ignore configuration when merging.
 Do not copy the root-only custom rule paths from other repositories.
+The Sinon repository root loads its selected Markdown rules directly from `tooling/pnpm/rules/` inside this package.
 Add `markdownlint-cli2` as a development dependency and `check:markdownlint-cli2` plus `fix:markdownlint-cli2` script entries through the manifest merge above.
 The `check:markdownlint-cli2` task runs the plain `markdownlint-cli2` command.
 The `fix:markdownlint-cli2` task adds `--fix`.
 The selected target runtime must support loading the profile's TypeScript custom rules natively.
 Both resolve configuration and globs from the config file.
+
+## TypeScript Strictness Merge
+
+`tsconfig.fragment.json` lists strictness flags that the maintainer's TypeScript projects already use.
+They are `exactOptionalPropertyTypes`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noImplicitReturns`, `noPropertyAccessFromIndexSignature`, `noUncheckedIndexedAccess`, and `verbatimModuleSyntax`.
+Merge only the flags the target's `compilerOptions` do not already set, and preserve any value the target chose.
+Keep the target's `extends`, `module`, `target`, `include`, and `types` settings unchanged.
+Each flag can introduce new compiler errors in existing code, so run `pnpm exec tsc --noEmit` after merging and report the new errors instead of fixing unrelated source.
+Skip the fragment for a JavaScript-only target.
+`verbatimModuleSyntax` requires `import type` for type-only imports, which matches the profile's `typescript/consistent-type-imports` rule.
 
 ## Commands
 
@@ -141,7 +169,8 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `7.12.2`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
+The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `7.12.4`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
+Ultracite stays on the 7.x line because 8.x is a major upgrade that the profile has not evaluated against the custom plugin API.
 The target owns final dependency versions through its manifest and lockfile.
 The fragment's catalog ranges are source-profile evidence, not mandatory target pins.
 Check npm before merging them.

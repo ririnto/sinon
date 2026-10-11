@@ -6,9 +6,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies that inline comments are rejected only inside function bodies.
+ */
 class NoLineCommentTest :
     FunSpec({
-        test("standalone line comment is flagged") {
+        test("standalone line comment in a function body is flagged") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
@@ -17,18 +20,10 @@ class NoLineCommentTest :
                         // comment
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        5,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 5))
         }
 
-        test("trailing line comment is flagged") {
+        test("trailing line comment in a function body is flagged") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
@@ -37,18 +32,10 @@ class NoLineCommentTest :
                         val x = 1 // comment
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        15,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 15))
         }
 
-        test("block comment is flagged") {
+        test("block comment in a function body is flagged") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
@@ -57,18 +44,10 @@ class NoLineCommentTest :
                         /* block */
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        5,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 5))
         }
 
-        test("mixed line and block comments are all flagged") {
+        test("mixed comments in a function body are all flagged") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
@@ -79,132 +58,142 @@ class NoLineCommentTest :
                         /* three */ val y = 2
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        5,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        15,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        5,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 5), bodyComment(3, 15), bodyComment(4, 5))
         }
 
-        test("kdoc comment is not flagged") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    /**
-                     * docs
-                     */
-                    fun foo()
-                    """.trimIndent() + "\n"
-                )
-            ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
-                formattedCode shouldBe
-                    """
-                    /**
-                     * docs
-                     */
-                    fun foo()
-                    """.trimIndent() + "\n"
-            }
-        }
-
-        test("comment at top of file is flagged") {
+        test("comments in lambdas accessors initializers and constructors are flagged") {
             KtLintRuleTestEngine
                 .execute(
                     ruleProvider,
                     """
-                    // file-level comment
-                    fun foo()
-                    """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        1,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
-        }
+                    val action: () -> Unit = {
+                        // lambda
+                        run()
+                    }
 
-        test("line comment inside lambda body is flagged") {
-            KtLintRuleTestEngine
-                .execute(
-                    ruleProvider,
-                    """
+                    class Sample {
+                        init {
+                            // initializer
+                            run()
+                        }
+
+                        val value: Int
+                            get() {
+                                // getter
+                                return 1
+                            }
+
+                        constructor() {
+                            // constructor
+                            run()
+                        }
+                    }
+
                     fun foo() {
-                        listOf(1).forEach {
-                            // comment
-                            it.inc()
+                        listOf(1).forEach { item ->
+                            // nested
+                            use(item)
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        9,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
+                ).diagnostics
+                .map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(2, 8, 14, 19, 26)
+        }
+
+        test("comments outside function bodies are not flagged") {
+            val source =
+                """
+                // file-level comment
+                // region helpers
+                class Sample {
+                    // property note
+                    val value: Int = 1 // trailing note
+
+                    /* member block */
+                    fun work(
+                        // parameter note
+                        value: Int
+                    ): Int = value
+                }
+                // endregion
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
+        test("kdoc comment is not flagged") {
+            val source =
+                """
+                /**
+                 * docs
+                 */
+                fun foo() {
+                    /**
+                     * local docs
+                     */
+                    fun bar() {
+                    }
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
+        test("formatter directives are allowed in function bodies") {
+            val source =
+                """
+                fun foo() {
+                    // @formatter:off
+                    val matrix = listOf(1,0, 0,1)
+                    // @formatter:on
+                    use(matrix)
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
         }
 
         test("comment markers inside raw string are ignored") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    val text = ${"\"\"\""}// not a comment /* also not a comment */${"\"\"\""}
-                    """.trimIndent() + "\n"
-                )
-            ) {
+            val source =
+                """
+                fun text(): String {
+                    return ${"\"\"\""}// not a comment /* also not a comment */${"\"\"\""}
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
-                formattedCode shouldBe
-                    """
-                    val text = ${"\"\"\""}// not a comment /* also not a comment */${"\"\"\""}
-                    """.trimIndent() + "\n"
+                formattedCode shouldBe source
             }
         }
 
         test("format leaves commented source unchanged") {
-            KtLintRuleTestEngine
-                .execute(
-                    ruleProvider,
-                    """
-                    fun foo() {
-                        // comment
-                    }
-                    """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        5,
-                        "use KDoc (/** ... */) instead of // or /* */ comments",
-                        canBeAutoCorrected = false
-                    )
-                )
+            val source =
+                """
+                fun foo() {
+                    // comment
+                }
+                """.trimIndent() + "\n"
+            KtLintRuleTestEngine.execute(ruleProvider, source).formattedCode shouldBe source
         }
     }) {
     companion object {
         private val ruleProvider: RuleProvider = RuleProvider(::NoLineComment)
+
+        private fun bodyComment(
+            line: Int,
+            column: Int
+        ): KtLintRuleTestEngine.Diagnostic =
+            KtLintRuleTestEngine.Diagnostic(
+                line,
+                column,
+                "remove the comment from the function body; put the rationale in KDoc on the declaration",
+                canBeAutoCorrected = false
+            )
     }
 }

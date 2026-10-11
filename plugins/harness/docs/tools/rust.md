@@ -1,6 +1,8 @@
 ---
 metadata:
   reference:
+    Clippy:
+      url: https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity
     rustup:
       url: https://rust-lang.github.io/rustup/concepts/toolchains.html
 ---
@@ -48,6 +50,8 @@ A target pinned to an older channel keeps its pin.
 Do not bump it to satisfy this profile.
 The thresholds in `clippy.toml` and the layout options in `rustfmt.toml` are project choices.
 When the target already sets a value, its value wins.
+The cognitive complexity threshold is 25, and the validation commands explicitly enable `clippy::cognitive_complexity`.
+This restriction lint is allowed by default, so setting its threshold alone does not activate it.
 
 ## Validation Commands
 
@@ -55,14 +59,14 @@ Run inside the workspace root:
 
 ```sh
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D clippy::cognitive_complexity -D warnings
 cargo test --workspace
 ```
 
 `cargo fmt --all` applies formatting.
-`cargo clippy --fix --workspace --all-targets --all-features --allow-dirty --allow-staged -- -D warnings` applies safe machine-applicable fixes.
+`cargo clippy --fix --workspace --all-targets --all-features --allow-dirty --allow-staged -- -D clippy::cognitive_complexity -D warnings` applies safe machine-applicable fixes.
 Never use `--broken-code`.
-The `--all-targets --all-features -- -D warnings` lint strictness and the `--workspace` test scope are project choices, not universal defaults.
+The `--all-targets --all-features -- -D clippy::cognitive_complexity -D warnings` lint strictness and the `--workspace` test scope are project choices, not universal defaults.
 Match the target's own documented gate when it differs.
 
 ## CI Behavior

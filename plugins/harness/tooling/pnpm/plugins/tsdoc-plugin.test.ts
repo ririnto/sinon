@@ -25,6 +25,46 @@ interface Comment {
   readonly value: string;
 }
 
+interface Diagnostic {
+  readonly message: string;
+}
+
+const runOxlint = (
+  directory: string,
+  filename: string
+): { diagnostics: Diagnostic[]; status: number | null } => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      path.join(
+        path.dirname(
+          createRequire(import.meta.url).resolve("oxlint/package.json")
+        ),
+        "bin/oxlint"
+      ),
+      "--config",
+      path.join(directory, "oxlint.json"),
+      "--format",
+      "json",
+      path.join(directory, filename)
+    ],
+    { cwd: directory }
+  );
+  return {
+    diagnostics: JSON.parse(result.stdout.toString()).diagnostics,
+    status: result.status
+  };
+};
+
+const writeConfig = (directory: string): Promise<void> =>
+  writeFile(
+    path.join(directory, "oxlint.json"),
+    JSON.stringify({
+      jsPlugins: [fileURLToPath(new URL("tsdoc-plugin.ts", import.meta.url))],
+      rules: { "tsdoc/require-export-tsdoc": "error" }
+    })
+  );
+
 const makeExportedFunction = (): ExportNode =>
   ({
     declaration: {
@@ -105,13 +145,7 @@ describe("pnpm TSDoc rule", () => {
 test("native Oxlint checks TSDoc delimiter lines on exports and methods", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-"));
   try {
-    await writeFile(
-      path.join(directory, "oxlint.json"),
-      JSON.stringify({
-        jsPlugins: [fileURLToPath(new URL("tsdoc-plugin.ts", import.meta.url))],
-        rules: { "tsdoc/require-export-tsdoc": "error" }
-      })
-    );
+    await writeConfig(directory);
     await writeFile(
       path.join(directory, "valid.ts"),
       'const marker = "\u{1F600}";\n' +
@@ -140,25 +174,8 @@ test("native Oxlint checks TSDoc delimiter lines on exports and methods", async 
       ["invalid.ts", 1, 8],
       ["source.js", 0, 0]
     ] as const) {
-      const result = spawnSync(
-        process.execPath,
-        [
-          path.join(
-            path.dirname(
-              createRequire(import.meta.url).resolve("oxlint/package.json")
-            ),
-            "bin/oxlint"
-          ),
-          "--config",
-          path.join(directory, "oxlint.json"),
-          "--format",
-          "json",
-          path.join(directory, filename)
-        ],
-        { cwd: directory }
-      );
-      expect(result.status).toBe(exitCode);
-      const { diagnostics } = JSON.parse(result.stdout.toString());
+      const { diagnostics, status } = runOxlint(directory, filename);
+      expect(status).toBe(exitCode);
       expect(diagnostics).toHaveLength(diagnosticCount);
       if (filename === "invalid.ts") {
         expect(
@@ -177,3 +194,143 @@ test("native Oxlint checks TSDoc delimiter lines on exports and methods", async 
     await rm(directory, { force: true, recursive: true });
   }
 });
+
+test("native Oxlint requires TSDoc on every exported form and public member", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-forms-"));
+  const doc = "/**\n * Document it.\n */\n";
+  try {
+    await writeConfig(directory);
+    const validStatements = [
+      "export interface Shape { size: number; }",
+      "export type Alias = string;",
+      "export enum Mode { On }",
+      `export namespace Space {\n${doc}export const inner = 1;\n}`,
+      "export declare function overload(): void;",
+      "export default 1;",
+      "export * from './other.js';",
+      "export * as ns from './other.js';",
+      "export { a } from './other.js';",
+      "export type { B } from './other.js';",
+      "export { local };",
+      `export abstract class Base {\n  ${doc}  abstract run(): void;\n  ${doc}  handler = () => 1;\n  ${doc}  static build = function build() { return 1; };\n  label = 'plain';\n  private secret = () => 1;\n}`
+    ].map((line) => `${doc}${line}`);
+    await writeFile(
+      path.join(directory, "valid.ts"),
+      `${validStatements.join("\n")}\nconst local = 1;\n`
+    );
+    await writeFile(
+      path.join(directory, "invalid.ts"),
+      [
+        "export interface Shape { size: number; }",
+        "export type Alias = string;",
+        "export enum Mode { On }",
+        "export namespace Space { export const inner = 1; }",
+        "export declare function overload(): void;",
+        "export default { value: 1 };",
+        "export * from './other.js';",
+        "export { a } from './other.js';",
+        "const local = 1;\nexport { local };",
+        `${doc}export abstract class Base {\n  abstract run(): void;\n  handler = () => 1;\n  static build = function build() { return 1; };\n}`
+      ].join("\n")
+    );
+    await writeFile(
+      path.join(directory, "assignment.ts"),
+      "const Base = 1;\nexport = Base;\n"
+    );
+    await writeFile(
+      path.join(directory, "default-function.ts"),
+      "export default function () { return 1; }\n"
+    );
+    await writeFile(
+      path.join(directory, "default-class.ts"),
+      `${doc}export default class { read() { return 1; } }\n`
+    );
+    const valid = runOxlint(directory, "valid.ts");
+    expect(valid.diagnostics).toEqual([]);
+    expect(valid.status).toBe(0);
+    const invalid = runOxlint(directory, "invalid.ts");
+    expect(invalid.status).toBe(1);
+    expect(invalid.diagnostics.map(({ message }) => message)).toEqual([
+      'Missing TSDoc for exported public API interface "Shape".',
+      'Missing TSDoc for exported public API type alias "Alias".',
+      'Missing TSDoc for exported public API enum "Mode".',
+      'Missing TSDoc for exported public API namespace "Space".',
+      'Missing TSDoc for exported public API variable "inner".',
+      'Missing TSDoc for exported public API function "overload".',
+      'Missing TSDoc for exported public API default export "default".',
+      'Missing TSDoc for exported public API re-export "* from "./other.js"".',
+      'Missing TSDoc for exported public API re-export "a from "./other.js"".',
+      'Missing TSDoc for exported public API export list "local".',
+      'Missing TSDoc for exported public API method "run".',
+      'Missing TSDoc for exported public API property "handler".',
+      'Missing TSDoc for exported public API property "build".'
+    ]);
+    expect(
+      runOxlint(directory, "assignment.ts").diagnostics.map(
+        ({ message }) => message
+      )
+    ).toEqual(['Missing TSDoc for exported public API export assignment "=".']);
+    expect(
+      runOxlint(directory, "default-function.ts").diagnostics.map(
+        ({ message }) => message
+      )
+    ).toEqual([
+      'Missing TSDoc for exported public API function "[anonymous]".'
+    ]);
+    expect(
+      runOxlint(directory, "default-class.ts").diagnostics.map(
+        ({ message }) => message
+      )
+    ).toEqual(['Missing TSDoc for exported public API method "read".']);
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+});
+
+test.each(["ts", "tsx", "mts", "cts"])(
+  "native Oxlint checks indirectly exported class members in .%s",
+  async (extension) => {
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "sinon-tsdoc-indirect-")
+    );
+    const doc = "/**\n * Document it.\n */\n";
+    try {
+      await writeConfig(directory);
+      const fixtures = [
+        "export { Service };",
+        "export { Service as PublicService };",
+        "export default Service;",
+        `export { Service };\n${doc}export default Service;`
+      ].flatMap((statement, index) =>
+        [false, true].map((documented) => ({
+          documented,
+          filename: `source-${index}-${documented}.${extension}`,
+          source: `class Service {\n${documented ? doc : ""}run() {}\n}\n${doc}${statement}\n`
+        }))
+      );
+      await Promise.all(
+        fixtures.map(({ filename, source }) =>
+          writeFile(path.join(directory, filename), source)
+        )
+      );
+      for (const { documented, filename } of fixtures) {
+        const result = runOxlint(directory, filename);
+        expect(result.status).toBe(documented ? 0 : 1);
+        expect(result.diagnostics.map(({ message }) => message)).toEqual(
+          documented
+            ? []
+            : ['Missing TSDoc for exported public API method "run".']
+        );
+      }
+      await writeFile(
+        path.join(directory, `direct.${extension}`),
+        "export class Service { run() {} }\n"
+      );
+      expect(
+        runOxlint(directory, `direct.${extension}`).diagnostics
+      ).toHaveLength(2);
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }
+);

@@ -18,6 +18,7 @@ linters:
     - bidichk
     - bodyclose
     - canonicalheader
+    - containedctx
     - copyloopvar
     - cyclop
     - durationcheck
@@ -31,6 +32,7 @@ linters:
     - gocheckcompilerdirectives
     - gochecksumtype
     - gocritic
+    - godoclint
     - gomoddirectives
     - goprintffuncname
     - gosec
@@ -74,6 +76,7 @@ linters:
     errcheck:
       check-type-assertions: true
       check-blank: true
+      disable-default-exclusions: true
     errorlint:
       errorf: true
       asserts: true
@@ -85,6 +88,14 @@ linters:
         - diagnostic
         - style
         - performance
+    godoclint:
+      default: none
+      enable:
+        - pkg-doc
+        - single-pkg-doc
+        - require-pkg-doc
+        - start-with-name
+        - require-doc
     govet:
       enable-all: true
     nolintlint:
@@ -122,11 +133,7 @@ linters:
         - all
   exclusions:
     generated: lax
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
+    presets: []
     paths:
       - third_party$
       - builtin$

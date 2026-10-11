@@ -19,7 +19,7 @@ metadata:
 
 # TypeScript Conventions
 
-Apply these rules to TypeScript source under `scripts/` and `rules/`.
+Apply these rules to TypeScript source under `scripts/`, `plugins/harness/tooling/pnpm/plugins/`, and `plugins/harness/tooling/pnpm/rules/`.
 Use [Source Changes](repository-conventions.md#source-changes) for shared source rules, including function-body spacing.
 
 ## Runtime And Tooling

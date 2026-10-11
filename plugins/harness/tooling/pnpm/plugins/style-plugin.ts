@@ -32,6 +32,12 @@ type FunctionNode =
     })
   | ArrowFunctionExpression;
 
+/**
+ * Recognized tool directive comments that must stay inline with the code they control.
+ */
+const toolDirectivePattern =
+  /^\s*(?:@ts-(?:check|expect-error|ignore|nocheck)|(?:eslint|oxlint)-(?:disable(?:-line|-next-line)?|enable)|(?:oxfmt|prettier)-ignore|(?:c8|istanbul|v8) ignore)(?![\w-])/u;
+
 const isFunctionNode = (node: Node): node is FunctionNode =>
   node.type === "FunctionDeclaration" ||
   node.type === "FunctionExpression" ||
@@ -47,7 +53,9 @@ const noInlineCommentsRule = {
           .getCommentsInside(body)
           .filter(
             ({ type, value }) =>
-              type === "Line" || (type === "Block" && !value.startsWith("*"))
+              (type === "Line" ||
+                (type === "Block" && !value.startsWith("*"))) &&
+              !toolDirectivePattern.test(value)
           );
         for (const { start } of forbiddenComments) {
           if (!reportedOffsets.has(start)) {

@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the control flow braces rule.
+ */
 class ControlFlowBracesTest :
     FunSpec({
         test("formats every if branch with braces") {
@@ -72,6 +75,21 @@ class ControlFlowBracesTest :
                         } while (ready)
                     }
                     """.trimIndent() + "\n"
+            }
+        }
+
+        test("wraps zero indent if expressions") {
+            listOf(
+                "fun choose(ready: Boolean) = if (ready) 1 else 2\n" to
+                    "fun choose(ready: Boolean) = if (ready) {\n    1\n} else {\n    2\n}\n",
+                "val value = if (ready) 1 else 2\n" to
+                    "val value = if (ready) {\n    1\n} else {\n    2\n}\n"
+            ).forEach { (source, expected) ->
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                        listOf("wrap the `if` branch in `{ ... }`", "wrap the `else` branch in `{ ... }`")
+                    formattedCode shouldBe expected
+                }
             }
         }
 

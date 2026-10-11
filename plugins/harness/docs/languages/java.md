@@ -1,6 +1,11 @@
 ---
 metadata:
   reference:
+    Palantir Java Format:
+      tag: 2.102.0
+      url: https://raw.githubusercontent.com/palantir/palantir-java-format/2.102.0/README.md
+    Checkstyle LineLength:
+      url: https://checkstyle.org/checks/sizes/linelength.html
     Java language:
       version: JDK 25
       url:
@@ -39,6 +44,8 @@ Use the project's structured logger.
 ## Formatting and validation
 
 Use the selected build tool's native formatter and static checker.
+The Palantir style, Checkstyle line limit, and Java EditorConfig section use 120 columns.
+Checkstyle exempts package declarations, imports, and lines containing URLs from its line-length check.
 Run the tool's format check and the project's normal test or verification lifecycle.
 Preserve existing package names, module names, coordinates, source sets, toolchains, and build tasks.
 Do not replace an existing formatter or checker without reviewing its current ownership and scope.

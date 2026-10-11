@@ -40,7 +40,8 @@ Parse structured data with the standard parsers (`json`, `urllib.parse`, `dateti
 
 Match the Ruff configuration's `quote-style` and formatting decisions.
 Keep type hints on public functions.
-Do not chase full annotation coverage of private glue code.
+Private function return annotations remain optional.
+Ruff also requires argument annotations on private helpers because its argument checks do not distinguish public visibility.
 Prefer `match` statements over long `if/elif` chains when dispatching on one value.
 JS-style braces and Kotlin syntax do not apply to Python.
 Use Python's suite syntax and docstrings.
@@ -55,3 +56,5 @@ Put opening and closing triple quotes on separate lines.
 One short paragraph states the contract.
 Add parameters and return descriptions only when they clarify semantics.
 Do not restate the type hints in prose.
+Ruff checks quote placement for multiline docstrings but cannot require single-line docstrings to expand.
+Review that remaining requirement manually.

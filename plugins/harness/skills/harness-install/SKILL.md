@@ -92,6 +92,10 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<skill-root>/docs/languages/<name>.md` | `<plugin-root>/docs/languages/<name>.md` |
 | `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
 | `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm is selected |
+| `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
+| `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
+| `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
+| `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
 | `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |
 
 Read the two skills, common rules, and selected language and tool references before composing their target files.
@@ -134,6 +138,7 @@ Do not replace whole configuration files or silently upgrade dependencies to mat
 Create native configuration only where the selected reference permits it and no target-owned file conflicts.
 
 For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs/tools/pnpm.md#bounded-manifest-merge).
+For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
 The profile owns Markdownlint dependency/scripts and config-based `node_modules` exclusion, including targets without `.gitignore`.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.

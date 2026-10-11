@@ -20,7 +20,7 @@ Sinon publishes Claude Code and Codex plugins with portable Agent Skills.
 - `.agents/plugins/marketplace.json` is the generated Codex view of that inventory.
 - `docs/agent-references/` contains repository authoring conventions.
 - `scripts/` contains repository validation checks.
-- `rules/` contains repository Markdown custom lint rules.
+- `.markdownlint-cli2.jsonc` loads the Markdown custom lint rules from `plugins/harness/tooling/pnpm/rules/`.
 - `.github/` contains GitHub repository automation configuration.
 
 Keep one documented responsibility per top-level component.
@@ -39,7 +39,7 @@ Use official vendor documentation for technical claims, and identify repository 
 ## Task References
 
 Use [repository conventions](docs/agent-references/repository-conventions.md) for the language or file type under change.
-Use [TypeScript conventions](docs/agent-references/typescript.md) for TypeScript source under `scripts/` or `rules/`.
+Use [TypeScript conventions](docs/agent-references/typescript.md) for repository scripts, profile plugins, and `plugins/harness/tooling/pnpm/rules/`.
 Use [instruction authoring](docs/agent-references/instruction-authoring.md) when changing agent guidance, skill activation or content, host hooks, or model prompts.
 
 ## Completion And Checks
