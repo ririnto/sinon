@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { once } from "node:events";
 import { mkdtemp, rm } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -58,10 +59,24 @@ const fixture = async (context, handler, options = {}) => {
   http.listen(socket);
   await once(http, "listening");
   const transport = new StdioClientTransport({
-    args: [serverPath],
-    command: process.execPath,
+    args: options.package
+      ? [
+          "exec",
+          "--yes",
+          "--install-links",
+          `--package=${options.package}`,
+          "--",
+          "codex-app-server"
+        ]
+      : [serverPath],
+    command: options.package ? "npm" : process.execPath,
     cwd: directory,
-    env: { ...process.env, CODEX_APP_SERVER_SOCKET: socket },
+    env: {
+      ...process.env,
+      CODEX_APP_SERVER_SOCKET: socket,
+      NODE_USE_SYSTEM_CA: "1",
+      npm_config_cache: path.join(directory, "npm-cache")
+    },
     stderr: "pipe"
   });
   const client = new Client({ name: "fixture", version: "1" });
@@ -114,6 +129,83 @@ test("lists six self-describing tools and all sources without repairing metadata
   assert.equal(result.value[0].id, "fixture-thread");
   assert.deepEqual(requests.at(-1).params.sourceKinds, SOURCE_KINDS);
   assert.equal(requests.at(-1).params.useStateDbOnly, true);
+});
+
+test("packed executable includes and registers every feature module", async (t) => {
+  const directory = await mkdtemp("/tmp/sinon-mcp-package-");
+  t.after(() => rm(directory, { force: true, recursive: true }));
+  const { stdout } = await promisify(execFile)(
+    "npm",
+    ["pack", "--json", "--ignore-scripts", "--pack-destination", directory],
+    {
+      cwd: path.dirname(serverPath),
+      env: {
+        ...process.env,
+        npm_config_cache: path.join(directory, "npm-cache")
+      }
+    }
+  );
+  const [packed] = JSON.parse(stdout);
+  for (const file of [
+    "server.mjs",
+    "lib/connection.mjs",
+    "lib/thread-tools.mjs",
+    "lib/mcp-tool.mjs",
+    "lib/raw-call.mjs"
+  ]) {
+    assert.ok(
+      packed.files.some((entry) => entry.path === file),
+      file
+    );
+  }
+  const { client, requests } = await fixture(
+    t,
+    ({ message, reply }) => {
+      if (message.method === "thread/start") {
+        reply({ thread: { id: "fixture-ephemeral" } });
+      } else if (message.method === "mcpServer/tool/call") {
+        reply({ structuredContent: { fixture: true } });
+      } else {
+        reply({ fixture: "raw" });
+      }
+    },
+    { package: path.join(directory, packed.filename) }
+  );
+  const { tools } = await client.listTools();
+  assert.deepEqual(
+    tools.map((tool) => tool.name),
+    [
+      "codex_threads",
+      "codex_tail",
+      "codex_start",
+      "codex_send",
+      "codex_mcp_tool",
+      "codex_call"
+    ]
+  );
+  const proxied = await call(client, "codex_mcp_tool", {
+    server: "fixture-server",
+    tool: "fixture-tool"
+  });
+  assert.deepEqual(proxied.value, { fixture: true });
+  const started = requests.find((request) => request.method === "thread/start");
+  assert.equal(started.params.ephemeral, true);
+  assert.ok(
+    started.params.cwd.startsWith("/tmp/sinon-mcp-") ||
+      started.params.cwd.startsWith("/private/tmp/sinon-mcp-")
+  );
+  assert.deepEqual(requests.at(-1).params, {
+    arguments: {},
+    server: "fixture-server",
+    threadId: "fixture-ephemeral",
+    tool: "fixture-tool"
+  });
+  const raw = await call(client, "codex_call", {
+    method: "thread/read",
+    params: { threadId: "fixture-thread" }
+  });
+  assert.deepEqual(raw.value, { fixture: "raw" });
+  assert.deepEqual(requests.at(-1).params, { threadId: "fixture-thread" });
 });
 
 test("starts a new thread's first turn directly, while existing threads resume", async (t) => {
