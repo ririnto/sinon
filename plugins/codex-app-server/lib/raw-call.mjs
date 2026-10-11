@@ -37,14 +37,16 @@ export const registerRawCall = (server) => {
           )
       }
     },
-    (args) =>
-      refusal(args.method)
+    (args) => {
+      const reason = refusal(args.method);
+      return reason
         ? {
-            content: [{ text: refusal(args.method), type: "text" }],
+            content: [{ text: reason, type: "text" }],
             isError: true
           }
         : withClient((client, { method, params }) =>
             client.request(method, params)
-          )(args)
+          )(args);
+    }
   );
 };

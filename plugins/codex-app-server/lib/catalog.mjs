@@ -41,7 +41,7 @@ export const loadCatalog = async () => {
       await readFile(path.join(directory, "ClientRequest.json"), "utf-8")
     );
     const defs = JSON.parse(
-      JSON.stringify(schema.definitions).replaceAll(
+      JSON.stringify(schema.definitions ?? {}).replaceAll(
         "#/definitions/",
         "#/$defs/"
       )
@@ -110,7 +110,22 @@ export const registerCatalogTools = async (server) => {
     generated = catalog.filter(
       (entry) => exposable(entry.method) && allowed(entry.method, entries)
     );
-    const names = new Set();
+    const names = new Set([
+      "codex_threads",
+      "codex_tail",
+      "codex_start",
+      "codex_send",
+      "codex_steer",
+      "codex_interrupt",
+      "codex_fork",
+      "codex_rename",
+      "codex_goal",
+      "codex_loaded",
+      "codex_compact",
+      "codex_mcp_tool",
+      "codex_call",
+      "codex_methods"
+    ]);
     for (const entry of generated) {
       const name = toolName(entry.method);
       if (name.length > 128 || names.has(name)) {
@@ -158,7 +173,10 @@ export const registerCatalogTools = async (server) => {
     ({ method, prefix }) => {
       const found = method
         ? catalog.filter((entry) => entry.method === method)
-        : catalog.filter((entry) => !prefix || entry.method.startsWith(prefix));
+        : catalog.filter(
+            (entry) =>
+              !prefix || allowed(entry.method, [prefix.replace(/\/$/u, "")])
+          );
       const value = found.map((entry) => {
         let tool = "codex_call";
         if (BLOCKED_METHODS.has(entry.method)) {

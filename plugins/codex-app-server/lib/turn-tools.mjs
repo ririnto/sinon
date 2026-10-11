@@ -39,6 +39,7 @@ export const registerTurnTools = (server) => {
       description:
         `Append authorized text to the in-progress turn of a Codex thread without starting a new turn. ` +
         `Reads the thread's last turn and refuses unless it is inProgress; the active turn ID is filled in for you. ` +
+        `Verify provider support first: a gateway rejecting response.interrupt can fail the active turn. ` +
         `Use only under a direct human instruction or assigned contract authorizing steering of this thread. ` +
         `Read it with codex_threads and codex_tail first; keep one writer per thread. ` +
         `On an active-writer error, identify the holder through thread-writer-locks/THREAD_ID.lock under CODEX_HOME (default ~/.codex). ` +
@@ -69,6 +70,7 @@ export const registerTurnTools = (server) => {
       description:
         `Interrupt the in-progress turn of a Codex thread. ` +
         `Reads the thread's last turn and refuses unless it is inProgress; the active turn ID is filled in for you. ` +
+        `Verify provider support first: a gateway rejecting response.interrupt can fail the active turn. ` +
         `Use only under a direct human instruction or assigned contract authorizing steering of this thread. ` +
         `Read it with codex_threads and codex_tail first; keep one writer per thread. ` +
         `On an active-writer error, let the holder of thread-writer-locks/THREAD_ID.lock under CODEX_HOME release it; never delete locks or force a second writer. ${

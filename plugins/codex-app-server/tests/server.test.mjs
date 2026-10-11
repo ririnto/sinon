@@ -259,14 +259,15 @@ test("starts a new thread's first turn directly, while existing threads resume",
   );
 });
 
-test("rejects non-positive trailing counts before opening a daemon connection", async (t) => {
+test("rejects non-positive page and trailing counts before opening a daemon connection", async (t) => {
   const { client, requests } = await fixture(t, ({ reply }) => {
     reply({ thread: { turns: [{ id: "old" }, { id: "new" }] } });
   });
   const invalid = await Promise.all(
-    [0, -1].map((turns) =>
-      call(client, "codex_tail", { thread_id: "fixture-thread", turns })
-    )
+    [0, -1].flatMap((turns) => [
+      call(client, "codex_tail", { thread_id: "fixture-thread", turns }),
+      call(client, "codex_threads", { limit: turns })
+    ])
   );
   for (const result of invalid) {
     assert.equal(result.error, true);
@@ -619,6 +620,30 @@ test("keeps generated tools opt-in while discovery follows the installed catalog
   assert.equal(listed.value[0].tool, "codex_call");
 });
 
+test("discovers definition-free catalogs with namespace-boundary filtering", async (t) => {
+  const { client } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: {
+      oneOf: ["fs/readFile", "fsSection/readFile"].map((method) => ({
+        properties: {
+          method: { enum: [method] },
+          params: { type: "object" }
+        }
+      }))
+    }
+  });
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 14);
+  const results = await Promise.all(
+    ["fs", "fs/"].map((prefix) => call(client, "codex_methods", { prefix }))
+  );
+  for (const result of results) {
+    assert.deepEqual(
+      result.value.map((entry) => entry.method),
+      ["fs/readFile"]
+    );
+  }
+});
+
 test("retains curated tools when a selected parameter schema cannot become an MCP tool", async (t) => {
   await Promise.all(
     [{ $ref: "#/definitions/Missing" }, { type: "string" }].map(
@@ -636,6 +661,63 @@ test("retains curated tools when a selected parameter schema cannot become an MC
         assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
       }
     )
+  );
+});
+
+test("retains curated tools when generated names collide with reserved tools", async (t) => {
+  await Promise.all(
+    ["compact", "methods", "mcp/tool"].map(async (method) => {
+      const { client } = await fixture(t, ({ reply }) => reply({}), {
+        catalog: {
+          definitions: {},
+          oneOf: [{ properties: { method: { enum: [method] } } }]
+        },
+        methods: method
+      });
+      const { tools } = await client.listTools();
+      assert.equal(tools.length, 13);
+      assert.ok(tools.some((tool) => tool.name === "codex_compact"));
+      assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+    })
+  );
+});
+
+test("propagates daemon active-turn and writer refusals without retrying", async (t) => {
+  await Promise.all(
+    ["thread/resume", "turn/start"].map(async (method) => {
+      const { client, requests } = await fixture(
+        t,
+        ({ message, reply, ws }) => {
+          if (message.method === method) {
+            ws.send(
+              JSON.stringify({
+                error: {
+                  code: -32_600,
+                  message: "Thread has an in-progress turn or active writer"
+                },
+                id: message.id
+              })
+            );
+          } else {
+            reply({});
+          }
+        }
+      );
+      const result = await call(client, "codex_send", {
+        text: "next",
+        thread_id: "fixture-thread"
+      });
+      assert.equal(result.error, true);
+      assert.match(result.text, /in-progress turn or active writer/u);
+      assert.deepEqual(
+        requests
+          .filter((request) => request.method !== "initialize")
+          .map((request) => request.method),
+        method === "thread/resume"
+          ? ["thread/resume"]
+          : ["thread/resume", "turn/start"]
+      );
+    })
   );
 });
 

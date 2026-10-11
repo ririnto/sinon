@@ -91,6 +91,12 @@ The first launch requires registry access unless the dependencies are already ca
 
 `codex_steer` and `codex_interrupt` refuse when the last turn is not `inProgress`.
 They read the turn ID themselves and never resume the thread or start a new turn.
+Provider gateways must support the underlying steering and interruption requests.
+A gateway rejecting `response.interrupt` can fail the active turn instead of interrupting it safely.
+Verify provider support before steering or interrupting valuable work.
+The tools propagate daemon and provider errors without retrying.
+`codex_send` relies on daemon-enforced active-turn and writer guards during resume and turn start.
+It returns refusals as MCP errors without retrying or forcing a writer.
 The daemon checks `expectedTurnId` for steering, preventing a stale read from steering a replacement turn.
 Read the thread first and use these tools only under authorized steering instructions.
 Keep one writer per thread.
