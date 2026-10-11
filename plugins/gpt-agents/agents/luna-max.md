@@ -1,6 +1,6 @@
 ---
 name: luna-max
-description: Tier 2 agent for broader development and analysis, equivalent to sonnet and glm.
+description: Tier 2 agent for broader development and analysis, equivalent to sonnet and glm-high.
 model: gpt-6-luna
 effort: max
 ---

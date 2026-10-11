@@ -43,7 +43,8 @@ claude --plugin-dir ./plugins/glm-agents
 | Agent | Model | Effort | Tier |
 | --- | --- | --- | --- |
 | `glm-flash` | `glm-5.3-flash` | `max` | 1 |
-| `glm` | `glm-5.3` | `max` | 2 |
+| `glm-high` | `glm-5.3` | `high` | 2 |
+| `glm-max` | `glm-5.3` | `max` | 3 |
 
 ## Equivalence Tiers
 
@@ -53,8 +54,8 @@ Tier 4 agents run only on explicit request.
 | Tier | Workload | Claude | `gpt-agents` | `glm-agents` |
 | --- | --- | --- | --- | --- |
 | 1 | Clear, bounded tasks | `haiku` | `luna-high` | `glm-flash` |
-| 2 | Broader development and analysis | `sonnet` | `luna-max` | `glm` |
-| 3 | Conflicting evidence and hard tradeoffs | `opus` | `sol-medium`, `sol-high` | None |
+| 2 | Broader development and analysis | `sonnet` | `luna-max` | `glm-high` |
+| 3 | Conflicting evidence and hard tradeoffs | `opus` | `sol-medium`, `sol-high` | `glm-max` |
 | 4 | Hardest or longest work | `fable` | `astra` | None |
 
 `sol-medium` and `sol-high` mirror the medium and high effort choices for Tier 3 work.

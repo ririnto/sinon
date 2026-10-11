@@ -56,8 +56,8 @@ Tier 4 agents run only on explicit request.
 | Tier | Workload | Claude | `gpt-agents` | `glm-agents` |
 | --- | --- | --- | --- | --- |
 | 1 | Clear, bounded tasks | `haiku` | `luna-high` | `glm-flash` |
-| 2 | Broader development and analysis | `sonnet` | `luna-max` | `glm` |
-| 3 | Conflicting evidence and hard tradeoffs | `opus` | `sol-medium`, `sol-high` | None |
+| 2 | Broader development and analysis | `sonnet` | `luna-max` | `glm-high` |
+| 3 | Conflicting evidence and hard tradeoffs | `opus` | `sol-medium`, `sol-high` | `glm-max` |
 | 4 | Hardest or longest work | `fable` | `astra` | None |
 
 `sol-medium` and `sol-high` mirror the medium and high effort choices for Tier 3 work.
