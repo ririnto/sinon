@@ -7,6 +7,12 @@ metadata:
       url: https://code.claude.com/docs/en/sub-agents.md
     Claude Code plugin components:
       url: https://code.claude.com/docs/en/plugins/manifest-reference.md
+    Claude Code model configuration:
+      url: https://code.claude.com/docs/en/model-config.md
+    Claude Code gateway configuration:
+      url:
+        - https://code.claude.com/docs/en/llm-gateway-connect.md
+        - https://code.claude.com/docs/en/llm-gateway-protocol.md
     Codex plugins:
       url: https://developers.openai.com/codex/plugins/build.md
     Z.ai models:
@@ -22,10 +28,50 @@ This plugin provides Claude Code subagents whose `model` fields select Z.ai GLM 
 ## Runtime
 
 Claude Code loads the agents from the plugin's default `agents/` directory.
-Each agent's `model` value must be available from the model provider configured for the Claude Code session.
-Each agent's `effort` value sets its reasoning effort.
+Each agent's `effort` value requests its reasoning effort through the configured gateway.
 Codex lists the plugin through its native manifest but loads no components from it.
 Codex plugin manifests declare skills, MCP servers, apps, and hooks, but not custom agents, so the package ships no Codex agent definitions.
+
+## Gateway Prerequisites
+
+Before installing, configure an Anthropic Messages-compatible gateway that routes `glm-5.3` and `glm-5.3-flash` to Z.ai.
+The gateway must expose `/v1/messages`, support streaming and tool use, and translate Anthropic-format requests and responses to the upstream provider's format.
+Pointing Claude Code at the upstream Z.ai API without that compatibility layer is not sufficient.
+Anthropic does not support routing Claude Code to non-Claude models through a gateway.
+The plugin provides agent definitions only and does not configure a gateway or credentials.
+
+Follow the gateway operator's setup instructions and the [Claude Code connection guide](https://code.claude.com/docs/en/llm-gateway-connect.md).
+For a gateway that uses bearer authentication, set the following before launching Claude Code:
+
+```sh
+export ANTHROPIC_BASE_URL='https://gateway.example.com'
+export ANTHROPIC_AUTH_TOKEN='<gateway-issued-token>'
+```
+
+Replace the placeholders with your gateway's base URL and credential.
+Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
+Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
+
+### Effort And Context
+
+The gateway must translate `output_config.effort` to the upstream model's supported reasoning setting and honor every effort listed below.
+Verify distinct effort values in gateway request diagnostics without exposing credentials or conversation content.
+A gateway that drops effort or rejects it can make the high and max agents behave identically.
+Current Claude Code sends effort for unrecognized IDs behind `ANTHROPIC_BASE_URL`.
+The `ANTHROPIC_DEFAULT_*_MODEL_SUPPORTED_CAPABILITIES` variables apply to cloud-provider configurations, not to this gateway connection.
+See [gateway feature pass-through](https://code.claude.com/docs/en/llm-gateway-protocol.md#feature-pass-through) for effort forwarding and retry behavior.
+
+These raw custom model IDs default to a 200K context window in Claude Code.
+To use a larger supported window, set `CLAUDE_CODE_MAX_CONTEXT_TOKENS` before launching Claude Code to the verified input-token limit of your gateway deployment.
+For a deployment that supports at least one million input tokens on every selected model, use:
+
+```sh
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS=1000000
+```
+
+The variable is session-wide, so use the smallest verified input window among all models the session and its subagents can select.
+Do not infer an input limit from a model's combined input-and-output token allowance.
+The plugin leaves model IDs unchanged and does not raise the context limit automatically.
 
 ## Install And Use
 
@@ -52,6 +98,7 @@ claude --plugin-dir ./plugins/glm-agents
 
 ## Equivalence Tiers
 
+These tiers are repository task-routing preferences, not vendor claims of equal performance or cost.
 Pick an agent by tier when a task calls for a Claude model class.
 Tier 4 agents run only on explicit request.
 
