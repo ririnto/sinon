@@ -154,7 +154,6 @@ export const registerThreadTools = (server) => {
       }));
     })
   );
-
   server.registerTool(
     "codex_tail",
     {
@@ -197,7 +196,6 @@ export const registerThreadTools = (server) => {
       };
     })
   );
-
   server.registerTool(
     "codex_start",
     {
@@ -235,7 +233,6 @@ export const registerThreadTools = (server) => {
       return { threadId: thread.id, turn };
     })
   );
-
   server.registerTool(
     "codex_send",
     {
