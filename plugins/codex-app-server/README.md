@@ -87,7 +87,11 @@ The plugin adds no dedicated cleanup tools.
 - `.codex-plugin/plugin.json` declares Codex identity and the MCP configuration path.
 - `mcp.json` and `.mcp.json` register the Codex and Claude Code stdio server.
 - `package.json` declares the executable and its MCP SDK, WebSocket, and schema dependencies.
-- `server.mjs` implements the six tools and their shared instructions.
+- `server.mjs` creates the MCP server, retains shared instructions, registers the feature modules, and starts stdio transport.
+- `lib/connection.mjs` owns control-socket transport, JSON-RPC requests, and per-call connection cleanup.
+- `lib/thread-tools.mjs` registers thread inspection and steering tools, including turn completion handling.
+- `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
+- `lib/raw-call.mjs` registers raw app-server requests and the reset-credit refusal.
 - `tests/` verifies the stdio server against a disposable Unix-socket fixture.
 - The Sinon marketplace entry declares Claude Code identity and the package root.
 
