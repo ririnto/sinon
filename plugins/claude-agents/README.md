@@ -28,25 +28,32 @@ Claude Code reserves plugin names that start with `claude-`, so the Sinon Claude
 ## Provider Prerequisites
 
 The Codex session's model provider must serve `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`, and `claude-fable-5-1`.
-The default OpenAI provider does not serve Claude models, so configure a provider whose endpoint routes these IDs before selecting the agents.
+Codex providers call a Responses-compatible `POST /v1/responses` route, so a bare Anthropic Messages endpoint does not satisfy them.
+Point the provider at a gateway that exposes `/v1/responses` and translates it to the Claude Messages API, with streaming and tool use.
+The default OpenAI provider does not serve Claude models.
 The plugin provides agent definitions only and does not configure a provider or credentials.
-The provider must translate `model_reasoning_effort` to the Claude effort setting and honor each listed value.
+The gateway must translate `model_reasoning_effort` to the Claude effort setting and honor each listed value.
+
+Codex's bundled model catalog does not list these Claude IDs, so Codex uses fallback metadata for them.
+Supply a custom model catalog entry for each ID, with its context window and supported reasoning levels, through Codex's `model_catalog_json` setting.
 Test each agent through the configured provider before relying on its tier.
 
 ## Install And Use
 
-Add the Sinon marketplace and install the plugin in Codex:
+Add the Sinon marketplace and install the plugin in Codex to list and track the package:
 
 ```sh
 codex plugin marketplace add ririnto/sinon --ref main
 codex plugin add claude-agents@sinon
 ```
 
-Enable the agents from a checkout of this repository:
+Installing does not place the agent files where Codex loads them.
+Clone the repository and copy the definitions into an agent directory:
 
 ```sh
+git clone https://github.com/ririnto/sinon.git
 mkdir -p ~/.codex/agents
-cp plugins/claude-agents/agents/*.toml ~/.codex/agents/
+cp sinon/plugins/claude-agents/agents/*.toml ~/.codex/agents/
 ```
 
 Use `.codex/agents/` inside a project instead to scope the agents to that project.
