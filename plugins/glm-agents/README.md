@@ -49,9 +49,13 @@ For Z.ai's native endpoint, follow its [official Claude Code setup](https://docs
 ```sh
 export ANTHROPIC_BASE_URL='https://api.z.ai/api/anthropic'
 export ANTHROPIC_AUTH_TOKEN='<zai-api-key>'
+export API_TIMEOUT_MS='3000000'
 ```
 
 Replace the key placeholder with your Z.ai API key.
+`API_TIMEOUT_MS` is the value from Z.ai's setup and keeps long high and max effort runs from timing out client-side at Claude Code's ten-minute default.
+Accounts that previously held a GLM Coding Plan subscription, including expired ones, can currently reach `glm-5.3` only through Z.ai's OpenAI-compatible protocol, as the [GLM-5.3 documentation](https://docs.z.ai/guides/llm/glm-5.3) states.
+Those accounts cannot use the native endpoint and need a translation gateway or another eligible account.
 If using a custom gateway instead, replace the base URL and credential with the values issued by its operator.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
 Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.

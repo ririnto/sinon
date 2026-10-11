@@ -205,14 +205,22 @@ test("accepts an absent Claude manifest and rejects one when present", async () 
   ).rejects.toThrow("Claude plugin manifest for helper is not allowed");
 });
 
-test("requires a native manifest and rejects the root manifest shadow", async () => {
+test("omits catalog packages without a native manifest and rejects the root manifest shadow", async () => {
   const root = makeRoot();
   writePlugin(root, "helper");
+  writePlugin(root, "claude-only");
+  rmSync(path.join(root, "plugins/claude-only/.codex-plugin/plugin.json"));
+  await expect(
+    createCodexMarketplace(
+      catalog([localEntry("claude-only"), localEntry("helper")]),
+      root
+    )
+  ).resolves.toMatchObject({ plugins: [{ name: "helper" }] });
   const nativeManifest = path.join(
     root,
     "plugins/helper/.codex-plugin/plugin.json"
   );
-  rmSync(nativeManifest);
+  writeFileSync(nativeManifest, "not json\n");
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow("Cannot read native manifest for helper");
@@ -221,6 +229,36 @@ test("requires a native manifest and rejects the root manifest shadow", async ()
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow("Root plugin.json is not allowed for helper");
+});
+
+test("adds Codex-only packages that the catalog does not list", async () => {
+  const root = makeRoot();
+  writePlugin(root, "helper");
+  writePlugin(root, "codex-only");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).resolves.toMatchObject({
+    plugins: [
+      {
+        category: "Development",
+        name: "codex-only",
+        source: { path: "./plugins/codex-only", source: "local" }
+      },
+      { name: "helper" }
+    ]
+  });
+  writePlugin(root, "codex-only", { native: { name: "renamed" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(
+    "Native manifest name for codex-only does not match its directory"
+  );
+  writePlugin(root, "codex-only", { native: { license: "" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(
+    "Native manifest for codex-only license must be a non-empty string"
+  );
 });
 
 test("rejects local plugin paths that resolve through symlinks outside the repository", async () => {

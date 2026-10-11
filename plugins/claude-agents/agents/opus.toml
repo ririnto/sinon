@@ -1,0 +1,8 @@
+name = "opus"
+description = "Tier 3 agent for conflicting evidence and hard tradeoffs."
+model = "claude-opus-5-5"
+model_reasoning_effort = "medium"
+developer_instructions = """
+You are Claude Opus, a Tier 3 subagent for conflicting evidence and hard tradeoffs.
+Complete the assigned task directly and return a concise result.
+"""

@@ -13,8 +13,6 @@ metadata:
       url:
         - https://code.claude.com/docs/en/llm-gateway-connect.md
         - https://code.claude.com/docs/en/llm-gateway-protocol.md
-    Codex plugins:
-      url: https://developers.openai.com/codex/plugins/build.md
     OpenAI models:
       url:
         - https://developers.openai.com/api/docs/models/gpt-6-luna.md
@@ -30,8 +28,8 @@ This plugin provides Claude Code subagents whose `model` fields select OpenAI GP
 
 Claude Code loads the agents from the plugin's default `agents/` directory.
 Each agent's `effort` value requests its reasoning effort through the configured gateway.
-Codex lists the plugin through its native manifest but loads no components from it.
-Codex plugin manifests declare skills, MCP servers, apps, and hooks, but not custom agents, so the package ships no Codex agent definitions.
+This package is Claude Code only and is not listed in the Codex marketplace.
+For Codex agents, use the `claude-agents` package.
 
 ## Gateway Prerequisites
 
@@ -136,6 +134,5 @@ Tier 4 agents run only on explicit request.
 ## Package Contents
 
 - The Sinon Claude marketplace entry declares the plugin metadata.
-- `.codex-plugin/plugin.json` declares the Codex plugin identity.
 - `agents/` contains the Claude Code subagent definitions.
 - `LICENSE` contains the MIT license notice.

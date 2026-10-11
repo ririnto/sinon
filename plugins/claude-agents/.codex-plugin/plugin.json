@@ -1,0 +1,9 @@
+{
+  "name": "claude-agents",
+  "version": "2026.10.12.01",
+  "description": "Codex custom agent definitions backed by Anthropic Claude models.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT"
+}
