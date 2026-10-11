@@ -18,6 +18,18 @@
     },
     {
       "category": "Development",
+      "name": "codex-app-server",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex-app-server",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
       "name": "ddgs",
       "policy": {
         "authentication": "ON_INSTALL",
