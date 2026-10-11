@@ -12,6 +12,10 @@ metadata:
         - https://github.com/astral-sh/ruff/releases/tag/0.16.10
         - https://docs.astral.sh/ruff/configuration/
         - https://docs.astral.sh/ruff/rules/
+        - https://docs.astral.sh/ruff/rules/missing-type-function-argument/
+        - https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function/
+        - https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
+        - https://docs.astral.sh/ruff/rules/new-line-after-last-paragraph/
     pre-commit:
       version: 4.6.2
       url: https://pre-commit.com/#local-hooks
@@ -72,7 +76,15 @@ If the target already owns hooks (for example an existing `repos` entry), keep t
 The Ruff configuration extends native defaults with `B` for common bugs, `I` for imports, `UP` for supported syntax, and `ASYNC` for asynchronous code defects.
 Merge `extend-select` entries with the target's existing selections.
 Keep its `target-version` and `requires-python` constraints so syntax suggestions match the supported runtime.
-The profile enables no preview rules and adds no formatter-conflicting stylistic families.
+The profile adds `PTH` for pathlib replacements and explicit annotation and docstring rules.
+`ANN001` through `ANN003` require argument annotations, including arguments in private helpers.
+`ANN201`, `ANN204`, `ANN205`, and `ANN206` require public, special-method, static-method, and class-method return annotations.
+Private function returns remain optional unless a special, static, or class method rule applies.
+`ANN202` is not selected.
+`D100` through `D107` require public API docstrings.
+`D209` and `D213` put closing quotes and summaries on separate lines for already multiline docstrings.
+The profile enables no preview rules and avoids formatter-conflicting rules such as `D203`, `D206`, and `D212`.
+Its 120-column line length matches the Python EditorConfig section.
 
 ## Validation Commands
 
@@ -100,6 +112,10 @@ Add that stage to the target's pipeline stages when it does not exist.
 
 ## Known Limitations
 
+- Ruff does not require single-line docstrings to become multiline.
+  Review that requirement manually, including one-sentence docstrings.
+- Ruff argument annotation checks cannot be restricted to public functions.
+  They cover private helper arguments without requiring private return annotations.
 - A local run needs the uv executable.
   When it is missing, report the gap and run nothing in its place.
 - pre-commit hooks execute third-party and local programs at commit time.

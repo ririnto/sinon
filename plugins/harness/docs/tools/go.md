@@ -53,6 +53,16 @@ The configuration is a real curated v2 config, not a starter.
 When the target already runs golangci-lint, keep its existing `version`, linter set, and thresholds, and merge only missing Harness invariants.
 Do not delete target-specific exclusions to match this file.
 
+The source profile enables `errcheck` for ignored errors, including blank assignments and unchecked type assertions.
+`disable-default-exclusions: true` removes errcheck's built-in function exemptions.
+The empty exclusion presets also prevent golangci-lint's standard error-handling exclusions from hiding these diagnostics.
+Keep target-owned exclusions when merging.
+
+`godoclint` starts from `default: none` and enables five explicit documentation rules.
+They require package and exported-symbol documentation, one package comment, valid package comments, and identifier-led symbol comments.
+`containedctx` rejects context fields in structs.
+These checks enforce Go-specific contracts rather than multiline comment delimiters.
+
 ## Validation Commands
 
 Run inside the module root:
