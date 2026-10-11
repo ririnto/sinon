@@ -9,6 +9,11 @@ metadata:
       url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     Codex plugins:
       url: https://developers.openai.com/codex/plugins/build.md
+    OpenAI models:
+      url:
+        - https://developers.openai.com/api/docs/models/gpt-6-luna.md
+        - https://developers.openai.com/api/docs/models/gpt-6.1-sol.md
+        - https://developers.openai.com/api/docs/models/gpt-6-astra.md
 ---
 
 # GPT Agents
@@ -67,3 +72,4 @@ Tier 4 agents run only on explicit request.
 - The Sinon Claude marketplace entry declares the plugin metadata.
 - `.codex-plugin/plugin.json` declares the Codex plugin identity.
 - `agents/` contains the Claude Code subagent definitions.
+- `LICENSE` contains the MIT license notice.

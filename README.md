@@ -261,6 +261,7 @@ The repository checks reject stale catalogs and invalid local package mappings.
 ## License
 
 The repository root and plugins whose manifests declare `MIT` use the [MIT License](./LICENSE).
+The `glm-agents` and `gpt-agents` packages also include a local copy of that notice.
 
 The following plugins use their local canonical Apache-2.0 license:
 

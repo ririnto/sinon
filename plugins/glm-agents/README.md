@@ -9,6 +9,10 @@ metadata:
       url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     Codex plugins:
       url: https://developers.openai.com/codex/plugins/build.md
+    Z.ai models:
+      url:
+        - https://docs.z.ai/guides/llm/glm-5.3.md
+        - https://docs.z.ai/guides/llm/glm-5.3-flash.md
 ---
 
 # GLM Agents
@@ -65,3 +69,4 @@ Tier 4 agents run only on explicit request.
 - The Sinon Claude marketplace entry declares the plugin metadata.
 - `.codex-plugin/plugin.json` declares the Codex plugin identity.
 - `agents/` contains the Claude Code subagent definitions.
+- `LICENSE` contains the MIT license notice.
