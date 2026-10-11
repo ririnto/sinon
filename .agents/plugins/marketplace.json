@@ -54,6 +54,30 @@
     },
     {
       "category": "Development",
+      "name": "glm-agents",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/glm-agents",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
+      "name": "gpt-agents",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/gpt-agents",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
       "name": "harness",
       "policy": {
         "authentication": "ON_INSTALL",

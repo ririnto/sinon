@@ -1,0 +1,9 @@
+{
+  "name": "gpt-agents",
+  "version": "2026.10.12.01",
+  "description": "Claude Code subagent definitions backed by OpenAI GPT models.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT"
+}

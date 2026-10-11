@@ -76,6 +76,34 @@
         "name": "ririnto"
       },
       "category": "development",
+      "description": "Claude Code subagent definitions backed by Z.ai GLM models.",
+      "license": "MIT",
+      "name": "glm-agents",
+      "source": "./plugins/glm-agents",
+      "version": "2026.10.12.01",
+      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/glm-agents",
+      "keywords": ["claude-code", "subagents", "zai", "glm"],
+      "repository": "https://github.com/ririnto/sinon"
+    },
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
+      "description": "Claude Code subagent definitions backed by OpenAI GPT models.",
+      "license": "MIT",
+      "name": "gpt-agents",
+      "source": "./plugins/gpt-agents",
+      "version": "2026.10.12.01",
+      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/gpt-agents",
+      "keywords": ["claude-code", "subagents", "openai", "gpt"],
+      "repository": "https://github.com/ririnto/sinon"
+    },
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
       "description": "Shared implementation, review, and installation guidance for agent-driven engineering work across pnpm, Gradle, Maven, uv, Go, Rust, and shell projects.",
       "license": "Apache-2.0",
       "name": "harness",

@@ -94,6 +94,8 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [codegraph](./plugins/codegraph/README.md)
 - [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)
+- [glm-agents](./plugins/glm-agents/README.md)
+- [gpt-agents](./plugins/gpt-agents/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
