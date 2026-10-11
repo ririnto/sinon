@@ -125,6 +125,7 @@ export const registerThreadTools = (server) => {
         limit: z
           .number()
           .int()
+          .positive()
           .optional()
           .describe(
             "Maximum threads in the newest-first page; defaults to 30. The daemon validates its supported limit."
@@ -241,6 +242,7 @@ export const registerThreadTools = (server) => {
         "Use only under a direct human instruction or assigned contract authorizing steering of this thread. " +
         "Read it with codex_threads and codex_tail first; keep one writer per thread. " +
         "Do not start a turn on a thread whose last turn is in progress or that another host holds. " +
+        "The daemon enforces active-turn and writer guards during resume and turn start; refusals propagate without retries. " +
         "On an active-writer error, identify the holder through thread-writer-locks/THREAD_ID.lock under CODEX_HOME (default ~/.codex). " +
         "Let that host release it; never delete locks or force a second writer. " +
         "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +

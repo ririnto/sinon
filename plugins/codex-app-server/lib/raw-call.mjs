@@ -1,14 +1,10 @@
 import { z } from "zod";
 
 import { withClient } from "./connection.mjs";
+import { refusal } from "./policy.mjs";
 
 /**
- * Reserve reset-credit consumption for a separate direct human instruction.
- */
-const BLOCKED_METHODS = new Set(["account/rateLimitResetCredit/consume"]);
-
-/**
- * Register raw app-server access with reset-credit consumption refused before connecting.
+ * Register raw app-server access with reset-credit consumption and thread cleanup refused before connecting.
  */
 export const registerRawCall = (server) => {
   server.registerTool(
@@ -22,6 +18,8 @@ export const registerRawCall = (server) => {
         "On an active-writer error, let the holder of thread-writer-locks/THREAD_ID.lock under CODEX_HOME release it. " +
         "Never delete writer locks or force another writer. " +
         "This tool refuses account/rateLimitResetCredit/consume before connecting; consumption needs a separate direct human instruction outside this tool. " +
+        "It also refuses thread/archive, thread/unarchive, and thread/delete, which run through the native codex CLI. " +
+        "Read a method's params schema with codex_methods when it is available. " +
         "Only the Orchestrator reads usage with account/rateLimits/read; do not delegate usage or monitoring duties. " +
         "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +
         "Archive only after pending work ends. Delete only when the transcript is no longer needed.",
@@ -39,19 +37,16 @@ export const registerRawCall = (server) => {
           )
       }
     },
-    (args) =>
-      BLOCKED_METHODS.has(args.method)
+    (args) => {
+      const reason = refusal(args.method);
+      return reason
         ? {
-            content: [
-              {
-                text: `${args.method} requires a separate direct human instruction`,
-                type: "text"
-              }
-            ],
+            content: [{ text: reason, type: "text" }],
             isError: true
           }
         : withClient((client, { method, params }) =>
             client.request(method, params)
-          )(args)
+          )(args);
+    }
   );
 };

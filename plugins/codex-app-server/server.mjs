@@ -2,9 +2,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
+import { registerCatalogTools } from "./lib/catalog.mjs";
 import { registerMcpTool } from "./lib/mcp-tool.mjs";
 import { registerRawCall } from "./lib/raw-call.mjs";
+import { registerThreadAdminTools } from "./lib/thread-admin.mjs";
 import { registerThreadTools } from "./lib/thread-tools.mjs";
+import { registerTurnTools } from "./lib/turn-tools.mjs";
 
 /**
  * Expose the running Codex app-server as a stdio MCP server.
@@ -22,14 +25,16 @@ const server = new McpServer(
       "Server-initiated requests, including approvals, receive a refusal from this client.",
       "Do not use these tools to poll for status or replace native Codex delegation.",
       "Read a thread with codex_threads and codex_tail before steering it.",
+      "codex_steer and codex_interrupt act only on a thread whose last turn is in progress.",
       "Keep one writer per thread.",
       "Do not start a turn when its last turn is in progress or another host holds the thread.",
       "An active-writer error means another host holds the thread.",
       "Find that host through thread-writer-locks/THREAD_ID.lock under CODEX_HOME (default ~/.codex) and let it release the thread.",
       "Do not delete writer locks or force a second writer.",
-      "Use codex_start and codex_send only under a direct human instruction or an assigned contract authorizing that steering.",
+      "Use codex_start, codex_send, codex_steer, codex_interrupt, codex_fork, codex_rename, codex_goal, and codex_compact only under a direct human instruction or an assigned contract authorizing that steering.",
       "Apply the same authorization and writer rules to raw mutating requests through codex_call.",
-      "codex_call refuses account/rateLimitResetCredit/consume.",
+      "codex_call refuses account/rateLimitResetCredit/consume and thread archive, unarchive, and delete.",
+      "codex_methods lists the installed Codex's methods and params schemas when its schema generation succeeds.",
       "Reset-credit consumption requires a separate direct human instruction outside this tool.",
       "Only the Orchestrator reads usage with account/rateLimits/read.",
       "Do not delegate usage or monitoring duties.",
@@ -46,7 +51,10 @@ const server = new McpServer(
 );
 
 registerThreadTools(server);
+registerTurnTools(server);
+registerThreadAdminTools(server);
 registerMcpTool(server);
 registerRawCall(server);
+await registerCatalogTools(server);
 
 await server.connect(new StdioServerTransport());

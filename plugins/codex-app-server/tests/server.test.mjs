@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { once } from "node:events";
-import { mkdtemp, rm } from "node:fs/promises";
+import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
 import { test } from "node:test";
@@ -58,6 +58,7 @@ const fixture = async (context, handler, options = {}) => {
   });
   http.listen(socket);
   await once(http, "listening");
+  const codexBin = path.join(directory, "fake-codex.mjs");
   const transport = new StdioClientTransport({
     args: options.package
       ? [
@@ -74,11 +75,20 @@ const fixture = async (context, handler, options = {}) => {
     env: {
       ...process.env,
       CODEX_APP_SERVER_SOCKET: socket,
+      CODEX_BIN: options.catalog ? codexBin : path.join(directory, "absent"),
+      ...(options.methods ? { CODEX_APP_SERVER_METHODS: options.methods } : {}),
       NODE_USE_SYSTEM_CA: "1",
       npm_config_cache: path.join(directory, "npm-cache")
     },
     stderr: "pipe"
   });
+  if (options.catalog) {
+    await writeFile(
+      codexBin,
+      `#!${process.execPath}\nimport { writeFileSync } from "node:fs";\nwriteFileSync(process.argv[5] + "/ClientRequest.json", ${JSON.stringify(JSON.stringify(options.catalog))});\n`
+    );
+    await chmod(codexBin, 0o755);
+  }
   const client = new Client({ name: "fixture", version: "1" });
   context.after(async () => {
     await client.close();
@@ -105,14 +115,14 @@ const call = async (client, name, args = {}) => {
   };
 };
 
-test("lists six self-describing tools and all sources without repairing metadata", async (t) => {
+test("lists thirteen self-describing tools and all sources without repairing metadata", async (t) => {
   const { client, requests } = await fixture(t, ({ reply }) => {
     reply({
       data: [{ id: "fixture-thread", preview: "Fixture", source: "exec" }]
     });
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 6);
+  assert.equal(tools.length, 13);
   for (const tool of tools) {
     assert.ok(tool.description);
     for (const field of Object.values(tool.inputSchema.properties)) {
@@ -151,7 +161,11 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/connection.mjs",
     "lib/thread-tools.mjs",
     "lib/mcp-tool.mjs",
-    "lib/raw-call.mjs"
+    "lib/raw-call.mjs",
+    "lib/turn-tools.mjs",
+    "lib/thread-admin.mjs",
+    "lib/catalog.mjs",
+    "lib/policy.mjs"
   ]) {
     assert.ok(
       packed.files.some((entry) => entry.path === file),
@@ -179,6 +193,13 @@ test("packed executable includes and registers every feature module", async (t) 
       "codex_tail",
       "codex_start",
       "codex_send",
+      "codex_steer",
+      "codex_interrupt",
+      "codex_loaded",
+      "codex_fork",
+      "codex_rename",
+      "codex_goal",
+      "codex_compact",
       "codex_mcp_tool",
       "codex_call"
     ]
@@ -238,14 +259,15 @@ test("starts a new thread's first turn directly, while existing threads resume",
   );
 });
 
-test("rejects non-positive trailing counts before opening a daemon connection", async (t) => {
+test("rejects non-positive page and trailing counts before opening a daemon connection", async (t) => {
   const { client, requests } = await fixture(t, ({ reply }) => {
     reply({ thread: { turns: [{ id: "old" }, { id: "new" }] } });
   });
   const invalid = await Promise.all(
-    [0, -1].map((turns) =>
-      call(client, "codex_tail", { thread_id: "fixture-thread", turns })
-    )
+    [0, -1].flatMap((turns) => [
+      call(client, "codex_tail", { thread_id: "fixture-thread", turns }),
+      call(client, "codex_threads", { limit: turns })
+    ])
   );
   for (const result of invalid) {
     assert.equal(result.error, true);
@@ -375,4 +397,335 @@ test("closes rejected initialization connections and keeps reset-credit refusal 
   }
   await delay(50);
   assert.equal(connections.size, 0);
+});
+
+test("steers and interrupts only an in-progress last turn with its ID filled in", async (t) => {
+  let status = "inProgress";
+  const { client, requests } = await fixture(t, ({ message, reply }) => {
+    if (message.method === "thread/read") {
+      reply({
+        thread: {
+          turns: [
+            { id: "old", status: "completed" },
+            { id: "live", status }
+          ]
+        }
+      });
+    } else if (message.method === "turn/steer") {
+      reply({ turnId: "live" });
+    } else {
+      reply({});
+    }
+  });
+  const steered = await call(client, "codex_steer", {
+    text: "Authorized steer",
+    thread_id: "fixture-thread"
+  });
+  assert.equal(steered.value.turnId, "live");
+  assert.deepEqual(requests.at(-1).params, {
+    expectedTurnId: "live",
+    input: [{ text: "Authorized steer", type: "text" }],
+    threadId: "fixture-thread"
+  });
+  await call(client, "codex_interrupt", { thread_id: "fixture-thread" });
+  assert.deepEqual(requests.at(-1).params, {
+    threadId: "fixture-thread",
+    turnId: "live"
+  });
+  status = "completed";
+  const before = requests.length;
+  const refused = await Promise.all([
+    call(client, "codex_steer", { text: "Late", thread_id: "fixture-thread" }),
+    call(client, "codex_interrupt", { thread_id: "fixture-thread" })
+  ]);
+  for (const result of refused) {
+    assert.equal(result.error, true);
+    assert.match(result.text, /not inProgress/u);
+  }
+  assert.deepEqual(
+    requests
+      .slice(before)
+      .map((request) => request.method)
+      .toSorted(),
+    ["initialize", "initialize", "thread/read", "thread/read"]
+  );
+});
+
+test("sends thin thread requests for fork, rename, goal, loaded list, and compaction", async (t) => {
+  const { client, requests } = await fixture(t, ({ message, reply }) => {
+    reply(message.method === "thread/fork" ? { thread: { id: "forked" } } : {});
+  });
+  const forked = await call(client, "codex_fork", {
+    last_turn_id: "turn-1",
+    name: "Fork",
+    thread_id: "fixture-thread"
+  });
+  assert.equal(forked.value.threadId, "forked");
+  const methods = () =>
+    requests.map((request) => request.method).filter((m) => m !== "initialize");
+  assert.deepEqual(methods(), ["thread/fork", "thread/name/set"]);
+  assert.deepEqual(requests.find((r) => r.method === "thread/fork").params, {
+    excludeTurns: true,
+    lastTurnId: "turn-1",
+    threadId: "fixture-thread"
+  });
+  await call(client, "codex_rename", {
+    name: "New",
+    thread_id: "fixture-thread"
+  });
+  await call(client, "codex_goal", {
+    action: "get",
+    thread_id: "fixture-thread"
+  });
+  await call(client, "codex_goal", {
+    action: "set",
+    objective: "Goal",
+    status: "paused",
+    thread_id: "fixture-thread",
+    token_budget: 100
+  });
+  assert.deepEqual(requests.at(-1).params, {
+    objective: "Goal",
+    status: "paused",
+    threadId: "fixture-thread",
+    tokenBudget: 100
+  });
+  await call(client, "codex_goal", {
+    action: "clear",
+    thread_id: "fixture-thread"
+  });
+  await call(client, "codex_loaded", { limit: 5 });
+  await call(client, "codex_compact", { thread_id: "fixture-thread" });
+  assert.deepEqual(methods().slice(2), [
+    "thread/name/set",
+    "thread/goal/get",
+    "thread/goal/set",
+    "thread/goal/clear",
+    "thread/loaded/list",
+    "thread/compact/start"
+  ]);
+});
+
+const CATALOG = {
+  definitions: { Mode: { enum: ["a", "b"] } },
+  oneOf: [
+    {
+      properties: {
+        method: { enum: ["fs/readFile"] },
+        params: {
+          properties: { path: { type: "string" } },
+          required: ["path"],
+          type: "object"
+        }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["config/write"] },
+        params: {
+          properties: { mode: { $ref: "#/definitions/Mode" } },
+          required: ["mode"],
+          type: "object"
+        }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["thread/delete"] },
+        params: { type: "object" }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["account/rateLimitResetCredit/consume"] }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["thread/read"] },
+        params: { type: "object" }
+      }
+    }
+  ]
+};
+
+test("generates allowlisted tools from the installed schema and refuses guarded methods", async (t) => {
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: CATALOG,
+      methods: "fs,config,thread,account"
+    }
+  );
+  const { tools } = await client.listTools();
+  const names = tools.map((tool) => tool.name);
+  assert.ok(names.includes("codex_methods"));
+  assert.ok(names.includes("codex_fs_readFile"));
+  assert.ok(names.includes("codex_config_write"));
+  for (const refused of [
+    "codex_thread_delete",
+    "codex_account_rateLimitResetCredit_consume"
+  ]) {
+    assert.ok(!names.includes(refused), refused);
+  }
+  assert.equal(names.filter((name) => name === "codex_thread_read").length, 0);
+  assert.equal(
+    tools.find((tool) => tool.name === "codex_fs_readFile").annotations
+      .readOnlyHint,
+    true
+  );
+  assert.equal(
+    tools.find((tool) => tool.name === "codex_config_write").annotations
+      .readOnlyHint,
+    false
+  );
+  const read = await call(client, "codex_fs_readFile", { path: "/x" });
+  assert.deepEqual(read.value, { ok: true });
+  assert.deepEqual(requests.at(-1).params, { path: "/x" });
+  const invalid = await call(client, "codex_config_write", { mode: "c" });
+  assert.equal(invalid.error, true);
+  const listed = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.equal(listed.value[0].class, "mutating");
+  assert.deepEqual(listed.value[0].params.properties.mode.enum, ["a", "b"]);
+  const all = await call(client, "codex_methods");
+  assert.equal(
+    all.value.find((entry) => entry.method === "thread/read").tool,
+    "curated"
+  );
+  const cleanup = await call(client, "codex_call", { method: "thread/delete" });
+  assert.equal(cleanup.error, true);
+  assert.match(cleanup.text, /native codex archive/u);
+  assert.equal(
+    requests.filter((request) => request.method === "thread/delete").length,
+    0
+  );
+});
+
+test("keeps generated tools opt-in while discovery follows the installed catalog", async (t) => {
+  const { client } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: CATALOG
+  });
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 14);
+  assert.ok(tools.some((tool) => tool.name === "codex_methods"));
+  assert.ok(!tools.some((tool) => tool.name === "codex_fs_readFile"));
+  const listed = await call(client, "codex_methods", { prefix: "fs/" });
+  assert.deepEqual(
+    listed.value.map((entry) => entry.method),
+    ["fs/readFile"]
+  );
+  assert.equal(listed.value[0].tool, "codex_call");
+});
+
+test("discovers definition-free catalogs with namespace-boundary filtering", async (t) => {
+  const { client } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: {
+      oneOf: ["fs/readFile", "fsSection/readFile"].map((method) => ({
+        properties: {
+          method: { enum: [method] },
+          params: { type: "object" }
+        }
+      }))
+    }
+  });
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 14);
+  const results = await Promise.all(
+    ["fs", "fs/"].map((prefix) => call(client, "codex_methods", { prefix }))
+  );
+  for (const result of results) {
+    assert.deepEqual(
+      result.value.map((entry) => entry.method),
+      ["fs/readFile"]
+    );
+  }
+});
+
+test("retains curated tools when a selected parameter schema cannot become an MCP tool", async (t) => {
+  await Promise.all(
+    [{ $ref: "#/definitions/Missing" }, { type: "string" }].map(
+      async (params) => {
+        const catalog = {
+          definitions: {},
+          oneOf: [{ properties: { method: { enum: ["future/read"] }, params } }]
+        };
+        const { client } = await fixture(t, ({ reply }) => reply({}), {
+          catalog,
+          methods: "future"
+        });
+        const { tools } = await client.listTools();
+        assert.equal(tools.length, 13);
+        assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
+      }
+    )
+  );
+});
+
+test("retains curated tools when generated names collide with reserved tools", async (t) => {
+  await Promise.all(
+    ["compact", "methods", "mcp/tool"].map(async (method) => {
+      const { client } = await fixture(t, ({ reply }) => reply({}), {
+        catalog: {
+          definitions: {},
+          oneOf: [{ properties: { method: { enum: [method] } } }]
+        },
+        methods: method
+      });
+      const { tools } = await client.listTools();
+      assert.equal(tools.length, 13);
+      assert.ok(tools.some((tool) => tool.name === "codex_compact"));
+      assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+    })
+  );
+});
+
+test("propagates daemon active-turn and writer refusals without retrying", async (t) => {
+  await Promise.all(
+    ["thread/resume", "turn/start"].map(async (method) => {
+      const { client, requests } = await fixture(
+        t,
+        ({ message, reply, ws }) => {
+          if (message.method === method) {
+            ws.send(
+              JSON.stringify({
+                error: {
+                  code: -32_600,
+                  message: "Thread has an in-progress turn or active writer"
+                },
+                id: message.id
+              })
+            );
+          } else {
+            reply({});
+          }
+        }
+      );
+      const result = await call(client, "codex_send", {
+        text: "next",
+        thread_id: "fixture-thread"
+      });
+      assert.equal(result.error, true);
+      assert.match(result.text, /in-progress turn or active writer/u);
+      assert.deepEqual(
+        requests
+          .filter((request) => request.method !== "initialize")
+          .map((request) => request.method),
+        method === "thread/resume"
+          ? ["thread/resume"]
+          : ["thread/resume", "turn/start"]
+      );
+    })
+  );
+});
+
+test("serves only curated tools when the schema catalog is unavailable", async (t) => {
+  const { client } = await fixture(t, ({ reply }) => reply({}), {
+    methods: "fs"
+  });
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 13);
+  assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
 });
