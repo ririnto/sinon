@@ -12,3 +12,8 @@ Server-initiated approvals remain refused by `lib/connection.mjs`.
 
 Extend the existing disposable-socket tests for schema conversion, filtering, fallback, and guarded behavior.
 Do not test mutations against the live daemon.
+
+Keep active-thread sends on the process-local queue unless supported steering is explicitly selected.
+Recheck idle state before queued delivery and preserve native writer refusals without retries.
+Keep delivery receipts bounded and close queue connections on cancellation, timeout, or transport closure.
+Never interpret refused server requests as completion notifications.

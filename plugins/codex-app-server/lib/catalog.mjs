@@ -124,7 +124,8 @@ export const registerCatalogTools = async (server) => {
       "codex_compact",
       "codex_mcp_tool",
       "codex_call",
-      "codex_methods"
+      "codex_methods",
+      "codex_queue"
     ]);
     for (const entry of generated) {
       const name = toolName(entry.method);
