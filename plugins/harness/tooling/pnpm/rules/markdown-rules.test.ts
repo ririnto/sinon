@@ -204,6 +204,20 @@ describe("docs/sentence-per-line", () => {
       found: []
     });
   });
+  test("checks authored GitHub alerts while preserving exact blockquotes", () => {
+    const input = "> [!WARNING]\n>\n> Restart now. Verify status.\n";
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: [{ detail: multiple, lineNumber: 3, range: [14, 1] }]
+    });
+  });
+  test("checks semicolon joins after a literal quotation", () => {
+    const input = 'The value is "bad"; therefore retry.\n';
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: [{ detail: semicolon, lineNumber: 1, range: [19, 1] }]
+    });
+  });
   test.each([
     [
       "a capitalized tail",
@@ -267,6 +281,16 @@ describe("docs/sentence-per-line", () => {
       "a sentence ending after inline code",
       "Run `tool`. Next sentence follows.\n",
       11
+    ],
+    [
+      "a sentence ending with a single-letter value",
+      "Use option A. Restart the service.\n",
+      13
+    ],
+    [
+      "a quotation with outer punctuation",
+      'Choose "safe". Then continue.\n',
+      14
     ]
   ])("reports packed %s without rewriting", (_name, input, column) => {
     expect(violations(sentencePerLine, input)).toEqual({
@@ -312,6 +336,18 @@ describe("docs/sentence-per-line", () => {
     ],
     ["multiple literal labels", 'Use "First." and "Second." as labels.\n'],
     ["adjacent literal labels", 'Use "First." "Second." as labels.\n'],
+    [
+      "a straight quoted contraction",
+      "The source says 'Don't stop. Keep going.'\n"
+    ],
+    [
+      "a curly quoted contraction",
+      "The source says ‘Don’t stop. Keep going.’\n"
+    ],
+    [
+      "escaped quotation marks",
+      'The source says "First \\"quoted\\" sentence. Second sentence."\n'
+    ],
     ["contractions", "Don't change the writer's words.\n"],
     ["personal initials", "Ask J. Smith about the profile.\n"],
     [
