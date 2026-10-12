@@ -187,7 +187,13 @@ export const registerCatalogTools = async (server) => {
           class: classification,
           kind,
           method: entry.method,
-          ...(method && entry.params ? { params: entry.params } : {}),
+          ...(method && entry.params
+            ? {
+                params: z.toJSONSchema(z.fromJSONSchema(entry.params), {
+                  io: "input"
+                })
+              }
+            : {}),
           tool
         };
       });

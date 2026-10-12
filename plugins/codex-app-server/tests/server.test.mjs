@@ -626,7 +626,7 @@ test("generates allowlisted tools from the installed schema and refuses guarded 
     method: "config/write"
   });
   assert.equal(listed.value[0].class, "mutating");
-  assert.deepEqual(listed.value[0].params.$defs.Mode.enum, ["a", "b"]);
+  assert.deepEqual(listed.value[0].params.properties.mode.enum, ["a", "b"]);
   const all = await call(client, "codex_methods");
   assert.equal(
     all.value.find((entry) => entry.method === "thread/read").tool,
@@ -837,9 +837,51 @@ test("validates native raw params and protocol direction before opening a socket
 test("shares the process-local schema cache and refreshes discovery and validation on version changes", async (t) => {
   const { client, requests, schemaFile, versionFile, generatedFile } =
     await fixture(t, ({ reply }) => reply({ ok: true }), {
-      catalog: CATALOG,
+      catalog: {
+        ...CATALOG,
+        definitions: {
+          ...CATALOG.definitions,
+          Unrelated: { description: "unrelated".repeat(10_000), type: "string" }
+        },
+        oneOf: [
+          ...CATALOG.oneOf,
+          {
+            properties: {
+              method: { enum: ["model/list"] },
+              params: {
+                properties: {
+                  cursor: { type: "string" },
+                  limit: { minimum: 1, type: "integer" }
+                },
+                type: "object"
+              }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      },
       methods: "config"
     });
+  const beforeDiscovery = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.deepEqual(beforeDiscovery.value[0].params.properties.mode.enum, [
+    "a",
+    "b"
+  ]);
+  assert.ok(JSON.stringify(beforeDiscovery.value[0].params).length < 1000);
+  assert.equal(beforeDiscovery.value[0].params.$defs, undefined);
+  await call(client, "codex_call", {
+    method: "model/list",
+    params: { cursor: "opaque-native-cursor", limit: 7 }
+  });
+  assert.deepEqual(requests.at(-1).params, {
+    cursor: "opaque-native-cursor",
+    limit: 7
+  });
+  await call(client, "codex_call", { method: "model/list", params: {} });
+  assert.deepEqual(requests.at(-1).params, {});
   await Promise.all([
     call(client, "codex_methods"),
     call(client, "codex_call", {
@@ -871,6 +913,16 @@ test("shares the process-local schema cache and refreshes discovery and validati
   });
   assert.equal(discovered.value[0].tool, "codex_call");
   assert.deepEqual(discovered.value[0].params.required, ["count"]);
+  const refreshedDiscovery = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.deepEqual(refreshedDiscovery.value[0].params.properties.mode.enum, [
+    "a",
+    "b",
+    "future"
+  ]);
+  assert.ok(JSON.stringify(refreshedDiscovery.value[0].params).length < 1000);
+  assert.equal(refreshedDiscovery.value[0].params.$defs, undefined);
   const updated = await call(client, "codex_call", {
     method: "config/write",
     params: { mode: "future" }
