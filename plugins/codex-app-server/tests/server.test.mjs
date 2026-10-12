@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { once } from "node:events";
-import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
 import { test } from "node:test";
@@ -28,6 +28,53 @@ const SOURCE_KINDS = [
   "subAgentOther",
   "unknown"
 ];
+
+const CATALOG = {
+  definitions: { Mode: { enum: ["a", "b"] } },
+  oneOf: [
+    {
+      properties: {
+        method: { enum: ["fs/readFile"] },
+        params: {
+          properties: { path: { type: "string" } },
+          required: ["path"],
+          type: "object"
+        }
+      },
+      required: ["method", "params"],
+      type: "object"
+    },
+    {
+      properties: {
+        method: { enum: ["config/write"] },
+        params: {
+          properties: { mode: { $ref: "#/definitions/Mode" } },
+          required: ["mode"],
+          type: "object"
+        }
+      },
+      required: ["method", "params"],
+      type: "object"
+    },
+    {
+      properties: {
+        method: { enum: ["thread/delete"] },
+        params: { type: "object" }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["account/rateLimitResetCredit/consume"] }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["thread/read"] },
+        params: { type: "object" }
+      }
+    }
+  ]
+};
 
 /**
  * Run the real stdio MCP server against a disposable Unix WebSocket fixture.
@@ -84,10 +131,34 @@ const fixture = async (context, handler, options = {}) => {
     },
     stderr: "pipe"
   });
+  const versionFile = path.join(directory, "version");
+  const schemaFile = path.join(directory, "catalog.json");
+  const generatedFile = path.join(directory, "generations");
   if (options.catalog) {
+    await writeFile(versionFile, "fixture-cli 1");
+    await writeFile(
+      schemaFile,
+      JSON.stringify({
+        ClientNotification: options.clientNotifications ?? { oneOf: [] },
+        ClientRequest: options.catalog,
+        ServerNotification: options.serverNotifications ?? { oneOf: [] },
+        ServerRequest: options.serverRequests ?? { oneOf: [] }
+      })
+    );
     await writeFile(
       codexBin,
-      `#!${process.execPath}\nimport { writeFileSync } from "node:fs";\nwriteFileSync(process.argv[5] + "/ClientRequest.json", ${JSON.stringify(JSON.stringify(options.catalog))});\n`
+      `#!${process.execPath}
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
+if (process.argv[2] === "--version") {
+  process.stdout.write(readFileSync(${JSON.stringify(versionFile)}, "utf-8"));
+} else {
+  appendFileSync(${JSON.stringify(generatedFile)}, "generated\\n");
+  const schemas = JSON.parse(readFileSync(${JSON.stringify(schemaFile)}, "utf-8"));
+  for (const [name, schema] of Object.entries(schemas)) {
+    writeFileSync(process.argv[5] + "/" + name + ".json", JSON.stringify(schema));
+  }
+}
+`
     );
     await chmod(codexBin, 0o755);
   }
@@ -102,7 +173,15 @@ const fixture = async (context, handler, options = {}) => {
     await rm(directory, { force: true, recursive: true });
   });
   await client.connect(transport);
-  return { client, connections, requests, socket };
+  return {
+    client,
+    connections,
+    generatedFile,
+    requests,
+    schemaFile,
+    socket,
+    versionFile
+  };
 };
 
 /**
@@ -169,7 +248,8 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/catalog.mjs",
     "lib/policy.mjs",
     "lib/queue.mjs",
-    "lib/turn.mjs"
+    "lib/turn.mjs",
+    "lib/schema.mjs"
   ]) {
     assert.ok(
       packed.files.some((entry) => entry.path === file),
@@ -187,7 +267,7 @@ test("packed executable includes and registers every feature module", async (t) 
         reply({ fixture: "raw" });
       }
     },
-    { package: path.join(directory, packed.filename) }
+    { catalog: CATALOG, package: path.join(directory, packed.filename) }
   );
   const { tools } = await client.listTools();
   assert.deepEqual(
@@ -206,7 +286,8 @@ test("packed executable includes and registers every feature module", async (t) 
       "codex_compact",
       "codex_mcp_tool",
       "codex_queue",
-      "codex_call"
+      "codex_call",
+      "codex_methods"
     ]
   );
   const proxied = await call(client, "codex_mcp_tool", {
@@ -520,49 +601,6 @@ test("sends thin thread requests for fork, rename, goal, loaded list, and compac
     "thread/compact/start"
   ]);
 });
-
-const CATALOG = {
-  definitions: { Mode: { enum: ["a", "b"] } },
-  oneOf: [
-    {
-      properties: {
-        method: { enum: ["fs/readFile"] },
-        params: {
-          properties: { path: { type: "string" } },
-          required: ["path"],
-          type: "object"
-        }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["config/write"] },
-        params: {
-          properties: { mode: { $ref: "#/definitions/Mode" } },
-          required: ["mode"],
-          type: "object"
-        }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["thread/delete"] },
-        params: { type: "object" }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["account/rateLimitResetCredit/consume"] }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["thread/read"] },
-        params: { type: "object" }
-      }
-    }
-  ]
-};
 
 test("generates allowlisted tools from the installed schema and refuses guarded methods", async (t) => {
   const { client, requests } = await fixture(
@@ -1122,4 +1160,193 @@ test("queue deadline bounds stalled initialization before delivery", async (t) =
     requests.map((request) => request.method),
     ["initialize"]
   );
+});
+
+test("validates native raw params and protocol direction before opening a socket", async (t) => {
+  const serverRequests = {
+    oneOf: [
+      {
+        properties: {
+          method: { enum: ["item/commandExecution/requestApproval"] }
+        }
+      }
+    ]
+  };
+  const serverNotifications = {
+    oneOf: [
+      {
+        properties: {
+          method: { enum: ["thread/status/changed"] },
+          params: { type: "object" }
+        }
+      }
+    ]
+  };
+  const clientNotifications = {
+    oneOf: [{ properties: { method: { enum: ["initialized"] } } }]
+  };
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: CATALOG,
+      clientNotifications,
+      serverNotifications,
+      serverRequests
+    }
+  );
+  await Promise.all(
+    [
+      { method: "config/write", params: { mode: "new-invalid" } },
+      { method: "fs/readFile" },
+      { method: "fs/readFile", params: { path: 2 } },
+      { method: "initialized" },
+      { method: "item/commandExecution/requestApproval" },
+      { method: "thread/status/changed" },
+      { method: "absent/method" }
+    ].map(async (args) => {
+      const result = await call(client, "codex_call", args);
+      assert.equal(result.error, true, JSON.stringify(args));
+      assert.equal(requests.length, 0);
+    })
+  );
+  await Promise.all(
+    [
+      ["serverRequest", "item/commandExecution/requestApproval"],
+      ["serverNotification", "thread/status/changed"],
+      ["clientNotification", "initialized"]
+    ].map(async ([kind, method]) => {
+      const result = await call(client, "codex_methods", { kind, method });
+      assert.equal(result.value[0].method, method);
+      assert.equal(result.value[0].tool, "discovery_only");
+    })
+  );
+  const valid = await call(client, "codex_call", {
+    method: "config/write",
+    params: { extra: true, mode: "b" }
+  });
+  assert.deepEqual(valid.value, { ok: true });
+  assert.deepEqual(requests.at(-1).params, { extra: true, mode: "b" });
+});
+
+test("shares the process-local schema cache and refreshes discovery and validation on version changes", async (t) => {
+  const { client, requests, schemaFile, versionFile, generatedFile } =
+    await fixture(t, ({ reply }) => reply({ ok: true }), {
+      catalog: {
+        ...CATALOG,
+        definitions: {
+          ...CATALOG.definitions,
+          Unrelated: { description: "unrelated".repeat(10_000), type: "string" }
+        },
+        oneOf: [
+          ...CATALOG.oneOf,
+          {
+            properties: {
+              method: { enum: ["model/list"] },
+              params: {
+                properties: {
+                  cursor: { type: "string" },
+                  limit: { minimum: 1, type: "integer" }
+                },
+                type: "object"
+              }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      },
+      methods: "config"
+    });
+  const beforeDiscovery = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.deepEqual(beforeDiscovery.value[0].params.properties.mode.enum, [
+    "a",
+    "b"
+  ]);
+  assert.ok(JSON.stringify(beforeDiscovery.value[0].params).length < 1000);
+  assert.equal(beforeDiscovery.value[0].params.$defs, undefined);
+  await call(client, "codex_call", {
+    method: "model/list",
+    params: { cursor: "opaque-native-cursor", limit: 7 }
+  });
+  assert.deepEqual(requests.at(-1).params, {
+    cursor: "opaque-native-cursor",
+    limit: 7
+  });
+  await call(client, "codex_call", { method: "model/list", params: {} });
+  assert.deepEqual(requests.at(-1).params, {});
+  await Promise.all([
+    call(client, "codex_methods"),
+    call(client, "codex_call", {
+      method: "config/write",
+      params: { mode: "a" }
+    })
+  ]);
+  const beforeGeneration = await readFile(generatedFile, "utf-8");
+  assert.equal(beforeGeneration.trim().split("\n").length, 1);
+  const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
+  schemas.ClientRequest.definitions.Mode.enum.push("future");
+  schemas.ClientRequest.oneOf.push({
+    properties: {
+      method: { enum: ["future/new"] },
+      params: {
+        additionalProperties: false,
+        properties: { count: { minimum: 1, type: "integer" } },
+        required: ["count"],
+        type: "object"
+      }
+    },
+    required: ["method", "params"],
+    type: "object"
+  });
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  await writeFile(versionFile, "fixture-cli 2");
+  const discovered = await call(client, "codex_methods", {
+    method: "future/new"
+  });
+  assert.equal(discovered.value[0].tool, "codex_call");
+  assert.deepEqual(discovered.value[0].params.required, ["count"]);
+  const refreshedDiscovery = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.deepEqual(refreshedDiscovery.value[0].params.properties.mode.enum, [
+    "a",
+    "b",
+    "future"
+  ]);
+  assert.ok(JSON.stringify(refreshedDiscovery.value[0].params).length < 1000);
+  assert.equal(refreshedDiscovery.value[0].params.$defs, undefined);
+  const updated = await call(client, "codex_call", {
+    method: "config/write",
+    params: { mode: "future" }
+  });
+  assert.equal(updated.error, false);
+  const before = requests.length;
+  const invalid = await call(client, "codex_call", {
+    method: "future/new",
+    params: { count: 0, extra: true }
+  });
+  assert.equal(invalid.error, true);
+  assert.equal(requests.length, before);
+  const future = await call(client, "codex_call", {
+    method: "future/new",
+    params: { count: 1 }
+  });
+  assert.equal(future.error, false);
+  const afterGeneration = await readFile(generatedFile, "utf-8");
+  assert.equal(afterGeneration.trim().split("\n").length, 2);
+  const { tools } = await client.listTools();
+  assert.ok(!tools.some((tool) => tool.name === "codex_future_new"));
+});
+
+test("refuses raw calls offline when native validation is unavailable", async (t) => {
+  const { client, requests } = await fixture(t, ({ reply }) => reply({}));
+  const result = await call(client, "codex_call", {
+    method: "thread/read",
+    params: { threadId: "fixture" }
+  });
+  assert.equal(result.error, true);
+  assert.equal(requests.length, 0);
 });

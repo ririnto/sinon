@@ -1,9 +1,3 @@
-import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { promisify } from "node:util";
-
 import { z } from "zod";
 
 import { withClient } from "./connection.mjs";
@@ -13,6 +7,7 @@ import {
   NATIVE_CLI_METHODS,
   USAGE_METHODS
 } from "./policy.mjs";
+import { loadProtocol, validateRequest } from "./schema.mjs";
 
 // Unknown methods stay mutating until their read-only behavior is reviewed.
 const READ_ONLY_METHODS = new Set([
@@ -27,44 +22,14 @@ const READ_ONLY_METHODS = new Set([
 ]);
 
 /**
- * Generate the installed Codex's own ClientRequest schema into a temporary directory and return its methods.
+ * Return client request methods from the shared installed-version protocol cache.
  */
 export const loadCatalog = async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "sinon-codex-schema-"));
-  try {
-    await promisify(execFile)(
-      process.env.CODEX_BIN || "codex",
-      ["app-server", "generate-json-schema", "--out", directory],
-      { timeout: 30_000 }
-    );
-    const schema = JSON.parse(
-      await readFile(path.join(directory, "ClientRequest.json"), "utf-8")
-    );
-    const defs = JSON.parse(
-      JSON.stringify(schema.definitions ?? {}).replaceAll(
-        "#/definitions/",
-        "#/$defs/"
-      )
-    );
-    return schema.oneOf.map((entry) => {
-      const [method] = entry.properties.method.enum;
-      const params = entry.properties.params
-        ? JSON.parse(
-            JSON.stringify(entry.properties.params).replaceAll(
-              "#/definitions/",
-              "#/$defs/"
-            )
-          )
-        : null;
-      return {
-        method,
-        params: params && { ...params, $defs: defs },
-        readOnly: READ_ONLY_METHODS.has(method)
-      };
-    });
-  } finally {
-    await rm(directory, { force: true, recursive: true });
-  }
+  const { protocols } = await loadProtocol();
+  return protocols.clientRequest.map((entry) => ({
+    ...entry,
+    readOnly: READ_ONLY_METHODS.has(entry.method)
+  }));
 };
 
 /**
@@ -152,11 +117,23 @@ export const registerCatalogTools = async (server) => {
     {
       annotations: { openWorldHint: false, readOnlyHint: true },
       description:
-        "List app-server methods from the installed Codex's own schema, with their read-only or mutating class and the tool that serves each. " +
+        "List requests and notifications in both protocol directions from the installed Codex native schema. " +
+        "Discovery refreshes when codex --version changes; notifications and server requests are discovery-only. " +
         "With a method name, also return its params JSON schema for use with codex_call. " +
         "Methods refused here are reset-credit consumption and thread archive, unarchive, and delete, which belong to the native codex CLI. " +
         "Set CODEX_APP_SERVER_METHODS to a comma-separated list of methods or prefixes, such as fs,config, to expose them as generated tools.",
       inputSchema: {
+        kind: z
+          .enum([
+            "clientRequest",
+            "clientNotification",
+            "serverRequest",
+            "serverNotification"
+          ])
+          .optional()
+          .describe(
+            "Protocol direction to inspect; defaults to clientRequest. Other directions are discovery-only."
+          ),
         method: z
           .string()
           .optional()
@@ -171,28 +148,53 @@ export const registerCatalogTools = async (server) => {
           )
       }
     },
-    ({ method, prefix }) => {
+    async ({ kind = "clientRequest", method, prefix }) => {
+      let current;
+      try {
+        const loaded = await loadProtocol();
+        current = loaded.protocols[kind];
+      } catch (error) {
+        return {
+          content: [{ text: error.message, type: "text" }],
+          isError: true
+        };
+      }
       const found = method
-        ? catalog.filter((entry) => entry.method === method)
-        : catalog.filter(
+        ? current.filter((entry) => entry.method === method)
+        : current.filter(
             (entry) =>
               !prefix || allowed(entry.method, [prefix.replace(/\/$/u, "")])
           );
       const value = found.map((entry) => {
         let tool = "codex_call";
-        if (BLOCKED_METHODS.has(entry.method)) {
+        if (kind !== "clientRequest") {
+          tool = "discovery_only";
+        } else if (BLOCKED_METHODS.has(entry.method)) {
           tool = "refused";
         } else if (NATIVE_CLI_METHODS.has(entry.method)) {
           tool = "native_cli";
         } else if (CURATED_METHODS.has(entry.method)) {
           tool = "curated";
-        } else if (exposable(entry.method) && allowed(entry.method, entries)) {
+        } else if (generated.some((item) => item.method === entry.method)) {
           tool = toolName(entry.method);
         }
+        let classification = "discovery_only";
+        if (kind === "clientRequest") {
+          classification = READ_ONLY_METHODS.has(entry.method)
+            ? "read"
+            : "mutating";
+        }
         return {
-          class: entry.readOnly ? "read" : "mutating",
+          class: classification,
+          kind,
           method: entry.method,
-          ...(method && entry.params ? { params: entry.params } : {}),
+          ...(method && entry.params
+            ? {
+                params: z.toJSONSchema(z.fromJSONSchema(entry.params), {
+                  io: "input"
+                })
+              }
+            : {}),
           tool
         };
       });
@@ -218,9 +220,22 @@ export const registerCatalogTools = async (server) => {
           `Use native codex archive|unarchive|delete --remote unix:// for thread cleanup.`,
         ...(entry.inputSchema ? { inputSchema: entry.inputSchema } : {})
       },
-      withClient((client, params) =>
-        client.request(entry.method, entry.params ? params : undefined)
-      )
+      async (params) => {
+        try {
+          await validateRequest(
+            entry.method,
+            entry.params ? params : undefined
+          );
+        } catch (error) {
+          return {
+            content: [{ text: error.message, type: "text" }],
+            isError: true
+          };
+        }
+        return withClient((client, input) =>
+          client.request(entry.method, entry.params ? input : undefined)
+        )(params);
+      }
     );
   }
 };

@@ -138,17 +138,27 @@ Read the thread first and use these tools only under authorized instructions.
 
 ## Installed-Version Catalog
 
-At startup, the server runs `codex app-server generate-json-schema` into a disposable directory.
-It reads `ClientRequest.json` and removes the directory after reading the schema.
+At startup, the server runs `codex --version` and `codex app-server generate-json-schema` into a disposable directory.
+It reads ClientRequest, ClientNotification, ServerRequest, and ServerNotification, then removes the generated files.
+Schema-cache behavior v1 shares one process-local generation per CLI executable and version between discovery and raw calls.
+It writes no persistent cache and shares concurrent requests for the same version.
 Set `CODEX_BIN` to an executable path when `codex` is not available through `PATH`.
 The executable must match the daemon version, especially when the socket points to a different installation.
-The generated ClientRequest catalog contains client requests, not server-initiated approval requests.
+The catalog distinguishes client requests, client notifications, server requests, and server notifications.
+Notifications and server requests are discovery-only and cannot be sent through `codex_call`.
 No daemon schema-discovery request is needed.
-Restart the MCP server after upgrading Codex to regenerate the catalog without a plugin release.
+Discovery and raw validation recheck `codex --version` and regenerate after a version change without a plugin release.
+Generated wrappers retain their startup input schemas and tool names until the MCP server restarts.
+Their requests also pass current native validation before connecting.
 
 By default, the server exposes 14 curated tools plus `codex_methods` when generation succeeds.
 The catalog does not add every protocol method to the default tool list.
 Use `codex_methods` to list names, or supply `method` to retrieve one parameter schema for `codex_call`.
+Use `kind` to inspect `clientRequest`, `clientNotification`, `serverRequest`, or `serverNotification`.
+New client request methods become callable through `codex_call` after native discovery refreshes.
+Raw calls validate the full ClientRequest envelope and parameters before opening a socket, preserving allowed parameters without transformation.
+Unknown methods, invalid parameters, and unavailable schemas return an error without connecting.
+Refused methods return their safety refusal before any version check or schema generation.
 Set `CODEX_APP_SERVER_METHODS` to comma-separated method names or namespace prefixes to expose generated tools.
 For example, `fs,config/read` exposes filesystem methods and the configuration read method.
 Generated names replace slashes with underscores, such as `codex_fs_readFile`.
@@ -169,8 +179,21 @@ Usage methods are not exposed as generated tools and remain reserved for the Orc
 Server-initiated requests, including approvals, remain refused by the connection layer.
 
 If schema generation, parsing, or conversion fails, startup reports the reason on stderr.
-Only curated tools remain available in that case.
+Only curated tools remain available in that case, and raw calls refuse until native validation succeeds.
 The generator has a 30-second deadline and never starts a daemon.
+
+## Curated Adapters And Models
+
+Curated thread tools keep reviewed source-kind and goal-status enums, fixed convenience parameters, and active-turn guards.
+These adapters are intentionally narrower than the native protocol.
+Use discovered ClientRequest schemas through `codex_call` for new parameters and enum values.
+Policy sets and read-only annotations remain reviewed local rules because schemas do not establish authorization or safety.
+
+Prefer `model/list` through `codex_call` for the running app-server's model catalog.
+Inspect its parameters with `codex_methods` first.
+For CLI diagnostics, `codex debug models` returns raw model catalog JSON, and `--bundled` skips refresh.
+The debug command also offers `app-server send-message-v2` and `prompt-input`, but no schema subcommand.
+Use `codex app-server generate-json-schema` or `codex app-server generate-ts` for native protocol schemas.
 
 ## Package Contents
 
@@ -189,7 +212,8 @@ The plugin adds no dedicated cleanup tools.
 - `lib/turn.mjs` shares turn-start and buffered completion handling.
 - `lib/queue.mjs` owns message delivery, receipts, deadlines, and process-local writer serialization.
 - `lib/thread-admin.mjs` registers small thread administration tools.
-- `lib/catalog.mjs` generates, converts, filters, and exposes installed-version method schemas.
+- `lib/catalog.mjs` converts, filters, and exposes installed-version method schemas.
+- `lib/schema.mjs` owns the process-local version cache and native ClientRequest validation.
 - `lib/policy.mjs` separates curated, refused, native CLI, and usage methods.
 - `AGENTS.md` records catalog and policy maintenance requirements.
 - `tests/` verifies the stdio server against a disposable Unix-socket fixture.
