@@ -88,13 +88,15 @@ export const openClient = async ({ signal } = {}) => {
     }
     emit("notification", message);
   });
-  const request = async (method, params) => {
+  const request = async (method, params, { signal: requestAbort } = {}) => {
     closed.signal.throwIfAborted();
+    requestAbort?.throwIfAborted();
     nextId += 1;
     const id = nextId;
     const requestSignal = AbortSignal.any([
       AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      closed.signal
+      closed.signal,
+      ...(requestAbort ? [requestAbort] : [])
     ]);
     const response = once(events, `response:${id}`, { signal: requestSignal });
     try {
@@ -135,10 +137,10 @@ export const openClient = async ({ signal } = {}) => {
 /**
  * Wrap a tool handler so it runs with its own app-server connection and returns MCP text content.
  */
-export const withClient = (handler) => async (args) => {
+export const withClient = (handler) => async (args, extra) => {
   let client;
   try {
-    client = await openClient();
+    client = await openClient({ signal: extra?.signal });
     const value = await handler(client, args);
     return {
       content: [{ text: JSON.stringify(value ?? null, null, 1), type: "text" }]

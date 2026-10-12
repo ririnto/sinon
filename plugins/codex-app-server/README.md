@@ -56,6 +56,11 @@ Authorized messages can wait in a process-local queue for the active turn to end
 Each tool call connects to `CODEX_APP_SERVER_SOCKET` when set.
 Otherwise, it uses `app-server-control/app-server-control.sock` under `CODEX_HOME`, defaulting to `~/.codex`.
 Inspection and immediate calls initialize their own connection and close it after the result.
+Native commands retain their connection while execution is pending, allowing concurrent write, resize, and terminate tools for that process ID.
+Streamed command output is returned as native `command/exec/outputDelta` entries in the final result's `notifications` array.
+Filesystem watches keep their connections until native unwatch, socket loss, or MCP transport closure.
+Watch changes use standard MCP logging notifications without retaining event history.
+MCP cancellation prevents dispatch after preparation and closes owned immediate or command connections.
 Queued delivery keeps a separate connection until its batch ends, is cancelled, expires, or loses the socket.
 The runtime keeps the existing MCP SDK v1 API.
 Upstream maintains v1 for bug fixes and security updates for at least six months after the July 27, 2026 v2 release.
@@ -216,6 +221,7 @@ Server-initiated requests, including approvals, remain refused by the connection
 Invalid parameters and unavailable native validation return errors without connecting or altering supplied parameters.
 
 A failed generation or catalog derivation reports its reason on stderr and preserves the last successful native registrations.
+Discovery returns that refresh error instead of advertising unregistered tools.
 Without a successful catalog, the 13 curated adapters and discovery tool remain available.
 Native calls still require current schema validation, even after a failed refresh.
 The generator has a 30-second deadline and writes no persistent schema cache.
@@ -291,6 +297,7 @@ The plugin adds no dedicated cleanup tools.
 - `monitors/monitors.json` registers the native Claude Code plugin monitor.
 - `lib/thread-tools.mjs` registers thread inspection and steering tools, including turn completion handling.
 - `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
+- `lib/native-session.mjs` owns command and watch connection lifetimes, streaming output, and MCP shutdown cleanup.
 - `lib/turn-tools.mjs` owns active-turn guards for steering and interruption.
 - `lib/turn.mjs` shares turn-start and buffered completion handling.
 - `lib/queue.mjs` owns message delivery, receipts, deadlines, and process-local writer serialization.

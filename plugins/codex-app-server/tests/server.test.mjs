@@ -11,7 +11,10 @@ import { promisify } from "node:util";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  LoggingMessageNotificationSchema,
+  ToolListChangedNotificationSchema
+} from "@modelcontextprotocol/sdk/types.js";
 import { WebSocketServer } from "ws";
 
 import { closeQueues, enqueueMessage } from "../lib/queue.mjs";
@@ -32,7 +35,7 @@ const SOURCE_KINDS = [
 ];
 
 const CATALOG = {
-  definitions: { Mode: { enum: ["a", "b"] } },
+  definitions: { Mode: { enum: ["a", "b", "#/definitions/literal"] } },
   oneOf: [
     {
       properties: {
@@ -247,6 +250,7 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/connection.mjs",
     "lib/thread-tools.mjs",
     "lib/mcp-tool.mjs",
+    "lib/native-session.mjs",
     "lib/turn-tools.mjs",
     "lib/thread-admin.mjs",
     "lib/catalog.mjs",
@@ -644,6 +648,11 @@ test("derives every native tool with exact parameter schemas and conservative an
   const read = await call(client, "codex_fs_readFile", { path: "/x" });
   assert.deepEqual(read.value, { ok: true });
   assert.deepEqual(requests.at(-1).params, { path: "/x" });
+  const literal = await call(client, "codex_config_write", {
+    mode: "#/definitions/literal"
+  });
+  assert.equal(literal.error, false);
+  assert.deepEqual(requests.at(-1).params, { mode: "#/definitions/literal" });
   const before = requests.length;
   const invalid = await call(client, "codex_config_write", { mode: "c" });
   assert.equal(invalid.error, true);
@@ -1434,6 +1443,229 @@ test("refuses native calls offline when current schema validation is unavailable
   assert.equal(refused.error, true);
   assert.match(refused.text, /separate direct human instruction/u);
   assert.equal(requests.length, 0);
+});
+
+test("rejects discovery after valid generation fails catalog derivation", async (t) => {
+  const { client, schemaFile } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: CATALOG
+  });
+  const before = await client.listTools();
+  const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
+  const method = { properties: { method: { enum: ["future/duplicate"] } } };
+  schemas.ClientRequest.oneOf.push(method, method);
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  const discovery = await call(client, "codex_methods");
+  assert.equal(discovery.error, true);
+  assert.match(discovery.text, /Duplicated native tool name/u);
+  const after = await client.listTools();
+  assert.deepEqual(after.tools, before.tools);
+});
+
+test("cancels native calls during schema refresh before opening a socket", async (t) => {
+  const { client, requests, versionFile } = await fixture(
+    t,
+    ({ reply }) => reply({}),
+    { catalog: CATALOG }
+  );
+  await writeFile(versionFile, "fixture-cli 2");
+  const controller = new AbortController();
+  const pending = client.callTool(
+    { arguments: { mode: "a" }, name: "codex_config_write" },
+    undefined,
+    { signal: controller.signal }
+  );
+  const rejected = assert.rejects(pending);
+  controller.abort(new Error("Fixture cancellation"));
+  await rejected;
+  await client.listTools();
+  assert.equal(requests.length, 0);
+});
+
+test("cancellation closes a stalled native initialize connection without dispatching", async (t) => {
+  const { client, connections, requests } = await fixture(t, () => {}, {
+    catalog: CATALOG,
+    failInitialize: true
+  });
+  const controller = new AbortController();
+  const pending = client.callTool(
+    { arguments: { mode: "a" }, name: "codex_config_write" },
+    undefined,
+    { signal: controller.signal }
+  );
+  const rejected = assert.rejects(pending);
+  await t.waitFor(() => assert.equal(requests.length, 1), { timeout: 2000 });
+  controller.abort(new Error("Fixture cancellation"));
+  await rejected;
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  assert.deepEqual(
+    requests.map((request) => request.method),
+    ["initialize"]
+  );
+});
+
+const commandCatalog = {
+  oneOf: [
+    "command/exec",
+    "command/exec/write",
+    "command/exec/resize",
+    "command/exec/terminate",
+    "fs/watch",
+    "fs/unwatch"
+  ].map((method) => ({
+    properties: { method: { enum: [method] }, params: { type: "object" } },
+    required: ["method", "params"],
+    type: "object"
+  }))
+};
+
+test("keeps interactive command follow-ups on their originating connection and returns streamed output", async (t) => {
+  let owner;
+  let complete;
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply, ws }) => {
+      if (message.method === "command/exec") {
+        owner = ws;
+        complete = reply;
+      } else {
+        assert.equal(ws, owner);
+        reply({});
+        if (message.method === "command/exec/terminate") {
+          ws.send(
+            JSON.stringify({
+              method: "command/exec/outputDelta",
+              params: {
+                capReached: false,
+                deltaBase64: "Zml4dHVyZQ==",
+                processId: "fixture-process",
+                stream: "stdout"
+              }
+            })
+          );
+          complete({ exitCode: 0, stderr: "", stdout: "" });
+        }
+      }
+    },
+    { catalog: commandCatalog }
+  );
+  const execution = call(client, "codex_command_exec", {
+    command: ["fixture"],
+    processId: "fixture-process",
+    streamStdin: true,
+    streamStdoutStderr: true
+  });
+  await t.waitFor(() => assert.ok(owner), { timeout: 2000 });
+  const written = await call(client, "codex_command_exec_write", {
+    deltaBase64: "eA==",
+    processId: "fixture-process"
+  });
+  assert.equal(written.error, false);
+  const resized = await call(client, "codex_command_exec_resize", {
+    processId: "fixture-process",
+    size: { cols: 80, rows: 24 }
+  });
+  assert.equal(resized.error, false);
+  const terminated = await call(client, "codex_command_exec_terminate", {
+    processId: "fixture-process"
+  });
+  assert.equal(terminated.error, false);
+  const result = await execution;
+  assert.equal(result.error, false);
+  assert.equal(
+    result.value.notifications[0].params.deltaBase64,
+    "Zml4dHVyZQ=="
+  );
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  assert.equal(
+    requests.filter((request) => request.method === "initialize").length,
+    1
+  );
+  const absent = await call(client, "codex_command_exec_write", {
+    processId: "fixture-process"
+  });
+  assert.equal(absent.error, true);
+  assert.equal(connections.size, 0);
+});
+
+test("cancelling an active native command releases its connection and process identifier", async (t) => {
+  const { client, connections, requests } = await fixture(t, () => {}, {
+    catalog: commandCatalog
+  });
+  const controller = new AbortController();
+  const pending = client.callTool(
+    {
+      arguments: { command: ["fixture"], processId: "fixture-cancel" },
+      name: "codex_command_exec"
+    },
+    undefined,
+    { signal: controller.signal }
+  );
+  const rejected = assert.rejects(pending);
+  await t.waitFor(
+    () =>
+      assert.ok(requests.some((request) => request.method === "command/exec")),
+    { timeout: 2000 }
+  );
+  controller.abort(new Error("Fixture cancellation"));
+  await rejected;
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const absent = await call(client, "codex_command_exec_write", {
+    processId: "fixture-cancel"
+  });
+  assert.equal(absent.error, true);
+  assert.equal(connections.size, 0);
+  assert.equal(
+    requests.filter((request) => request.method === "command/exec").length,
+    1
+  );
+});
+
+test("keeps watch notifications live until native unwatch or MCP transport closure", async (t) => {
+  let owner;
+  const { client, connections } = await fixture(
+    t,
+    ({ message, reply, ws }) => {
+      if (message.method === "fs/watch") {
+        owner = ws;
+      } else {
+        assert.equal(ws, owner);
+      }
+      reply({});
+    },
+    { catalog: commandCatalog }
+  );
+  const events = [];
+  client.setNotificationHandler(
+    LoggingMessageNotificationSchema,
+    ({ params }) => {
+      events.push(params.data);
+    }
+  );
+  const started = await call(client, "codex_fs_watch", {
+    path: "/fixture",
+    watchId: "fixture-watch"
+  });
+  assert.equal(started.error, false);
+  assert.equal(connections.size, 1);
+  owner.send(
+    JSON.stringify({
+      method: "fs/changed",
+      params: { paths: ["/fixture"], watchId: "fixture-watch" }
+    })
+  );
+  await t.waitFor(() => assert.equal(events.length, 1), { timeout: 2000 });
+  const removed = await call(client, "codex_fs_unwatch", {
+    watchId: "fixture-watch"
+  });
+  assert.equal(removed.error, false);
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const watched = await call(client, "codex_fs_watch", {
+    path: "/fixture",
+    watchId: "fixture-watch"
+  });
+  assert.equal(watched.error, false);
+  await client.close();
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
 });
 
 test("retains the last catalog atomically after a failed refresh and refuses stale validation", async (t) => {

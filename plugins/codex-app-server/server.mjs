@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { registerCatalogTools } from "./lib/catalog.mjs";
 import { registerMcpTool } from "./lib/mcp-tool.mjs";
+import { createNativeSessions } from "./lib/native-session.mjs";
 import { refusal } from "./lib/policy.mjs";
 import { closeQueues, registerQueueTools } from "./lib/queue.mjs";
 import { registerThreadAdminTools } from "./lib/thread-admin.mjs";
@@ -25,7 +26,7 @@ import { registerTurnTools } from "./lib/turn-tools.mjs";
 const server = new Server(
   { name: "codex-app-server", version: "1" },
   {
-    capabilities: { tools: { listChanged: true } },
+    capabilities: { logging: {}, tools: { listChanged: true } },
     instructions: [
       "Use the running Codex app-server through its Unix control socket.",
       "This MCP server starts no daemon; authorized messages may queue in memory until active work ends.",
@@ -80,7 +81,8 @@ registerTurnTools(registry);
 registerThreadAdminTools(registry);
 registerMcpTool(registry);
 registerQueueTools(registry);
-const refresh = await registerCatalogTools(registry, server);
+const native = createNativeSessions(server);
+const refresh = await registerCatalogTools(registry, server, native.request);
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   await refresh();
   return { tools: [...registry.values()].map((tool) => tool.definition) };
@@ -95,11 +97,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     if (!tool) {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }
+    extra.signal.throwIfAborted();
     return await tool.handler(request.params.arguments ?? {}, extra);
   } catch (error) {
     return { content: [{ text: error.message, type: "text" }], isError: true };
   }
 });
 
+const close = () => {
+  closeQueues();
+  native.close();
+};
+process.stdin.once("end", close);
+process.stdin.once("close", close);
+process.stdin.once("error", close);
+process.stdout.once("error", close);
 await server.connect(new StdioServerTransport());
-process.stdin.once("end", closeQueues);

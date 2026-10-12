@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 
 import { z } from "zod";
 
-import { withClient } from "./connection.mjs";
 import { refusal, USAGE_METHODS } from "./policy.mjs";
 import { loadProtocol, parameterSchema, validateRequest } from "./schema.mjs";
 
@@ -48,7 +47,7 @@ const allowed = (method, prefix) =>
  * Derive the full native tool catalog without converting schemas through Zod.
  * Refused methods remain discoverable as tools whose callbacks never open a connection.
  */
-export const deriveTools = (protocol, reserved) => {
+export const deriveTools = (protocol, reserved, request) => {
   const names = new Set(reserved);
   return protocol.protocols.clientRequest.map((entry) => {
     const name = toolName(entry.method, reserved);
@@ -90,16 +89,25 @@ export const deriveTools = (protocol, reserved) => {
           wrapped
             ? "Supply native parameters in the params argument; null and union schemas retain their native meaning."
             : "Supply native parameter fields directly."
+        } ${
+          entry.method.startsWith("command/exec")
+            ? "Connection-scoped process IDs belong to the pending command/exec call; use follow-up tools concurrently. Streamed outputDelta notifications are included in its final result. "
+            : ""
+        }${
+          ["fs/watch", "fs/unwatch"].includes(entry.method)
+            ? "Watch connections persist until fs/unwatch or MCP closure; fs/changed events use standard MCP logging. "
+            : ""
         }`,
       inputSchema,
       name
     };
     return {
       definition,
-      handler: async (args) => {
+      handler: async (args, extra) => {
         if (reason) {
           return { content: [{ text: reason, type: "text" }], isError: true };
         }
+        extra?.signal.throwIfAborted();
         if (wrapped && Object.keys(args).some((key) => key !== "params")) {
           throw new Error(
             `Only the params argument is accepted for ${entry.method}`
@@ -113,7 +121,8 @@ export const deriveTools = (protocol, reserved) => {
           params = wrapped ? args.params : args;
         }
         await validateRequest(entry.method, params);
-        return withClient((client) => client.request(entry.method, params))();
+        extra?.signal.throwIfAborted();
+        return request(entry.method, params, extra);
       },
       method: entry.method
     };
@@ -124,10 +133,11 @@ export const deriveTools = (protocol, reserved) => {
  * Refresh the native tool registry atomically on discovery, notifying hosts after schema changes.
  * A failed generation retains the last successful list and native calls still require current validation.
  */
-export const registerCatalogTools = async (registry, server) => {
+export const registerCatalogTools = async (registry, server, request) => {
   const reserved = new Set([...registry.keys(), "codex_methods"]);
   let current;
   let pending;
+  let refreshError;
   const refresh = async ({ regenerate = true } = {}) => {
     if (pending) {
       return pending;
@@ -135,13 +145,14 @@ export const registerCatalogTools = async (registry, server) => {
     pending = (async () => {
       try {
         const protocol = await loadProtocol({ refresh: regenerate });
+        refreshError = undefined;
         if (
           current?.version === protocol.version &&
           current?.hash === protocol.hash
         ) {
           return;
         }
-        const tools = deriveTools(protocol, reserved);
+        const tools = deriveTools(protocol, reserved, request);
         for (const tool of current?.tools ?? []) {
           registry.delete(tool.definition.name);
         }
@@ -153,6 +164,7 @@ export const registerCatalogTools = async (registry, server) => {
           await server.sendToolListChanged();
         }
       } catch (error) {
+        refreshError = error;
         console.error(
           `codex-app-server: native catalog refresh failed: ${error.message}`
         );
@@ -204,8 +216,10 @@ export const registerCatalogTools = async (registry, server) => {
     },
     async ({ kind = "clientRequest", method, prefix }) => {
       await refresh();
-      const protocol = await loadProtocol();
-      const entries = protocol.protocols[kind].filter((entry) =>
+      if (refreshError) {
+        throw refreshError;
+      }
+      const entries = current.protocols[kind].filter((entry) =>
         method
           ? entry.method === method
           : !prefix || allowed(entry.method, prefix.replace(/\/$/u, ""))

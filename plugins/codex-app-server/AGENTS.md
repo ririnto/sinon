@@ -11,6 +11,9 @@ Preserve curated adapters and their guards alongside native methods.
 Use native host tool search without custom tool caps, paging, or generic dispatch.
 Unknown methods must retain mutating annotations until their behavior is reviewed.
 Keep active-turn inspection and expected turn IDs in the curated steering tools.
+Keep connection-scoped commands and watches attached to their originating sockets.
+Return streamed command output and forward filesystem changes through native MCP logging.
+Propagate cancellation and retire owned sockets, listeners, and identifiers when operations or MCP transport end.
 
 Maintain shared method policy in `lib/policy.mjs`.
 Refused methods may have discoverable tools, but their callbacks must refuse before validation or connecting.

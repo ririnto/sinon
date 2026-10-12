@@ -28,8 +28,10 @@ const generate = async (binary, version) => {
     const protocols = await Promise.all(
       Object.entries(PROTOCOLS).map(async ([kind, file]) => {
         const source = await readFile(path.join(directory, file), "utf-8");
-        const schema = JSON.parse(
-          source.replaceAll("#/definitions/", "#/$defs/")
+        const schema = JSON.parse(source, (key, value) =>
+          key === "$ref" && typeof value === "string"
+            ? value.replace("#/definitions/", "#/$defs/")
+            : value
         );
         const defs = schema.definitions ?? schema.$defs ?? {};
         return [
