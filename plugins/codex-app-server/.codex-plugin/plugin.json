@@ -1,6 +1,6 @@
 {
   "name": "codex-app-server",
-  "version": "2026.10.12.04",
+  "version": "2026.10.12.05",
   "description": "MCP tools for inspecting and driving the running Codex app-server.",
   "author": {
     "name": "ririnto"
