@@ -6,7 +6,7 @@ const semicolonPattern = /[;；;]/gu;
 const abbreviationTailPattern =
   /(?:\b(?:e\.g|i\.e|etc|vs|cf|approx|Inc|Ltd|Co|Corp|Jr|Sr|Dr|Mr|Mrs|Ms|St|Fig|No|ed|al)|(?:[A-Z]\.)+[A-Z])$/u;
 const initialNameContextPattern =
-  /(?:^|\b(?:Ask|Contact|by|from|with|Dr|Mr|Mrs|Ms)\s+)[A-Z]$/u;
+  /(?:^|\b(?:Ask|Contact|by|from|with|(?:Dr|Mr|Mrs|Ms)\.?)\s+)[A-Z]$/u;
 const surnameStartPattern = /^[A-Z][a-z]+\b/u;
 const entityTailPattern = /&(?:#\d+|#[\da-fA-F]+|[a-zA-Z][\d]{2,31})$/u;
 const conjunctiveAdverbPattern =

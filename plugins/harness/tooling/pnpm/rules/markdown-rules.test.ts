@@ -350,6 +350,7 @@ describe("docs/sentence-per-line", () => {
     ],
     ["contractions", "Don't change the writer's words.\n"],
     ["personal initials", "Ask J. Smith about the profile.\n"],
+    ["an honorific and initial", "Ask Dr. J. Smith about the profile.\n"],
     [
       "a version followed by uppercase prose",
       "Use v1.2.3 with Node.js and Dr. Smith.\n"
