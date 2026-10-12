@@ -4,7 +4,7 @@ description: >-
 metadata:
   reference:
     Codex app-server:
-      url: https://learn.chatgpt.com/docs/app-server.md
+      url: https://developers.openai.com/codex/app-server/
     Codex turn requests:
       version: rust-v0.162.1
       url: https://raw.githubusercontent.com/openai/codex/rust-v0.162.1/codex-rs/app-server/src/request_processors/turn_processor.rs
@@ -21,6 +21,8 @@ metadata:
       url: https://raw.githubusercontent.com/openai/codex/main/codex-rs/codex-mcp/src/plugin_config.rs
     Claude Code plugin MCP:
       url: https://code.claude.com/docs/en/mcp.md
+    Codex MCP tool discovery:
+      url: https://developers.openai.com/codex/mcp/
     Claude Code Monitor:
       url: https://code.claude.com/docs/en/tools-reference.md#monitor-tool
     Claude Code plugin monitors:
@@ -33,7 +35,8 @@ metadata:
 # Codex App-Server
 
 This plugin exposes the running Codex app-server through guarded stdio MCP tools and an installed-version method catalog.
-The server instructions, tool descriptions, and input descriptions carry usage and safety guidance without a separate skill.
+The packaged `thread-control` skill provides the authorized thread workflow and native monitor setup.
+Server instructions and tool descriptions preserve safety notes at the point of each call.
 
 Install `codex-app-server` from the Sinon marketplace in Claude Code:
 
@@ -54,6 +57,12 @@ Authorized messages can wait in a process-local queue for the active turn to end
 Each tool call connects to `CODEX_APP_SERVER_SOCKET` when set.
 Otherwise, it uses `app-server-control/app-server-control.sock` under `CODEX_HOME`, defaulting to `~/.codex`.
 Inspection and immediate calls initialize their own connection and close it after the result.
+Native commands retain their connection while execution is pending, allowing concurrent write, resize, and terminate tools for that process ID.
+Streamed command output is returned as native `command/exec/outputDelta` entries in the final result's `notifications` array.
+Filesystem watches keep their connections until native unwatch, socket loss, or MCP transport closure.
+Watch changes use standard MCP logging notifications without retaining event history.
+Native watch intake follows stdout backpressure, and transport closure cancels pending writes and retires owned sockets.
+MCP cancellation prevents dispatch after preparation and closes owned immediate or command connections.
 Queued delivery keeps a separate connection until its batch ends, is cancelled, expires, or loses the socket.
 The runtime keeps the existing MCP SDK v1 API.
 Upstream maintains v1 for bug fixes and security updates for at least six months after the July 27, 2026 v2 release.
@@ -99,8 +108,8 @@ The first launch requires registry access unless the dependencies are already ca
 | `codex_loaded` | List a page of thread IDs loaded in daemon memory. |
 | `codex_compact` | Request context compaction without waiting for completion. |
 | `codex_mcp_tool` | Call a configured MCP tool inside a temporary ephemeral thread. |
-| `codex_call` | Send a raw request while refusing reset-credit consumption and thread cleanup. |
-| `codex_methods` | Discover installed-version methods and inspect their parameter schemas when generation succeeds. |
+| `codex_methods` | Refresh native tools and discover installed-version methods and parameter schemas. |
+| `codex_<method>` | Send one native ClientRequest with its generated parameter schema, or return its safety refusal. |
 
 `codex_steer` and `codex_interrupt` refuse when the last turn is not `inProgress`.
 They read the turn ID themselves.
@@ -147,59 +156,89 @@ Read the thread first and use these tools only under authorized instructions.
 
 At startup, the server runs `codex --version` and `codex app-server generate-json-schema` into a disposable directory.
 It reads ClientRequest, ClientNotification, ServerRequest, and ServerNotification, then removes the generated files.
-Schema-cache behavior v1 shares one process-local generation per CLI executable and version between discovery and raw calls.
-It writes no persistent cache and shares concurrent requests for the same version.
-Set `CODEX_BIN` to an executable path when `codex` is not available through `PATH`.
-The executable must match the daemon version, especially when the socket points to a different installation.
-The catalog distinguishes client requests, client notifications, server requests, and server notifications.
-Notifications and server requests are discovery-only and cannot be sent through `codex_call`.
-No daemon schema-discovery request is needed.
-Discovery and raw validation recheck `codex --version` and regenerate after a version change without a plugin release.
-Generated wrappers retain their startup input schemas and tool names until the MCP server restarts.
-Their requests also pass current native validation before connecting.
+Every ClientRequest method becomes an individual MCP tool with its native parameter schema, including reachable definitions.
+Object parameters become direct tool arguments.
+Boolean property schemas become equivalent object schemas because the MCP SDK requires object-valued top-level property definitions.
+`true` becomes `{}`, and `false` becomes `{ "not": {} }`, preserving validation semantics.
+Null, scalar, and union parameters use a `params` argument containing the native value and schema.
+The wrapper requires `params` only when the native request requires it, and dispatch unwraps it without transforming the value.
+Notifications and server requests remain discovery-only.
+The plugin provides no generic `codex_call` escape hatch.
+The former `CODEX_APP_SERVER_METHODS` allowlist is removed, so no configuration change is needed for new methods.
 
-By default, the server exposes 14 curated tools plus `codex_methods` when generation succeeds.
-The catalog does not add every protocol method to the default tool list.
-Use `codex_methods` to list names, or supply `method` to retrieve one parameter schema for `codex_call`.
-Use `kind` to inspect `clientRequest`, `clientNotification`, `serverRequest`, or `serverNotification`.
-New client request methods become callable through `codex_call` after native discovery refreshes.
-Raw calls validate the full ClientRequest envelope and parameters before opening a socket, preserving allowed parameters without transformation.
-Unknown methods, invalid parameters, and unavailable schemas return an error without connecting.
-Refused methods return their safety refusal before any version check or schema generation.
-Set `CODEX_APP_SERVER_METHODS` to comma-separated method names or namespace prefixes to expose generated tools.
-For example, `fs,config/read` exposes filesystem methods and the configuration read method.
-Generated names replace slashes with underscores, such as `codex_fs_readFile`.
-Restart the MCP server after changing this setting.
-The plugin does not edit host configuration or credentials.
+Set `CODEX_BIN` to an executable path when `codex` is unavailable through `PATH`.
+The executable must match the daemon version, especially when the socket points to another installation.
+No daemon schema-discovery request is needed, and generation never starts a daemon.
 
-The startup schema from Codex 0.162.1 contains 105 client methods.
-Enabling entire namespaces increases tool count and tool-schema context size.
-Keep the allowlist narrow and fetch individual schemas through `codex_methods` when needed.
-Read-only annotations use a reviewed method allowlist.
-Unknown methods conservatively carry a mutating annotation, regardless of their name.
+### Stable Tool Names
+
+For methods with alphanumeric path segments, prepend `codex_` and replace slashes with underscores, preserving case.
+For example, `thread/goal/get` becomes `codex_thread_goal_get` and `fs/readFile` becomes `codex_fs_readFile`.
+A name containing punctuation or literal underscores uses `codex_method_` followed by its full SHA-256 method-name digest.
+The same fallback covers curated-name collisions, the reserved `codex_method_` namespace, and readable names exceeding 128 characters.
+This mapping stays stable when other methods are added or removed.
+Duplicate derived names reject the catalog atomically instead of overwriting another tool.
+
+Curated names such as `codex_threads`, `codex_send`, and `codex_goal` continue working with their existing guards.
+Their native methods also have individual tools accepting the full native parameter schema.
+Use `codex_methods` with `method` to inspect one schema or `prefix` to filter discovery.
+Use `kind` to inspect any of the four protocol directions.
+These discovery filters do not restrict the registered tool list.
+
+### Refresh And Host Loading
+
+Each MCP `tools/list` request and `codex_methods` call regenerates discovery and compares the CLI version and schema hash.
+Concurrent refreshes share generation, and unchanged schemas retain their registrations.
+Changed schemas atomically replace the native tools and emit `notifications/tools/list_changed`.
+The installed MCP SDK supports this notification, so refresh works without restarting or updating the plugin.
+Refresh is driven by host listing or explicit discovery, with no background polling.
+A schema-only change within the same CLI version is detected at the next discovery or listing.
+Native calls also recheck the CLI version, refresh changed registrations, and validate their full ClientRequest envelope before opening a socket.
+A version change encountered during a call updates validation and emits the tool-list notification before dispatch.
+
+The installed Codex 0.162.1 schema contains 105 ClientRequest methods.
+It produces 119 tools: 105 native methods, 13 curated adapters, and `codex_methods`.
+Four native methods are refusal-only tools.
+Schema parameters and descriptions increase the full catalog size as Codex adds methods.
+Use the host's native deferred tool loading and tool search to load individual schemas on demand.
+Claude Code's `ToolSearch` defers MCP definitions by default on supported configurations.
+Codex hosts manage native tool discovery and long output storage themselves.
+The plugin adds no tool-count caps, custom catalog paging, output truncation, or host configuration changes.
+
+### Safety And Failure Behavior
+
+Every native description names its method, read or mutating class, authorization requirements, and thread writer rules.
+Read-only annotations use the existing reviewed allowlist, and unknown methods remain mutating regardless of their names.
+`readOnlyHint` is true and `destructiveHint` is false for reviewed reads.
+All other native tools carry `readOnlyHint: false` and `destructiveHint: true` conservatively.
 Annotations describe behavior and do not authorize calls.
-Generated mutations require a direct human instruction or an assigned contract authorizing the operation.
+Mutations require a direct human instruction or assigned contract authorizing the operation.
+Keep one writer per thread, inspect it before steering, and never force another writer or delete writer locks.
+Prefer curated send, steer, and interrupt adapters for their active-turn guards and queue handling.
 
-Curated operations never get duplicate generated tools, even when their namespaces are enabled.
-Reset-credit consumption is always refused, and thread archive, unarchive, and delete remain native CLI operations.
-Usage methods are not exposed as generated tools and remain reserved for the Orchestrator through `codex_call`.
+`account/rateLimitResetCredit/consume` is listed but always refused before validation or connecting.
+`thread/archive`, `thread/unarchive`, and `thread/delete` are also refusal-only tools and require the native CLI.
+Usage tools retain the Orchestrator-only authorization notes.
 Server-initiated requests, including approvals, remain refused by the connection layer.
+Invalid parameters and unavailable native validation return errors without connecting or altering supplied parameters.
 
-If schema generation, parsing, or conversion fails, startup reports the reason on stderr.
-Only curated tools remain available in that case, and raw calls refuse until native validation succeeds.
-The generator has a 30-second deadline and never starts a daemon.
+A failed generation or catalog derivation reports its reason on stderr and preserves the last successful native registrations.
+Discovery returns that refresh error instead of advertising unregistered tools.
+Without a successful catalog, the 13 curated adapters and discovery tool remain available.
+Native calls still require current schema validation, even after a failed refresh.
+The generator has a 30-second deadline and writes no persistent schema cache.
+Missing parameter definitions and duplicate names cause an explicit catalog error.
+They never gain a generic dispatch bypass.
 
 ## Curated Adapters And Models
 
-Curated thread tools keep reviewed source-kind and goal-status enums, fixed convenience parameters, and active-turn guards.
-These adapters are intentionally narrower than the native protocol.
-Use discovered ClientRequest schemas through `codex_call` for new parameters and enum values.
+Curated thread tools keep reviewed source-kind and goal-status enums, convenience parameters, and active-turn guards.
+Use the native per-method tools for new parameters and enum values after inspecting their descriptions and authorization notes.
 Policy sets and read-only annotations remain reviewed local rules because schemas do not establish authorization or safety.
 
-Prefer `model/list` through `codex_call` for the running app-server's model catalog.
-Inspect its parameters with `codex_methods` first.
+Use `codex_model_list` for the running app-server's model catalog.
+Inspect its parameters with `codex_methods` or the host's native tool search first.
 For CLI diagnostics, `codex debug models` returns raw model catalog JSON, and `--bundled` skips refresh.
-The debug command also offers `app-server send-message-v2` and `prompt-input`, but no schema subcommand.
 Use `codex app-server generate-json-schema` or `codex app-server generate-ts` for native protocol schemas.
 
 ## Thread Status Monitor
@@ -211,7 +250,8 @@ It runs the packaged `codex-thread-monitor` executable without an external watch
 
 Set `CODEX_APP_SERVER_MONITOR_THREADS` to comma-separated authorized thread IDs before starting the host session.
 With no selected threads, the monitor exits successfully without connecting.
-Use `*` to watch all native status broadcasts, with an initial snapshot of the first loaded-thread page.
+Use `*` to watch all native status broadcasts, with an initial snapshot covering every loaded-thread page.
+Pagination follows native cursors without a custom page cap, and repeated cursors produce an inspection error.
 Set `CODEX_APP_SERVER_MONITOR_STATUSES` to select statuses, defaulting to `idle,active,notLoaded,failed,systemError`.
 These environment variables configure the runtime and do not change plugin installation.
 Plugin monitors cannot use `${user_config.*}` under the native host contract.
@@ -219,11 +259,15 @@ Plugin monitors cannot use `${user_config.*}` under the native host contract.
 The monitor emits JSON lines with `event: "threadStatus"`, `threadId`, `status`, and `previous`.
 It filters unrelated threads and repeated statuses.
 Native `thread/status/changed` broadcasts provide idle, active, notLoaded, and systemError.
-Failed is a terminal turn outcome, so idle transitions request one latest turn with item contents omitted to emit a separate failed event when needed.
+Failed is a terminal turn outcome, so idle transitions request one latest turn with item contents omitted to emit a separate `turnError` event when needed.
+Each distinct failed turn emits its ID and native error details, including consecutive failures with an unchanged thread status.
+Repeated sightings of the same failed turn remain quiet.
 Initial status reads exclude turn history.
 Terminal turn and error notifications also expose failures when the daemon sends them to this connection.
 Transient errors marked `willRetry` do not produce terminal failures.
 Events are serialized behind the initial snapshot, avoiding out-of-order startup notifications.
+Event intake follows stdout backpressure, and a separate read-only inspection socket prevents paused event delivery from blocking inspection responses.
+Cancellation retires both sockets and releases pending stdout drains.
 The monitor never resumes a thread, starts a turn, responds to an approval, or claims a writer.
 Server requests retain the connection-layer refusal and cannot become monitor events.
 
@@ -245,12 +289,22 @@ Inspection errors emit an `inspection` systemError event for the affected thread
 An initial loaded-list error uses a null thread ID and leaves wildcard broadcasts running.
 The command does not reconnect or poll, and the host can start a new watch when needed.
 
+## Thread-Control Skill
+
+`skills/thread-control/SKILL.md` activates for authorized thread inspection, steering, monitoring, and retirement.
+It requires reading and verifying the tail, explicit `mode: "steer"` for active input, and queueing only after a delivery refusal is understood.
+Lease and writer rules preserve the current owner, and cleanup archives before separately authorized permanent deletion.
+The skill loads its monitor reference and ready-to-use native Monitor input only when monitoring is needed.
+Orchestrators use the packaged monitor with wildcard status filters and re-arm explicit watches at their 30-minute deadline only while the assignment remains active.
+No skill helper script is needed for this workflow.
+The layout and frontmatter follow the [Agent Skills specification](https://agentskills.io/specification) and Workgraph's progressive-disclosure conventions.
+
 ## Package Contents
 
 Thread cleanup uses native `codex archive`, `codex unarchive`, and `codex delete` with `--remote unix://`.
 The plugin adds no dedicated cleanup tools.
 
-- `.codex-plugin/plugin.json` declares Codex identity and the MCP configuration path.
+- `.codex-plugin/plugin.json` declares Codex identity, the MCP configuration path, and `skills/`.
 - `mcp.json` and `.mcp.json` register the Codex and Claude Code stdio server.
 - `package.json` declares the executable and its MCP SDK, WebSocket, and schema dependencies.
 - `server.mjs` creates the MCP server, retains shared instructions, registers the feature modules, and starts stdio transport.
@@ -260,17 +314,19 @@ The plugin adds no dedicated cleanup tools.
 - `monitors/monitors.json` registers the native Claude Code plugin monitor.
 - `lib/thread-tools.mjs` registers thread inspection and steering tools, including turn completion handling.
 - `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
-- `lib/raw-call.mjs` registers raw requests with the shared refusals.
+- `lib/native-session.mjs` owns command and watch connection lifetimes, streaming output, and MCP shutdown cleanup.
+- `lib/session-transport.mjs` extends SDK stdio lifecycle handling to retire native resources and cancel pending stdout drains.
+- `skills/thread-control/` contains the activated workflow, conditional monitor reference, and ready-to-use Monitor input asset.
 - `lib/turn-tools.mjs` owns active-turn guards for steering and interruption.
 - `lib/turn.mjs` shares turn-start and buffered completion handling.
 - `lib/queue.mjs` owns message delivery, receipts, deadlines, and process-local writer serialization.
 - `lib/thread-admin.mjs` registers small thread administration tools.
 - `lib/catalog.mjs` converts, filters, and exposes installed-version method schemas.
-- `lib/schema.mjs` owns the process-local version cache and native ClientRequest validation.
-- `lib/policy.mjs` separates curated, refused, native CLI, and usage methods.
+- `lib/schema.mjs` owns schema generation, version and hash caching, parameter schemas, and native ClientRequest validation.
+- `lib/policy.mjs` owns refusal, native CLI, and usage policies.
 - `AGENTS.md` records catalog and policy maintenance requirements.
 - `tests/` verifies the stdio server against a disposable Unix-socket fixture.
-- The Sinon marketplace entry declares Claude Code identity and the package root.
+- The Sinon marketplace entry declares Claude Code identity, the package root, and its skill directory.
 
 Run `pnpm run check:codex-app-server` from the repository to test the runtime.
 The check installs the package's pinned dependencies in a temporary directory and removes that directory afterward.

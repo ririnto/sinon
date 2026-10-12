@@ -1,10 +1,11 @@
 {
   "name": "codex-app-server",
-  "version": "2026.10.12.07",
+  "version": "2026.10.12.08",
   "description": "MCP tools for inspecting and driving the running Codex app-server.",
   "author": {
     "name": "ririnto"
   },
   "license": "MIT",
-  "mcpServers": "./mcp.json"
+  "mcpServers": "./mcp.json",
+  "skills": "./skills"
 }

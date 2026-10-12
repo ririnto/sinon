@@ -8,35 +8,69 @@ import { openClient } from "./connection.mjs";
  */
 export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
   const client = await openClient({ signal });
+  // Inspections use a separate read-only socket so paused event intake cannot block their responses.
+  let inspector;
+  try {
+    inspector = await openClient({
+      signal: AbortSignal.any([signal, client.signal])
+    });
+  } catch (error) {
+    client.close();
+    throw error;
+  }
+  const initialized = Promise.withResolvers();
+  const waiting = AbortSignal.any([signal, client.signal, inspector.signal]);
+  const ended = once(waiting, "abort");
+  const output = (event) => emit(event, waiting);
   const current = new Map();
   const failures = new Map();
   const selected = (threadId) =>
     threadIds.includes("*") || threadIds.includes(threadId);
-  const transition = (threadId, status, extra = {}) => {
+  const transition = async (threadId, status, extra = {}) => {
     const previous = current.get(threadId) ?? null;
     if (previous === status) {
       return;
     }
     current.set(threadId, status);
     if (statuses.includes(status)) {
-      emit({ ...extra, event: "threadStatus", previous, status, threadId });
-    }
-  };
-  const terminalFailure = (threadId, turn) => {
-    if (turn?.status === "failed" && failures.get(threadId) !== turn.id) {
-      failures.set(threadId, turn.id);
-      transition(threadId, "failed", {
-        ...(turn.error ? { error: turn.error } : {}),
-        turnId: turn.id
+      await output({
+        ...extra,
+        event: "threadStatus",
+        previous,
+        status,
+        threadId
       });
     }
   };
-  const inspectionError = (threadId, error) => {
-    if (client.signal.aborted) {
+  const terminalFailure = async (threadId, turn, initial = false) => {
+    const seen = failures.get(threadId);
+    if (
+      turn?.status === "failed" &&
+      !(seen && (seen.latest === turn.id || seen.initial === turn.id))
+    ) {
+      // The snapshot can report a newer failure before older buffered notifications arrive.
+      failures.set(threadId, {
+        initial: initial ? turn.id : seen?.initial,
+        latest: turn.id
+      });
+      if (statuses.includes("failed")) {
+        await output({
+          ...(turn.error ? { error: turn.error } : {}),
+          event: "turnError",
+          previous: current.get(threadId) ?? null,
+          status: "failed",
+          threadId,
+          turnId: turn.id
+        });
+      }
+    }
+  };
+  const inspectionError = async (threadId, error) => {
+    if (waiting.aborted) {
       throw error;
     }
     if (!signal.aborted) {
-      emit({
+      await output({
         error: error.message,
         event: "inspection",
         status: "systemError",
@@ -46,25 +80,25 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
   };
   const inspect = async (threadId, initial = false) => {
     try {
-      const latest = await client.request("thread/turns/list", {
+      const latest = await inspector.request("thread/turns/list", {
         itemsView: "notLoaded",
         limit: 1,
         sortDirection: "desc",
         threadId
       });
-      terminalFailure(threadId, latest.data?.[0]);
+      await terminalFailure(threadId, latest.data?.[0], initial);
       if (initial) {
-        const { thread } = await client.request("thread/read", {
+        const { thread } = await inspector.request("thread/read", {
           includeTurns: false,
           threadId
         });
-        transition(
+        await transition(
           threadId,
           thread.status?.type ?? thread.status ?? "notLoaded"
         );
       }
     } catch (error) {
-      inspectionError(threadId, error);
+      await inspectionError(threadId, error);
     }
   };
   const handle = async (note) => {
@@ -77,23 +111,18 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
       if (status === "idle") {
         await inspect(threadId);
       }
-      transition(threadId, status);
+      await transition(threadId, status);
     } else if (note.method === "turn/completed") {
-      terminalFailure(threadId, note.params.turn);
+      await terminalFailure(threadId, note.params.turn);
     } else if (note.method === "error" && !note.params.willRetry) {
-      terminalFailure(threadId, {
+      await terminalFailure(threadId, {
         error: note.params.error,
         id: note.params.turnId,
         status: "failed"
       });
     }
   };
-  const initialized = Promise.withResolvers();
-  let pending = initialized.promise;
-  const failed = new AbortController();
-  const waiting = AbortSignal.any([signal, client.signal, failed.signal]);
-  const ended = once(waiting, "abort");
-  const notification = async ({ detail: note }) => {
+  const notification = async (note) => {
     if (
       !["thread/status/changed", "turn/completed", "error"].includes(
         note.method
@@ -101,45 +130,57 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
     ) {
       return;
     }
-    const previous = pending;
-    pending = (async () => {
-      try {
-        await previous;
-        if (!waiting.aborted) {
-          await handle(note);
-        }
-      } catch (error) {
-        failed.abort(error);
-      }
-    })();
-    await pending;
+    await initialized.promise;
+    if (!waiting.aborted) {
+      await handle(note);
+    }
   };
-  client.events.addEventListener("notification", notification);
+  const unsubscribe = client.listenNotifications(notification);
   try {
     if (!waiting.aborted) {
       let ids = threadIds;
       if (threadIds.includes("*")) {
         ids = [];
         try {
-          const loaded = await client.request("thread/loaded/list", {});
-          ids = loaded.data ?? [];
+          const cursors = new Set();
+          const page = async (cursor) => {
+            const loaded = await inspector.request(
+              "thread/loaded/list",
+              cursor ? { cursor } : {}
+            );
+            ids.push(...(loaded.data ?? []));
+            const next = loaded.nextCursor;
+            if (next && cursors.has(next)) {
+              throw new Error("Loaded-thread pagination repeated its cursor");
+            }
+            if (next && !waiting.aborted) {
+              cursors.add(next);
+              await page(next);
+            }
+          };
+          await page();
         } catch (error) {
-          inspectionError(null, error);
+          await inspectionError(null, error);
         }
       }
-      await Promise.all(ids.map((threadId) => inspect(threadId, true)));
+      for await (const threadId of new Set(ids)) {
+        if (waiting.aborted) {
+          break;
+        }
+        await inspect(threadId, true);
+      }
       initialized.resolve();
       if (!waiting.aborted) {
         await ended;
       }
     }
-    if (client.signal.aborted || failed.signal.aborted) {
-      throw failed.signal.reason ?? client.signal.reason;
+    if (client.signal.aborted || inspector.signal.aborted) {
+      throw client.signal.reason ?? inspector.signal.reason;
     }
   } finally {
-    client.events.removeEventListener("notification", notification);
+    unsubscribe();
     initialized.resolve();
     client.close();
-    await pending;
+    inspector.close();
   }
 };

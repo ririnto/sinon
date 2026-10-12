@@ -15,28 +15,6 @@ export const NATIVE_CLI_METHODS = new Set([
 ]);
 
 /**
- * Methods that dedicated tools own, so generated tools do not duplicate their guards.
- */
-export const CURATED_METHODS = new Set([
-  "initialize",
-  "mcpServer/tool/call",
-  "thread/compact/start",
-  "thread/fork",
-  "thread/goal/clear",
-  "thread/goal/get",
-  "thread/goal/set",
-  "thread/list",
-  "thread/loaded/list",
-  "thread/name/set",
-  "thread/read",
-  "thread/resume",
-  "thread/start",
-  "turn/interrupt",
-  "turn/start",
-  "turn/steer"
-]);
-
-/**
  * Keep usage reads with the Orchestrator.
  */
 export const USAGE_METHODS = new Set([

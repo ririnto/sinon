@@ -1,6 +1,6 @@
 {
   "name": "@sinon/codex-app-server",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "private": true,
   "description": "Stdio MCP access to the running Codex app-server Unix control socket.",
   "license": "MIT",
@@ -12,7 +12,8 @@
     "server.mjs",
     "monitor.mjs",
     "monitors/",
-    "lib/"
+    "lib/",
+    "skills/"
   ],
   "type": "module",
   "dependencies": {

@@ -31,7 +31,8 @@
       "license": "MIT",
       "name": "codex-app-server",
       "source": "./plugins/codex-app-server",
-      "version": "2026.10.12.07",
+      "skills": "./skills/",
+      "version": "2026.10.12.08",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/codex-app-server",
       "keywords": ["codex", "app-server", "mcp", "threads"],
       "repository": "https://github.com/ririnto/sinon"

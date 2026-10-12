@@ -13,6 +13,7 @@ try {
       "server.mjs",
       "monitor.mjs",
       "monitors",
+      "skills",
       "lib",
       "tests/server.test.mjs"
     ].map((file) =>

@@ -4,6 +4,7 @@ import { once } from "node:events";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
+import { PassThrough, Writable } from "node:stream";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -11,9 +12,17 @@ import { promisify } from "node:util";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import {
+  LoggingMessageNotificationSchema,
+  ToolListChangedNotificationSchema
+} from "@modelcontextprotocol/sdk/types.js";
 import { WebSocketServer } from "ws";
 
+import { watchThreads } from "../lib/monitor.mjs";
+import { createNativeSessions } from "../lib/native-session.mjs";
 import { closeQueues, enqueueMessage } from "../lib/queue.mjs";
+import { SessionTransport } from "../lib/session-transport.mjs";
 
 const serverPath = fileURLToPath(new URL("../server.mjs", import.meta.url));
 const monitorPath = fileURLToPath(new URL("../monitor.mjs", import.meta.url));
@@ -31,7 +40,7 @@ const SOURCE_KINDS = [
 ];
 
 const CATALOG = {
-  definitions: { Mode: { enum: ["a", "b"] } },
+  definitions: { Mode: { enum: ["a", "b", "#/definitions/literal"] } },
   oneOf: [
     {
       properties: {
@@ -126,7 +135,6 @@ const fixture = async (context, handler, options = {}) => {
       ...process.env,
       CODEX_APP_SERVER_SOCKET: socket,
       CODEX_BIN: options.catalog ? codexBin : path.join(directory, "absent"),
-      ...(options.methods ? { CODEX_APP_SERVER_METHODS: options.methods } : {}),
       NODE_USE_SYSTEM_CA: "1",
       npm_config_cache: path.join(directory, "npm-cache")
     },
@@ -197,7 +205,7 @@ const call = async (client, name, args = {}) => {
   };
 };
 
-test("lists fourteen self-describing tools and all sources without repairing metadata", async (t) => {
+test("lists self-describing curated tools and all sources without repairing metadata", async (t) => {
   const { client, requests } = await fixture(t, ({ reply }) => {
     reply({
       data: [{ id: "fixture-thread", preview: "Fixture", source: "exec" }]
@@ -238,6 +246,7 @@ test("packed executable includes and registers every feature module", async (t) 
     }
   );
   const [packed] = JSON.parse(stdout);
+  assert.ok(!packed.files.some((entry) => entry.path === "lib/raw-call.mjs"));
   for (const file of [
     "server.mjs",
     "monitor.mjs",
@@ -246,7 +255,11 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/connection.mjs",
     "lib/thread-tools.mjs",
     "lib/mcp-tool.mjs",
-    "lib/raw-call.mjs",
+    "lib/native-session.mjs",
+    "lib/session-transport.mjs",
+    "skills/thread-control/SKILL.md",
+    "skills/thread-control/assets/monitor.json",
+    "skills/thread-control/references/monitor.md",
     "lib/turn-tools.mjs",
     "lib/thread-admin.mjs",
     "lib/catalog.mjs",
@@ -290,8 +303,12 @@ test("packed executable includes and registers every feature module", async (t) 
       "codex_compact",
       "codex_mcp_tool",
       "codex_queue",
-      "codex_call",
-      "codex_methods"
+      "codex_methods",
+      "codex_fs_readFile",
+      "codex_config_write",
+      "codex_thread_delete",
+      "codex_account_rateLimitResetCredit_consume",
+      "codex_thread_read"
     ]
   );
   const proxied = await call(client, "codex_mcp_tool", {
@@ -311,11 +328,10 @@ test("packed executable includes and registers every feature module", async (t) 
     threadId: "fixture-ephemeral",
     tool: "fixture-tool"
   });
-  const raw = await call(client, "codex_call", {
-    method: "thread/read",
-    params: { threadId: "fixture-thread" }
+  const native = await call(client, "codex_thread_read", {
+    threadId: "fixture-thread"
   });
-  assert.deepEqual(raw.value, { fixture: "raw" });
+  assert.deepEqual(native.value, { fixture: "raw" });
   assert.deepEqual(requests.at(-1).params, { threadId: "fixture-thread" });
 });
 
@@ -477,11 +493,12 @@ test("closes rejected initialization connections and keeps reset-credit refusal 
         })
       );
     },
-    { failInitialize: true }
+    { catalog: CATALOG, failInitialize: true }
   );
-  const refused = await call(client, "codex_call", {
-    method: "account/rateLimitResetCredit/consume"
-  });
+  const refused = await call(
+    client,
+    "codex_account_rateLimitResetCredit_consume"
+  );
   assert.equal(refused.error, true);
   assert.match(refused.text, /requires a separate direct human instruction/u);
   assert.equal(requests.length, 0);
@@ -606,137 +623,267 @@ test("sends thin thread requests for fork, rename, goal, loaded list, and compac
   ]);
 });
 
-test("generates allowlisted tools from the installed schema and refuses guarded methods", async (t) => {
+test("derives every native tool with exact parameter schemas and conservative annotations", async (t) => {
   const { client, requests } = await fixture(
     t,
     ({ reply }) => reply({ ok: true }),
-    {
-      catalog: CATALOG,
-      methods: "fs,config,thread,account"
-    }
+    { catalog: CATALOG }
   );
   const { tools } = await client.listTools();
-  const names = tools.map((tool) => tool.name);
-  assert.ok(names.includes("codex_methods"));
-  assert.ok(names.includes("codex_fs_readFile"));
-  assert.ok(names.includes("codex_config_write"));
-  for (const refused of [
-    "codex_thread_delete",
-    "codex_account_rateLimitResetCredit_consume"
-  ]) {
-    assert.ok(!names.includes(refused), refused);
+  assert.equal(tools.length, 19);
+  assert.ok(!tools.some((tool) => tool.name === "codex_call"));
+  for (const method of CATALOG.oneOf.map(
+    (entry) => entry.properties.method.enum[0]
+  )) {
+    const tool = tools.find(
+      (item) => item.name === `codex_${method.replaceAll("/", "_")}`
+    );
+    assert.ok(tool, method);
+    assert.match(tool.description, new RegExp(method, "u"));
+    assert.match(tool.description, /class: (?:read|mutating)/u);
+    assert.match(tool.description, /writer/u);
+    assert.equal(
+      tool.annotations.destructiveHint,
+      !tool.annotations.readOnlyHint
+    );
   }
-  assert.equal(names.filter((name) => name === "codex_thread_read").length, 0);
-  assert.equal(
-    tools.find((tool) => tool.name === "codex_fs_readFile").annotations
-      .readOnlyHint,
-    true
-  );
-  assert.equal(
-    tools.find((tool) => tool.name === "codex_config_write").annotations
-      .readOnlyHint,
-    false
-  );
+  const readTool = tools.find((tool) => tool.name === "codex_fs_readFile");
+  assert.equal(readTool.annotations.readOnlyHint, true);
+  assert.deepEqual(readTool.inputSchema, CATALOG.oneOf[0].properties.params);
+  const writeTool = tools.find((tool) => tool.name === "codex_config_write");
+  assert.equal(writeTool.annotations.readOnlyHint, false);
+  assert.deepEqual(writeTool.inputSchema.$defs.Mode, CATALOG.definitions.Mode);
+  assert.equal(writeTool.inputSchema.properties.mode.$ref, "#/$defs/Mode");
   const read = await call(client, "codex_fs_readFile", { path: "/x" });
   assert.deepEqual(read.value, { ok: true });
   assert.deepEqual(requests.at(-1).params, { path: "/x" });
+  const literal = await call(client, "codex_config_write", {
+    mode: "#/definitions/literal"
+  });
+  assert.equal(literal.error, false);
+  assert.deepEqual(requests.at(-1).params, { mode: "#/definitions/literal" });
+  const before = requests.length;
   const invalid = await call(client, "codex_config_write", { mode: "c" });
   assert.equal(invalid.error, true);
-  const listed = await call(client, "codex_methods", {
-    method: "config/write"
-  });
-  assert.equal(listed.value[0].class, "mutating");
-  assert.deepEqual(listed.value[0].params.properties.mode.enum, ["a", "b"]);
-  const all = await call(client, "codex_methods");
-  assert.equal(
-    all.value.find((entry) => entry.method === "thread/read").tool,
-    "curated"
+  assert.equal(requests.length, before);
+  await Promise.all(
+    [
+      ["codex_thread_delete", /native codex archive/u],
+      [
+        "codex_account_rateLimitResetCredit_consume",
+        /separate direct human instruction/u
+      ]
+    ].map(async ([name, reason]) => {
+      const result = await call(client, name);
+      assert.equal(result.error, true);
+      assert.match(result.text, reason);
+      assert.equal(requests.length, before);
+    })
   );
-  const cleanup = await call(client, "codex_call", { method: "thread/delete" });
-  assert.equal(cleanup.error, true);
-  assert.match(cleanup.text, /native codex archive/u);
-  assert.equal(
-    requests.filter((request) => request.method === "thread/delete").length,
-    0
-  );
-});
-
-test("keeps generated tools opt-in while discovery follows the installed catalog", async (t) => {
-  const { client } = await fixture(t, ({ reply }) => reply({}), {
-    catalog: CATALOG
-  });
-  const { tools } = await client.listTools();
-  assert.equal(tools.length, 15);
-  assert.ok(tools.some((tool) => tool.name === "codex_methods"));
-  assert.ok(!tools.some((tool) => tool.name === "codex_fs_readFile"));
-  const listed = await call(client, "codex_methods", { prefix: "fs/" });
-  assert.deepEqual(
-    listed.value.map((entry) => entry.method),
-    ["fs/readFile"]
-  );
-  assert.equal(listed.value[0].tool, "codex_call");
+  const listed = await call(client, "codex_methods", { method: "thread/read" });
+  assert.equal(listed.value[0].tool, "codex_thread_read");
 });
 
 test("discovers definition-free catalogs with namespace-boundary filtering", async (t) => {
   const { client } = await fixture(t, ({ reply }) => reply({}), {
     catalog: {
       oneOf: ["fs/readFile", "fsSection/readFile"].map((method) => ({
-        properties: {
-          method: { enum: [method] },
-          params: { type: "object" }
-        }
+        properties: { method: { enum: [method] }, params: { type: "object" } }
       }))
     }
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 15);
-  const results = await Promise.all(
-    ["fs", "fs/"].map((prefix) => call(client, "codex_methods", { prefix }))
-  );
-  for (const result of results) {
-    assert.deepEqual(
-      result.value.map((entry) => entry.method),
-      ["fs/readFile"]
-    );
-  }
-});
-
-test("retains curated tools when a selected parameter schema cannot become an MCP tool", async (t) => {
+  assert.equal(tools.length, 16);
   await Promise.all(
-    [{ $ref: "#/definitions/Missing" }, { type: "string" }].map(
-      async (params) => {
-        const catalog = {
-          definitions: {},
-          oneOf: [{ properties: { method: { enum: ["future/read"] }, params } }]
-        };
-        const { client } = await fixture(t, ({ reply }) => reply({}), {
-          catalog,
-          methods: "future"
-        });
-        const { tools } = await client.listTools();
-        assert.equal(tools.length, 14);
-        assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
-      }
-    )
+    ["fs", "fs/"].map(async (prefix) => {
+      const result = await call(client, "codex_methods", { prefix });
+      assert.deepEqual(
+        result.value.map((entry) => entry.method),
+        ["fs/readFile"]
+      );
+    })
   );
 });
 
-test("retains curated tools when generated names collide with reserved tools", async (t) => {
+test("retains curated tools when native parameter references are missing", async (t) => {
   await Promise.all(
-    ["compact", "methods", "mcp/tool"].map(async (method) => {
+    [{ $ref: "#/definitions/Missing" }].map(async (params) => {
       const { client } = await fixture(t, ({ reply }) => reply({}), {
         catalog: {
           definitions: {},
-          oneOf: [{ properties: { method: { enum: [method] } } }]
-        },
-        methods: method
+          oneOf: [{ properties: { method: { enum: ["future/read"] }, params } }]
+        }
       });
       const { tools } = await client.listTools();
       assert.equal(tools.length, 14);
-      assert.ok(tools.some((tool) => tool.name === "codex_compact"));
-      assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+      assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
     })
   );
+});
+
+test("preserves boolean property schema semantics in SDK-compatible input schemas", async (t) => {
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: {
+        oneOf: [
+          {
+            properties: {
+              method: { enum: ["future/json"] },
+              params: {
+                properties: { denied: false, payload: true },
+                required: ["payload"],
+                type: "object"
+              }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      }
+    }
+  );
+  const { tools } = await client.listTools();
+  const tool = tools.find((entry) => entry.name === "codex_future_json");
+  assert.deepEqual(tool.inputSchema.properties, {
+    denied: { not: {} },
+    payload: {}
+  });
+  const invalid = await call(client, "codex_future_json", {
+    denied: null,
+    payload: true
+  });
+  assert.equal(invalid.error, true);
+  assert.equal(requests.length, 0);
+  const valid = await call(client, "codex_future_json", {
+    payload: ["native", { arbitrary: true }]
+  });
+  assert.equal(valid.error, false);
+  assert.deepEqual(requests.at(-1).params, {
+    payload: ["native", { arbitrary: true }]
+  });
+});
+
+test("wraps null and union parameters without changing native validation or dispatch", async (t) => {
+  const nullParams = { type: "null" };
+  const unionParams = {
+    oneOf: [
+      {
+        additionalProperties: false,
+        properties: { mode: { const: "a" } },
+        required: ["mode"],
+        type: "object"
+      },
+      { type: "string" }
+    ]
+  };
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: {
+        definitions: { Choice: unionParams },
+        oneOf: [
+          {
+            properties: {
+              method: { enum: ["future/null"] },
+              params: nullParams
+            },
+            required: ["method", "params"],
+            type: "object"
+          },
+          {
+            properties: {
+              method: { enum: ["future/union"] },
+              params: { $ref: "#/definitions/Choice" }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      }
+    }
+  );
+  const { tools } = await client.listTools();
+  assert.deepEqual(
+    tools.find((tool) => tool.name === "codex_future_null").inputSchema
+      .properties.params,
+    nullParams
+  );
+  assert.deepEqual(
+    tools.find((tool) => tool.name === "codex_future_union").inputSchema
+      .properties.params,
+    unionParams
+  );
+  const invalid = await call(client, "codex_future_null");
+  assert.equal(invalid.error, true);
+  assert.equal(requests.length, 0);
+  const nil = await call(client, "codex_future_null", { params: null });
+  assert.equal(nil.error, false);
+  assert.equal(requests.at(-1).params, null);
+  const union = await call(client, "codex_future_union", {
+    params: { mode: "a" }
+  });
+  assert.equal(union.error, false);
+  assert.deepEqual(requests.at(-1).params, { mode: "a" });
+  const before = requests.length;
+  const extra = await call(client, "codex_future_union", {
+    params: { extra: true, mode: "a" }
+  });
+  assert.equal(extra.error, true);
+  assert.equal(requests.length, before);
+});
+
+test("maps ambiguous and reserved names uniquely and stably across catalog changes", async (t) => {
+  const methods = [
+    "thread/goal/get",
+    "a/b",
+    "a_b",
+    "compact",
+    "methods",
+    "mcp/tool",
+    "method/new",
+    `future/${"long".repeat(40)}`
+  ];
+  const { client, schemaFile } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: {
+      oneOf: methods.map((method) => ({
+        properties: { method: { enum: [method] } }
+      }))
+    }
+  });
+  const firstResult = await call(client, "codex_methods");
+  const first = firstResult.value;
+  assert.equal(
+    first.find((entry) => entry.method === "thread/goal/get").tool,
+    "codex_thread_goal_get"
+  );
+  assert.equal(first.find((entry) => entry.method === "a/b").tool, "codex_a_b");
+  const names = first.map((entry) => entry.tool);
+  assert.equal(new Set(names).size, methods.length);
+  assert.ok(
+    names.every((name) => name.length <= 128 && /^[A-Za-z0-9_]+$/u.test(name))
+  );
+  const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
+  schemas.ClientRequest.oneOf.push({
+    properties: { method: { enum: ["a-b"] } }
+  });
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  const secondResult = await call(client, "codex_methods");
+  const second = secondResult.value;
+  assert.deepEqual(second.slice(0, first.length), first);
+  assert.ok(!names.includes(second.at(-1).tool));
+});
+
+test("rejects duplicate native method names atomically", async (t) => {
+  const entry = { properties: { method: { enum: ["future/read"] } } };
+  const { client } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: { oneOf: [entry, entry] }
+  });
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 14);
+  assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
 });
 
 test("propagates daemon active-turn and writer refusals without retrying", async (t) => {
@@ -786,7 +933,7 @@ test("serves only curated tools when the schema catalog is unavailable", async (
   });
   const { tools } = await client.listTools();
   assert.equal(tools.length, 14);
-  assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+  assert.ok(tools.some((tool) => tool.name === "codex_methods"));
 });
 
 test("queues active sends and delivers fresh turns in order, buffering early completion", async (t) => {
@@ -1166,51 +1313,33 @@ test("queue deadline bounds stalled initialization before delivery", async (t) =
   );
 });
 
-test("validates native raw params and protocol direction before opening a socket", async (t) => {
-  const serverRequests = {
-    oneOf: [
-      {
-        properties: {
-          method: { enum: ["item/commandExecution/requestApproval"] }
-        }
-      }
-    ]
-  };
-  const serverNotifications = {
-    oneOf: [
-      {
-        properties: {
-          method: { enum: ["thread/status/changed"] },
-          params: { type: "object" }
-        }
-      }
-    ]
-  };
-  const clientNotifications = {
-    oneOf: [{ properties: { method: { enum: ["initialized"] } } }]
-  };
+const direction = (method) => ({
+  oneOf: [{ properties: { method: { enum: [method] } } }]
+});
+
+test("validates native parameters and keeps non-client directions discovery-only", async (t) => {
   const { client, requests } = await fixture(
     t,
     ({ reply }) => reply({ ok: true }),
     {
       catalog: CATALOG,
-      clientNotifications,
-      serverNotifications,
-      serverRequests
+      clientNotifications: direction("initialized"),
+      serverNotifications: direction("thread/status/changed"),
+      serverRequests: direction("item/commandExecution/requestApproval")
     }
   );
   await Promise.all(
     [
-      { method: "config/write", params: { mode: "new-invalid" } },
-      { method: "fs/readFile" },
-      { method: "fs/readFile", params: { path: 2 } },
-      { method: "initialized" },
-      { method: "item/commandExecution/requestApproval" },
-      { method: "thread/status/changed" },
-      { method: "absent/method" }
-    ].map(async (args) => {
-      const result = await call(client, "codex_call", args);
-      assert.equal(result.error, true, JSON.stringify(args));
+      ["codex_config_write", { mode: "invalid" }],
+      ["codex_fs_readFile", {}],
+      ["codex_fs_readFile", { path: 2 }],
+      ["codex_initialized", {}],
+      ["codex_item_commandExecution_requestApproval", {}],
+      ["codex_thread_status_changed", {}],
+      ["codex_absent_method", {}]
+    ].map(async ([name, args]) => {
+      const result = await call(client, name, args);
+      assert.equal(result.error, true);
       assert.equal(requests.length, 0);
     })
   );
@@ -1221,138 +1350,419 @@ test("validates native raw params and protocol direction before opening a socket
       ["clientNotification", "initialized"]
     ].map(async ([kind, method]) => {
       const result = await call(client, "codex_methods", { kind, method });
-      assert.equal(result.value[0].method, method);
       assert.equal(result.value[0].tool, "discovery_only");
     })
   );
-  const valid = await call(client, "codex_call", {
-    method: "config/write",
-    params: { extra: true, mode: "b" }
+  const valid = await call(client, "codex_config_write", {
+    extra: true,
+    mode: "b"
   });
   assert.deepEqual(valid.value, { ok: true });
   assert.deepEqual(requests.at(-1).params, { extra: true, mode: "b" });
 });
 
-test("shares the process-local schema cache and refreshes discovery and validation on version changes", async (t) => {
-  const { client, requests, schemaFile, versionFile, generatedFile } =
-    await fixture(t, ({ reply }) => reply({ ok: true }), {
+test("refreshes native tools and notifications on version and same-version schema changes", async (t) => {
+  const { client, requests, schemaFile, versionFile } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
       catalog: {
         ...CATALOG,
         definitions: {
           ...CATALOG.definitions,
           Unrelated: { description: "unrelated".repeat(10_000), type: "string" }
-        },
-        oneOf: [
-          ...CATALOG.oneOf,
-          {
-            properties: {
-              method: { enum: ["model/list"] },
-              params: {
-                properties: {
-                  cursor: { type: "string" },
-                  limit: { minimum: 1, type: "integer" }
-                },
-                type: "object"
-              }
-            },
-            required: ["method", "params"],
-            type: "object"
-          }
-        ]
-      },
-      methods: "config"
-    });
-  const beforeDiscovery = await call(client, "codex_methods", {
+        }
+      }
+    }
+  );
+  let changes = 0;
+  client.setNotificationHandler(ToolListChangedNotificationSchema, () => {
+    changes += 1;
+  });
+  assert.equal(client.getServerCapabilities().tools.listChanged, true);
+  const before = await call(client, "codex_methods", {
     method: "config/write"
   });
-  assert.deepEqual(beforeDiscovery.value[0].params.properties.mode.enum, [
-    "a",
-    "b"
-  ]);
-  assert.ok(JSON.stringify(beforeDiscovery.value[0].params).length < 1000);
-  assert.equal(beforeDiscovery.value[0].params.$defs, undefined);
-  await call(client, "codex_call", {
-    method: "model/list",
-    params: { cursor: "opaque-native-cursor", limit: 7 }
-  });
-  assert.deepEqual(requests.at(-1).params, {
-    cursor: "opaque-native-cursor",
-    limit: 7
-  });
-  await call(client, "codex_call", { method: "model/list", params: {} });
-  assert.deepEqual(requests.at(-1).params, {});
-  await Promise.all([
-    call(client, "codex_methods"),
-    call(client, "codex_call", {
-      method: "config/write",
-      params: { mode: "a" }
-    })
-  ]);
-  const beforeGeneration = await readFile(generatedFile, "utf-8");
-  assert.equal(beforeGeneration.trim().split("\n").length, 1);
+  assert.ok(JSON.stringify(before.value[0].params).length < 1000);
+  assert.equal(before.value[0].params.$defs.Unrelated, undefined);
   const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
   schemas.ClientRequest.definitions.Mode.enum.push("future");
-  schemas.ClientRequest.oneOf.push({
-    properties: {
-      method: { enum: ["future/new"] },
-      params: {
-        additionalProperties: false,
-        properties: { count: { minimum: 1, type: "integer" } },
-        required: ["count"],
-        type: "object"
-      }
+  schemas.ClientRequest.oneOf.push(
+    {
+      properties: {
+        method: { enum: ["future/new"] },
+        params: {
+          additionalProperties: false,
+          properties: { count: { minimum: 1, type: "integer" } },
+          required: ["count"],
+          type: "object"
+        }
+      },
+      required: ["method", "params"],
+      type: "object"
     },
-    required: ["method", "params"],
-    type: "object"
-  });
+    {
+      properties: {
+        method: { enum: ["command/exec/newNative"] },
+        params: { type: "object" }
+      },
+      required: ["method", "params"],
+      type: "object"
+    }
+  );
   await writeFile(schemaFile, JSON.stringify(schemas));
-  await writeFile(versionFile, "fixture-cli 2");
-  const discovered = await call(client, "codex_methods", {
-    method: "future/new"
-  });
-  assert.equal(discovered.value[0].tool, "codex_call");
-  assert.deepEqual(discovered.value[0].params.required, ["count"]);
-  const refreshedDiscovery = await call(client, "codex_methods", {
-    method: "config/write"
-  });
-  assert.deepEqual(refreshedDiscovery.value[0].params.properties.mode.enum, [
-    "a",
-    "b",
-    "future"
-  ]);
-  assert.ok(JSON.stringify(refreshedDiscovery.value[0].params).length < 1000);
-  assert.equal(refreshedDiscovery.value[0].params.$defs, undefined);
-  const updated = await call(client, "codex_call", {
-    method: "config/write",
-    params: { mode: "future" }
-  });
+  const { tools } = await client.listTools();
+  assert.ok(tools.some((tool) => tool.name === "codex_future_new"));
+  await t.waitFor(() => assert.equal(changes, 1));
+  const updated = await call(client, "codex_config_write", { mode: "future" });
   assert.equal(updated.error, false);
-  const before = requests.length;
-  const invalid = await call(client, "codex_call", {
-    method: "future/new",
-    params: { count: 0, extra: true }
+  const requestCount = requests.length;
+  const invalid = await call(client, "codex_future_new", {
+    count: 0,
+    extra: true
   });
   assert.equal(invalid.error, true);
-  assert.equal(requests.length, before);
-  const future = await call(client, "codex_call", {
-    method: "future/new",
-    params: { count: 1 }
-  });
+  assert.equal(requests.length, requestCount);
+  const future = await call(client, "codex_future_new", { count: 1 });
   assert.equal(future.error, false);
-  const afterGeneration = await readFile(generatedFile, "utf-8");
-  assert.equal(afterGeneration.trim().split("\n").length, 2);
-  const { tools } = await client.listTools();
-  assert.ok(!tools.some((tool) => tool.name === "codex_future_new"));
+  const futureCommand = await call(client, "codex_command_exec_newNative", {});
+  assert.equal(futureCommand.error, false);
+  assert.equal(requests.at(-1).method, "command/exec/newNative");
+  await client.listTools();
+  assert.equal(changes, 1);
+  await writeFile(versionFile, "fixture-cli 2");
+  const versionChanged = await call(client, "codex_config_write", {
+    mode: "future"
+  });
+  assert.equal(versionChanged.error, false);
+  await t.waitFor(() => assert.equal(changes, 2));
+  schemas.ClientRequest.oneOf = schemas.ClientRequest.oneOf.filter(
+    (entry) => entry.properties.method.enum[0] !== "future/new"
+  );
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  const removed = await client.listTools();
+  assert.ok(!removed.tools.some((tool) => tool.name === "codex_future_new"));
+  const refused = await call(client, "codex_future_new", { count: 1 });
+  assert.equal(refused.error, true);
 });
 
-test("refuses raw calls offline when native validation is unavailable", async (t) => {
-  const { client, requests } = await fixture(t, ({ reply }) => reply({}));
-  const result = await call(client, "codex_call", {
-    method: "thread/read",
-    params: { threadId: "fixture" }
+test("refuses native calls offline when current schema validation is unavailable", async (t) => {
+  const { client, requests, versionFile } = await fixture(
+    t,
+    ({ reply }) => reply({}),
+    { catalog: CATALOG }
+  );
+  await rm(versionFile);
+  const result = await call(client, "codex_thread_read", {
+    threadId: "fixture"
   });
   assert.equal(result.error, true);
   assert.equal(requests.length, 0);
+  const refused = await call(
+    client,
+    "codex_account_rateLimitResetCredit_consume"
+  );
+  assert.equal(refused.error, true);
+  assert.match(refused.text, /separate direct human instruction/u);
+  assert.equal(requests.length, 0);
+});
+
+test("rejects discovery after valid generation fails catalog derivation", async (t) => {
+  const { client, schemaFile } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: CATALOG
+  });
+  const before = await client.listTools();
+  const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
+  const method = { properties: { method: { enum: ["future/duplicate"] } } };
+  schemas.ClientRequest.oneOf.push(method, method);
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  const discovery = await call(client, "codex_methods");
+  assert.equal(discovery.error, true);
+  assert.match(discovery.text, /Duplicated native tool name/u);
+  const after = await client.listTools();
+  assert.deepEqual(after.tools, before.tools);
+});
+
+test("cancels native calls during schema refresh before opening a socket", async (t) => {
+  const { client, requests, versionFile } = await fixture(
+    t,
+    ({ reply }) => reply({}),
+    { catalog: CATALOG }
+  );
+  await writeFile(versionFile, "fixture-cli 2");
+  const controller = new AbortController();
+  const pending = client.callTool(
+    { arguments: { mode: "a" }, name: "codex_config_write" },
+    undefined,
+    { signal: controller.signal }
+  );
+  const rejected = assert.rejects(pending);
+  controller.abort(new Error("Fixture cancellation"));
+  await rejected;
+  await client.listTools();
+  assert.equal(requests.length, 0);
+});
+
+test("cancellation closes a stalled native initialize connection without dispatching", async (t) => {
+  const { client, connections, requests } = await fixture(t, () => {}, {
+    catalog: CATALOG,
+    failInitialize: true
+  });
+  const controller = new AbortController();
+  const pending = client.callTool(
+    { arguments: { mode: "a" }, name: "codex_config_write" },
+    undefined,
+    { signal: controller.signal }
+  );
+  const rejected = assert.rejects(pending);
+  await t.waitFor(() => assert.equal(requests.length, 1), { timeout: 2000 });
+  controller.abort(new Error("Fixture cancellation"));
+  await rejected;
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  assert.deepEqual(
+    requests.map((request) => request.method),
+    ["initialize"]
+  );
+});
+
+const commandCatalog = {
+  oneOf: [
+    "command/exec",
+    "command/exec/write",
+    "command/exec/resize",
+    "command/exec/terminate",
+    "fs/watch",
+    "fs/unwatch"
+  ].map((method) => ({
+    properties: { method: { enum: [method] }, params: { type: "object" } },
+    required: ["method", "params"],
+    type: "object"
+  }))
+};
+
+test("keeps interactive command follow-ups on their originating connection and returns streamed output", async (t) => {
+  let owner;
+  let complete;
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply, ws }) => {
+      if (message.method === "command/exec") {
+        owner = ws;
+        complete = reply;
+      } else {
+        assert.equal(ws, owner);
+        reply({});
+        if (message.method === "command/exec/terminate") {
+          ws.send(
+            JSON.stringify({
+              method: "command/exec/outputDelta",
+              params: {
+                capReached: false,
+                deltaBase64: "Zml4dHVyZQ==",
+                processId: "fixture-process",
+                stream: "stdout"
+              }
+            })
+          );
+          complete({ exitCode: 0, stderr: "", stdout: "" });
+        }
+      }
+    },
+    { catalog: commandCatalog }
+  );
+  const execution = call(client, "codex_command_exec", {
+    command: ["fixture"],
+    processId: "fixture-process",
+    streamStdin: true,
+    streamStdoutStderr: true
+  });
+  await t.waitFor(() => assert.ok(owner), { timeout: 2000 });
+  const written = await call(client, "codex_command_exec_write", {
+    deltaBase64: "eA==",
+    processId: "fixture-process"
+  });
+  assert.equal(written.error, false);
+  const resized = await call(client, "codex_command_exec_resize", {
+    processId: "fixture-process",
+    size: { cols: 80, rows: 24 }
+  });
+  assert.equal(resized.error, false);
+  const terminated = await call(client, "codex_command_exec_terminate", {
+    processId: "fixture-process"
+  });
+  assert.equal(terminated.error, false);
+  const result = await execution;
+  assert.equal(result.error, false);
+  assert.equal(
+    result.value.notifications[0].params.deltaBase64,
+    "Zml4dHVyZQ=="
+  );
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  assert.equal(
+    requests.filter((request) => request.method === "initialize").length,
+    1
+  );
+  const absent = await call(client, "codex_command_exec_write", {
+    processId: "fixture-process"
+  });
+  assert.equal(absent.error, true);
+  assert.equal(connections.size, 0);
+});
+
+test("cancelling an active native command releases its connection and process identifier", async (t) => {
+  const { client, connections, requests } = await fixture(t, () => {}, {
+    catalog: commandCatalog
+  });
+  const controller = new AbortController();
+  const pending = client.callTool(
+    {
+      arguments: { command: ["fixture"], processId: "fixture-cancel" },
+      name: "codex_command_exec"
+    },
+    undefined,
+    { signal: controller.signal }
+  );
+  const rejected = assert.rejects(pending);
+  await t.waitFor(
+    () =>
+      assert.ok(requests.some((request) => request.method === "command/exec")),
+    { timeout: 2000 }
+  );
+  controller.abort(new Error("Fixture cancellation"));
+  await rejected;
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const absent = await call(client, "codex_command_exec_write", {
+    processId: "fixture-cancel"
+  });
+  assert.equal(absent.error, true);
+  assert.equal(connections.size, 0);
+  assert.equal(
+    requests.filter((request) => request.method === "command/exec").length,
+    1
+  );
+});
+
+test("keeps watch notifications live until native unwatch or MCP transport closure", async (t) => {
+  let owner;
+  const { client, connections } = await fixture(
+    t,
+    ({ message, reply, ws }) => {
+      if (message.method === "fs/watch") {
+        owner = ws;
+      } else {
+        assert.equal(ws, owner);
+      }
+      reply({});
+    },
+    { catalog: commandCatalog }
+  );
+  const events = [];
+  client.setNotificationHandler(
+    LoggingMessageNotificationSchema,
+    ({ params }) => {
+      events.push(params.data);
+    }
+  );
+  const started = await call(client, "codex_fs_watch", {
+    path: "/fixture",
+    watchId: "fixture-watch"
+  });
+  assert.equal(started.error, false);
+  assert.equal(connections.size, 1);
+  owner.send(
+    JSON.stringify({
+      method: "fs/changed",
+      params: { paths: ["/fixture"], watchId: "fixture-watch" }
+    })
+  );
+  await t.waitFor(() => assert.equal(events.length, 1), { timeout: 2000 });
+  const removed = await call(client, "codex_fs_unwatch", {
+    watchId: "fixture-watch"
+  });
+  assert.equal(removed.error, false);
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const watched = await call(client, "codex_fs_watch", {
+    path: "/fixture",
+    watchId: "fixture-watch"
+  });
+  assert.equal(watched.error, false);
+  await client.close();
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+});
+
+test("retains the last catalog atomically after a failed refresh and refuses stale validation", async (t) => {
+  const { client, requests, schemaFile } = await fixture(
+    t,
+    ({ reply }) => reply({}),
+    { catalog: CATALOG }
+  );
+  const before = await client.listTools();
+  await writeFile(schemaFile, "invalid fixture schema");
+  const after = await client.listTools();
+  assert.deepEqual(after.tools, before.tools);
+  const result = await call(client, "codex_fs_readFile", { path: "/x" });
+  assert.equal(result.error, true);
+  assert.equal(requests.length, 0);
+});
+
+test("watch logging respects stdout backpressure and SDK closure releases sockets and drains", async (t) => {
+  const { socket, connections } = await fixture(t, ({ reply }) => reply({}));
+  const previousSocket = process.env.CODEX_APP_SERVER_SOCKET;
+  process.env.CODEX_APP_SERVER_SOCKET = socket;
+  let finishWrite;
+  const stdin = new PassThrough();
+  const stdout = new Writable({
+    highWaterMark: 64,
+    write(_bytes, _encoding, done) {
+      finishWrite = done;
+    }
+  });
+  const server = new Server(
+    { name: "fixture", version: "1" },
+    { capabilities: { logging: {} } }
+  );
+  const native = createNativeSessions(server);
+  const transport = new SessionTransport(native.close, stdin, stdout, {
+    maxBufferSize: 1024
+  });
+  t.after(async () => {
+    native.close();
+    await server.close();
+    stdin.destroy();
+    stdout.destroy();
+    if (previousSocket === undefined) {
+      delete process.env.CODEX_APP_SERVER_SOCKET;
+    } else {
+      process.env.CODEX_APP_SERVER_SOCKET = previousSocket;
+    }
+  });
+  await server.connect(transport);
+  await native.request("fs/watch", {
+    path: "/fixture",
+    watchId: "backpressure"
+  });
+  const [owner] = connections;
+  const note = JSON.stringify({
+    method: "fs/changed",
+    params: { paths: ["/fixture"], watchId: "backpressure" }
+  });
+  for (let count = 0; count < 200; count += 1) {
+    owner.send(note);
+  }
+  await t.waitFor(() => assert.equal(stdout.listenerCount("drain"), 1));
+  const buffered = stdout.writableLength;
+  await delay(50);
+  assert.equal(stdout.writableLength, buffered);
+  assert.equal(stdout.listenerCount("drain"), 1);
+  stdin.write(Buffer.alloc(1025));
+  await t.waitFor(() => assert.equal(connections.size, 0));
+  assert.equal(stdout.listenerCount("drain"), 0);
+  assert.equal(stdin.readableEnded, false);
+  await assert.rejects(
+    native.request("fs/watch", { path: "/fixture", watchId: "closed" }),
+    /closed/u
+  );
+  finishWrite();
 });
 
 /**
@@ -1462,7 +1872,7 @@ test("packaged monitor watches configured native transitions and classifies term
 });
 
 test("monitor status filters and startup deadlines preserve read-only behavior", async (t) => {
-  const { connections, socket } = await fixture(t, ({ reply }) =>
+  const { connections, requests, socket } = await fixture(t, ({ reply }) =>
     reply({ thread: { status: { type: "idle" }, turns: [] } })
   );
   const { events, exited } = monitor(t, socket, [
@@ -1473,7 +1883,11 @@ test("monitor status filters and startup deadlines preserve read-only behavior",
     "--timeout-seconds",
     "0.4"
   ]);
-  await t.waitFor(() => assert.equal(connections.size, 1), { timeout: 2000 });
+  await t.waitFor(
+    () =>
+      assert.ok(requests.some((request) => request.method === "thread/read")),
+    { timeout: 2000 }
+  );
   for (const ws of connections) {
     ws.send(
       JSON.stringify({
@@ -1487,6 +1901,225 @@ test("monitor status filters and startup deadlines preserve read-only behavior",
     events.map((event) => event.status),
     ["systemError"]
   );
+});
+
+test("wildcard monitor snapshots every loaded page and reports distinct turn errors without unchanged events", async (t) => {
+  const error = { code: "model_not_found", message: "Fixture model is absent" };
+  const { connections, requests, socket } = await fixture(
+    t,
+    ({ message, reply }) => {
+      if (message.method === "thread/loaded/list") {
+        reply(
+          message.params.cursor
+            ? { data: ["second", "third"], nextCursor: null }
+            : { data: ["first"], nextCursor: "next-page" }
+        );
+      } else if (message.method === "thread/read") {
+        reply({
+          thread: {
+            status: {
+              type: message.params.threadId === "third" ? "systemError" : "idle"
+            }
+          }
+        });
+      } else {
+        reply({
+          data:
+            message.params.threadId === "second"
+              ? [{ error, id: "initial-failure", status: "failed" }]
+              : []
+        });
+      }
+    }
+  );
+  const { child, events, exited } = monitor(t, socket, [
+    "--thread",
+    "*",
+    "--status",
+    "idle",
+    "--status",
+    "failed",
+    "--status",
+    "systemError"
+  ]);
+  await t.waitFor(() => assert.equal(events.length, 4), { timeout: 2000 });
+  assert.deepEqual(
+    requests
+      .filter((request) => request.method === "thread/loaded/list")
+      .map((request) => request.params),
+    [{}, { cursor: "next-page" }]
+  );
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "threadStatus")
+      .map((event) => event.threadId),
+    ["first", "second", "third"]
+  );
+  const [owner] = connections;
+  for (const threadId of ["first", "second", "third"]) {
+    owner.send(
+      JSON.stringify({
+        method: "thread/status/changed",
+        params: {
+          status: { type: threadId === "third" ? "systemError" : "idle" },
+          threadId
+        }
+      })
+    );
+  }
+  await delay(50);
+  assert.equal(events.length, 4);
+  for (const turnId of [
+    "later-failure",
+    "consecutive-failure",
+    "consecutive-failure"
+  ]) {
+    owner.send(
+      JSON.stringify({
+        method: "error",
+        params: { error, threadId: "second", turnId, willRetry: false }
+      })
+    );
+  }
+  await t.waitFor(() => assert.equal(events.length, 6), { timeout: 2000 });
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "turnError")
+      .map((event) => event.turnId),
+    ["initial-failure", "later-failure", "consecutive-failure"]
+  );
+  assert.ok(
+    events
+      .filter((event) => event.event === "turnError")
+      .every((event) => event.error.code === "model_not_found")
+  );
+  child.kill("SIGTERM");
+  assert.deepEqual(await exited, [0, null]);
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+});
+
+test("monitor deduplicates snapshot failures across an older startup notification backlog", async (t) => {
+  const error = { code: "model_not_found", message: "Fixture model is absent" };
+  let injected = false;
+  const { connections, socket } = await fixture(
+    t,
+    ({ message, reply, connections: targets }) => {
+      if (message.method === "thread/turns/list") {
+        if (!injected) {
+          injected = true;
+          const [owner] = targets;
+          for (const id of ["older", "newer"]) {
+            owner.send(
+              JSON.stringify({
+                method: "turn/completed",
+                params: {
+                  threadId: "watched",
+                  turn: { error, id, status: "failed" }
+                }
+              })
+            );
+          }
+        }
+        reply({ data: [{ error, id: "newer", status: "failed" }] });
+      } else {
+        reply({ thread: { status: "idle" } });
+      }
+    }
+  );
+  const { child, events, exited } = monitor(t, socket, ["--thread", "watched"]);
+  await t.waitFor(() => assert.equal(events.length, 3));
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "turnError")
+      .map((event) => event.turnId),
+    ["newer", "older"]
+  );
+  const [owner] = connections;
+  for (const id of ["newer", "future", "newer"]) {
+    owner.send(
+      JSON.stringify({
+        method: "turn/completed",
+        params: { threadId: "watched", turn: { error, id, status: "failed" } }
+      })
+    );
+  }
+  owner.send(
+    JSON.stringify({
+      method: "thread/status/changed",
+      params: { status: "idle", threadId: "watched" }
+    })
+  );
+  await t.waitFor(() => assert.equal(events.length, 4));
+  await delay(50);
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "turnError")
+      .map((event) => event.turnId),
+    ["newer", "older", "future"]
+  );
+  child.kill("SIGTERM");
+  assert.deepEqual(await exited, [0, null]);
+  await t.waitFor(() => assert.equal(connections.size, 0));
+});
+
+test("monitor backpressure stops notification work and cancellation releases both read-only sockets", async (t) => {
+  const { connections, requests, socket } = await fixture(
+    t,
+    ({ message, reply }) => {
+      reply(
+        message.method === "thread/read"
+          ? { thread: { status: "active" } }
+          : { data: [] }
+      );
+    }
+  );
+  const previousSocket = process.env.CODEX_APP_SERVER_SOCKET;
+  process.env.CODEX_APP_SERVER_SOCKET = socket;
+  const stop = new AbortController();
+  const events = [];
+  const done = (async () => {
+    try {
+      await watchThreads({
+        emit: async (event, signal) => {
+          events.push(event);
+          await once(signal, "abort");
+        },
+        signal: stop.signal,
+        statuses: ["active", "idle", "failed", "systemError"],
+        threadIds: ["backpressure"]
+      });
+    } catch (error) {
+      assert.equal(stop.signal.aborted, true, error.message);
+    }
+  })();
+  t.after(async () => {
+    stop.abort();
+    await done;
+    if (previousSocket === undefined) {
+      delete process.env.CODEX_APP_SERVER_SOCKET;
+    } else {
+      process.env.CODEX_APP_SERVER_SOCKET = previousSocket;
+    }
+  });
+  await t.waitFor(() => assert.equal(events.length, 1));
+  assert.equal(connections.size, 2);
+  const reads = requests.length;
+  const [owner] = connections;
+  for (let count = 0; count < 200; count += 1) {
+    owner.send(
+      JSON.stringify({
+        method: "thread/status/changed",
+        params: { status: "idle", threadId: "backpressure" }
+      })
+    );
+  }
+  await delay(50);
+  assert.equal(events.length, 1);
+  assert.equal(requests.length, reads);
+  stop.abort();
+  await done;
+  await t.waitFor(() => assert.equal(connections.size, 0));
+  assert.equal(events.length, 1);
 });
 
 test("monitor reports socket loss as a transport systemError and exits without reconnecting", async (t) => {
@@ -1597,15 +2230,17 @@ test("monitor isolates failed thread inspections while other selected threads ke
 test("monitor drops startup notifications after cancellation", async (t) => {
   const { socket, requests, connections } = await fixture(
     t,
-    ({ message, ws }) => {
+    ({ message, connections: targets }) => {
       if (message.method === "thread/turns/list") {
         for (const type of ["active", "idle"]) {
-          ws.send(
-            JSON.stringify({
-              method: "thread/status/changed",
-              params: { status: { type }, threadId: "watched" }
-            })
-          );
+          for (const ws of targets) {
+            ws.send(
+              JSON.stringify({
+                method: "thread/status/changed",
+                params: { status: { type }, threadId: "watched" }
+              })
+            );
+          }
         }
       }
     }
@@ -1623,7 +2258,7 @@ test("monitor drops startup notifications after cancellation", async (t) => {
   assert.deepEqual(events, []);
   assert.deepEqual(
     requests.map((request) => request.method),
-    ["initialize", "thread/turns/list"]
+    ["initialize", "initialize", "thread/turns/list"]
   );
   await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
 });

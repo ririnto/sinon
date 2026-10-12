@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { once } from "node:events";
 import { parseArgs } from "node:util";
 
 import { watchThreads } from "./lib/monitor.mjs";
@@ -56,7 +57,11 @@ const main = async () => {
   const timer = timeout === null ? null : setTimeout(stop, timeout * 1000);
   try {
     await watchThreads({
-      emit: (event) => process.stdout.write(`${JSON.stringify(event)}\n`),
+      emit: async (event, signal) => {
+        if (!process.stdout.write(`${JSON.stringify(event)}\n`)) {
+          await once(process.stdout, "drain", { signal });
+        }
+      },
       signal: stopped.signal,
       statuses,
       threadIds
