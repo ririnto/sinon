@@ -21,8 +21,10 @@ const defaultSocket = () =>
 
 /**
  * Connect over the Unix control socket, perform the initialize handshake, and return a JSON-RPC client.
+ * An optional abort signal closes the socket even while initialization is pending.
  */
-const openClient = async () => {
+export const openClient = async ({ signal } = {}) => {
+  signal?.throwIfAborted();
   const ws = new WebSocket("ws://localhost/", {
     createConnection: () => createConnection({ path: defaultSocket() }),
     maxPayload: 0
@@ -49,7 +51,15 @@ const openClient = async () => {
     fail(error);
     ws.terminate();
   });
-  ws.on("close", () => fail(new Error("App-server connection closed")));
+  const abort = () => {
+    fail(signal.reason);
+    ws.terminate();
+  };
+  signal?.addEventListener("abort", abort, { once: true });
+  ws.on("close", () => {
+    signal?.removeEventListener("abort", abort);
+    fail(new Error("App-server connection closed"));
+  });
   let nextId = 0;
   ws.on("message", async (data) => {
     let message;
@@ -74,6 +84,7 @@ const openClient = async () => {
       } catch (error) {
         fail(error);
       }
+      return;
     }
     emit("notification", message);
   });
@@ -81,11 +92,11 @@ const openClient = async () => {
     closed.signal.throwIfAborted();
     nextId += 1;
     const id = nextId;
-    const signal = AbortSignal.any([
+    const requestSignal = AbortSignal.any([
       AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       closed.signal
     ]);
-    const response = once(events, `response:${id}`, { signal });
+    const response = once(events, `response:${id}`, { signal: requestSignal });
     try {
       const [[{ detail: message }]] = await Promise.all([
         response,
