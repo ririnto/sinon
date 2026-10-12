@@ -22,3 +22,8 @@ Keep active-thread sends on the process-local queue unless supported steering is
 Recheck idle state before queued delivery and preserve native writer refusals without retries.
 Keep delivery receipts bounded and close queue connections on cancellation, timeout, or transport closure.
 Never interpret refused server requests as completion notifications.
+
+Keep packaged monitors on the native Claude Code Monitor contract.
+Use read-only native status notifications and event-driven reads, without resuming watched threads.
+Keep transport failures distinct from thread systemError and terminal failed outcomes.
+Never interpret refused server requests as status notifications.
