@@ -7,7 +7,7 @@
     "check:codegraph": "vitest run scripts/tests/codegraph",
     "check:codex-app-server": "node plugins/codex-app-server/tests/check.mjs",
     "check:lint-rules": "vitest run plugins/harness/tooling/pnpm",
-    "check:marketplace": "tsx scripts/marketplace/generate.ts --check && vitest run scripts/tests/marketplace",
+    "check:marketplace": "node --import tsx scripts/marketplace/generate.ts --check && vitest run scripts/tests/marketplace",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:promtool-release": "vitest run scripts/tests/promtool/release.test.ts",
     "check:sdd": "vitest run scripts/tests/sdd",
@@ -16,7 +16,7 @@
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "fix:ultracite": "ultracite fix",
-    "marketplace:generate": "tsx scripts/marketplace/generate.ts",
+    "marketplace:generate": "node --import tsx scripts/marketplace/generate.ts",
     "test:promtool": "tsx scripts/tests/promtool/run.ts"
   },
   "devDependencies": {
