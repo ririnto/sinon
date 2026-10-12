@@ -15,15 +15,16 @@ interface Violation {
 
 const violations = (
   rule: Rule,
-  input: string
+  input: string,
+  name = "input"
 ): { fixed: string; found: Violation[] } => {
-  const [name] = rule.names;
+  const [ruleName] = rule.names;
   const errors =
     lint({
-      config: { default: false, [name ?? ""]: true },
+      config: { default: false, [ruleName ?? ""]: true },
       customRules: [rule],
-      strings: { input }
-    }).input ?? [];
+      strings: { [name]: input }
+    })[name] ?? [];
   return {
     fixed: applyFixes(input, errors),
     found: errors.map((error) => ({
@@ -169,7 +170,6 @@ describe("docs/sentence-per-line", () => {
       43
     ],
     ["a list item", "- Item one. Item two follows.\n", 11],
-    ["a blockquote", "> Quoted one. Quoted two follows.\n", 13],
     ["three sentences", "One here. Two here. Three here.\n", 9],
     ["astral prose before code", "😀 `code` First. Second.\n", 16]
   ])("rejects multiple sentences in %s", (_name, input, column) => {
@@ -196,13 +196,27 @@ describe("docs/sentence-per-line", () => {
       found: []
     });
   });
-  test("checks blockquote prose surrounding a protected table", () => {
+  test("preserves exact blockquotes surrounding a protected table", () => {
     const input =
       "> First sentence. Second follows.\n>\n> | First sentence. Second follows. |\n> | --- |\n> | First stands; therefore second follows. |\n>\n> - First stands; therefore second follows.\n";
-    expect(violations(sentencePerLine, input).found).toEqual([
-      { detail: multiple, lineNumber: 1, range: [17, 1] },
-      { detail: semicolon, lineNumber: 7, range: [17, 1] }
-    ]);
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: []
+    });
+  });
+  test("checks authored GitHub alerts while preserving exact blockquotes", () => {
+    const input = "> [!WARNING]\n>\n> Restart now. Verify status.\n";
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: [{ detail: multiple, lineNumber: 3, range: [14, 1] }]
+    });
+  });
+  test("checks semicolon joins after a literal quotation", () => {
+    const input = 'The value is "bad"; therefore retry.\n';
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: [{ detail: semicolon, lineNumber: 1, range: [19, 1] }]
+    });
   });
   test.each([
     [
@@ -236,5 +250,146 @@ describe("docs/sentence-per-line", () => {
     expect(violations(sentencePerLine, input).found).toEqual([
       { detail: semicolon, lineNumber: 1, range: [column, 1] }
     ]);
+  });
+  test.each([
+    [
+      "numeric histogram observations",
+      "- 50 observations are at or below 1. 20 observations are between 1 and 5.\n",
+      36
+    ],
+    [
+      "an explanation after an exact quotation",
+      '- An empty `exp_alerts: []` means "this alert should not be firing at this eval time." This covers inactive states.\n',
+      85
+    ],
+    [
+      "UTF-16 coordinates after a quotation",
+      'Read "😀 one. Two." Then continue.\n',
+      18
+    ],
+    [
+      "a sentence ending after a bare URL",
+      "See https://example.com. Next sentence follows.\n",
+      24
+    ],
+    [
+      "a sentence ending after a link",
+      "See [label](https://example.com). Next sentence follows.\n",
+      33
+    ],
+    [
+      "a sentence ending after inline code",
+      "Run `tool`. Next sentence follows.\n",
+      11
+    ],
+    [
+      "a sentence ending with a single-letter value",
+      "Use option A. Restart the service.\n",
+      13
+    ],
+    [
+      "a quotation with outer punctuation",
+      'Choose "safe". Then continue.\n',
+      14
+    ]
+  ])("reports packed %s without rewriting", (_name, input, column) => {
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: [{ detail: multiple, lineNumber: 1, range: [column, 1] }]
+    });
+  });
+  test.each([
+    [
+      "wrapped list prose",
+      "- Coordinates language and API design\n  decisions across multiple skills.\n",
+      "Sentence continues from the previous source line; keep the sentence on one line.",
+      3
+    ],
+    [
+      "an instruction missing its terminator",
+      "- Split predicates when chained filters preserve their meaning\n  Preserve order and side effects.\n",
+      "End the previous instruction with a sentence terminator before this continuation.",
+      3
+    ]
+  ])("reports %s without rewriting", (_name, input, detail, column) => {
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: [{ detail, lineNumber: 2, range: [column, 1] }]
+    });
+  });
+  test.each([
+    [
+      "frontmatter",
+      "---\ndescription: First sentence. Second sentence.\n---\n\nOnly one sentence.\n"
+    ],
+    [
+      "literal quotation",
+      'The source says "First sentence. Second sentence; Use it."\n'
+    ],
+    [
+      "single quotation",
+      "The source says 'First sentence. Second sentence.'\n"
+    ],
+    [
+      "multiline quotation",
+      'The source says "First sentence\ncontinues here. Second follows."\n'
+    ],
+    ["multiple literal labels", 'Use "First." and "Second." as labels.\n'],
+    ["adjacent literal labels", 'Use "First." "Second." as labels.\n'],
+    [
+      "a straight quoted contraction",
+      "The source says 'Don't stop. Keep going.'\n"
+    ],
+    [
+      "a curly quoted contraction",
+      "The source says ‘Don’t stop. Keep going.’\n"
+    ],
+    [
+      "escaped quotation marks",
+      'The source says "First \\"quoted\\" sentence. Second sentence."\n'
+    ],
+    ["contractions", "Don't change the writer's words.\n"],
+    ["personal initials", "Ask J. Smith about the profile.\n"],
+    ["an honorific and initial", "Ask Dr. J. Smith about the profile.\n"],
+    [
+      "a version followed by uppercase prose",
+      "Use v1.2.3 with Node.js and Dr. Smith.\n"
+    ],
+    [
+      "a URL containing punctuation",
+      "See https://example.com/a;b?c=d then rest.\n"
+    ],
+    ["separate paragraphs", "A fragment\n\na lowercase fragment.\n"],
+    ["separate list items", "- A fragment\n- another fragment\n"],
+    [
+      "correct list continuation",
+      "- Split predicates when equivalent.\n  Preserve order and side effects.\n"
+    ],
+    ["a list introduction", "- Inputs:\n  use the selected profile.\n"],
+    [
+      "an HTML generated marker",
+      "<!-- Generated file. Do not edit. -->\n\nFirst sentence. Second sentence.\n"
+    ],
+    [
+      "generated frontmatter",
+      "---\ngenerated: true\n---\n\nFirst sentence. Second sentence.\n"
+    ]
+  ])("preserves %s without diagnostics or fixes", (_name, input) => {
+    expect(violations(sentencePerLine, input)).toEqual({
+      fixed: input,
+      found: []
+    });
+  });
+  test.each([
+    "LICENSE",
+    "LICENSE.md",
+    "plugins/sample/COPYING.md",
+    "plugins\\sample\\LICENSE.txt"
+  ])("preserves license text in %s", (name) => {
+    const input = "First license sentence. Second license sentence.\n";
+    expect(violations(sentencePerLine, input, name)).toEqual({
+      fixed: input,
+      found: []
+    });
   });
 });
