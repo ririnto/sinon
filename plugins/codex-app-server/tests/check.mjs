@@ -8,7 +8,14 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const temporary = await mkdtemp(path.join(tmpdir(), "sinon-mcp-tests-"));
 try {
   await Promise.all(
-    ["package.json", "server.mjs", "lib", "tests/server.test.mjs"].map((file) =>
+    [
+      "package.json",
+      "server.mjs",
+      "monitor.mjs",
+      "monitors",
+      "lib",
+      "tests/server.test.mjs"
+    ].map((file) =>
       cp(path.join(root, file), path.join(temporary, file), {
         recursive: true
       })

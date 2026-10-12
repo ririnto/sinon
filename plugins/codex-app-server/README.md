@@ -18,6 +18,13 @@ metadata:
       url: https://raw.githubusercontent.com/openai/codex/main/codex-rs/codex-mcp/src/plugin_config.rs
     Claude Code plugin MCP:
       url: https://code.claude.com/docs/en/mcp.md
+    Claude Code Monitor:
+      url: https://code.claude.com/docs/en/tools-reference.md#monitor-tool
+    Claude Code plugin monitors:
+      url: https://code.claude.com/docs/en/plugins/manifest-reference.md#monitors
+    Codex native status broadcasts:
+      version: rust-v0.162.1
+      url: https://raw.githubusercontent.com/openai/codex/rust-v0.162.1/codex-rs/app-server/src/thread_status.rs
 ---
 
 # Codex App-Server
@@ -138,6 +145,46 @@ If schema generation, parsing, or conversion fails, startup reports the reason o
 Only curated tools remain available in that case.
 The generator has a 30-second deadline and never starts a daemon.
 
+## Thread Status Monitor
+
+`monitors/monitors.json` declares the packaged `codex-thread-status` monitor for Claude Code's native Monitor contract.
+Claude Code starts plugin monitors in eligible interactive sessions and receives each stdout line as an event.
+The monitor command uses the same local npm package execution as the MCP server.
+It runs the packaged `codex-thread-monitor` executable without an external watch script.
+
+Set `CODEX_APP_SERVER_MONITOR_THREADS` to comma-separated authorized thread IDs before starting the host session.
+With no selected threads, the monitor exits successfully without connecting.
+Use `*` to watch all native status broadcasts, with an initial snapshot of the first loaded-thread page.
+Set `CODEX_APP_SERVER_MONITOR_STATUSES` to select statuses, defaulting to `idle,active,notLoaded,failed,systemError`.
+These environment variables configure the runtime and do not change plugin installation.
+Plugin monitors cannot use `${user_config.*}` under the native host contract.
+
+The monitor emits JSON lines with `event: "threadStatus"`, `threadId`, `status`, and `previous`.
+It filters unrelated threads and repeated statuses.
+Native `thread/status/changed` broadcasts provide idle, active, notLoaded, and systemError.
+Failed is a terminal turn outcome, so idle transitions trigger one read of the latest turn to emit a separate failed event when needed.
+Terminal turn and error notifications also expose failures when the daemon sends them to this connection.
+Transient errors marked `willRetry` do not produce terminal failures.
+Events are serialized behind the initial snapshot, avoiding out-of-order startup notifications.
+The monitor never resumes a thread, starts a turn, responds to an approval, or claims a writer.
+Server requests retain the connection-layer refusal and cannot become monitor events.
+
+For an explicit native Monitor tool call, use the packaged executable as its command and set the host deadline.
+This repository-relative example also runs outside Claude Code:
+
+```sh
+NODE_USE_SYSTEM_CA=1 npm exec --yes --install-links --package=./plugins/codex-app-server -- codex-thread-monitor --thread AUTHORIZED_THREAD_ID --timeout-seconds 300
+```
+
+The host's native Monitor tool owns its watch deadline and cancellation.
+The packaged plugin monitor runs until its host stops it.
+Outside Claude Code, use the same executable with repeatable `--thread` and `--status` arguments.
+An optional `--timeout-seconds` accepts a positive deadline up to 1800 seconds.
+SIGINT, SIGTERM, and deadlines close the watcher connection and exit successfully, including during initialization.
+Socket loss emits a transport event with `status: "systemError"` and `threadId: null`, then exits with code 1.
+Transport errors remain distinct from thread systemError transitions.
+The command does not reconnect or poll, and the host can start a new watch when needed.
+
 ## Package Contents
 
 Thread cleanup uses native `codex archive`, `codex unarchive`, and `codex delete` with `--remote unix://`.
@@ -147,7 +194,10 @@ The plugin adds no dedicated cleanup tools.
 - `mcp.json` and `.mcp.json` register the Codex and Claude Code stdio server.
 - `package.json` declares the executable and its MCP SDK, WebSocket, and schema dependencies.
 - `server.mjs` creates the MCP server, retains shared instructions, registers the feature modules, and starts stdio transport.
-- `lib/connection.mjs` owns control-socket transport, JSON-RPC requests, and per-call connection cleanup.
+- `lib/connection.mjs` owns control-socket transport, JSON-RPC requests, and connection cleanup.
+- `monitor.mjs` parses monitor configuration and emits JSON lines.
+- `lib/monitor.mjs` watches native status broadcasts and terminal failures.
+- `monitors/monitors.json` registers the native Claude Code plugin monitor.
 - `lib/thread-tools.mjs` registers thread inspection and steering tools, including turn completion handling.
 - `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
 - `lib/raw-call.mjs` registers raw requests with the shared refusals.

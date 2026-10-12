@@ -12,3 +12,8 @@ Server-initiated approvals remain refused by `lib/connection.mjs`.
 
 Extend the existing disposable-socket tests for schema conversion, filtering, fallback, and guarded behavior.
 Do not test mutations against the live daemon.
+
+Keep packaged monitors on the native Claude Code Monitor contract.
+Use read-only native status notifications and event-driven reads, without resuming watched threads.
+Keep transport failures distinct from thread systemError and terminal failed outcomes.
+Never interpret refused server requests as status notifications.
