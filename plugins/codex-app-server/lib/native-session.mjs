@@ -128,7 +128,14 @@ export const createNativeSessions = (server) => {
       };
       context.signal.throwIfAborted();
       let value;
-      if (method === "command/exec" || method.startsWith("command/exec/")) {
+      if (
+        [
+          "command/exec",
+          "command/exec/write",
+          "command/exec/resize",
+          "command/exec/terminate"
+        ].includes(method)
+      ) {
         value = await command(method, params, context);
       } else if (method === "fs/watch" || method === "fs/unwatch") {
         value = await watch(method, params, context);

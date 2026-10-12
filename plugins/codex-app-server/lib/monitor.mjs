@@ -42,9 +42,17 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
       });
     }
   };
-  const terminalFailure = async (threadId, turn) => {
-    if (turn?.status === "failed" && failures.get(threadId) !== turn.id) {
-      failures.set(threadId, turn.id);
+  const terminalFailure = async (threadId, turn, initial = false) => {
+    const seen = failures.get(threadId);
+    if (
+      turn?.status === "failed" &&
+      !(seen && (seen.latest === turn.id || seen.initial === turn.id))
+    ) {
+      // The snapshot can report a newer failure before older buffered notifications arrive.
+      failures.set(threadId, {
+        initial: initial ? turn.id : seen?.initial,
+        latest: turn.id
+      });
       if (statuses.includes("failed")) {
         await output({
           ...(turn.error ? { error: turn.error } : {}),
@@ -78,7 +86,7 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
         sortDirection: "desc",
         threadId
       });
-      await terminalFailure(threadId, latest.data?.[0]);
+      await terminalFailure(threadId, latest.data?.[0], initial);
       if (initial) {
         const { thread } = await inspector.request("thread/read", {
           includeTurns: false,

@@ -1387,19 +1387,29 @@ test("refreshes native tools and notifications on version and same-version schem
   assert.equal(before.value[0].params.$defs.Unrelated, undefined);
   const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
   schemas.ClientRequest.definitions.Mode.enum.push("future");
-  schemas.ClientRequest.oneOf.push({
-    properties: {
-      method: { enum: ["future/new"] },
-      params: {
-        additionalProperties: false,
-        properties: { count: { minimum: 1, type: "integer" } },
-        required: ["count"],
-        type: "object"
-      }
+  schemas.ClientRequest.oneOf.push(
+    {
+      properties: {
+        method: { enum: ["future/new"] },
+        params: {
+          additionalProperties: false,
+          properties: { count: { minimum: 1, type: "integer" } },
+          required: ["count"],
+          type: "object"
+        }
+      },
+      required: ["method", "params"],
+      type: "object"
     },
-    required: ["method", "params"],
-    type: "object"
-  });
+    {
+      properties: {
+        method: { enum: ["command/exec/newNative"] },
+        params: { type: "object" }
+      },
+      required: ["method", "params"],
+      type: "object"
+    }
+  );
   await writeFile(schemaFile, JSON.stringify(schemas));
   const { tools } = await client.listTools();
   assert.ok(tools.some((tool) => tool.name === "codex_future_new"));
@@ -1415,6 +1425,9 @@ test("refreshes native tools and notifications on version and same-version schem
   assert.equal(requests.length, requestCount);
   const future = await call(client, "codex_future_new", { count: 1 });
   assert.equal(future.error, false);
+  const futureCommand = await call(client, "codex_command_exec_newNative", {});
+  assert.equal(futureCommand.error, false);
+  assert.equal(requests.at(-1).method, "command/exec/newNative");
   await client.listTools();
   assert.equal(changes, 1);
   await writeFile(versionFile, "fixture-cli 2");
@@ -1983,6 +1996,70 @@ test("wildcard monitor snapshots every loaded page and reports distinct turn err
   child.kill("SIGTERM");
   assert.deepEqual(await exited, [0, null]);
   await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+});
+
+test("monitor deduplicates snapshot failures across an older startup notification backlog", async (t) => {
+  const error = { code: "model_not_found", message: "Fixture model is absent" };
+  let injected = false;
+  const { connections, socket } = await fixture(
+    t,
+    ({ message, reply, connections: targets }) => {
+      if (message.method === "thread/turns/list") {
+        if (!injected) {
+          injected = true;
+          const [owner] = targets;
+          for (const id of ["older", "newer"]) {
+            owner.send(
+              JSON.stringify({
+                method: "turn/completed",
+                params: {
+                  threadId: "watched",
+                  turn: { error, id, status: "failed" }
+                }
+              })
+            );
+          }
+        }
+        reply({ data: [{ error, id: "newer", status: "failed" }] });
+      } else {
+        reply({ thread: { status: "idle" } });
+      }
+    }
+  );
+  const { child, events, exited } = monitor(t, socket, ["--thread", "watched"]);
+  await t.waitFor(() => assert.equal(events.length, 3));
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "turnError")
+      .map((event) => event.turnId),
+    ["newer", "older"]
+  );
+  const [owner] = connections;
+  for (const id of ["newer", "future", "newer"]) {
+    owner.send(
+      JSON.stringify({
+        method: "turn/completed",
+        params: { threadId: "watched", turn: { error, id, status: "failed" } }
+      })
+    );
+  }
+  owner.send(
+    JSON.stringify({
+      method: "thread/status/changed",
+      params: { status: "idle", threadId: "watched" }
+    })
+  );
+  await t.waitFor(() => assert.equal(events.length, 4));
+  await delay(50);
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "turnError")
+      .map((event) => event.turnId),
+    ["newer", "older", "future"]
+  );
+  child.kill("SIGTERM");
+  assert.deepEqual(await exited, [0, null]);
+  await t.waitFor(() => assert.equal(connections.size, 0));
 });
 
 test("monitor backpressure stops notification work and cancellation releases both read-only sockets", async (t) => {
