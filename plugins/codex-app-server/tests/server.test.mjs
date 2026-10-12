@@ -238,6 +238,7 @@ test("packed executable includes and registers every feature module", async (t) 
     }
   );
   const [packed] = JSON.parse(stdout);
+  assert.ok(!packed.files.some((entry) => entry.path === "lib/raw-call.mjs"));
   for (const file of [
     "server.mjs",
     "monitor.mjs",
@@ -1399,7 +1400,10 @@ test("refreshes native tools and notifications on version and same-version schem
   await client.listTools();
   assert.equal(changes, 1);
   await writeFile(versionFile, "fixture-cli 2");
-  await call(client, "codex_methods");
+  const versionChanged = await call(client, "codex_config_write", {
+    mode: "future"
+  });
+  assert.equal(versionChanged.error, false);
   await t.waitFor(() => assert.equal(changes, 2));
   schemas.ClientRequest.oneOf = schemas.ClientRequest.oneOf.filter(
     (entry) => entry.properties.method.enum[0] !== "future/new"
@@ -1554,7 +1558,7 @@ test("packaged monitor watches configured native transitions and classifies term
 });
 
 test("monitor status filters and startup deadlines preserve read-only behavior", async (t) => {
-  const { connections, socket } = await fixture(t, ({ reply }) =>
+  const { connections, requests, socket } = await fixture(t, ({ reply }) =>
     reply({ thread: { status: { type: "idle" }, turns: [] } })
   );
   const { events, exited } = monitor(t, socket, [
@@ -1565,7 +1569,11 @@ test("monitor status filters and startup deadlines preserve read-only behavior",
     "--timeout-seconds",
     "0.4"
   ]);
-  await t.waitFor(() => assert.equal(connections.size, 1), { timeout: 2000 });
+  await t.waitFor(
+    () =>
+      assert.ok(requests.some((request) => request.method === "thread/read")),
+    { timeout: 2000 }
+  );
   for (const ws of connections) {
     ws.send(
       JSON.stringify({
