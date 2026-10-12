@@ -162,7 +162,8 @@ Plugin monitors cannot use `${user_config.*}` under the native host contract.
 The monitor emits JSON lines with `event: "threadStatus"`, `threadId`, `status`, and `previous`.
 It filters unrelated threads and repeated statuses.
 Native `thread/status/changed` broadcasts provide idle, active, notLoaded, and systemError.
-Failed is a terminal turn outcome, so idle transitions trigger one read of the latest turn to emit a separate failed event when needed.
+Failed is a terminal turn outcome, so idle transitions request one latest turn with item contents omitted to emit a separate failed event when needed.
+Initial status reads exclude turn history.
 Terminal turn and error notifications also expose failures when the daemon sends them to this connection.
 Transient errors marked `willRetry` do not produce terminal failures.
 Events are serialized behind the initial snapshot, avoiding out-of-order startup notifications.
@@ -183,6 +184,8 @@ An optional `--timeout-seconds` accepts a positive deadline up to 1800 seconds.
 SIGINT, SIGTERM, and deadlines close the watcher connection and exit successfully, including during initialization.
 Socket loss emits a transport event with `status: "systemError"` and `threadId: null`, then exits with code 1.
 Transport errors remain distinct from thread systemError transitions.
+Inspection errors emit an `inspection` systemError event for the affected thread and leave other watches running.
+An initial loaded-list error uses a null thread ID and leaves wildcard broadcasts running.
 The command does not reconnect or poll, and the host can start a new watch when needed.
 
 ## Package Contents

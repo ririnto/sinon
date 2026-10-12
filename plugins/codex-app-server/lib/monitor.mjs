@@ -31,14 +31,40 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
       });
     }
   };
+  const inspectionError = (threadId, error) => {
+    if (client.signal.aborted) {
+      throw error;
+    }
+    if (!signal.aborted) {
+      emit({
+        error: error.message,
+        event: "inspection",
+        status: "systemError",
+        threadId
+      });
+    }
+  };
   const inspect = async (threadId, initial = false) => {
-    const { thread } = await client.request("thread/read", {
-      includeTurns: true,
-      threadId
-    });
-    terminalFailure(threadId, thread.turns?.at(-1));
-    if (initial) {
-      transition(threadId, thread.status?.type ?? thread.status ?? "notLoaded");
+    try {
+      const latest = await client.request("thread/turns/list", {
+        itemsView: "notLoaded",
+        limit: 1,
+        sortDirection: "desc",
+        threadId
+      });
+      terminalFailure(threadId, latest.data?.[0]);
+      if (initial) {
+        const { thread } = await client.request("thread/read", {
+          includeTurns: false,
+          threadId
+        });
+        transition(
+          threadId,
+          thread.status?.type ?? thread.status ?? "notLoaded"
+        );
+      }
+    } catch (error) {
+      inspectionError(threadId, error);
     }
   };
   const handle = async (note) => {
@@ -67,7 +93,7 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
   const failed = new AbortController();
   const waiting = AbortSignal.any([signal, client.signal, failed.signal]);
   const ended = once(waiting, "abort");
-  client.events.addEventListener("notification", async ({ detail: note }) => {
+  const notification = async ({ detail: note }) => {
     if (
       !["thread/status/changed", "turn/completed", "error"].includes(
         note.method
@@ -79,19 +105,27 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
     pending = (async () => {
       try {
         await previous;
-        await handle(note);
+        if (!waiting.aborted) {
+          await handle(note);
+        }
       } catch (error) {
         failed.abort(error);
       }
     })();
     await pending;
-  });
+  };
+  client.events.addEventListener("notification", notification);
   try {
     if (!waiting.aborted) {
       let ids = threadIds;
       if (threadIds.includes("*")) {
-        const loaded = await client.request("thread/loaded/list", {});
-        ids = loaded.data ?? [];
+        ids = [];
+        try {
+          const loaded = await client.request("thread/loaded/list", {});
+          ids = loaded.data ?? [];
+        } catch (error) {
+          inspectionError(null, error);
+        }
       }
       await Promise.all(ids.map((threadId) => inspect(threadId, true)));
       initialized.resolve();
@@ -103,7 +137,9 @@ export const watchThreads = async ({ emit, signal, statuses, threadIds }) => {
       throw failed.signal.reason ?? client.signal.reason;
     }
   } finally {
+    client.events.removeEventListener("notification", notification);
     initialized.resolve();
     client.close();
+    await pending;
   }
 };
