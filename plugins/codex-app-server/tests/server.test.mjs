@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
-import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
 import { test } from "node:test";
@@ -12,6 +12,8 @@ import { promisify } from "node:util";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { WebSocketServer } from "ws";
+
+import { closeQueues, enqueueMessage } from "../lib/queue.mjs";
 
 const serverPath = fileURLToPath(new URL("../server.mjs", import.meta.url));
 const monitorPath = fileURLToPath(new URL("../monitor.mjs", import.meta.url));
@@ -27,6 +29,53 @@ const SOURCE_KINDS = [
   "subAgentOther",
   "unknown"
 ];
+
+const CATALOG = {
+  definitions: { Mode: { enum: ["a", "b"] } },
+  oneOf: [
+    {
+      properties: {
+        method: { enum: ["fs/readFile"] },
+        params: {
+          properties: { path: { type: "string" } },
+          required: ["path"],
+          type: "object"
+        }
+      },
+      required: ["method", "params"],
+      type: "object"
+    },
+    {
+      properties: {
+        method: { enum: ["config/write"] },
+        params: {
+          properties: { mode: { $ref: "#/definitions/Mode" } },
+          required: ["mode"],
+          type: "object"
+        }
+      },
+      required: ["method", "params"],
+      type: "object"
+    },
+    {
+      properties: {
+        method: { enum: ["thread/delete"] },
+        params: { type: "object" }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["account/rateLimitResetCredit/consume"] }
+      }
+    },
+    {
+      properties: {
+        method: { enum: ["thread/read"] },
+        params: { type: "object" }
+      }
+    }
+  ]
+};
 
 /**
  * Run the real stdio MCP server against a disposable Unix WebSocket fixture.
@@ -83,10 +132,34 @@ const fixture = async (context, handler, options = {}) => {
     },
     stderr: "pipe"
   });
+  const versionFile = path.join(directory, "version");
+  const schemaFile = path.join(directory, "catalog.json");
+  const generatedFile = path.join(directory, "generations");
   if (options.catalog) {
+    await writeFile(versionFile, "fixture-cli 1");
+    await writeFile(
+      schemaFile,
+      JSON.stringify({
+        ClientNotification: options.clientNotifications ?? { oneOf: [] },
+        ClientRequest: options.catalog,
+        ServerNotification: options.serverNotifications ?? { oneOf: [] },
+        ServerRequest: options.serverRequests ?? { oneOf: [] }
+      })
+    );
     await writeFile(
       codexBin,
-      `#!${process.execPath}\nimport { writeFileSync } from "node:fs";\nwriteFileSync(process.argv[5] + "/ClientRequest.json", ${JSON.stringify(JSON.stringify(options.catalog))});\n`
+      `#!${process.execPath}
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
+if (process.argv[2] === "--version") {
+  process.stdout.write(readFileSync(${JSON.stringify(versionFile)}, "utf-8"));
+} else {
+  appendFileSync(${JSON.stringify(generatedFile)}, "generated\\n");
+  const schemas = JSON.parse(readFileSync(${JSON.stringify(schemaFile)}, "utf-8"));
+  for (const [name, schema] of Object.entries(schemas)) {
+    writeFileSync(process.argv[5] + "/" + name + ".json", JSON.stringify(schema));
+  }
+}
+`
     );
     await chmod(codexBin, 0o755);
   }
@@ -101,7 +174,15 @@ const fixture = async (context, handler, options = {}) => {
     await rm(directory, { force: true, recursive: true });
   });
   await client.connect(transport);
-  return { client, connections, requests, socket };
+  return {
+    client,
+    connections,
+    generatedFile,
+    requests,
+    schemaFile,
+    socket,
+    versionFile
+  };
 };
 
 /**
@@ -116,14 +197,14 @@ const call = async (client, name, args = {}) => {
   };
 };
 
-test("lists thirteen self-describing tools and all sources without repairing metadata", async (t) => {
+test("lists fourteen self-describing tools and all sources without repairing metadata", async (t) => {
   const { client, requests } = await fixture(t, ({ reply }) => {
     reply({
       data: [{ id: "fixture-thread", preview: "Fixture", source: "exec" }]
     });
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 13);
+  assert.equal(tools.length, 14);
   for (const tool of tools) {
     assert.ok(tool.description);
     for (const field of Object.values(tool.inputSchema.properties)) {
@@ -169,7 +250,10 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/turn-tools.mjs",
     "lib/thread-admin.mjs",
     "lib/catalog.mjs",
-    "lib/policy.mjs"
+    "lib/policy.mjs",
+    "lib/queue.mjs",
+    "lib/turn.mjs",
+    "lib/schema.mjs"
   ]) {
     assert.ok(
       packed.files.some((entry) => entry.path === file),
@@ -187,7 +271,7 @@ test("packed executable includes and registers every feature module", async (t) 
         reply({ fixture: "raw" });
       }
     },
-    { package: path.join(directory, packed.filename) }
+    { catalog: CATALOG, package: path.join(directory, packed.filename) }
   );
   const { tools } = await client.listTools();
   assert.deepEqual(
@@ -205,7 +289,9 @@ test("packed executable includes and registers every feature module", async (t) 
       "codex_goal",
       "codex_compact",
       "codex_mcp_tool",
-      "codex_call"
+      "codex_queue",
+      "codex_call",
+      "codex_methods"
     ]
   );
   const proxied = await call(client, "codex_mcp_tool", {
@@ -239,6 +325,8 @@ test("starts a new thread's first turn directly, while existing threads resume",
       reply({ thread: { id: "fixture-new" } });
     } else if (message.method === "turn/start") {
       reply({ turn: { id: "fixture-turn" } });
+    } else if (message.method === "thread/read") {
+      reply({ thread: { turns: [] } });
     } else {
       reply({});
     }
@@ -258,8 +346,8 @@ test("starts a new thread's first turn directly, while existing threads resume",
     thread_id: "fixture-existing"
   });
   assert.deepEqual(
-    requests.slice(-3).map((request) => request.method),
-    ["initialize", "thread/resume", "turn/start"]
+    requests.slice(-4).map((request) => request.method),
+    ["initialize", "thread/read", "thread/resume", "turn/start"]
   );
 });
 
@@ -294,7 +382,7 @@ test("buffers early completion, matches the turn, and returns structured failure
   };
   const { client } = await fixture(t, ({ message, reply, ws }) => {
     if (message.method !== "turn/start") {
-      reply({});
+      reply(message.method === "thread/read" ? { thread: { turns: [] } } : {});
       return;
     }
     for (const note of [
@@ -333,9 +421,13 @@ test("buffers early completion, matches the turn, and returns structured failure
 test("reports wait timeout and socket closure during a turn", async (t) => {
   let drop = false;
   const { client } = await fixture(t, ({ message, reply, ws }) => {
-    reply(
-      message.method === "turn/start" ? { turn: { id: "fixture-turn" } } : {}
-    );
+    if (message.method === "turn/start") {
+      reply({ turn: { id: "fixture-turn" } });
+    } else if (message.method === "thread/read") {
+      reply({ thread: { turns: [] } });
+    } else {
+      reply({});
+    }
     if (message.method === "turn/start" && drop) {
       ws.close();
     }
@@ -422,6 +514,7 @@ test("steers and interrupts only an in-progress last turn with its ID filled in"
     }
   });
   const steered = await call(client, "codex_steer", {
+    mode: "steer",
     text: "Authorized steer",
     thread_id: "fixture-thread"
   });
@@ -438,10 +531,13 @@ test("steers and interrupts only an in-progress last turn with its ID filled in"
   });
   status = "completed";
   const before = requests.length;
-  const refused = await Promise.all([
-    call(client, "codex_steer", { text: "Late", thread_id: "fixture-thread" }),
-    call(client, "codex_interrupt", { thread_id: "fixture-thread" })
-  ]);
+  const refused = [
+    await call(client, "codex_steer", {
+      text: "Late",
+      thread_id: "fixture-thread"
+    }),
+    await call(client, "codex_interrupt", { thread_id: "fixture-thread" })
+  ];
   for (const result of refused) {
     assert.equal(result.error, true);
     assert.match(result.text, /not inProgress/u);
@@ -510,49 +606,6 @@ test("sends thin thread requests for fork, rename, goal, loaded list, and compac
   ]);
 });
 
-const CATALOG = {
-  definitions: { Mode: { enum: ["a", "b"] } },
-  oneOf: [
-    {
-      properties: {
-        method: { enum: ["fs/readFile"] },
-        params: {
-          properties: { path: { type: "string" } },
-          required: ["path"],
-          type: "object"
-        }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["config/write"] },
-        params: {
-          properties: { mode: { $ref: "#/definitions/Mode" } },
-          required: ["mode"],
-          type: "object"
-        }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["thread/delete"] },
-        params: { type: "object" }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["account/rateLimitResetCredit/consume"] }
-      }
-    },
-    {
-      properties: {
-        method: { enum: ["thread/read"] },
-        params: { type: "object" }
-      }
-    }
-  ]
-};
-
 test("generates allowlisted tools from the installed schema and refuses guarded methods", async (t) => {
   const { client, requests } = await fixture(
     t,
@@ -613,7 +666,7 @@ test("keeps generated tools opt-in while discovery follows the installed catalog
     catalog: CATALOG
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 14);
+  assert.equal(tools.length, 15);
   assert.ok(tools.some((tool) => tool.name === "codex_methods"));
   assert.ok(!tools.some((tool) => tool.name === "codex_fs_readFile"));
   const listed = await call(client, "codex_methods", { prefix: "fs/" });
@@ -636,7 +689,7 @@ test("discovers definition-free catalogs with namespace-boundary filtering", asy
     }
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 14);
+  assert.equal(tools.length, 15);
   const results = await Promise.all(
     ["fs", "fs/"].map((prefix) => call(client, "codex_methods", { prefix }))
   );
@@ -661,7 +714,7 @@ test("retains curated tools when a selected parameter schema cannot become an MC
           methods: "future"
         });
         const { tools } = await client.listTools();
-        assert.equal(tools.length, 13);
+        assert.equal(tools.length, 14);
         assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
       }
     )
@@ -679,7 +732,7 @@ test("retains curated tools when generated names collide with reserved tools", a
         methods: method
       });
       const { tools } = await client.listTools();
-      assert.equal(tools.length, 13);
+      assert.equal(tools.length, 14);
       assert.ok(tools.some((tool) => tool.name === "codex_compact"));
       assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
     })
@@ -702,6 +755,8 @@ test("propagates daemon active-turn and writer refusals without retrying", async
                 id: message.id
               })
             );
+          } else if (message.method === "thread/read") {
+            reply({ thread: { turns: [] } });
           } else {
             reply({});
           }
@@ -718,8 +773,8 @@ test("propagates daemon active-turn and writer refusals without retrying", async
           .filter((request) => request.method !== "initialize")
           .map((request) => request.method),
         method === "thread/resume"
-          ? ["thread/resume"]
-          : ["thread/resume", "turn/start"]
+          ? ["thread/read", "thread/resume"]
+          : ["thread/read", "thread/resume", "turn/start"]
       );
     })
   );
@@ -730,8 +785,574 @@ test("serves only curated tools when the schema catalog is unavailable", async (
     methods: "fs"
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 13);
+  assert.equal(tools.length, 14);
   assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+});
+
+test("queues active sends and delivers fresh turns in order, buffering early completion", async (t) => {
+  const threadId = "fixture-queued";
+  const turns = [{ id: "active", status: "inProgress" }];
+  const delivered = [];
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply, ws }) => {
+      if (message.method === "thread/read") {
+        reply({ thread: { turns } });
+      } else if (message.method === "turn/start") {
+        assert.notEqual(turns.at(-1).status, "inProgress");
+        delivered.push(message.params.input[0].text);
+        const turn = { id: `fresh-${delivered.length}`, status: "completed" };
+        turns.push(turn);
+        ws.send(
+          JSON.stringify({
+            method: "turn/completed",
+            params: { threadId, turn }
+          })
+        );
+        reply({ turn });
+      } else {
+        reply({});
+      }
+    }
+  );
+  const first = await call(client, "codex_send", {
+    text: "first",
+    thread_id: threadId
+  });
+  const second = await call(client, "codex_send", {
+    text: "second",
+    thread_id: threadId
+  });
+  assert.equal(first.value.status, "queued");
+  assert.equal(second.value.status, "queued");
+  assert.ok(first.value.id);
+  assert.deepEqual(delivered, []);
+  assert.ok(!requests.some((request) => request.method === "turn/steer"));
+  turns[0].status = "completed";
+  for (const ws of connections) {
+    ws.send(
+      JSON.stringify({
+        method: "turn/completed",
+        params: { threadId, turn: turns[0] }
+      })
+    );
+  }
+  await t.waitFor(() => assert.equal(delivered.length, 2), { timeout: 2000 });
+  assert.deepEqual(delivered, ["first", "second"]);
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const receipt = await call(client, "codex_queue", { thread_id: threadId });
+  assert.deepEqual(
+    receipt.value.messages.map((record) => record.status),
+    ["completed", "completed"]
+  );
+  assert.deepEqual(
+    receipt.value.messages.map((record) => record.turnId),
+    ["fresh-1", "fresh-2"]
+  );
+});
+
+test("default steering queues and a known response.interrupt failure avoids explicit steering", async (t) => {
+  const turns = [
+    {
+      error: {
+        message: "unsupported websocket request type: response.interrupt"
+      },
+      id: "failed",
+      status: "failed"
+    },
+    { id: "active", status: "inProgress" }
+  ];
+  const { client, requests } = await fixture(t, ({ message, reply }) => {
+    reply(message.method === "thread/read" ? { thread: { turns } } : {});
+  });
+  const queued = await call(client, "codex_steer", {
+    mode: "steer",
+    text: "later",
+    thread_id: "fixture"
+  });
+  assert.equal(queued.value.status, "queued");
+  assert.match(queued.value.reason, /response.interrupt/u);
+  assert.ok(
+    !requests.some(
+      (request) =>
+        request.method === "turn/steer" || request.method === "turn/start"
+    )
+  );
+  const cancelled = await call(client, "codex_queue", {
+    action: "cancel",
+    thread_id: "fixture"
+  });
+  assert.equal(cancelled.value.messages[0].status, "refused");
+  assert.match(cancelled.value.messages[0].reason, /Cancelled/u);
+});
+
+test("detects unsupported steering responses and does not retry an ambiguous write", async (t) => {
+  const { client, requests } = await fixture(t, ({ message, reply, ws }) => {
+    if (message.method === "thread/read") {
+      reply({ thread: { turns: [{ id: "active", status: "inProgress" }] } });
+    } else if (message.method === "turn/steer") {
+      ws.send(
+        JSON.stringify({
+          error: {
+            code: -32_000,
+            message: "unsupported websocket request type: response.interrupt"
+          },
+          id: message.id
+        })
+      );
+    } else {
+      reply({});
+    }
+  });
+  const refused = await call(client, "codex_steer", {
+    mode: "steer",
+    text: "now",
+    thread_id: "fixture"
+  });
+  assert.equal(refused.value.status, "refused");
+  assert.equal(refused.value.unsupportedInterrupt, true);
+  assert.equal(
+    requests.filter((request) => request.method === "turn/steer").length,
+    1
+  );
+  assert.ok(!requests.some((request) => request.method === "turn/start"));
+  const later = await call(client, "codex_steer", {
+    mode: "steer",
+    text: "later",
+    thread_id: "fixture"
+  });
+  assert.equal(later.value.status, "queued");
+  assert.equal(
+    requests.filter((request) => request.method === "turn/steer").length,
+    1
+  );
+  await call(client, "codex_queue", { action: "cancel", thread_id: "fixture" });
+});
+
+test("queue connection loss refuses undelivered messages without reconnecting", async (t) => {
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply }) => {
+      reply(
+        message.method === "thread/read"
+          ? { thread: { turns: [{ id: "active", status: "inProgress" }] } }
+          : {}
+      );
+    }
+  );
+  await call(client, "codex_send", { text: "later", thread_id: "fixture" });
+  for (const ws of connections) {
+    ws.close();
+  }
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const receipt = await call(client, "codex_queue", { thread_id: "fixture" });
+  assert.equal(receipt.value.messages[0].status, "refused");
+  assert.match(receipt.value.messages[0].reason, /connection closed/u);
+  assert.ok(!requests.some((request) => request.method === "turn/start"));
+});
+
+test("queue writer refusal stops the batch without retrying or forcing another writer", async (t) => {
+  let active = true;
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply, ws }) => {
+      if (message.method === "thread/read") {
+        reply({
+          thread: {
+            turns: [
+              { id: "active", status: active ? "inProgress" : "completed" }
+            ]
+          }
+        });
+      } else if (message.method === "turn/start") {
+        ws.send(
+          JSON.stringify({
+            error: { code: -32_000, message: "active writer holds thread" },
+            id: message.id
+          })
+        );
+      } else {
+        reply({});
+      }
+    }
+  );
+  await call(client, "codex_send", { text: "later", thread_id: "fixture" });
+  active = false;
+  for (const ws of connections) {
+    ws.send(
+      JSON.stringify({
+        method: "turn/completed",
+        params: {
+          threadId: "fixture",
+          turn: { id: "active", status: "completed" }
+        }
+      })
+    );
+  }
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  const receipt = await call(client, "codex_queue", { thread_id: "fixture" });
+  assert.equal(receipt.value.messages[0].status, "refused");
+  assert.match(receipt.value.messages[0].reason, /active writer/u);
+  assert.equal(
+    requests.filter((request) => request.method === "turn/start").length,
+    1
+  );
+});
+
+test("queue rechecks a replacement active turn before delivery", async (t) => {
+  let turns = [{ id: "original", status: "inProgress" }];
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply }) => {
+      reply(message.method === "thread/read" ? { thread: { turns } } : {});
+    }
+  );
+  await call(client, "codex_send", { text: "later", thread_id: "fixture" });
+  const before = requests.filter(
+    (request) => request.method === "thread/read"
+  ).length;
+  turns = [
+    { id: "original", status: "completed" },
+    { id: "replacement", status: "inProgress" }
+  ];
+  for (const ws of connections) {
+    ws.send(
+      JSON.stringify({
+        method: "turn/completed",
+        params: { threadId: "fixture", turn: turns[0] }
+      })
+    );
+  }
+  await t.waitFor(
+    () =>
+      assert.ok(
+        requests.filter((request) => request.method === "thread/read").length >
+          before
+      ),
+    { timeout: 2000 }
+  );
+  assert.ok(!requests.some((request) => request.method === "turn/start"));
+  const receipt = await call(client, "codex_queue", {
+    action: "cancel",
+    thread_id: "fixture"
+  });
+  assert.equal(receipt.value.messages[0].status, "refused");
+});
+
+test("refused server-initiated requests cannot wake queue delivery", async (t) => {
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply }) => {
+      if (!message.error) {
+        reply(
+          message.method === "thread/read"
+            ? { thread: { turns: [{ id: "active", status: "inProgress" }] } }
+            : {}
+        );
+      }
+    }
+  );
+  await call(client, "codex_send", { text: "later", thread_id: "fixture" });
+  const before = requests.filter(
+    (request) => request.method === "thread/read"
+  ).length;
+  for (const ws of connections) {
+    ws.send(
+      JSON.stringify({
+        id: "server-completion",
+        method: "turn/completed",
+        params: {
+          threadId: "fixture",
+          turn: { id: "active", status: "completed" }
+        }
+      })
+    );
+  }
+  await t.waitFor(
+    () =>
+      assert.ok(
+        requests.some(
+          (request) =>
+            request.id === "server-completion" &&
+            request.error?.code === -32_601
+        )
+      ),
+    { timeout: 2000 }
+  );
+  assert.equal(
+    requests.filter((request) => request.method === "thread/read").length,
+    before
+  );
+  await call(client, "codex_queue", { action: "cancel", thread_id: "fixture" });
+});
+
+test("an idle send waiting for completion permits authorized interruption of its active turn", async (t) => {
+  let active = false;
+  const { client, connections, requests } = await fixture(
+    t,
+    ({ message, reply }) => {
+      if (message.method === "thread/read") {
+        reply({
+          thread: {
+            turns: active ? [{ id: "active", status: "inProgress" }] : []
+          }
+        });
+      } else if (message.method === "turn/start") {
+        active = true;
+        reply({ turn: { id: "active" } });
+      } else if (message.method === "turn/interrupt") {
+        active = false;
+        for (const ws of connections) {
+          ws.send(
+            JSON.stringify({
+              method: "turn/completed",
+              params: {
+                threadId: "fixture",
+                turn: { id: "active", status: "interrupted" }
+              }
+            })
+          );
+        }
+        reply({});
+      } else {
+        reply({});
+      }
+    }
+  );
+  const sending = call(client, "codex_send", {
+    text: "now",
+    thread_id: "fixture",
+    wait_seconds: 2
+  });
+  await t.waitFor(
+    () =>
+      assert.ok(requests.some((request) => request.method === "turn/start")),
+    { timeout: 2000 }
+  );
+  const interrupted = await call(client, "codex_interrupt", {
+    thread_id: "fixture"
+  });
+  assert.equal(interrupted.value.status, "interrupted");
+  const sent = await sending;
+  assert.equal(sent.value.status, "interrupted");
+});
+
+test("queue deadline bounds stalled initialization before delivery", async (t) => {
+  const { requests, socket, connections } = await fixture(t, () => {}, {
+    failInitialize: true
+  });
+  const previousSocket = process.env.CODEX_APP_SERVER_SOCKET;
+  process.env.CODEX_APP_SERVER_SOCKET = socket;
+  t.after(() => {
+    closeQueues();
+    if (previousSocket === undefined) {
+      delete process.env.CODEX_APP_SERVER_SOCKET;
+    } else {
+      process.env.CODEX_APP_SERVER_SOCKET = previousSocket;
+    }
+  });
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const queued = enqueueMessage("deadline-fixture", "pending text");
+  await t.waitFor(() => assert.equal(requests.length, 1), { timeout: 2000 });
+  t.mock.timers.tick(1_800_000);
+  const result = await queued;
+  assert.equal(result.status, "refused");
+  assert.match(result.reason, /deadline expired/u);
+  t.mock.timers.reset();
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  assert.deepEqual(
+    requests.map((request) => request.method),
+    ["initialize"]
+  );
+});
+
+test("validates native raw params and protocol direction before opening a socket", async (t) => {
+  const serverRequests = {
+    oneOf: [
+      {
+        properties: {
+          method: { enum: ["item/commandExecution/requestApproval"] }
+        }
+      }
+    ]
+  };
+  const serverNotifications = {
+    oneOf: [
+      {
+        properties: {
+          method: { enum: ["thread/status/changed"] },
+          params: { type: "object" }
+        }
+      }
+    ]
+  };
+  const clientNotifications = {
+    oneOf: [{ properties: { method: { enum: ["initialized"] } } }]
+  };
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: CATALOG,
+      clientNotifications,
+      serverNotifications,
+      serverRequests
+    }
+  );
+  await Promise.all(
+    [
+      { method: "config/write", params: { mode: "new-invalid" } },
+      { method: "fs/readFile" },
+      { method: "fs/readFile", params: { path: 2 } },
+      { method: "initialized" },
+      { method: "item/commandExecution/requestApproval" },
+      { method: "thread/status/changed" },
+      { method: "absent/method" }
+    ].map(async (args) => {
+      const result = await call(client, "codex_call", args);
+      assert.equal(result.error, true, JSON.stringify(args));
+      assert.equal(requests.length, 0);
+    })
+  );
+  await Promise.all(
+    [
+      ["serverRequest", "item/commandExecution/requestApproval"],
+      ["serverNotification", "thread/status/changed"],
+      ["clientNotification", "initialized"]
+    ].map(async ([kind, method]) => {
+      const result = await call(client, "codex_methods", { kind, method });
+      assert.equal(result.value[0].method, method);
+      assert.equal(result.value[0].tool, "discovery_only");
+    })
+  );
+  const valid = await call(client, "codex_call", {
+    method: "config/write",
+    params: { extra: true, mode: "b" }
+  });
+  assert.deepEqual(valid.value, { ok: true });
+  assert.deepEqual(requests.at(-1).params, { extra: true, mode: "b" });
+});
+
+test("shares the process-local schema cache and refreshes discovery and validation on version changes", async (t) => {
+  const { client, requests, schemaFile, versionFile, generatedFile } =
+    await fixture(t, ({ reply }) => reply({ ok: true }), {
+      catalog: {
+        ...CATALOG,
+        definitions: {
+          ...CATALOG.definitions,
+          Unrelated: { description: "unrelated".repeat(10_000), type: "string" }
+        },
+        oneOf: [
+          ...CATALOG.oneOf,
+          {
+            properties: {
+              method: { enum: ["model/list"] },
+              params: {
+                properties: {
+                  cursor: { type: "string" },
+                  limit: { minimum: 1, type: "integer" }
+                },
+                type: "object"
+              }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      },
+      methods: "config"
+    });
+  const beforeDiscovery = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.deepEqual(beforeDiscovery.value[0].params.properties.mode.enum, [
+    "a",
+    "b"
+  ]);
+  assert.ok(JSON.stringify(beforeDiscovery.value[0].params).length < 1000);
+  assert.equal(beforeDiscovery.value[0].params.$defs, undefined);
+  await call(client, "codex_call", {
+    method: "model/list",
+    params: { cursor: "opaque-native-cursor", limit: 7 }
+  });
+  assert.deepEqual(requests.at(-1).params, {
+    cursor: "opaque-native-cursor",
+    limit: 7
+  });
+  await call(client, "codex_call", { method: "model/list", params: {} });
+  assert.deepEqual(requests.at(-1).params, {});
+  await Promise.all([
+    call(client, "codex_methods"),
+    call(client, "codex_call", {
+      method: "config/write",
+      params: { mode: "a" }
+    })
+  ]);
+  const beforeGeneration = await readFile(generatedFile, "utf-8");
+  assert.equal(beforeGeneration.trim().split("\n").length, 1);
+  const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
+  schemas.ClientRequest.definitions.Mode.enum.push("future");
+  schemas.ClientRequest.oneOf.push({
+    properties: {
+      method: { enum: ["future/new"] },
+      params: {
+        additionalProperties: false,
+        properties: { count: { minimum: 1, type: "integer" } },
+        required: ["count"],
+        type: "object"
+      }
+    },
+    required: ["method", "params"],
+    type: "object"
+  });
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  await writeFile(versionFile, "fixture-cli 2");
+  const discovered = await call(client, "codex_methods", {
+    method: "future/new"
+  });
+  assert.equal(discovered.value[0].tool, "codex_call");
+  assert.deepEqual(discovered.value[0].params.required, ["count"]);
+  const refreshedDiscovery = await call(client, "codex_methods", {
+    method: "config/write"
+  });
+  assert.deepEqual(refreshedDiscovery.value[0].params.properties.mode.enum, [
+    "a",
+    "b",
+    "future"
+  ]);
+  assert.ok(JSON.stringify(refreshedDiscovery.value[0].params).length < 1000);
+  assert.equal(refreshedDiscovery.value[0].params.$defs, undefined);
+  const updated = await call(client, "codex_call", {
+    method: "config/write",
+    params: { mode: "future" }
+  });
+  assert.equal(updated.error, false);
+  const before = requests.length;
+  const invalid = await call(client, "codex_call", {
+    method: "future/new",
+    params: { count: 0, extra: true }
+  });
+  assert.equal(invalid.error, true);
+  assert.equal(requests.length, before);
+  const future = await call(client, "codex_call", {
+    method: "future/new",
+    params: { count: 1 }
+  });
+  assert.equal(future.error, false);
+  const afterGeneration = await readFile(generatedFile, "utf-8");
+  assert.equal(afterGeneration.trim().split("\n").length, 2);
+  const { tools } = await client.listTools();
+  assert.ok(!tools.some((tool) => tool.name === "codex_future_new"));
+});
+
+test("refuses raw calls offline when native validation is unavailable", async (t) => {
+  const { client, requests } = await fixture(t, ({ reply }) => reply({}));
+  const result = await call(client, "codex_call", {
+    method: "thread/read",
+    params: { threadId: "fixture" }
+  });
+  assert.equal(result.error, true);
+  assert.equal(requests.length, 0);
 });
 
 /**

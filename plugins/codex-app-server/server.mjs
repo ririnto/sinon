@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { registerCatalogTools } from "./lib/catalog.mjs";
 import { registerMcpTool } from "./lib/mcp-tool.mjs";
+import { closeQueues, registerQueueTools } from "./lib/queue.mjs";
 import { registerRawCall } from "./lib/raw-call.mjs";
 import { registerThreadAdminTools } from "./lib/thread-admin.mjs";
 import { registerThreadTools } from "./lib/thread-tools.mjs";
@@ -11,8 +12,8 @@ import { registerTurnTools } from "./lib/turn-tools.mjs";
 
 /**
  * Expose the running Codex app-server as a stdio MCP server.
- * Each tool call opens one control-socket connection, sends only the named requests, and closes it.
- * It starts no daemon and schedules nothing.
+ * Immediate calls close their own connection; authorized queued messages retain a bounded delivery connection.
+ * It starts no daemon and retains no persistent message queue.
  * Archive, unarchive, and delete threads with the native `codex archive|unarchive|delete --remote unix://` commands.
  */
 
@@ -21,11 +22,12 @@ const server = new McpServer(
   {
     instructions: [
       "Use the running Codex app-server through its Unix control socket.",
-      "This MCP server starts no daemon and schedules nothing.",
+      "This MCP server starts no daemon; authorized messages may queue in memory until active work ends.",
       "Server-initiated requests, including approvals, receive a refusal from this client.",
       "Do not use these tools to poll for status or replace native Codex delegation.",
       "Read a thread with codex_threads and codex_tail before steering it.",
-      "codex_steer and codex_interrupt act only on a thread whose last turn is in progress.",
+      "codex_send queues active threads; codex_steer queues by default and explicit steering requires verified provider support.",
+      "codex_queue reports delivery receipts.",
       "Keep one writer per thread.",
       "Do not start a turn when its last turn is in progress or another host holds the thread.",
       "An active-writer error means another host holds the thread.",
@@ -54,7 +56,9 @@ registerThreadTools(server);
 registerTurnTools(server);
 registerThreadAdminTools(server);
 registerMcpTool(server);
+registerQueueTools(server);
 registerRawCall(server);
 await registerCatalogTools(server);
 
 await server.connect(new StdioServerTransport());
+process.stdin.once("end", closeQueues);

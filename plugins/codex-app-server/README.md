@@ -5,6 +5,9 @@ metadata:
   reference:
     Codex app-server:
       url: https://learn.chatgpt.com/docs/app-server.md
+    Codex turn requests:
+      version: rust-v0.162.1
+      url: https://raw.githubusercontent.com/openai/codex/rust-v0.162.1/codex-rs/app-server/src/request_processors/turn_processor.rs
     npm exec:
       url: https://docs.npmjs.com/cli/v11/commands/npm-exec
     npm install-links:
@@ -45,11 +48,13 @@ In Codex, install `codex-app-server` from the Sinon repository marketplace and t
 
 Use Node.js 24.15 or newer on the 24.x line, npm, and a platform supporting Unix sockets.
 The Codex app-server daemon must already be running with its Unix control socket available.
-The plugin starts no daemon and schedules no work.
+The plugin starts no daemon.
+Authorized messages can wait in a process-local queue for the active turn to end.
 
 Each tool call connects to `CODEX_APP_SERVER_SOCKET` when set.
 Otherwise, it uses `app-server-control/app-server-control.sock` under `CODEX_HOME`, defaulting to `~/.codex`.
-Each call initializes its own connection and closes it after the result.
+Inspection and immediate calls initialize their own connection and close it after the result.
+Queued delivery keeps a separate connection until its batch ends, is cancelled, expires, or loses the socket.
 The runtime keeps the existing MCP SDK v1 API.
 Upstream maintains v1 for bug fixes and security updates for at least six months after the July 27, 2026 v2 release.
 Server-initiated requests, including approval requests, receive a refusal from this client.
@@ -84,8 +89,9 @@ The first launch requires registry access unless the dependencies are already ca
 | `codex_threads` | List stored, non-archived threads using state metadata without rollout repair. |
 | `codex_tail` | Read trailing messages with each turn's ID and status without resuming the thread. |
 | `codex_start` | Create a thread and optionally name it or send its first turn. |
-| `codex_send` | Resume a thread, start a turn, and optionally wait for completion. |
-| `codex_steer` | Read the active turn and send steering text with its expected turn ID. |
+| `codex_send` | Start an idle thread turn or queue text until active work ends. |
+| `codex_steer` | Queue text by default or explicitly steer a supported active turn with its expected turn ID. |
+| `codex_queue` | Inspect queue delivery receipts or cancel undelivered messages. |
 | `codex_interrupt` | Read the active turn and interrupt it by ID. |
 | `codex_fork` | Copy a thread's history into a new thread without starting a turn. |
 | `codex_rename` | Set a thread's display name. |
@@ -97,31 +103,69 @@ The first launch requires registry access unless the dependencies are already ca
 | `codex_methods` | Discover installed-version methods and inspect their parameter schemas when generation succeeds. |
 
 `codex_steer` and `codex_interrupt` refuse when the last turn is not `inProgress`.
-They read the turn ID themselves and never resume the thread or start a new turn.
-Provider gateways must support the underlying steering and interruption requests.
-A gateway rejecting `response.interrupt` can fail the active turn instead of interrupting it safely.
-Verify provider support before steering or interrupting valuable work.
-The tools propagate daemon and provider errors without retrying.
-`codex_send` relies on daemon-enforced active-turn and writer guards during resume and turn start.
-It returns refusals as MCP errors without retrying or forcing a writer.
-The daemon checks `expectedTurnId` for steering, preventing a stale read from steering a replacement turn.
-Read the thread first and use these tools only under authorized steering instructions.
-Keep one writer per thread.
+They read the turn ID themselves.
+The daemon checks `expectedTurnId` for explicit steering, preventing a stale read from steering a replacement turn.
+Native `turn/start` can steer an active turn, so `codex_send` now checks status before choosing a fresh turn or a queue.
+Native `turn/interrupt` submits the cancellation operation with the inspected active turn ID.
+The plugin does not send provider WebSocket messages directly.
+
+## Running Threads And Queues
+
+`codex_send` queues active-thread text without sending `turn/start` or `turn/steer` to the active turn.
+`codex_steer` defaults to `mode: "queue"` for the same reason.
+A queued result contains `status: "queued"`, a message ID, a thread ID, and a reason.
+Queued delivery resumes the thread to receive completion notifications and rechecks its last turn before each fresh `turn/start`.
+Messages deliver in insertion order, waiting for each delivered turn to end before starting the next message.
+Completion notifications are buffered through the delivery request, including completion before its response arrives.
+A replacement active turn keeps the queue waiting.
+
+Use `mode: "steer"` only after verifying provider support for active input.
+Accepted input returns `status: "steered"`, which acknowledges app-server acceptance rather than turn completion.
+A known `unsupported websocket request type: response.interrupt` error in thread history selects the queue even in explicit steering mode.
+The process also remembers that rejection after a steering or interruption response.
+An unsupported or ambiguous steering response returns `status: "refused"` without retrying or resending its text.
+Provider errors can arrive after steering acceptance, so inspect the thread afterward when using explicit steering.
+Native interruption returns `status: "interrupted"` on acknowledgment or `status: "refused"` with its failure reason.
+
+Inspect delivery with `codex_queue` and the thread ID.
+Receipts distinguish queued, delivering, started, completed, failed, interrupted, and refused messages, without returning queued text.
+Use `action: "cancel"` to refuse undelivered messages and close the queue connection.
+Cancellation does not interrupt a turn already started.
+An interrupted socket makes any in-flight delivery unconfirmed and is never retried automatically.
+Writer errors stop the remaining batch without deleting locks, forcing another writer, or repeating a write.
+Queues expire after 30 minutes, accept up to 32 pending messages per thread, and retain up to 32 receipts for the latest batch per thread.
+The process holds at most 128 thread queue entries, retiring closed entries when necessary.
+Pending messages and receipts are lost when this MCP process stops.
+
+Curated send, steer, interrupt, and queue delivery serialize writes per thread inside this process.
+Keep one writer per thread across hosts as well.
+The native fresh-turn request has no idle-only precondition, so external writers must coordinate before queued delivery.
 On an active-writer error, let the existing writer release the thread instead of deleting its lock.
+Read the thread first and use these tools only under authorized instructions.
 
 ## Installed-Version Catalog
 
-At startup, the server runs `codex app-server generate-json-schema` into a disposable directory.
-It reads `ClientRequest.json` and removes the directory after reading the schema.
+At startup, the server runs `codex --version` and `codex app-server generate-json-schema` into a disposable directory.
+It reads ClientRequest, ClientNotification, ServerRequest, and ServerNotification, then removes the generated files.
+Schema-cache behavior v1 shares one process-local generation per CLI executable and version between discovery and raw calls.
+It writes no persistent cache and shares concurrent requests for the same version.
 Set `CODEX_BIN` to an executable path when `codex` is not available through `PATH`.
 The executable must match the daemon version, especially when the socket points to a different installation.
-The generated ClientRequest catalog contains client requests, not server-initiated approval requests.
+The catalog distinguishes client requests, client notifications, server requests, and server notifications.
+Notifications and server requests are discovery-only and cannot be sent through `codex_call`.
 No daemon schema-discovery request is needed.
-Restart the MCP server after upgrading Codex to regenerate the catalog without a plugin release.
+Discovery and raw validation recheck `codex --version` and regenerate after a version change without a plugin release.
+Generated wrappers retain their startup input schemas and tool names until the MCP server restarts.
+Their requests also pass current native validation before connecting.
 
-By default, the server exposes 13 curated tools plus `codex_methods` when generation succeeds.
+By default, the server exposes 14 curated tools plus `codex_methods` when generation succeeds.
 The catalog does not add every protocol method to the default tool list.
 Use `codex_methods` to list names, or supply `method` to retrieve one parameter schema for `codex_call`.
+Use `kind` to inspect `clientRequest`, `clientNotification`, `serverRequest`, or `serverNotification`.
+New client request methods become callable through `codex_call` after native discovery refreshes.
+Raw calls validate the full ClientRequest envelope and parameters before opening a socket, preserving allowed parameters without transformation.
+Unknown methods, invalid parameters, and unavailable schemas return an error without connecting.
+Refused methods return their safety refusal before any version check or schema generation.
 Set `CODEX_APP_SERVER_METHODS` to comma-separated method names or namespace prefixes to expose generated tools.
 For example, `fs,config/read` exposes filesystem methods and the configuration read method.
 Generated names replace slashes with underscores, such as `codex_fs_readFile`.
@@ -142,8 +186,21 @@ Usage methods are not exposed as generated tools and remain reserved for the Orc
 Server-initiated requests, including approvals, remain refused by the connection layer.
 
 If schema generation, parsing, or conversion fails, startup reports the reason on stderr.
-Only curated tools remain available in that case.
+Only curated tools remain available in that case, and raw calls refuse until native validation succeeds.
 The generator has a 30-second deadline and never starts a daemon.
+
+## Curated Adapters And Models
+
+Curated thread tools keep reviewed source-kind and goal-status enums, fixed convenience parameters, and active-turn guards.
+These adapters are intentionally narrower than the native protocol.
+Use discovered ClientRequest schemas through `codex_call` for new parameters and enum values.
+Policy sets and read-only annotations remain reviewed local rules because schemas do not establish authorization or safety.
+
+Prefer `model/list` through `codex_call` for the running app-server's model catalog.
+Inspect its parameters with `codex_methods` first.
+For CLI diagnostics, `codex debug models` returns raw model catalog JSON, and `--bundled` skips refresh.
+The debug command also offers `app-server send-message-v2` and `prompt-input`, but no schema subcommand.
+Use `codex app-server generate-json-schema` or `codex app-server generate-ts` for native protocol schemas.
 
 ## Thread Status Monitor
 
@@ -205,8 +262,11 @@ The plugin adds no dedicated cleanup tools.
 - `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
 - `lib/raw-call.mjs` registers raw requests with the shared refusals.
 - `lib/turn-tools.mjs` owns active-turn guards for steering and interruption.
+- `lib/turn.mjs` shares turn-start and buffered completion handling.
+- `lib/queue.mjs` owns message delivery, receipts, deadlines, and process-local writer serialization.
 - `lib/thread-admin.mjs` registers small thread administration tools.
-- `lib/catalog.mjs` generates, converts, filters, and exposes installed-version method schemas.
+- `lib/catalog.mjs` converts, filters, and exposes installed-version method schemas.
+- `lib/schema.mjs` owns the process-local version cache and native ClientRequest validation.
 - `lib/policy.mjs` separates curated, refused, native CLI, and usage methods.
 - `AGENTS.md` records catalog and policy maintenance requirements.
 - `tests/` verifies the stdio server against a disposable Unix-socket fixture.

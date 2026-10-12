@@ -1,8 +1,8 @@
-import { on } from "node:events";
-
 import { z } from "zod";
 
 import { withClient } from "./connection.mjs";
+import { enqueueMessage, queuedThread, withThreadWriter } from "./queue.mjs";
+import { startTurn } from "./turn.mjs";
 
 const READ_ONLY = { openWorldHint: false, readOnlyHint: true };
 
@@ -36,74 +36,6 @@ const messageText = (item) => {
     return { role: "AGENT", text: item.text ?? "" };
   }
   return null;
-};
-
-/**
- * Wait for the turn's completion and collect its final agent message until the deadline.
- */
-const awaitTurn = async (
-  client,
-  notifications,
-  turnId,
-  waitSeconds,
-  waiting
-) => {
-  const result = { finalMessage: null, status: "waitTimedOut", turnId };
-  const timer = setTimeout(() => waiting.abort(), waitSeconds * 1000);
-  try {
-    for await (const [{ detail: note }] of notifications) {
-      const params = note.params ?? {};
-      if (
-        note.method === "item/completed" &&
-        (params.turnId ?? turnId) === turnId &&
-        params.item?.type === "agentMessage"
-      ) {
-        result.finalMessage = params.item.text ?? null;
-      }
-      if (note.method === "turn/completed" && params.turn?.id === turnId) {
-        return {
-          ...result,
-          ...(params.turn.error ? { error: params.turn.error } : {}),
-          status: params.turn.status
-        };
-      }
-    }
-  } catch (error) {
-    if (error.name !== "AbortError") {
-      throw error;
-    }
-  } finally {
-    clearTimeout(timer);
-  }
-  return client.signal.aborted
-    ? { ...result, status: "connectionClosed" }
-    : result;
-};
-
-/**
- * Start one turn with completion notifications buffered before the request is sent.
- */
-const startTurn = async (client, threadId, text, waitSeconds = 0) => {
-  const waiting = new AbortController();
-  const notifications =
-    waitSeconds > 0
-      ? on(client.events, "notification", {
-          signal: AbortSignal.any([waiting.signal, client.signal])
-        })
-      : null;
-  try {
-    const started = await client.request("turn/start", {
-      input: [{ text, type: "text" }],
-      threadId
-    });
-    const turnId = started.turn.id;
-    if (!notifications) {
-      return { finalMessage: null, status: "started", turnId };
-    }
-    return await awaitTurn(client, notifications, turnId, waitSeconds, waiting);
-  } finally {
-    await notifications?.return();
-  }
 };
 
 /**
@@ -238,11 +170,12 @@ export const registerThreadTools = (server) => {
     "codex_send",
     {
       description:
-        "Resume a Codex thread and start one turn; optionally wait for completion and its final agent message. " +
+        "Send authorized text as a fresh turn, queuing it in this MCP process while the thread is active. " +
+        "Queued messages return a queue ID; inspect delivery with codex_queue. Idle sends may wait for completion. " +
         "Use only under a direct human instruction or assigned contract authorizing steering of this thread. " +
         "Read it with codex_threads and codex_tail first; keep one writer per thread. " +
-        "Do not start a turn on a thread whose last turn is in progress or that another host holds. " +
-        "The daemon enforces active-turn and writer guards during resume and turn start; refusals propagate without retries. " +
+        "An active turn is observed without steering or interrupting it; queued delivery waits until it ends. " +
+        "The daemon retains writer guards; delivery refusals propagate without retries. " +
         "On an active-writer error, identify the holder through thread-writer-locks/THREAD_ID.lock under CODEX_HOME (default ~/.codex). " +
         "Let that host release it; never delete locks or force a second writer. " +
         "Use native codex archive|unarchive|delete --remote unix:// for thread cleanup. " +
@@ -251,12 +184,12 @@ export const registerThreadTools = (server) => {
         text: z
           .string()
           .describe(
-            "Authorized next-turn text for the inspected thread; do not use this tool to schedule work or poll status."
+            "Authorized text to start now when idle or queue for a fresh turn after active work ends."
           ),
         thread_id: z
           .string()
           .describe(
-            "Authorized thread ID inspected with codex_threads/codex_tail; its last turn must be finished and its writer available."
+            "Authorized thread ID inspected with codex_threads/codex_tail; queue active work and preserve its writer."
           ),
         wait_seconds: z
           .number()
@@ -266,13 +199,27 @@ export const registerThreadTools = (server) => {
           )
       }
     },
-    withClient(
+    withThreadWriter(
       async (
         client,
-        { text, thread_id: threadId, wait_seconds: waitSeconds }
+        { text, thread_id: threadId, wait_seconds: waitSeconds },
+        release
       ) => {
+        if (queuedThread(threadId)) {
+          return enqueueMessage(threadId, text, "Existing queue owns delivery");
+        }
+        const { thread } = await client.request("thread/read", {
+          includeTurns: true,
+          threadId
+        });
+        if (
+          thread.turns?.at(-1)?.status === "inProgress" ||
+          thread.status?.type === "active"
+        ) {
+          return enqueueMessage(threadId, text);
+        }
         await client.request("thread/resume", { excludeTurns: true, threadId });
-        return startTurn(client, threadId, text, waitSeconds);
+        return startTurn(client, threadId, text, waitSeconds, release);
       }
     )
   );
