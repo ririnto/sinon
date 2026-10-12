@@ -1,7 +1,9 @@
 # Monitor Setup
 
-Use the installed plugin executable as the host Monitor command.
-Load [the input asset](../assets/monitor.json) and supply it to the native Monitor tool.
+Use the installed plugin executable as the watch command.
+In Claude Code, load [the input asset](../assets/monitor.json) and supply it to the native Monitor tool.
+In Codex or another host without that tool, run the same executable through the host's managed background-command facility with its 1800-second deadline and retain its owned process handle for cancellation.
+Do not assume a host has Claude Code's Monitor API.
 Resolve `CLAUDE_PLUGIN_ROOT` to this plugin's installed root if the host does not provide that environment variable.
 The plugin root is two directories above this skill directory.
 Do not replace the executable with a custom watcher.
@@ -36,7 +38,7 @@ Configure `CODEX_APP_SERVER_MONITOR_THREADS='*'` and `CODEX_APP_SERVER_MONITOR_S
 Without selected threads, automatic monitoring is disabled and exits without connecting.
 Reuse the automatic monitor when it already covers the assignment instead of starting a duplicate explicit watch.
 
-Stop the owned explicit watch through the host's native cancellation tool when its assignment completes, lease expires, targets are retired, or monitoring is cancelled.
+Stop the owned explicit watch through the host's native task or process cancellation tool when its assignment completes, lease expires, targets are retired, or monitoring is cancelled.
 SIGINT, SIGTERM, and the executable deadline also close its socket and exit successfully.
 Socket loss ends the monitor with exit code 1 instead of reconnecting.
 Inspect the reported transport failure and re-arm only after the authorized connection is available again.
