@@ -252,6 +252,21 @@ describe("docs/sentence-per-line", () => {
       "UTF-16 coordinates after a quotation",
       'Read "😀 one. Two." Then continue.\n',
       18
+    ],
+    [
+      "a sentence ending after a bare URL",
+      "See https://example.com. Next sentence follows.\n",
+      24
+    ],
+    [
+      "a sentence ending after a link",
+      "See [label](https://example.com). Next sentence follows.\n",
+      33
+    ],
+    [
+      "a sentence ending after inline code",
+      "Run `tool`. Next sentence follows.\n",
+      11
     ]
   ])("reports packed %s without rewriting", (_name, input, column) => {
     expect(violations(sentencePerLine, input)).toEqual({
@@ -295,6 +310,8 @@ describe("docs/sentence-per-line", () => {
       "multiline quotation",
       'The source says "First sentence\ncontinues here. Second follows."\n'
     ],
+    ["multiple literal labels", 'Use "First." and "Second." as labels.\n'],
+    ["adjacent literal labels", 'Use "First." "Second." as labels.\n'],
     ["contractions", "Don't change the writer's words.\n"],
     ["personal initials", "Ask J. Smith about the profile.\n"],
     [

@@ -27,8 +27,14 @@ const sentenceStartPattern = /^[A-Z0-9"'“([「『*]/u;
 const wordBeforePattern = /[\w"”’\])]/u;
 const wordAfterPattern = /[\w"'“([/]/u;
 const closingQuotePattern = /^["'”’]+/u;
-const protectedTextPattern =
-  /https?:\/\/[^\s<>]+|"[^"]*"|“[^”]*”|(?<!\w)'[^']*'(?!\w)|‘[^’]*’/gu;
+const protectedTextPattern = /"[^"]*"|“[^”]*”|(?<!\w)'[^']*'(?!\w)|‘[^’]*’/gu;
+const opaqueInlineTypes = new Set([
+  "link",
+  "image",
+  "codeText",
+  "literalAutolink",
+  "autolink"
+]);
 const licenseNamePattern =
   /(?:^|[/\\])(?:licen[cs]e|copying)(?:[.-][^/\\]*)?$/iu;
 const generatedMarkerPattern =
@@ -80,11 +86,14 @@ const proseBlocks = (tokens: readonly MicromarkToken[]): MicromarkToken[] => {
 const segmentsByLine = (paragraph: MicromarkToken): Map<number, Segment[]> => {
   const byLine = new Map<number, Segment[]>();
   const visit = (token: MicromarkToken) => {
-    if (token.type === "link") {
-      return;
-    }
-    if (token.type === "data" && token.text.trim() !== "") {
-      const lines = token.text.split(/\r\n|\r|\n/u);
+    const opaque = opaqueInlineTypes.has(token.type);
+    if ((token.type === "data" || opaque) && token.text.trim() !== "") {
+      const prose = opaque
+        ? token.text.replaceAll(/[^\r\n]/gu, (character) =>
+            "_".repeat(character.length)
+          )
+        : token.text;
+      const lines = prose.split(/\r\n|\r|\n/u);
       for (const [index, text] of lines.entries()) {
         if (text.trim() !== "") {
           const lineNumber = token.startLine + index;
@@ -95,8 +104,10 @@ const segmentsByLine = (paragraph: MicromarkToken): Map<number, Segment[]> => {
         }
       }
     }
-    for (const child of token.children) {
-      visit(child);
+    if (!opaque) {
+      for (const child of token.children) {
+        visit(child);
+      }
     }
   };
   visit(paragraph);
@@ -122,20 +133,18 @@ const rebuildLine = (segments: readonly Segment[]): string => {
 };
 
 /**
- * Masks literal quotations and bare URLs while preserving source coordinates.
+ * Masks literal quotations while preserving source coordinates.
  * A quotation's final terminator can still separate surrounding prose sentences.
  */
 const protectText = (text: string): string =>
   text.replaceAll(protectedTextPattern, (match) => {
-    const ending = match.startsWith("http")
-      ? ""
-      : (match.match(/[.!?]["'”’]$/u)?.[0] ?? "");
+    const ending = match.match(/[.!?]["'”’]$/u)?.[0] ?? "";
     const masked = match.replaceAll(/[^\r\n]/gu, (character) =>
       " ".repeat(character.length)
     );
     return ending === ""
       ? masked
-      : `${masked.slice(0, -ending.length - 1)}0${ending}`;
+      : `${masked.slice(0, -ending.length - 1)}_${ending}`;
   });
 
 /**
