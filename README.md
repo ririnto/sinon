@@ -93,7 +93,6 @@ The following local plugins are listed in both marketplace catalogs, except wher
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - [codegraph](./plugins/codegraph/README.md)
-- [codex-app-server](./plugins/codex-app-server/README.md)
 - [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [claude-agents](./plugins/claude-agents/README.md)
@@ -114,6 +113,9 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 Sinon selects external plugins through its marketplace catalog.
 
+- [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream `main` branch.
+  The upstream repository owns the MCP runtime, thread-control skill, monitor, checks, and release version.
+  Install it as `codex-app-server@sinon` in either host.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the runtime, Skills, and version.
 
