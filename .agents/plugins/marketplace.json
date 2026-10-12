@@ -36,8 +36,9 @@
         "installation": "AVAILABLE"
       },
       "source": {
-        "path": "./plugins/codex-app-server",
-        "source": "local"
+        "ref": "main",
+        "source": "url",
+        "url": "https://github.com/ririnto/codex-app-server.git"
       }
     },
     {

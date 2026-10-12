@@ -5,7 +5,6 @@
   "scripts": {
     "check": "run-p check:*",
     "check:codegraph": "vitest run scripts/tests/codegraph",
-    "check:codex-app-server": "node plugins/codex-app-server/tests/check.mjs",
     "check:lint-rules": "vitest run plugins/harness/tooling/pnpm",
     "check:marketplace": "node --import tsx scripts/marketplace/generate.ts --check && vitest run scripts/tests/marketplace",
     "check:markdownlint-cli2": "markdownlint-cli2",
