@@ -1,6 +1,11 @@
 # Catalog Maintenance
 
 Keep protocol schemas generated from the installed Codex CLI rather than committing a snapshot.
+Share one process-local version-keyed cache between discovery and raw validation.
+Validate native ClientRequest parameters before connecting and preserve refusal-first behavior.
+Keep all other protocol directions discovery-only.
+Refresh discovery on CLI version changes and keep opt-in wrappers startup-bound.
+Keep reviewed curated adapter enums and prefer model/list for generic model discovery.
 Keep generated tools opt-in so newly added protocol methods do not expand the default tool list.
 Unknown methods must retain mutating annotations until their behavior is reviewed.
 Keep active-turn inspection and expected turn IDs in the curated steering tools.

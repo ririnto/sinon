@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { withClient } from "./connection.mjs";
 import { refusal } from "./policy.mjs";
+import { validateRequest } from "./schema.mjs";
 
 /**
  * Register raw app-server access with reset-credit consumption and thread cleanup refused before connecting.
@@ -12,7 +13,7 @@ export const registerRawCall = (server) => {
     {
       description:
         "Send one raw app-server JSON-RPC request and return its result; this can mutate daemon state. " +
-        "Inspect unfamiliar methods with codex app-server generate-json-schema --out DIR before use. " +
+        "Validate parameters against the installed CLI's native ClientRequest schema before connecting. " +
         "Read threads with codex_threads/codex_tail before authorized steering and keep one writer per thread. " +
         "Do not start a turn while its last turn is in progress or another host holds it. " +
         "On an active-writer error, let the holder of thread-writer-locks/THREAD_ID.lock under CODEX_HOME release it. " +
@@ -30,23 +31,29 @@ export const registerRawCall = (server) => {
             "Exact app-server method. account/rateLimitResetCredit/consume is refused; usage reads belong to the Orchestrator. Mutations require authorization."
           ),
         params: z
-          .record(z.string(), z.unknown())
+          .unknown()
           .optional()
           .describe(
             "Method parameters matching the installed daemon's schema; omitted means no params field. Preserve thread writer and authorization rules."
           )
       }
     },
-    (args) => {
+    async (args) => {
       const reason = refusal(args.method);
-      return reason
-        ? {
-            content: [{ text: reason, type: "text" }],
-            isError: true
-          }
-        : withClient((client, { method, params }) =>
-            client.request(method, params)
-          )(args);
+      if (reason) {
+        return { content: [{ text: reason, type: "text" }], isError: true };
+      }
+      try {
+        await validateRequest(args.method, args.params);
+      } catch (error) {
+        return {
+          content: [{ text: error.message, type: "text" }],
+          isError: true
+        };
+      }
+      return withClient((client, { method, params }) =>
+        client.request(method, params)
+      )(args);
     }
   );
 };
