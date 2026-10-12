@@ -67,7 +67,7 @@ export const createNativeSessions = (server) => {
     try {
       client = await pending;
       if (created) {
-        const receive = async ({ detail }) => {
+        const receive = async (detail) => {
           if (
             detail.method === "fs/changed" &&
             detail.params.watchId === params.watchId
@@ -85,11 +85,11 @@ export const createNativeSessions = (server) => {
             }
           }
         };
-        client.events.addEventListener("notification", receive);
+        const unsubscribe = client.listenNotifications(receive);
         client.signal.addEventListener(
           "abort",
           () => {
-            client.events.removeEventListener("notification", receive);
+            unsubscribe();
             if (watches.get(params.watchId) === pending) {
               watches.delete(params.watchId);
             }

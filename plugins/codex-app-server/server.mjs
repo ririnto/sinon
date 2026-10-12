@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema
@@ -12,6 +11,7 @@ import { registerMcpTool } from "./lib/mcp-tool.mjs";
 import { createNativeSessions } from "./lib/native-session.mjs";
 import { refusal } from "./lib/policy.mjs";
 import { closeQueues, registerQueueTools } from "./lib/queue.mjs";
+import { SessionTransport } from "./lib/session-transport.mjs";
 import { registerThreadAdminTools } from "./lib/thread-admin.mjs";
 import { registerThreadTools } from "./lib/thread-tools.mjs";
 import { registerTurnTools } from "./lib/turn-tools.mjs";
@@ -108,8 +108,11 @@ const close = () => {
   closeQueues();
   native.close();
 };
-process.stdin.once("end", close);
-process.stdin.once("close", close);
-process.stdin.once("error", close);
-process.stdout.once("error", close);
-await server.connect(new StdioServerTransport());
+const stop = async () => {
+  await server.close();
+};
+process.stdin.once("end", stop);
+process.stdin.once("close", stop);
+process.stdin.once("error", stop);
+process.stdout.once("error", stop);
+await server.connect(new SessionTransport(close));

@@ -14,6 +14,7 @@ Keep active-turn inspection and expected turn IDs in the curated steering tools.
 Keep connection-scoped commands and watches attached to their originating sockets.
 Return streamed command output and forward filesystem changes through native MCP logging.
 Propagate cancellation and retire owned sockets, listeners, and identifiers when operations or MCP transport end.
+Propagate watch backpressure to native input and cancel pending stdout drains during transport closure.
 
 Maintain shared method policy in `lib/policy.mjs`.
 Refused methods may have discoverable tools, but their callbacks must refuse before validation or connecting.
@@ -32,3 +33,8 @@ Keep packaged monitors on the native Claude Code Monitor contract.
 Use read-only native status notifications and event-driven reads, without resuming watched threads.
 Keep transport failures distinct from thread systemError and terminal failed outcomes.
 Never interpret refused server requests as status notifications.
+
+Keep the thread-control skill and its conditional monitor setup self-contained in `skills/thread-control/`.
+Preserve valid Agent Skills frontmatter and manifest registration.
+Wildcard monitor snapshots must follow every loaded-thread page and report distinct turn errors without repeating unchanged states.
+Use the packaged native monitor rather than ad-hoc watchers, and keep re-arm and stop rules with the skill.

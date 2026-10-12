@@ -12,7 +12,8 @@
     "server.mjs",
     "monitor.mjs",
     "monitors/",
-    "lib/"
+    "lib/",
+    "skills/"
   ],
   "type": "module",
   "dependencies": {

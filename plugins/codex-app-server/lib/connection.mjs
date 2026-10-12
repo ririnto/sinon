@@ -1,4 +1,4 @@
-import { once } from "node:events";
+import { on, once } from "node:events";
 import { createConnection } from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -61,33 +61,50 @@ export const openClient = async ({ signal } = {}) => {
     fail(new Error("App-server connection closed"));
   });
   let nextId = 0;
-  ws.on("message", async (data) => {
-    let message;
-    try {
-      message = JSON.parse(data.toString());
-    } catch {
-      return;
-    }
-    if (message === null || typeof message !== "object") {
-      return;
-    }
-    if ("id" in message && ("result" in message || "error" in message)) {
-      emit(`response:${message.id}`, message);
-      return;
-    }
-    if ("id" in message && "method" in message) {
-      try {
-        await send({
-          error: { code: -32_601, message: "not handled by this client" },
-          id: message.id
-        });
-      } catch (error) {
-        fail(error);
-      }
-      return;
-    }
-    emit("notification", message);
+  let notify;
+  const messages = on(ws, "message", {
+    highWaterMark: 1,
+    lowWaterMark: 1,
+    signal: closed.signal
   });
+  const receive = async () => {
+    try {
+      for await (const [data] of messages) {
+        let message;
+        try {
+          message = JSON.parse(data.toString());
+        } catch {
+          continue;
+        }
+        if (message === null || typeof message !== "object") {
+          continue;
+        }
+        if ("id" in message && ("result" in message || "error" in message)) {
+          emit(`response:${message.id}`, message);
+          continue;
+        }
+        if ("id" in message && "method" in message) {
+          try {
+            await send({
+              error: { code: -32_601, message: "not handled by this client" },
+              id: message.id
+            });
+          } catch (error) {
+            fail(error);
+          }
+          continue;
+        }
+        emit("notification", message);
+        await notify?.(message);
+      }
+    } catch (error) {
+      if (!closed.signal.aborted) {
+        fail(error);
+        ws.terminate();
+      }
+    }
+  };
+  receive();
   const request = async (method, params, { signal: requestAbort } = {}) => {
     closed.signal.throwIfAborted();
     requestAbort?.throwIfAborted();
@@ -127,7 +144,18 @@ export const openClient = async ({ signal } = {}) => {
       }
     });
     await send({ method: "initialized" });
-    return { close: () => ws.close(), events, request, signal: closed.signal };
+    return {
+      close: () => ws.close(),
+      events,
+      listenNotifications: (handler) => {
+        notify = handler;
+        return () => {
+          notify = undefined;
+        };
+      },
+      request,
+      signal: closed.signal
+    };
   } catch (error) {
     ws.terminate();
     throw closed.signal.aborted ? closed.signal.reason : error;

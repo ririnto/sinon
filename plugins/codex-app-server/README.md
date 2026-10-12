@@ -35,7 +35,8 @@ metadata:
 # Codex App-Server
 
 This plugin exposes the running Codex app-server through guarded stdio MCP tools and an installed-version method catalog.
-The server instructions, tool descriptions, and input descriptions carry usage and safety guidance without a separate skill.
+The packaged `thread-control` skill provides the authorized thread workflow and native monitor setup.
+Server instructions and tool descriptions preserve safety notes at the point of each call.
 
 Install `codex-app-server` from the Sinon marketplace in Claude Code:
 
@@ -60,6 +61,7 @@ Native commands retain their connection while execution is pending, allowing con
 Streamed command output is returned as native `command/exec/outputDelta` entries in the final result's `notifications` array.
 Filesystem watches keep their connections until native unwatch, socket loss, or MCP transport closure.
 Watch changes use standard MCP logging notifications without retaining event history.
+Native watch intake follows stdout backpressure, and transport closure cancels pending writes and retires owned sockets.
 MCP cancellation prevents dispatch after preparation and closes owned immediate or command connections.
 Queued delivery keeps a separate connection until its batch ends, is cancelled, expires, or loses the socket.
 The runtime keeps the existing MCP SDK v1 API.
@@ -248,7 +250,8 @@ It runs the packaged `codex-thread-monitor` executable without an external watch
 
 Set `CODEX_APP_SERVER_MONITOR_THREADS` to comma-separated authorized thread IDs before starting the host session.
 With no selected threads, the monitor exits successfully without connecting.
-Use `*` to watch all native status broadcasts, with an initial snapshot of the first loaded-thread page.
+Use `*` to watch all native status broadcasts, with an initial snapshot covering every loaded-thread page.
+Pagination follows native cursors without a custom page cap, and repeated cursors produce an inspection error.
 Set `CODEX_APP_SERVER_MONITOR_STATUSES` to select statuses, defaulting to `idle,active,notLoaded,failed,systemError`.
 These environment variables configure the runtime and do not change plugin installation.
 Plugin monitors cannot use `${user_config.*}` under the native host contract.
@@ -256,11 +259,15 @@ Plugin monitors cannot use `${user_config.*}` under the native host contract.
 The monitor emits JSON lines with `event: "threadStatus"`, `threadId`, `status`, and `previous`.
 It filters unrelated threads and repeated statuses.
 Native `thread/status/changed` broadcasts provide idle, active, notLoaded, and systemError.
-Failed is a terminal turn outcome, so idle transitions request one latest turn with item contents omitted to emit a separate failed event when needed.
+Failed is a terminal turn outcome, so idle transitions request one latest turn with item contents omitted to emit a separate `turnError` event when needed.
+Each distinct failed turn emits its ID and native error details, including consecutive failures with an unchanged thread status.
+Repeated sightings of the same failed turn remain quiet.
 Initial status reads exclude turn history.
 Terminal turn and error notifications also expose failures when the daemon sends them to this connection.
 Transient errors marked `willRetry` do not produce terminal failures.
 Events are serialized behind the initial snapshot, avoiding out-of-order startup notifications.
+Event intake follows stdout backpressure, and a separate read-only inspection socket prevents paused event delivery from blocking inspection responses.
+Cancellation retires both sockets and releases pending stdout drains.
 The monitor never resumes a thread, starts a turn, responds to an approval, or claims a writer.
 Server requests retain the connection-layer refusal and cannot become monitor events.
 
@@ -282,12 +289,22 @@ Inspection errors emit an `inspection` systemError event for the affected thread
 An initial loaded-list error uses a null thread ID and leaves wildcard broadcasts running.
 The command does not reconnect or poll, and the host can start a new watch when needed.
 
+## Thread-Control Skill
+
+`skills/thread-control/SKILL.md` activates for authorized thread inspection, steering, monitoring, and retirement.
+It requires reading and verifying the tail, explicit `mode: "steer"` for active input, and queueing only after a delivery refusal is understood.
+Lease and writer rules preserve the current owner, and cleanup archives before separately authorized permanent deletion.
+The skill loads its monitor reference and ready-to-use native Monitor input only when monitoring is needed.
+Orchestrators use the packaged monitor with wildcard status filters and re-arm explicit watches at their 30-minute deadline only while the assignment remains active.
+No skill helper script is needed for this workflow.
+The layout and frontmatter follow the [Agent Skills specification](https://agentskills.io/specification) and Workgraph's progressive-disclosure conventions.
+
 ## Package Contents
 
 Thread cleanup uses native `codex archive`, `codex unarchive`, and `codex delete` with `--remote unix://`.
 The plugin adds no dedicated cleanup tools.
 
-- `.codex-plugin/plugin.json` declares Codex identity and the MCP configuration path.
+- `.codex-plugin/plugin.json` declares Codex identity, the MCP configuration path, and `skills/`.
 - `mcp.json` and `.mcp.json` register the Codex and Claude Code stdio server.
 - `package.json` declares the executable and its MCP SDK, WebSocket, and schema dependencies.
 - `server.mjs` creates the MCP server, retains shared instructions, registers the feature modules, and starts stdio transport.
@@ -298,6 +315,8 @@ The plugin adds no dedicated cleanup tools.
 - `lib/thread-tools.mjs` registers thread inspection and steering tools, including turn completion handling.
 - `lib/mcp-tool.mjs` registers the configured MCP tool proxy.
 - `lib/native-session.mjs` owns command and watch connection lifetimes, streaming output, and MCP shutdown cleanup.
+- `lib/session-transport.mjs` extends SDK stdio lifecycle handling to retire native resources and cancel pending stdout drains.
+- `skills/thread-control/` contains the activated workflow, conditional monitor reference, and ready-to-use Monitor input asset.
 - `lib/turn-tools.mjs` owns active-turn guards for steering and interruption.
 - `lib/turn.mjs` shares turn-start and buffered completion handling.
 - `lib/queue.mjs` owns message delivery, receipts, deadlines, and process-local writer serialization.
@@ -307,7 +326,7 @@ The plugin adds no dedicated cleanup tools.
 - `lib/policy.mjs` owns refusal, native CLI, and usage policies.
 - `AGENTS.md` records catalog and policy maintenance requirements.
 - `tests/` verifies the stdio server against a disposable Unix-socket fixture.
-- The Sinon marketplace entry declares Claude Code identity and the package root.
+- The Sinon marketplace entry declares Claude Code identity, the package root, and its skill directory.
 
 Run `pnpm run check:codex-app-server` from the repository to test the runtime.
 The check installs the package's pinned dependencies in a temporary directory and removes that directory afterward.

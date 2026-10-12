@@ -4,6 +4,7 @@ import { once } from "node:events";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
+import { PassThrough, Writable } from "node:stream";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -11,13 +12,17 @@ import { promisify } from "node:util";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema
 } from "@modelcontextprotocol/sdk/types.js";
 import { WebSocketServer } from "ws";
 
+import { watchThreads } from "../lib/monitor.mjs";
+import { createNativeSessions } from "../lib/native-session.mjs";
 import { closeQueues, enqueueMessage } from "../lib/queue.mjs";
+import { SessionTransport } from "../lib/session-transport.mjs";
 
 const serverPath = fileURLToPath(new URL("../server.mjs", import.meta.url));
 const monitorPath = fileURLToPath(new URL("../monitor.mjs", import.meta.url));
@@ -251,6 +256,10 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/thread-tools.mjs",
     "lib/mcp-tool.mjs",
     "lib/native-session.mjs",
+    "lib/session-transport.mjs",
+    "skills/thread-control/SKILL.md",
+    "skills/thread-control/assets/monitor.json",
+    "skills/thread-control/references/monitor.md",
     "lib/turn-tools.mjs",
     "lib/thread-admin.mjs",
     "lib/catalog.mjs",
@@ -1683,6 +1692,66 @@ test("retains the last catalog atomically after a failed refresh and refuses sta
   assert.equal(requests.length, 0);
 });
 
+test("watch logging respects stdout backpressure and SDK closure releases sockets and drains", async (t) => {
+  const { socket, connections } = await fixture(t, ({ reply }) => reply({}));
+  const previousSocket = process.env.CODEX_APP_SERVER_SOCKET;
+  process.env.CODEX_APP_SERVER_SOCKET = socket;
+  let finishWrite;
+  const stdin = new PassThrough();
+  const stdout = new Writable({
+    highWaterMark: 64,
+    write(_bytes, _encoding, done) {
+      finishWrite = done;
+    }
+  });
+  const server = new Server(
+    { name: "fixture", version: "1" },
+    { capabilities: { logging: {} } }
+  );
+  const native = createNativeSessions(server);
+  const transport = new SessionTransport(native.close, stdin, stdout, {
+    maxBufferSize: 1024
+  });
+  t.after(async () => {
+    native.close();
+    await server.close();
+    stdin.destroy();
+    stdout.destroy();
+    if (previousSocket === undefined) {
+      delete process.env.CODEX_APP_SERVER_SOCKET;
+    } else {
+      process.env.CODEX_APP_SERVER_SOCKET = previousSocket;
+    }
+  });
+  await server.connect(transport);
+  await native.request("fs/watch", {
+    path: "/fixture",
+    watchId: "backpressure"
+  });
+  const [owner] = connections;
+  const note = JSON.stringify({
+    method: "fs/changed",
+    params: { paths: ["/fixture"], watchId: "backpressure" }
+  });
+  for (let count = 0; count < 200; count += 1) {
+    owner.send(note);
+  }
+  await t.waitFor(() => assert.equal(stdout.listenerCount("drain"), 1));
+  const buffered = stdout.writableLength;
+  await delay(50);
+  assert.equal(stdout.writableLength, buffered);
+  assert.equal(stdout.listenerCount("drain"), 1);
+  stdin.write(Buffer.alloc(1025));
+  await t.waitFor(() => assert.equal(connections.size, 0));
+  assert.equal(stdout.listenerCount("drain"), 0);
+  assert.equal(stdin.readableEnded, false);
+  await assert.rejects(
+    native.request("fs/watch", { path: "/fixture", watchId: "closed" }),
+    /closed/u
+  );
+  finishWrite();
+});
+
 /**
  * Run the packaged monitor against the same fixture socket and decode line events.
  */
@@ -1821,6 +1890,161 @@ test("monitor status filters and startup deadlines preserve read-only behavior",
   );
 });
 
+test("wildcard monitor snapshots every loaded page and reports distinct turn errors without unchanged events", async (t) => {
+  const error = { code: "model_not_found", message: "Fixture model is absent" };
+  const { connections, requests, socket } = await fixture(
+    t,
+    ({ message, reply }) => {
+      if (message.method === "thread/loaded/list") {
+        reply(
+          message.params.cursor
+            ? { data: ["second", "third"], nextCursor: null }
+            : { data: ["first"], nextCursor: "next-page" }
+        );
+      } else if (message.method === "thread/read") {
+        reply({
+          thread: {
+            status: {
+              type: message.params.threadId === "third" ? "systemError" : "idle"
+            }
+          }
+        });
+      } else {
+        reply({
+          data:
+            message.params.threadId === "second"
+              ? [{ error, id: "initial-failure", status: "failed" }]
+              : []
+        });
+      }
+    }
+  );
+  const { child, events, exited } = monitor(t, socket, [
+    "--thread",
+    "*",
+    "--status",
+    "idle",
+    "--status",
+    "failed",
+    "--status",
+    "systemError"
+  ]);
+  await t.waitFor(() => assert.equal(events.length, 4), { timeout: 2000 });
+  assert.deepEqual(
+    requests
+      .filter((request) => request.method === "thread/loaded/list")
+      .map((request) => request.params),
+    [{}, { cursor: "next-page" }]
+  );
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "threadStatus")
+      .map((event) => event.threadId),
+    ["first", "second", "third"]
+  );
+  const [owner] = connections;
+  for (const threadId of ["first", "second", "third"]) {
+    owner.send(
+      JSON.stringify({
+        method: "thread/status/changed",
+        params: {
+          status: { type: threadId === "third" ? "systemError" : "idle" },
+          threadId
+        }
+      })
+    );
+  }
+  await delay(50);
+  assert.equal(events.length, 4);
+  for (const turnId of [
+    "later-failure",
+    "consecutive-failure",
+    "consecutive-failure"
+  ]) {
+    owner.send(
+      JSON.stringify({
+        method: "error",
+        params: { error, threadId: "second", turnId, willRetry: false }
+      })
+    );
+  }
+  await t.waitFor(() => assert.equal(events.length, 6), { timeout: 2000 });
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "turnError")
+      .map((event) => event.turnId),
+    ["initial-failure", "later-failure", "consecutive-failure"]
+  );
+  assert.ok(
+    events
+      .filter((event) => event.event === "turnError")
+      .every((event) => event.error.code === "model_not_found")
+  );
+  child.kill("SIGTERM");
+  assert.deepEqual(await exited, [0, null]);
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+});
+
+test("monitor backpressure stops notification work and cancellation releases both read-only sockets", async (t) => {
+  const { connections, requests, socket } = await fixture(
+    t,
+    ({ message, reply }) => {
+      reply(
+        message.method === "thread/read"
+          ? { thread: { status: "active" } }
+          : { data: [] }
+      );
+    }
+  );
+  const previousSocket = process.env.CODEX_APP_SERVER_SOCKET;
+  process.env.CODEX_APP_SERVER_SOCKET = socket;
+  const stop = new AbortController();
+  const events = [];
+  const done = (async () => {
+    try {
+      await watchThreads({
+        emit: async (event, signal) => {
+          events.push(event);
+          await once(signal, "abort");
+        },
+        signal: stop.signal,
+        statuses: ["active", "idle", "failed", "systemError"],
+        threadIds: ["backpressure"]
+      });
+    } catch (error) {
+      assert.equal(stop.signal.aborted, true, error.message);
+    }
+  })();
+  t.after(async () => {
+    stop.abort();
+    await done;
+    if (previousSocket === undefined) {
+      delete process.env.CODEX_APP_SERVER_SOCKET;
+    } else {
+      process.env.CODEX_APP_SERVER_SOCKET = previousSocket;
+    }
+  });
+  await t.waitFor(() => assert.equal(events.length, 1));
+  assert.equal(connections.size, 2);
+  const reads = requests.length;
+  const [owner] = connections;
+  for (let count = 0; count < 200; count += 1) {
+    owner.send(
+      JSON.stringify({
+        method: "thread/status/changed",
+        params: { status: "idle", threadId: "backpressure" }
+      })
+    );
+  }
+  await delay(50);
+  assert.equal(events.length, 1);
+  assert.equal(requests.length, reads);
+  stop.abort();
+  await done;
+  await t.waitFor(() => assert.equal(connections.size, 0));
+  assert.equal(events.length, 1);
+});
+
 test("monitor reports socket loss as a transport systemError and exits without reconnecting", async (t) => {
   const { connections, socket } = await fixture(t, ({ reply }) =>
     reply({ thread: { status: { type: "idle" }, turns: [] } })
@@ -1929,15 +2153,17 @@ test("monitor isolates failed thread inspections while other selected threads ke
 test("monitor drops startup notifications after cancellation", async (t) => {
   const { socket, requests, connections } = await fixture(
     t,
-    ({ message, ws }) => {
+    ({ message, connections: targets }) => {
       if (message.method === "thread/turns/list") {
         for (const type of ["active", "idle"]) {
-          ws.send(
-            JSON.stringify({
-              method: "thread/status/changed",
-              params: { status: { type }, threadId: "watched" }
-            })
-          );
+          for (const ws of targets) {
+            ws.send(
+              JSON.stringify({
+                method: "thread/status/changed",
+                params: { status: { type }, threadId: "watched" }
+              })
+            );
+          }
         }
       }
     }
@@ -1955,7 +2181,7 @@ test("monitor drops startup notifications after cancellation", async (t) => {
   assert.deepEqual(events, []);
   assert.deepEqual(
     requests.map((request) => request.method),
-    ["initialize", "thread/turns/list"]
+    ["initialize", "initialize", "thread/turns/list"]
   );
   await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
 });
