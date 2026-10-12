@@ -1,15 +1,11 @@
+import { createHash } from "node:crypto";
+
 import { z } from "zod";
 
 import { withClient } from "./connection.mjs";
-import {
-  BLOCKED_METHODS,
-  CURATED_METHODS,
-  NATIVE_CLI_METHODS,
-  USAGE_METHODS
-} from "./policy.mjs";
-import { loadProtocol, validateRequest } from "./schema.mjs";
+import { refusal, USAGE_METHODS } from "./policy.mjs";
+import { loadProtocol, parameterSchema, validateRequest } from "./schema.mjs";
 
-// Unknown methods stay mutating until their read-only behavior is reviewed.
 const READ_ONLY_METHODS = new Set([
   "config/read",
   "configRequirements/read",
@@ -22,106 +18,166 @@ const READ_ONLY_METHODS = new Set([
 ]);
 
 /**
- * Return client request methods from the shared installed-version protocol cache.
+ * Derive a stable method name, using a digest for ambiguous, reserved, or overlong spellings.
+ * Ordinary alphanumeric path segments retain case and replace slashes with underscores.
  */
-export const loadCatalog = async () => {
-  const { protocols } = await loadProtocol();
-  return protocols.clientRequest.map((entry) => ({
-    ...entry,
-    readOnly: READ_ONLY_METHODS.has(entry.method)
-  }));
+export const toolName = (method, reserved) => {
+  const readable = `codex_${method.replaceAll("/", "_")}`;
+  if (
+    /^[A-Za-z0-9]+(?:\/[A-Za-z0-9]+)*$/u.test(method) &&
+    readable.length <= 128 &&
+    !reserved.has(readable) &&
+    !readable.startsWith("codex_method_")
+  ) {
+    return readable;
+  }
+  return `codex_method_${createHash("sha256").update(method).digest("hex")}`;
+};
+
+const classification = (entry, kind) => {
+  if (kind !== "clientRequest") {
+    return "discovery_only";
+  }
+  return READ_ONLY_METHODS.has(entry.method) ? "read" : "mutating";
+};
+
+const allowed = (method, prefix) =>
+  method === prefix || method.startsWith(`${prefix}/`);
+
+/**
+ * Derive the full native tool catalog without converting schemas through Zod.
+ * Refused methods remain discoverable as tools whose callbacks never open a connection.
+ */
+export const deriveTools = (protocol, reserved) => {
+  const names = new Set(reserved);
+  return protocol.protocols.clientRequest.map((entry) => {
+    const name = toolName(entry.method, reserved);
+    if (names.has(name)) {
+      throw new Error(`Duplicated native tool name: ${name}`);
+    }
+    names.add(name);
+    const readOnly = READ_ONLY_METHODS.has(entry.method);
+    const reason = refusal(entry.method);
+    const { inputSchema, wrapped } = parameterSchema(
+      entry.params,
+      entry.request.required?.includes("params") ?? false
+    );
+    let authorization =
+      "Use only under a direct human instruction or assigned contract authorizing this mutation. ";
+    if (reason) {
+      authorization = `Refusal-only tool: ${reason}. `;
+    } else if (readOnly) {
+      authorization = "Use only for authorized inspection. ";
+    }
+    const definition = {
+      annotations: {
+        destructiveHint: !readOnly,
+        openWorldHint: false,
+        readOnlyHint: readOnly
+      },
+      description:
+        `Native app-server method ${entry.method}; class: ${readOnly ? "read" : "mutating"}. ${
+          authorization
+        }${
+          USAGE_METHODS.has(entry.method)
+            ? "Only the Orchestrator reads usage; do not delegate usage or monitoring duties. "
+            : ""
+        }Keep one writer per thread and read it before steering. ` +
+        `Never start a turn while its last turn is in progress or another host holds it. ` +
+        `Let the native writer release its lock; never delete locks or force a second writer. ` +
+        `Prefer guarded codex_send, codex_steer, and codex_interrupt for turn operations. ` +
+        `Server-initiated requests, including approvals, are refused. ${
+          wrapped
+            ? "Supply native parameters in the params argument; null and union schemas retain their native meaning."
+            : "Supply native parameter fields directly."
+        }`,
+      inputSchema,
+      name
+    };
+    return {
+      definition,
+      handler: async (args) => {
+        if (reason) {
+          return { content: [{ text: reason, type: "text" }], isError: true };
+        }
+        if (wrapped && Object.keys(args).some((key) => key !== "params")) {
+          throw new Error(
+            `Only the params argument is accepted for ${entry.method}`
+          );
+        }
+        if (!entry.params && Object.keys(args).length) {
+          throw new Error(`No parameters are accepted for ${entry.method}`);
+        }
+        let params;
+        if (entry.params) {
+          params = wrapped ? args.params : args;
+        }
+        await validateRequest(entry.method, params);
+        return withClient((client) => client.request(entry.method, params))();
+      },
+      method: entry.method
+    };
+  });
 };
 
 /**
- * Return the generated tool name for an app-server method.
+ * Refresh the native tool registry atomically on discovery, notifying hosts after schema changes.
+ * A failed generation retains the last successful list and native calls still require current validation.
  */
-const toolName = (method) =>
-  `codex_${method.replaceAll("/", "_").replaceAll(/[^A-Za-z0-9_]/gu, "_")}`;
-
-/**
- * Return whether a method may become a generated tool.
- */
-const exposable = (method) =>
-  ![BLOCKED_METHODS, CURATED_METHODS, NATIVE_CLI_METHODS, USAGE_METHODS].some(
-    (set) => set.has(method)
-  );
-
-/**
- * Return whether the method matches an allowlist entry, either exactly or as a path prefix.
- */
-const allowed = (method, entries) =>
-  entries.some((entry) => method === entry || method.startsWith(`${entry}/`));
-
-/**
- * Register the method discovery tool and the allowlisted generated tools from the installed Codex schema.
- * A missing or failing schema leaves only the curated tools and reports the reason on stderr.
- */
-export const registerCatalogTools = async (server) => {
-  const entries = (process.env.CODEX_APP_SERVER_METHODS || "")
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-  let catalog;
-  let generated;
-  try {
-    const loaded = await loadCatalog();
-    catalog = loaded.map((entry) => {
-      const inputSchema = entry.params ? z.fromJSONSchema(entry.params) : null;
-      const params = inputSchema
-        ? z.toJSONSchema(inputSchema, { io: "input" })
-        : null;
-      return { ...entry, inputSchema, params };
-    });
-    generated = catalog.filter(
-      (entry) => exposable(entry.method) && allowed(entry.method, entries)
-    );
-    const names = new Set([
-      "codex_threads",
-      "codex_tail",
-      "codex_start",
-      "codex_send",
-      "codex_steer",
-      "codex_interrupt",
-      "codex_fork",
-      "codex_rename",
-      "codex_goal",
-      "codex_loaded",
-      "codex_compact",
-      "codex_mcp_tool",
-      "codex_call",
-      "codex_methods",
-      "codex_queue"
-    ]);
-    for (const entry of generated) {
-      const name = toolName(entry.method);
-      if (name.length > 128 || names.has(name)) {
-        throw new Error(
-          `Generated tool name is invalid or duplicated: ${name}`
-        );
-      }
-      if (entry.params && entry.params.type !== "object") {
-        throw new Error(
-          `Generated tool parameters must be an object: ${entry.method}`
-        );
-      }
-      names.add(name);
+export const registerCatalogTools = async (registry, server) => {
+  const reserved = new Set([...registry.keys(), "codex_methods"]);
+  let current;
+  let pending;
+  const refresh = async ({ regenerate = true } = {}) => {
+    if (pending) {
+      return pending;
     }
-  } catch (error) {
-    console.error(
-      `codex-app-server: schema catalog unavailable, serving curated tools only: ${error.message}`
-    );
-    return;
-  }
-  server.registerTool(
+    pending = (async () => {
+      try {
+        const protocol = await loadProtocol({ refresh: regenerate });
+        if (
+          current?.version === protocol.version &&
+          current?.hash === protocol.hash
+        ) {
+          return;
+        }
+        const tools = deriveTools(protocol, reserved);
+        for (const tool of current?.tools ?? []) {
+          registry.delete(tool.definition.name);
+        }
+        for (const tool of tools) {
+          registry.set(tool.definition.name, tool);
+        }
+        current = { ...protocol, tools };
+        if (server.getClientCapabilities()) {
+          await server.sendToolListChanged();
+        }
+      } catch (error) {
+        console.error(
+          `codex-app-server: native catalog refresh failed: ${error.message}`
+        );
+      }
+    })();
+    try {
+      await pending;
+    } finally {
+      pending = undefined;
+    }
+  };
+  registry.registerTool(
     "codex_methods",
     {
-      annotations: { openWorldHint: false, readOnlyHint: true },
+      annotations: {
+        destructiveHint: false,
+        openWorldHint: false,
+        readOnlyHint: true
+      },
       description:
-        "List requests and notifications in both protocol directions from the installed Codex native schema. " +
-        "Discovery refreshes when codex --version changes; notifications and server requests are discovery-only. " +
-        "With a method name, also return its params JSON schema for use with codex_call. " +
-        "Methods refused here are reset-credit consumption and thread archive, unarchive, and delete, which belong to the native codex CLI. " +
-        "Set CODEX_APP_SERVER_METHODS to a comma-separated list of methods or prefixes, such as fs,config, to expose them as generated tools.",
+        "Discover installed native methods and their parameter schemas, refreshing per-method tools and notifying the host on version or schema changes. " +
+        "ClientRequest methods have individual tools; other protocol directions are discovery-only. " +
+        "Credit consumption and thread archive, unarchive, and delete have refusal-only tools. " +
+        "Mutating methods require direct human instruction or an assigned contract, and one writer per thread. " +
+        "Use the host's native tool search to load individual schemas on demand.",
       inputSchema: {
         kind: z
           .enum([
@@ -132,110 +188,56 @@ export const registerCatalogTools = async (server) => {
           ])
           .optional()
           .describe(
-            "Protocol direction to inspect; defaults to clientRequest. Other directions are discovery-only."
+            "Protocol direction; defaults to clientRequest. Other directions are discovery-only."
           ),
         method: z
           .string()
           .optional()
           .describe(
-            "Exact method name to return with its params JSON schema; omitted lists all methods."
+            "Exact native method name, returning its parameter schema."
           ),
         prefix: z
           .string()
           .optional()
-          .describe(
-            "Optional method prefix such as thread or fs to narrow the list."
-          )
+          .describe("Optional namespace prefix such as thread or fs.")
       }
     },
     async ({ kind = "clientRequest", method, prefix }) => {
-      let current;
-      try {
-        const loaded = await loadProtocol();
-        current = loaded.protocols[kind];
-      } catch (error) {
-        return {
-          content: [{ text: error.message, type: "text" }],
-          isError: true
-        };
-      }
-      const found = method
-        ? current.filter((entry) => entry.method === method)
-        : current.filter(
-            (entry) =>
-              !prefix || allowed(entry.method, [prefix.replace(/\/$/u, "")])
-          );
-      const value = found.map((entry) => {
-        let tool = "codex_call";
-        if (kind !== "clientRequest") {
-          tool = "discovery_only";
-        } else if (BLOCKED_METHODS.has(entry.method)) {
-          tool = "refused";
-        } else if (NATIVE_CLI_METHODS.has(entry.method)) {
-          tool = "native_cli";
-        } else if (CURATED_METHODS.has(entry.method)) {
-          tool = "curated";
-        } else if (generated.some((item) => item.method === entry.method)) {
-          tool = toolName(entry.method);
-        }
-        let classification = "discovery_only";
-        if (kind === "clientRequest") {
-          classification = READ_ONLY_METHODS.has(entry.method)
-            ? "read"
-            : "mutating";
-        }
-        return {
-          class: classification,
-          kind,
-          method: entry.method,
-          ...(method && entry.params
-            ? {
-                params: z.toJSONSchema(z.fromJSONSchema(entry.params), {
-                  io: "input"
-                })
-              }
-            : {}),
-          tool
-        };
-      });
+      await refresh();
+      const protocol = await loadProtocol();
+      const entries = protocol.protocols[kind].filter((entry) =>
+        method
+          ? entry.method === method
+          : !prefix || allowed(entry.method, prefix.replace(/\/$/u, ""))
+      );
       return {
-        content: [{ text: JSON.stringify(value, null, 1), type: "text" }]
+        content: [
+          {
+            text: JSON.stringify(
+              entries.map((entry) => ({
+                class: classification(entry, kind),
+                kind,
+                method: entry.method,
+                ...(method && entry.params
+                  ? { params: parameterSchema(entry.params).native }
+                  : {}),
+                tool:
+                  kind === "clientRequest"
+                    ? toolName(entry.method, reserved)
+                    : "discovery_only",
+                ...(kind === "clientRequest" && refusal(entry.method)
+                  ? { refusal: refusal(entry.method) }
+                  : {})
+              })),
+              null,
+              1
+            ),
+            type: "text"
+          }
+        ]
       };
     }
   );
-  for (const entry of generated) {
-    server.registerTool(
-      toolName(entry.method),
-      {
-        annotations: {
-          openWorldHint: false,
-          readOnlyHint: entry.readOnly
-        },
-        description:
-          `Send the app-server ${entry.method} request, generated from the installed Codex schema. ${
-            entry.readOnly
-              ? "This method is on the reviewed read-only allowlist. "
-              : "This can mutate daemon state; use only under a direct human instruction or assigned contract authorizing it. "
-          }Keep one writer per thread and never start or steer a turn through it. ` +
-          `Use native codex archive|unarchive|delete --remote unix:// for thread cleanup.`,
-        ...(entry.inputSchema ? { inputSchema: entry.inputSchema } : {})
-      },
-      async (params) => {
-        try {
-          await validateRequest(
-            entry.method,
-            entry.params ? params : undefined
-          );
-        } catch (error) {
-          return {
-            content: [{ text: error.message, type: "text" }],
-            isError: true
-          };
-        }
-        return withClient((client, input) =>
-          client.request(entry.method, entry.params ? input : undefined)
-        )(params);
-      }
-    );
-  }
+  await refresh();
+  return refresh;
 };

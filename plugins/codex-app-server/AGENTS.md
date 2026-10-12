@@ -1,17 +1,19 @@
 # Catalog Maintenance
 
 Keep protocol schemas generated from the installed Codex CLI rather than committing a snapshot.
-Share one process-local version-keyed cache between discovery and raw validation.
+Share concurrent generation and successful schema caches between discovery and native validation.
 Validate native ClientRequest parameters before connecting and preserve refusal-first behavior.
 Keep all other protocol directions discovery-only.
-Refresh discovery on CLI version changes and keep opt-in wrappers startup-bound.
+Refresh tools on discovery when CLI versions or schema hashes change, and notify the host with tools/list_changed.
 Keep reviewed curated adapter enums and prefer model/list for generic model discovery.
-Keep generated tools opt-in so newly added protocol methods do not expand the default tool list.
+Expose every ClientRequest as a native-schema tool, retaining refusal-only tools for blocked methods.
+Preserve curated adapters and their guards alongside native methods.
+Use native host tool search without custom tool caps, paging, or generic dispatch.
 Unknown methods must retain mutating annotations until their behavior is reviewed.
 Keep active-turn inspection and expected turn IDs in the curated steering tools.
 
 Maintain shared method policy in `lib/policy.mjs`.
-Never expose refused methods through generated tools or raw calls.
+Refused methods may have discoverable tools, but their callbacks must refuse before validation or connecting.
 Keep thread archive, unarchive, and delete on the native CLI.
 Server-initiated approvals remain refused by `lib/connection.mjs`.
 

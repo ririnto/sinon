@@ -11,6 +11,7 @@ import { promisify } from "node:util";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 import { WebSocketServer } from "ws";
 
 import { closeQueues, enqueueMessage } from "../lib/queue.mjs";
@@ -126,7 +127,6 @@ const fixture = async (context, handler, options = {}) => {
       ...process.env,
       CODEX_APP_SERVER_SOCKET: socket,
       CODEX_BIN: options.catalog ? codexBin : path.join(directory, "absent"),
-      ...(options.methods ? { CODEX_APP_SERVER_METHODS: options.methods } : {}),
       NODE_USE_SYSTEM_CA: "1",
       npm_config_cache: path.join(directory, "npm-cache")
     },
@@ -197,7 +197,7 @@ const call = async (client, name, args = {}) => {
   };
 };
 
-test("lists fourteen self-describing tools and all sources without repairing metadata", async (t) => {
+test("lists self-describing curated tools and all sources without repairing metadata", async (t) => {
   const { client, requests } = await fixture(t, ({ reply }) => {
     reply({
       data: [{ id: "fixture-thread", preview: "Fixture", source: "exec" }]
@@ -246,7 +246,6 @@ test("packed executable includes and registers every feature module", async (t) 
     "lib/connection.mjs",
     "lib/thread-tools.mjs",
     "lib/mcp-tool.mjs",
-    "lib/raw-call.mjs",
     "lib/turn-tools.mjs",
     "lib/thread-admin.mjs",
     "lib/catalog.mjs",
@@ -290,8 +289,12 @@ test("packed executable includes and registers every feature module", async (t) 
       "codex_compact",
       "codex_mcp_tool",
       "codex_queue",
-      "codex_call",
-      "codex_methods"
+      "codex_methods",
+      "codex_fs_readFile",
+      "codex_config_write",
+      "codex_thread_delete",
+      "codex_account_rateLimitResetCredit_consume",
+      "codex_thread_read"
     ]
   );
   const proxied = await call(client, "codex_mcp_tool", {
@@ -311,11 +314,10 @@ test("packed executable includes and registers every feature module", async (t) 
     threadId: "fixture-ephemeral",
     tool: "fixture-tool"
   });
-  const raw = await call(client, "codex_call", {
-    method: "thread/read",
-    params: { threadId: "fixture-thread" }
+  const native = await call(client, "codex_thread_read", {
+    threadId: "fixture-thread"
   });
-  assert.deepEqual(raw.value, { fixture: "raw" });
+  assert.deepEqual(native.value, { fixture: "raw" });
   assert.deepEqual(requests.at(-1).params, { threadId: "fixture-thread" });
 });
 
@@ -477,11 +479,12 @@ test("closes rejected initialization connections and keeps reset-credit refusal 
         })
       );
     },
-    { failInitialize: true }
+    { catalog: CATALOG, failInitialize: true }
   );
-  const refused = await call(client, "codex_call", {
-    method: "account/rateLimitResetCredit/consume"
-  });
+  const refused = await call(
+    client,
+    "codex_account_rateLimitResetCredit_consume"
+  );
   assert.equal(refused.error, true);
   assert.match(refused.text, /requires a separate direct human instruction/u);
   assert.equal(requests.length, 0);
@@ -606,137 +609,262 @@ test("sends thin thread requests for fork, rename, goal, loaded list, and compac
   ]);
 });
 
-test("generates allowlisted tools from the installed schema and refuses guarded methods", async (t) => {
+test("derives every native tool with exact parameter schemas and conservative annotations", async (t) => {
   const { client, requests } = await fixture(
     t,
     ({ reply }) => reply({ ok: true }),
-    {
-      catalog: CATALOG,
-      methods: "fs,config,thread,account"
-    }
+    { catalog: CATALOG }
   );
   const { tools } = await client.listTools();
-  const names = tools.map((tool) => tool.name);
-  assert.ok(names.includes("codex_methods"));
-  assert.ok(names.includes("codex_fs_readFile"));
-  assert.ok(names.includes("codex_config_write"));
-  for (const refused of [
-    "codex_thread_delete",
-    "codex_account_rateLimitResetCredit_consume"
-  ]) {
-    assert.ok(!names.includes(refused), refused);
+  assert.equal(tools.length, 19);
+  assert.ok(!tools.some((tool) => tool.name === "codex_call"));
+  for (const method of CATALOG.oneOf.map(
+    (entry) => entry.properties.method.enum[0]
+  )) {
+    const tool = tools.find(
+      (item) => item.name === `codex_${method.replaceAll("/", "_")}`
+    );
+    assert.ok(tool, method);
+    assert.match(tool.description, new RegExp(method, "u"));
+    assert.match(tool.description, /class: (?:read|mutating)/u);
+    assert.match(tool.description, /writer/u);
+    assert.equal(
+      tool.annotations.destructiveHint,
+      !tool.annotations.readOnlyHint
+    );
   }
-  assert.equal(names.filter((name) => name === "codex_thread_read").length, 0);
-  assert.equal(
-    tools.find((tool) => tool.name === "codex_fs_readFile").annotations
-      .readOnlyHint,
-    true
-  );
-  assert.equal(
-    tools.find((tool) => tool.name === "codex_config_write").annotations
-      .readOnlyHint,
-    false
-  );
+  const readTool = tools.find((tool) => tool.name === "codex_fs_readFile");
+  assert.equal(readTool.annotations.readOnlyHint, true);
+  assert.deepEqual(readTool.inputSchema, CATALOG.oneOf[0].properties.params);
+  const writeTool = tools.find((tool) => tool.name === "codex_config_write");
+  assert.equal(writeTool.annotations.readOnlyHint, false);
+  assert.deepEqual(writeTool.inputSchema.$defs.Mode, CATALOG.definitions.Mode);
+  assert.equal(writeTool.inputSchema.properties.mode.$ref, "#/$defs/Mode");
   const read = await call(client, "codex_fs_readFile", { path: "/x" });
   assert.deepEqual(read.value, { ok: true });
   assert.deepEqual(requests.at(-1).params, { path: "/x" });
+  const before = requests.length;
   const invalid = await call(client, "codex_config_write", { mode: "c" });
   assert.equal(invalid.error, true);
-  const listed = await call(client, "codex_methods", {
-    method: "config/write"
-  });
-  assert.equal(listed.value[0].class, "mutating");
-  assert.deepEqual(listed.value[0].params.properties.mode.enum, ["a", "b"]);
-  const all = await call(client, "codex_methods");
-  assert.equal(
-    all.value.find((entry) => entry.method === "thread/read").tool,
-    "curated"
+  assert.equal(requests.length, before);
+  await Promise.all(
+    [
+      ["codex_thread_delete", /native codex archive/u],
+      [
+        "codex_account_rateLimitResetCredit_consume",
+        /separate direct human instruction/u
+      ]
+    ].map(async ([name, reason]) => {
+      const result = await call(client, name);
+      assert.equal(result.error, true);
+      assert.match(result.text, reason);
+      assert.equal(requests.length, before);
+    })
   );
-  const cleanup = await call(client, "codex_call", { method: "thread/delete" });
-  assert.equal(cleanup.error, true);
-  assert.match(cleanup.text, /native codex archive/u);
-  assert.equal(
-    requests.filter((request) => request.method === "thread/delete").length,
-    0
-  );
-});
-
-test("keeps generated tools opt-in while discovery follows the installed catalog", async (t) => {
-  const { client } = await fixture(t, ({ reply }) => reply({}), {
-    catalog: CATALOG
-  });
-  const { tools } = await client.listTools();
-  assert.equal(tools.length, 15);
-  assert.ok(tools.some((tool) => tool.name === "codex_methods"));
-  assert.ok(!tools.some((tool) => tool.name === "codex_fs_readFile"));
-  const listed = await call(client, "codex_methods", { prefix: "fs/" });
-  assert.deepEqual(
-    listed.value.map((entry) => entry.method),
-    ["fs/readFile"]
-  );
-  assert.equal(listed.value[0].tool, "codex_call");
+  const listed = await call(client, "codex_methods", { method: "thread/read" });
+  assert.equal(listed.value[0].tool, "codex_thread_read");
 });
 
 test("discovers definition-free catalogs with namespace-boundary filtering", async (t) => {
   const { client } = await fixture(t, ({ reply }) => reply({}), {
     catalog: {
       oneOf: ["fs/readFile", "fsSection/readFile"].map((method) => ({
-        properties: {
-          method: { enum: [method] },
-          params: { type: "object" }
-        }
+        properties: { method: { enum: [method] }, params: { type: "object" } }
       }))
     }
   });
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 15);
-  const results = await Promise.all(
-    ["fs", "fs/"].map((prefix) => call(client, "codex_methods", { prefix }))
-  );
-  for (const result of results) {
-    assert.deepEqual(
-      result.value.map((entry) => entry.method),
-      ["fs/readFile"]
-    );
-  }
-});
-
-test("retains curated tools when a selected parameter schema cannot become an MCP tool", async (t) => {
+  assert.equal(tools.length, 16);
   await Promise.all(
-    [{ $ref: "#/definitions/Missing" }, { type: "string" }].map(
-      async (params) => {
-        const catalog = {
-          definitions: {},
-          oneOf: [{ properties: { method: { enum: ["future/read"] }, params } }]
-        };
-        const { client } = await fixture(t, ({ reply }) => reply({}), {
-          catalog,
-          methods: "future"
-        });
-        const { tools } = await client.listTools();
-        assert.equal(tools.length, 14);
-        assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
-      }
-    )
+    ["fs", "fs/"].map(async (prefix) => {
+      const result = await call(client, "codex_methods", { prefix });
+      assert.deepEqual(
+        result.value.map((entry) => entry.method),
+        ["fs/readFile"]
+      );
+    })
   );
 });
 
-test("retains curated tools when generated names collide with reserved tools", async (t) => {
+test("retains curated tools when native parameter references are missing", async (t) => {
   await Promise.all(
-    ["compact", "methods", "mcp/tool"].map(async (method) => {
+    [{ $ref: "#/definitions/Missing" }].map(async (params) => {
       const { client } = await fixture(t, ({ reply }) => reply({}), {
         catalog: {
           definitions: {},
-          oneOf: [{ properties: { method: { enum: [method] } } }]
-        },
-        methods: method
+          oneOf: [{ properties: { method: { enum: ["future/read"] }, params } }]
+        }
       });
       const { tools } = await client.listTools();
       assert.equal(tools.length, 14);
-      assert.ok(tools.some((tool) => tool.name === "codex_compact"));
-      assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+      assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
     })
   );
+});
+
+test("preserves boolean property schema semantics in SDK-compatible input schemas", async (t) => {
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: {
+        oneOf: [
+          {
+            properties: {
+              method: { enum: ["future/json"] },
+              params: {
+                properties: { denied: false, payload: true },
+                required: ["payload"],
+                type: "object"
+              }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      }
+    }
+  );
+  const { tools } = await client.listTools();
+  const tool = tools.find((entry) => entry.name === "codex_future_json");
+  assert.deepEqual(tool.inputSchema.properties, {
+    denied: { not: {} },
+    payload: {}
+  });
+  const invalid = await call(client, "codex_future_json", {
+    denied: null,
+    payload: true
+  });
+  assert.equal(invalid.error, true);
+  assert.equal(requests.length, 0);
+  const valid = await call(client, "codex_future_json", {
+    payload: ["native", { arbitrary: true }]
+  });
+  assert.equal(valid.error, false);
+  assert.deepEqual(requests.at(-1).params, {
+    payload: ["native", { arbitrary: true }]
+  });
+});
+
+test("wraps null and union parameters without changing native validation or dispatch", async (t) => {
+  const nullParams = { type: "null" };
+  const unionParams = {
+    oneOf: [
+      {
+        additionalProperties: false,
+        properties: { mode: { const: "a" } },
+        required: ["mode"],
+        type: "object"
+      },
+      { type: "string" }
+    ]
+  };
+  const { client, requests } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
+      catalog: {
+        definitions: { Choice: unionParams },
+        oneOf: [
+          {
+            properties: {
+              method: { enum: ["future/null"] },
+              params: nullParams
+            },
+            required: ["method", "params"],
+            type: "object"
+          },
+          {
+            properties: {
+              method: { enum: ["future/union"] },
+              params: { $ref: "#/definitions/Choice" }
+            },
+            required: ["method", "params"],
+            type: "object"
+          }
+        ]
+      }
+    }
+  );
+  const { tools } = await client.listTools();
+  assert.deepEqual(
+    tools.find((tool) => tool.name === "codex_future_null").inputSchema
+      .properties.params,
+    nullParams
+  );
+  assert.deepEqual(
+    tools.find((tool) => tool.name === "codex_future_union").inputSchema
+      .properties.params,
+    unionParams
+  );
+  const invalid = await call(client, "codex_future_null");
+  assert.equal(invalid.error, true);
+  assert.equal(requests.length, 0);
+  const nil = await call(client, "codex_future_null", { params: null });
+  assert.equal(nil.error, false);
+  assert.equal(requests.at(-1).params, null);
+  const union = await call(client, "codex_future_union", {
+    params: { mode: "a" }
+  });
+  assert.equal(union.error, false);
+  assert.deepEqual(requests.at(-1).params, { mode: "a" });
+  const before = requests.length;
+  const extra = await call(client, "codex_future_union", {
+    params: { extra: true, mode: "a" }
+  });
+  assert.equal(extra.error, true);
+  assert.equal(requests.length, before);
+});
+
+test("maps ambiguous and reserved names uniquely and stably across catalog changes", async (t) => {
+  const methods = [
+    "thread/goal/get",
+    "a/b",
+    "a_b",
+    "compact",
+    "methods",
+    "mcp/tool",
+    "method/new",
+    `future/${"long".repeat(40)}`
+  ];
+  const { client, schemaFile } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: {
+      oneOf: methods.map((method) => ({
+        properties: { method: { enum: [method] } }
+      }))
+    }
+  });
+  const firstResult = await call(client, "codex_methods");
+  const first = firstResult.value;
+  assert.equal(
+    first.find((entry) => entry.method === "thread/goal/get").tool,
+    "codex_thread_goal_get"
+  );
+  assert.equal(first.find((entry) => entry.method === "a/b").tool, "codex_a_b");
+  const names = first.map((entry) => entry.tool);
+  assert.equal(new Set(names).size, methods.length);
+  assert.ok(
+    names.every((name) => name.length <= 128 && /^[A-Za-z0-9_]+$/u.test(name))
+  );
+  const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
+  schemas.ClientRequest.oneOf.push({
+    properties: { method: { enum: ["a-b"] } }
+  });
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  const secondResult = await call(client, "codex_methods");
+  const second = secondResult.value;
+  assert.deepEqual(second.slice(0, first.length), first);
+  assert.ok(!names.includes(second.at(-1).tool));
+});
+
+test("rejects duplicate native method names atomically", async (t) => {
+  const entry = { properties: { method: { enum: ["future/read"] } } };
+  const { client } = await fixture(t, ({ reply }) => reply({}), {
+    catalog: { oneOf: [entry, entry] }
+  });
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 14);
+  assert.ok(!tools.some((tool) => tool.name === "codex_future_read"));
 });
 
 test("propagates daemon active-turn and writer refusals without retrying", async (t) => {
@@ -786,7 +914,7 @@ test("serves only curated tools when the schema catalog is unavailable", async (
   });
   const { tools } = await client.listTools();
   assert.equal(tools.length, 14);
-  assert.ok(!tools.some((tool) => tool.name === "codex_methods"));
+  assert.ok(tools.some((tool) => tool.name === "codex_methods"));
 });
 
 test("queues active sends and delivers fresh turns in order, buffering early completion", async (t) => {
@@ -1166,51 +1294,33 @@ test("queue deadline bounds stalled initialization before delivery", async (t) =
   );
 });
 
-test("validates native raw params and protocol direction before opening a socket", async (t) => {
-  const serverRequests = {
-    oneOf: [
-      {
-        properties: {
-          method: { enum: ["item/commandExecution/requestApproval"] }
-        }
-      }
-    ]
-  };
-  const serverNotifications = {
-    oneOf: [
-      {
-        properties: {
-          method: { enum: ["thread/status/changed"] },
-          params: { type: "object" }
-        }
-      }
-    ]
-  };
-  const clientNotifications = {
-    oneOf: [{ properties: { method: { enum: ["initialized"] } } }]
-  };
+const direction = (method) => ({
+  oneOf: [{ properties: { method: { enum: [method] } } }]
+});
+
+test("validates native parameters and keeps non-client directions discovery-only", async (t) => {
   const { client, requests } = await fixture(
     t,
     ({ reply }) => reply({ ok: true }),
     {
       catalog: CATALOG,
-      clientNotifications,
-      serverNotifications,
-      serverRequests
+      clientNotifications: direction("initialized"),
+      serverNotifications: direction("thread/status/changed"),
+      serverRequests: direction("item/commandExecution/requestApproval")
     }
   );
   await Promise.all(
     [
-      { method: "config/write", params: { mode: "new-invalid" } },
-      { method: "fs/readFile" },
-      { method: "fs/readFile", params: { path: 2 } },
-      { method: "initialized" },
-      { method: "item/commandExecution/requestApproval" },
-      { method: "thread/status/changed" },
-      { method: "absent/method" }
-    ].map(async (args) => {
-      const result = await call(client, "codex_call", args);
-      assert.equal(result.error, true, JSON.stringify(args));
+      ["codex_config_write", { mode: "invalid" }],
+      ["codex_fs_readFile", {}],
+      ["codex_fs_readFile", { path: 2 }],
+      ["codex_initialized", {}],
+      ["codex_item_commandExecution_requestApproval", {}],
+      ["codex_thread_status_changed", {}],
+      ["codex_absent_method", {}]
+    ].map(async ([name, args]) => {
+      const result = await call(client, name, args);
+      assert.equal(result.error, true);
       assert.equal(requests.length, 0);
     })
   );
@@ -1221,75 +1331,41 @@ test("validates native raw params and protocol direction before opening a socket
       ["clientNotification", "initialized"]
     ].map(async ([kind, method]) => {
       const result = await call(client, "codex_methods", { kind, method });
-      assert.equal(result.value[0].method, method);
       assert.equal(result.value[0].tool, "discovery_only");
     })
   );
-  const valid = await call(client, "codex_call", {
-    method: "config/write",
-    params: { extra: true, mode: "b" }
+  const valid = await call(client, "codex_config_write", {
+    extra: true,
+    mode: "b"
   });
   assert.deepEqual(valid.value, { ok: true });
   assert.deepEqual(requests.at(-1).params, { extra: true, mode: "b" });
 });
 
-test("shares the process-local schema cache and refreshes discovery and validation on version changes", async (t) => {
-  const { client, requests, schemaFile, versionFile, generatedFile } =
-    await fixture(t, ({ reply }) => reply({ ok: true }), {
+test("refreshes native tools and notifications on version and same-version schema changes", async (t) => {
+  const { client, requests, schemaFile, versionFile } = await fixture(
+    t,
+    ({ reply }) => reply({ ok: true }),
+    {
       catalog: {
         ...CATALOG,
         definitions: {
           ...CATALOG.definitions,
           Unrelated: { description: "unrelated".repeat(10_000), type: "string" }
-        },
-        oneOf: [
-          ...CATALOG.oneOf,
-          {
-            properties: {
-              method: { enum: ["model/list"] },
-              params: {
-                properties: {
-                  cursor: { type: "string" },
-                  limit: { minimum: 1, type: "integer" }
-                },
-                type: "object"
-              }
-            },
-            required: ["method", "params"],
-            type: "object"
-          }
-        ]
-      },
-      methods: "config"
-    });
-  const beforeDiscovery = await call(client, "codex_methods", {
+        }
+      }
+    }
+  );
+  let changes = 0;
+  client.setNotificationHandler(ToolListChangedNotificationSchema, () => {
+    changes += 1;
+  });
+  assert.equal(client.getServerCapabilities().tools.listChanged, true);
+  const before = await call(client, "codex_methods", {
     method: "config/write"
   });
-  assert.deepEqual(beforeDiscovery.value[0].params.properties.mode.enum, [
-    "a",
-    "b"
-  ]);
-  assert.ok(JSON.stringify(beforeDiscovery.value[0].params).length < 1000);
-  assert.equal(beforeDiscovery.value[0].params.$defs, undefined);
-  await call(client, "codex_call", {
-    method: "model/list",
-    params: { cursor: "opaque-native-cursor", limit: 7 }
-  });
-  assert.deepEqual(requests.at(-1).params, {
-    cursor: "opaque-native-cursor",
-    limit: 7
-  });
-  await call(client, "codex_call", { method: "model/list", params: {} });
-  assert.deepEqual(requests.at(-1).params, {});
-  await Promise.all([
-    call(client, "codex_methods"),
-    call(client, "codex_call", {
-      method: "config/write",
-      params: { mode: "a" }
-    })
-  ]);
-  const beforeGeneration = await readFile(generatedFile, "utf-8");
-  assert.equal(beforeGeneration.trim().split("\n").length, 1);
+  assert.ok(JSON.stringify(before.value[0].params).length < 1000);
+  assert.equal(before.value[0].params.$defs.Unrelated, undefined);
   const schemas = JSON.parse(await readFile(schemaFile, "utf-8"));
   schemas.ClientRequest.definitions.Mode.enum.push("future");
   schemas.ClientRequest.oneOf.push({
@@ -1306,51 +1382,67 @@ test("shares the process-local schema cache and refreshes discovery and validati
     type: "object"
   });
   await writeFile(schemaFile, JSON.stringify(schemas));
-  await writeFile(versionFile, "fixture-cli 2");
-  const discovered = await call(client, "codex_methods", {
-    method: "future/new"
-  });
-  assert.equal(discovered.value[0].tool, "codex_call");
-  assert.deepEqual(discovered.value[0].params.required, ["count"]);
-  const refreshedDiscovery = await call(client, "codex_methods", {
-    method: "config/write"
-  });
-  assert.deepEqual(refreshedDiscovery.value[0].params.properties.mode.enum, [
-    "a",
-    "b",
-    "future"
-  ]);
-  assert.ok(JSON.stringify(refreshedDiscovery.value[0].params).length < 1000);
-  assert.equal(refreshedDiscovery.value[0].params.$defs, undefined);
-  const updated = await call(client, "codex_call", {
-    method: "config/write",
-    params: { mode: "future" }
-  });
+  const { tools } = await client.listTools();
+  assert.ok(tools.some((tool) => tool.name === "codex_future_new"));
+  await t.waitFor(() => assert.equal(changes, 1));
+  const updated = await call(client, "codex_config_write", { mode: "future" });
   assert.equal(updated.error, false);
-  const before = requests.length;
-  const invalid = await call(client, "codex_call", {
-    method: "future/new",
-    params: { count: 0, extra: true }
+  const requestCount = requests.length;
+  const invalid = await call(client, "codex_future_new", {
+    count: 0,
+    extra: true
   });
   assert.equal(invalid.error, true);
-  assert.equal(requests.length, before);
-  const future = await call(client, "codex_call", {
-    method: "future/new",
-    params: { count: 1 }
-  });
+  assert.equal(requests.length, requestCount);
+  const future = await call(client, "codex_future_new", { count: 1 });
   assert.equal(future.error, false);
-  const afterGeneration = await readFile(generatedFile, "utf-8");
-  assert.equal(afterGeneration.trim().split("\n").length, 2);
-  const { tools } = await client.listTools();
-  assert.ok(!tools.some((tool) => tool.name === "codex_future_new"));
+  await client.listTools();
+  assert.equal(changes, 1);
+  await writeFile(versionFile, "fixture-cli 2");
+  await call(client, "codex_methods");
+  await t.waitFor(() => assert.equal(changes, 2));
+  schemas.ClientRequest.oneOf = schemas.ClientRequest.oneOf.filter(
+    (entry) => entry.properties.method.enum[0] !== "future/new"
+  );
+  await writeFile(schemaFile, JSON.stringify(schemas));
+  const removed = await client.listTools();
+  assert.ok(!removed.tools.some((tool) => tool.name === "codex_future_new"));
+  const refused = await call(client, "codex_future_new", { count: 1 });
+  assert.equal(refused.error, true);
 });
 
-test("refuses raw calls offline when native validation is unavailable", async (t) => {
-  const { client, requests } = await fixture(t, ({ reply }) => reply({}));
-  const result = await call(client, "codex_call", {
-    method: "thread/read",
-    params: { threadId: "fixture" }
+test("refuses native calls offline when current schema validation is unavailable", async (t) => {
+  const { client, requests, versionFile } = await fixture(
+    t,
+    ({ reply }) => reply({}),
+    { catalog: CATALOG }
+  );
+  await rm(versionFile);
+  const result = await call(client, "codex_thread_read", {
+    threadId: "fixture"
   });
+  assert.equal(result.error, true);
+  assert.equal(requests.length, 0);
+  const refused = await call(
+    client,
+    "codex_account_rateLimitResetCredit_consume"
+  );
+  assert.equal(refused.error, true);
+  assert.match(refused.text, /separate direct human instruction/u);
+  assert.equal(requests.length, 0);
+});
+
+test("retains the last catalog atomically after a failed refresh and refuses stale validation", async (t) => {
+  const { client, requests, schemaFile } = await fixture(
+    t,
+    ({ reply }) => reply({}),
+    { catalog: CATALOG }
+  );
+  const before = await client.listTools();
+  await writeFile(schemaFile, "invalid fixture schema");
+  const after = await client.listTools();
+  assert.deepEqual(after.tools, before.tools);
+  const result = await call(client, "codex_fs_readFile", { path: "/x" });
   assert.equal(result.error, true);
   assert.equal(requests.length, 0);
 });
