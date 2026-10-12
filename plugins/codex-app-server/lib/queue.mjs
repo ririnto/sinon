@@ -140,6 +140,10 @@ export const enqueueMessage = async (
       wake: false
     };
     queues.set(threadId, queue);
+    queue.timer = setTimeout(
+      () => stop(queue, "Queue deadline expired"),
+      QUEUE_TIMEOUT_MS
+    );
     queue.ready = (async () => {
       const client = await openClient({ signal: queue.stopped.signal });
       if (queue.closed) {
@@ -168,10 +172,6 @@ export const enqueueMessage = async (
         excludeTurns: true,
         threadId
       });
-      queue.timer = setTimeout(
-        () => stop(queue, "Queue deadline expired"),
-        QUEUE_TIMEOUT_MS
-      );
     })();
   }
   if (

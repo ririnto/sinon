@@ -13,6 +13,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { WebSocketServer } from "ws";
 
+import { closeQueues, enqueueMessage } from "../lib/queue.mjs";
+
 const serverPath = fileURLToPath(new URL("../server.mjs", import.meta.url));
 const SOURCE_KINDS = [
   "cli",
@@ -100,7 +102,7 @@ const fixture = async (context, handler, options = {}) => {
     await rm(directory, { force: true, recursive: true });
   });
   await client.connect(transport);
-  return { client, connections, requests };
+  return { client, connections, requests, socket };
 };
 
 /**
@@ -1091,4 +1093,33 @@ test("an idle send waiting for completion permits authorized interruption of its
   assert.equal(interrupted.value.status, "interrupted");
   const sent = await sending;
   assert.equal(sent.value.status, "interrupted");
+});
+
+test("queue deadline bounds stalled initialization before delivery", async (t) => {
+  const { requests, socket, connections } = await fixture(t, () => {}, {
+    failInitialize: true
+  });
+  const previousSocket = process.env.CODEX_APP_SERVER_SOCKET;
+  process.env.CODEX_APP_SERVER_SOCKET = socket;
+  t.after(() => {
+    closeQueues();
+    if (previousSocket === undefined) {
+      delete process.env.CODEX_APP_SERVER_SOCKET;
+    } else {
+      process.env.CODEX_APP_SERVER_SOCKET = previousSocket;
+    }
+  });
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const queued = enqueueMessage("deadline-fixture", "pending text");
+  await t.waitFor(() => assert.equal(requests.length, 1), { timeout: 2000 });
+  t.mock.timers.tick(1_800_000);
+  const result = await queued;
+  assert.equal(result.status, "refused");
+  assert.match(result.reason, /deadline expired/u);
+  t.mock.timers.reset();
+  await t.waitFor(() => assert.equal(connections.size, 0), { timeout: 2000 });
+  assert.deepEqual(
+    requests.map((request) => request.method),
+    ["initialize"]
+  );
 });
