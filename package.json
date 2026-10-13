@@ -4,19 +4,19 @@
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
-    "check:codegraph": "vitest run scripts/tests/codegraph",
+    "check:codegraph": "vitest run plugins/codegraph/tests",
     "check:lint-rules": "vitest run plugins/harness/tooling/pnpm",
-    "check:marketplace": "node --import tsx scripts/marketplace/generate.ts --check && vitest run scripts/tests/marketplace",
+    "check:marketplace": "node --import tsx .claude-plugin/marketplace/generate.ts --check && vitest run .claude-plugin/marketplace/generate.test.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
-    "check:promtool-release": "vitest run scripts/tests/promtool/release.test.ts",
-    "check:sdd": "vitest run scripts/tests/sdd",
+    "check:promtool-release": "vitest run plugins/observability-assets/tests/promtool/release.test.ts",
+    "check:sdd": "vitest run plugins/spec-driven-development/tests",
     "check:typescript": "tsc --noEmit",
-    "check:ultracite": "ultracite check",
+    "check:ultracite": "ultracite check && ultracite check .claude-plugin/marketplace",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "fix:ultracite": "ultracite fix",
-    "marketplace:generate": "node --import tsx scripts/marketplace/generate.ts",
-    "test:promtool": "tsx scripts/tests/promtool/run.ts"
+    "marketplace:generate": "node --import tsx .claude-plugin/marketplace/generate.ts",
+    "test:promtool": "tsx plugins/observability-assets/tests/promtool/run.ts"
   },
   "devDependencies": {
     "@oxc-project/types": "catalog:",

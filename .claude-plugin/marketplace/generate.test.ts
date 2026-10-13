@@ -13,10 +13,7 @@ import path from "node:path";
 
 import { expect, onTestFinished, test } from "vitest";
 
-import {
-  createCodexMarketplace,
-  syncCodexMarketplace
-} from "../../marketplace/generate.js";
+import { createCodexMarketplace, syncCodexMarketplace } from "./generate.js";
 
 const makeRoot = (): string => {
   const root = mkdtempSync(path.join(tmpdir(), "sinon-marketplace-test-"));

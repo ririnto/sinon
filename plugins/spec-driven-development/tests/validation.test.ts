@@ -7,8 +7,8 @@ import { expect, onTestFinished, test } from "vitest";
 import {
   validateChangelogFile,
   validateDocument
-} from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/validation.js";
-import { repositoryPaths } from "../../test-support/paths.js";
+} from "../skills/spec-driven-development/scripts/sdd/validation.js";
+import { repositoryPaths } from "./test-support/paths.js";
 
 test("validateDocument marks a valid spec as passed", () => {
   expect(
