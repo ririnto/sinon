@@ -1,6 +1,6 @@
 ---
 name: sol-high
-description: Tier 3 agent at high effort for conflicting evidence and hard tradeoffs, equivalent to opus and glm-max. Selecting this agent replaces specifying a model or effort; do not pass either.
+description: Equivalent to Claude Opus.
 model: gpt-6.1-sol
 effort: high
 ---

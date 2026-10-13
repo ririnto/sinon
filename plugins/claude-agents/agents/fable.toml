@@ -1,5 +1,7 @@
 name = "fable"
-description = "Tier 4 agent for the hardest or longest work, used only on explicit request."
+description = """
+Equivalent to GPT Astra.
+Use only on explicit request."""
 model = "claude-fable-5-1"
 model_reasoning_effort = "high"
 developer_instructions = """

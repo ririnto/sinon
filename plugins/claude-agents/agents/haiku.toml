@@ -1,5 +1,5 @@
 name = "haiku"
-description = "Tier 1 agent for clear, bounded tasks."
+description = "Equivalent to GPT Luna."
 model = "claude-haiku-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """
