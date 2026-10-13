@@ -71,12 +71,40 @@ export const verifiedExecutable = async (
   return Buffer.concat(chunks);
 };
 
-const releaseAsset = async (url: string): Promise<Response> => {
-  const response = await fetch(url);
+const releaseAsset = async (
+  url: string,
+  signal: AbortSignal
+): Promise<Response> => {
+  const response = await fetch(url, { signal });
   if (!response.ok) {
     throw new Error(`Release download failed: ${response.status} ${url}`);
   }
   return response;
+};
+
+/**
+ * Downloads the archive and checksum index for a verified release.
+ */
+export const downloadReleaseAssets = async (
+  archiveUrl: string,
+  checksumUrl: string
+): Promise<readonly [Uint8Array, string]> => {
+  const controller = new AbortController();
+  const archive = (async () => {
+    const response = await releaseAsset(archiveUrl, controller.signal);
+    return new Uint8Array(await response.arrayBuffer());
+  })();
+  const checksums = (async () => {
+    const response = await releaseAsset(checksumUrl, controller.signal);
+    return response.text();
+  })();
+  try {
+    return await Promise.all([archive, checksums]);
+  } catch (error) {
+    controller.abort();
+    await Promise.allSettled([archive, checksums]);
+    throw error;
+  }
 };
 
 const installPromtool = async (directory: string): Promise<string> => {
@@ -109,16 +137,16 @@ const installPromtool = async (directory: string): Promise<string> => {
   const executableName =
     process.platform === "win32" ? "promtool.exe" : "promtool";
   const releaseUrl = `https://github.com/prometheus/prometheus/releases/download/v${version}`;
-  const [archive, checksums] = await Promise.all([
-    releaseAsset(`${releaseUrl}/${archiveName}`),
-    releaseAsset(`${releaseUrl}/sha256sums.txt`)
-  ]);
+  const [archiveBytes, checksumIndex] = await downloadReleaseAssets(
+    `${releaseUrl}/${archiveName}`,
+    `${releaseUrl}/sha256sums.txt`
+  );
   const executablePath = path.join(directory, executableName);
   await writeFile(
     executablePath,
     await verifiedExecutable(
-      new Uint8Array(await archive.arrayBuffer()),
-      await checksums.text(),
+      archiveBytes,
+      checksumIndex,
       archiveName,
       `${archiveRoot}/${executableName}`
     )
@@ -127,18 +155,78 @@ const installPromtool = async (directory: string): Promise<string> => {
   return executablePath;
 };
 
-const execute = async (
+/**
+ * Runs a child command and returns its exit status.
+ */
+export const execute = async (
   binary: string,
   args: readonly string[]
 ): Promise<number> => {
-  const [code, signal] = await once(
-    spawn(binary, [...args], { stdio: "inherit" }),
-    "close"
-  );
-  if (typeof code !== "number") {
+  const child = spawn(binary, [...args], { stdio: "inherit" });
+  let interruptedBy: "SIGINT" | "SIGTERM" | undefined;
+  let spawnError: Error | undefined;
+  let spawnListener: (() => void) | undefined;
+  const closed =
+    Promise.withResolvers<readonly [number | null, NodeJS.Signals | null]>();
+  const onError = (error: Error): void => {
+    spawnError = error;
+  };
+  const onClose = (
+    code: number | null,
+    signal: NodeJS.Signals | null
+  ): void => {
+    closed.resolve([code, signal]);
+  };
+  child.once("error", onError);
+  child.once("close", onClose);
+  const forwardSignal = (signal: "SIGINT" | "SIGTERM"): void => {
+    interruptedBy ??= signal;
+    if (child.pid === undefined) {
+      if (spawnListener === undefined) {
+        const onSpawn = (): void => {
+          child.removeListener("spawn", onSpawn);
+          if (spawnListener === onSpawn) {
+            spawnListener = undefined;
+          }
+          if (interruptedBy !== undefined) {
+            child.kill(interruptedBy);
+          }
+        };
+        spawnListener = onSpawn;
+        child.once("spawn", onSpawn);
+      }
+    } else {
+      child.kill(signal);
+    }
+  };
+  const onSigint = (): void => forwardSignal("SIGINT");
+  const onSigterm = (): void => forwardSignal("SIGTERM");
+  process.once("SIGINT", onSigint);
+  process.once("SIGTERM", onSigterm);
+  try {
+    const [code, signal] = await closed.promise;
+    if (spawnError !== undefined) {
+      throw spawnError;
+    }
+    if (interruptedBy === "SIGINT") {
+      return 130;
+    }
+    if (interruptedBy === "SIGTERM") {
+      return 143;
+    }
+    if (typeof code === "number") {
+      return code;
+    }
     throw new TypeError(`Promtool terminated by signal ${signal}`);
+  } finally {
+    child.removeListener("error", onError);
+    child.removeListener("close", onClose);
+    process.removeListener("SIGINT", onSigint);
+    process.removeListener("SIGTERM", onSigterm);
+    if (spawnListener !== undefined) {
+      child.removeListener("spawn", spawnListener);
+    }
   }
-  return code;
 };
 
 const main = async (args: readonly string[]): Promise<number> => {
