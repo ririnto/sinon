@@ -86,12 +86,14 @@ plugins/observability-assets/
 +-- agents/
 |   +-- observability-architect.md
 +-- skills/
-    +-- alert-rule-testing/
-    +-- alertmanager/
-    +-- dashboard-provisioning/
-    +-- grafana-dashboards/
-    +-- prometheus-alert-rules/
-    +-- promql/
+|   +-- alert-rule-testing/
+|   +-- alertmanager/
+|   +-- dashboard-provisioning/
+|   +-- grafana-dashboards/
+|   +-- prometheus-alert-rules/
+|   +-- promql/
++-- tests/
+    +-- promtool/
 ```
 
 ## Installation
@@ -112,3 +114,8 @@ claude --plugin-dir /path/to/sinon/plugins/observability-assets
 
 This plugin does not bundle ready-to-install Prometheus, Alertmanager, or Grafana asset files.
 Skill examples are authoring patterns that must be adapted into the target repository's monitoring asset tree.
+
+## Validation
+
+Run `pnpm run test:promtool` from the repository root to execute the rule fixtures with the official Prometheus release binary.
+Run `pnpm run check:promtool-release` to test release archive integrity without downloading Prometheus.

@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-Each publishable package lives directly under `plugins/<plugin>/` and keeps its README, manifest, runtime files, scripts, and assets inside that root.
+Each publishable package lives directly under `plugins/<plugin>/` and keeps its README, manifest, runtime files, scripts, tests, and assets inside that root.
 The package root is the containment boundary for declared paths and packaged content.
 
 ## Package Contract

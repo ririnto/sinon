@@ -42,8 +42,8 @@ Pass native Promtool arguments when checking another fixture:
 
 ```sh
 pnpm run test:promtool --version
-pnpm run test:promtool check rules scripts/tests/promtool/alerts/api-errors.rules.yaml
-pnpm run test:promtool test rules scripts/tests/promtool/alerts/api-errors.test.yaml
+pnpm run test:promtool check rules plugins/observability-assets/tests/promtool/alerts/api-errors.rules.yaml
+pnpm run test:promtool test rules plugins/observability-assets/tests/promtool/alerts/api-errors.test.yaml
 ```
 
 Run the release-integrity regression tests without downloading a release:
