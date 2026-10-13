@@ -1,6 +1,6 @@
 ---
 name: luna-high
-description: Tier 1 agent for clear, bounded tasks, equivalent to haiku and glm-flash. Use without specifying model or effort.
+description: Tier 1 agent for clear, bounded tasks, equivalent to haiku and glm-flash. Selecting this agent replaces specifying a model or effort; do not pass either.
 model: gpt-6-luna
 effort: high
 ---
