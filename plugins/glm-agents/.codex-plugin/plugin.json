@@ -1,6 +1,6 @@
 {
   "name": "glm-agents",
-  "version": "2026.10.12.01",
+  "version": "2026.10.13.01",
   "description": "Claude Code subagent definitions backed by Z.ai GLM models.",
   "author": {
     "name": "ririnto"

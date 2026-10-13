@@ -1,6 +1,6 @@
 ---
 name: glm-high
-description: Tier 2 agent for broader development and analysis, equivalent to sonnet and luna-max.
+description: Tier 2 agent for broader development and analysis, equivalent to sonnet and luna-max. Use without specifying model or effort.
 model: glm-5.3
 effort: high
 ---

@@ -1,6 +1,6 @@
 ---
 name: glm-flash
-description: Tier 1 agent for clear, bounded tasks, equivalent to haiku and luna-high.
+description: Tier 1 agent for clear, bounded tasks, equivalent to haiku and luna-high. Use without specifying model or effort.
 model: glm-5.3-flash
 effort: max
 ---

@@ -83,7 +83,7 @@
       "license": "MIT",
       "name": "glm-agents",
       "source": "./plugins/glm-agents",
-      "version": "2026.10.12.01",
+      "version": "2026.10.13.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/glm-agents",
       "keywords": ["claude-code", "subagents", "zai", "glm"],
       "repository": "https://github.com/ririnto/sinon"
@@ -97,7 +97,7 @@
       "license": "MIT",
       "name": "gpt-agents",
       "source": "./plugins/gpt-agents",
-      "version": "2026.10.12.01",
+      "version": "2026.10.13.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/gpt-agents",
       "keywords": ["claude-code", "subagents", "openai", "gpt"],
       "repository": "https://github.com/ririnto/sinon"

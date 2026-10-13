@@ -1,6 +1,6 @@
 ---
 name: astra
-description: Tier 4 agent for the hardest or longest work, equivalent to fable, used only on explicit request.
+description: Tier 4 agent for the hardest or longest work, equivalent to fable, used only on explicit request. Use without specifying model or effort.
 model: gpt-6-astra
 effort: high
 ---
