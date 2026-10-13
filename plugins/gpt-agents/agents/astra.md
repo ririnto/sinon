@@ -1,7 +1,7 @@
 ---
 name: astra
 description: >-
-  Equivalent to GPT Astra.
+  Equivalent to Claude Fable.
   Use only on explicit request.
 model: gpt-6-astra
 effort: high

@@ -1,6 +1,6 @@
 ---
 name: glm-flash
-description: Equivalent to GPT Luna.
+description: Equivalent to Claude Haiku.
 model: glm-5.3-flash
 effort: max
 ---

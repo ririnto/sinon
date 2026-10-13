@@ -1,6 +1,6 @@
 ---
 name: luna-high
-description: Equivalent to GPT Luna.
+description: Equivalent to Claude Haiku.
 model: gpt-6-luna
 effort: high
 ---

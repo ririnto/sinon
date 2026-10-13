@@ -1,6 +1,6 @@
 ---
 name: glm-high
-description: Equivalent to GPT Luna.
+description: Equivalent to Claude Sonnet.
 model: glm-5.3
 effort: high
 ---

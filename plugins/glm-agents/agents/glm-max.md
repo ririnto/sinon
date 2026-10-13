@@ -1,6 +1,6 @@
 ---
 name: glm-max
-description: Equivalent to GPT Sol.
+description: Equivalent to Claude Opus.
 model: glm-5.3
 effort: max
 ---

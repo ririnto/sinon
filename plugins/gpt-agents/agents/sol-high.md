@@ -1,6 +1,6 @@
 ---
 name: sol-high
-description: Equivalent to GPT Sol.
+description: Equivalent to Claude Opus.
 model: gpt-6.1-sol
 effort: high
 ---

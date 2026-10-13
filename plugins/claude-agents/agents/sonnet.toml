@@ -1,5 +1,5 @@
 name = "sonnet"
-description = "Equivalent to Claude Sonnet."
+description = "Equivalent to GPT Luna."
 model = "claude-sonnet-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """

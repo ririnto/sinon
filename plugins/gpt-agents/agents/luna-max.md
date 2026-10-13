@@ -1,6 +1,6 @@
 ---
 name: luna-max
-description: Equivalent to GPT Luna.
+description: Equivalent to Claude Sonnet.
 model: gpt-6-luna
 effort: max
 ---

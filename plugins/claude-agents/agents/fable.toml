@@ -1,6 +1,6 @@
 name = "fable"
 description = """
-Equivalent to Claude Fable.
+Equivalent to GPT Astra.
 Use only on explicit request."""
 model = "claude-fable-5-1"
 model_reasoning_effort = "high"
