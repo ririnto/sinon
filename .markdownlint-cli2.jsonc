@@ -15,6 +15,9 @@
     "code-block-style": {
       "style": "fenced"
     },
+    "table-column-style": {
+      "style": "compact"
+    },
     "no-emphasis-as-heading": true,
     "docs/no-box-drawing": true,
     "docs/sentence-per-line": true,
