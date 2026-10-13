@@ -1,5 +1,5 @@
 name = "opus"
-description = "Tier 3 agent for conflicting evidence and hard tradeoffs."
+description = "Equivalent to GPT Sol at medium or high effort."
 model = "claude-opus-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """

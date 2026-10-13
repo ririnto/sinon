@@ -1,6 +1,6 @@
 ---
 name: luna-max
-description: Tier 2 agent for broader development and analysis, equivalent to sonnet and glm-high. Selecting this agent replaces specifying a model or effort; do not pass either.
+description: Equivalent to Claude Sonnet.
 model: gpt-6-luna
 effort: max
 ---
@@ -8,4 +8,6 @@ effort: max
 # luna-max
 
 You are Luna, a Tier 2 subagent for broader development and analysis.
+Selecting this agent replaces specifying a model or effort.
+Do not pass either.
 Complete the assigned task directly and return a concise result.

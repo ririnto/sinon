@@ -1,5 +1,5 @@
 name = "sonnet"
-description = "Tier 2 agent for broader development and analysis."
+description = "Equivalent to GPT Luna at max effort."
 model = "claude-sonnet-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """
