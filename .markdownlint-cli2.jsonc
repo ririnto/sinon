@@ -1,27 +1,27 @@
 {
   "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.23.3/schema/markdownlint-cli2-config-schema.json",
   "config": {
+    "code-block-style": {
+      "style": "fenced"
+    },
+    "docs/no-box-drawing": true,
+    "docs/sentence-per-line": true,
+    "docs/table-separators": true,
     "line-length": false,
+    "no-duplicate-heading": {
+      "siblings_only": true
+    },
+    "no-emphasis-as-heading": true,
     "no-inline-html": {
       "allowed_elements": ["details", "summary", "kbd", "img", "code"],
       "table_allowed_elements": ["br"]
     },
-    "no-duplicate-heading": {
-      "siblings_only": true
-    },
     "single-title": {
       "front_matter_title": ""
     },
-    "code-block-style": {
-      "style": "fenced"
-    },
     "table-column-style": {
       "style": "compact"
-    },
-    "no-emphasis-as-heading": true,
-    "docs/no-box-drawing": true,
-    "docs/sentence-per-line": true,
-    "docs/table-separators": true
+    }
   },
   "customRules": [
     "./plugins/harness/tooling/pnpm/rules/no-box-drawing.ts",
