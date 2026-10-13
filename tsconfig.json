@@ -2,5 +2,6 @@
   "extends": "@tsconfig/node-lts/tsconfig.json",
   "compilerOptions": {
     "types": ["node"]
-  }
+  },
+  "include": ["**/*.ts", ".claude-plugin/marketplace/**/*.ts"]
 }

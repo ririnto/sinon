@@ -42,7 +42,9 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 - `.claude-plugin/marketplace.json`: authoritative plugin inventory and Claude marketplace catalog.
 - `.agents/plugins/marketplace.json`: generated Codex marketplace catalog.
 - `docs/agent-references/`: source and instruction authoring conventions.
-- `scripts/`: repository checks and native example fixtures.
+- `.claude-plugin/marketplace/`: catalog generation and validation.
+- `plugins/<plugin>/tests/`: each plugin's validation suites.
+- `package.json`: repository check commands and shared development tools.
 - `plugins/harness/tooling/pnpm/rules/`: shared profile and repository Markdown lint rules.
 - `.github/`: dependency update configuration and contribution templates.
 - `plugins/`: plugins maintained in this repository.
@@ -81,10 +83,11 @@ Use the [contribution guide](CONTRIBUTING.md) for issues, pull requests, writing
 Use the Node range in `package.json` and the repository's pnpm toolchain.
 Run `pnpm install` after dependency changes.
 Run `pnpm run check` for the repository checks.
+The root package commands invoke validation suites owned by their catalog or plugin components.
 Use Node.js 24 for development dependencies.
 Store shared npm dependency versions in `pnpm-workspace.yaml` catalogs and reference them with `catalog:`.
 Use [repository instructions](AGENTS.md) for task-specific checks and package validation.
-Run `pnpm run test:promtool` for the [Prometheus documentation fixtures](scripts/tests/promtool/README.md).
+Run `pnpm run test:promtool` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
 That component verifies and runs the official release executable without a separate Go build graph.
 
 ## Current Plugins
@@ -259,6 +262,7 @@ See each package README for runtime requirements and host-specific capabilities.
 
 Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
 Keep each local package's Codex identity aligned with its Claude marketplace entry.
+The marketplace catalog owns its generator and regression suite under `.claude-plugin/marketplace/`.
 Generate the native Codex view with `pnpm run marketplace:generate`.
 Commit the generated catalog with its source changes.
 The repository checks reject stale catalogs and invalid local package mappings.

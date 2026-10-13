@@ -4,10 +4,10 @@ import path from "node:path";
 
 import { expect, onTestFinished, test, vi } from "vitest";
 
-import { parseArgs } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/args.js";
-import { main } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/cli.js";
-import { generateMermaid } from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/graph.js";
-import { repositoryPaths } from "../../test-support/paths.js";
+import { parseArgs } from "../skills/spec-driven-development/scripts/sdd/args.js";
+import { main } from "../skills/spec-driven-development/scripts/sdd/cli.js";
+import { generateMermaid } from "../skills/spec-driven-development/scripts/sdd/graph.js";
+import { repositoryPaths } from "./test-support/paths.js";
 
 test("generateMermaid preserves linked fixture output", () => {
   expect(generateMermaid(repositoryPaths.sddFixtureRoot)).toBe(

@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import {
   extractFrontmatterFromText,
   parseFields
-} from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/frontmatter.js";
+} from "../skills/spec-driven-development/scripts/sdd/frontmatter.js";
 
 test("extractFrontmatterFromText returns the closing line number", () => {
   expect(

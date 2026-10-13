@@ -49,6 +49,7 @@ The listed agent remains a Claude Code surface.
 plugins/spec-driven-development/
 +-- .codex-plugin/plugin.json
 +-- README.md
++-- tests/                  # Component validation suites
 +-- package.json            # Standalone Node.js runtime dependencies
 +-- pnpm-workspace.yaml     # Runtime dependency catalog
 +-- pnpm-lock.yaml          # Standalone installation lockfile
@@ -96,6 +97,10 @@ The package declares `tsx` for TypeScript execution, `yaml` for YAML parsing, an
 The package's catalog and lockfile support installation outside the Sinon repository.
 These dependencies belong to the installed plugin and do not depend on the consuming repository's packages.
 After installation, commands work offline.
+
+## Validation
+
+Run `pnpm run check:sdd` from the repository root to test the plugin's CLI, frontmatter handling, and document validation.
 
 Run the CLI from the consuming repository:
 Resolve the package root two levels above the installed skill directory.

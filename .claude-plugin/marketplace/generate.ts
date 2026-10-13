@@ -575,7 +575,7 @@ const runCli = async (): Promise<void> => {
   const args = process.argv.slice(2);
   if (args.length > 1 || (args.length === 1 && args[0] !== "--check")) {
     throw new Error(
-      "Usage: node --import tsx scripts/marketplace/generate.ts [--check]"
+      "Usage: node --import tsx .claude-plugin/marketplace/generate.ts [--check]"
     );
   }
   const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));

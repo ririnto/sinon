@@ -103,3 +103,7 @@ npx --yes @colbymchenry/codegraph status
 - `mcp.json` registers the portable MCP server configuration.
 - `hooks/hooks.json` runs repository preparation at Claude Code startup and after `EnterWorktree`.
 - `hooks/codex-hooks.json` runs repository preparation at Codex startup.
+
+## Validation
+
+Run `pnpm run check:codegraph` from the repository root to exercise the plugin lifecycle hooks.

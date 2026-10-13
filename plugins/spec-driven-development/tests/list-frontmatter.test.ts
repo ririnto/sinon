@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import {
   matchesFilters,
   matchesKind
-} from "../../../plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd/frontmatter.js";
+} from "../skills/spec-driven-development/scripts/sdd/frontmatter.js";
 
 test("matchesKind rejects a mismatched document kind", () => {
   expect(matchesKind("input/SPEC.md", "research")).toBe(false);

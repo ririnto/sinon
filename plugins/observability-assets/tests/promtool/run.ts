@@ -81,7 +81,10 @@ const releaseAsset = async (url: string): Promise<Response> => {
 
 const installPromtool = async (directory: string): Promise<string> => {
   const manifest = JSON.parse(
-    await readFile(new URL("../../../package.json", import.meta.url), "utf-8")
+    await readFile(
+      new URL("../../../../package.json", import.meta.url),
+      "utf-8"
+    )
   );
   const version: unknown = manifest.config?.promtoolVersion;
   if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/u.test(version)) {
