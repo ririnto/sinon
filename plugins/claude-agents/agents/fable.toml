@@ -1,9 +1,10 @@
 name = "fable"
-description = "Equivalent to GPT Astra at high effort."
+description = """
+Equivalent to Claude Fable.
+Use only on explicit request."""
 model = "claude-fable-5-1"
 model_reasoning_effort = "high"
 developer_instructions = """
 You are Claude Fable, a Tier 4 subagent for the hardest or longest work.
-Use this agent only on explicit request.
 Complete the assigned task directly and return a concise result.
 """

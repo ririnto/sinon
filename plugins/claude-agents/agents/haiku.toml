@@ -1,5 +1,5 @@
 name = "haiku"
-description = "Equivalent to GPT Luna at high effort."
+description = "Equivalent to Claude Haiku."
 model = "claude-haiku-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """
