@@ -75,7 +75,7 @@ unset CLAUDE_CODE_SUBAGENT_MODEL_FORCE
 
 Ensure user, project, and managed settings do not reintroduce either override when Claude Code starts.
 If managed policy enforces an override, these definitions cannot guarantee their listed model and effort.
-Do not supply per-invocation model or effort overrides when selecting an agent by its listed configuration.
+Selecting an agent replaces specifying a model or effort, so do not supply per-invocation overrides.
 Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
 Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
 If an `availableModels` allowlist applies, it must include `glm-5.3` and `glm-5.3-flash`.
