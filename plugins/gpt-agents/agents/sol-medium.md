@@ -1,6 +1,6 @@
 ---
 name: sol-medium
-description: Tier 3 agent at medium effort for conflicting evidence and hard tradeoffs, equivalent to opus and glm-max.
+description: Tier 3 agent at medium effort for conflicting evidence and hard tradeoffs, equivalent to opus and glm-max. Use without specifying model or effort.
 model: gpt-6.1-sol
 effort: medium
 ---

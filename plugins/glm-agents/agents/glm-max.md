@@ -1,6 +1,6 @@
 ---
 name: glm-max
-description: Tier 3 agent for conflicting evidence and hard tradeoffs, equivalent to opus, sol-medium, and sol-high.
+description: Tier 3 agent for conflicting evidence and hard tradeoffs, equivalent to opus, sol-medium, and sol-high. Use without specifying model or effort.
 model: glm-5.3
 effort: max
 ---
