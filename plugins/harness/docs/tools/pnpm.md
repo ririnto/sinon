@@ -45,6 +45,11 @@ metadata:
     npm-run-all2:
       version: 9.0.3
       url: https://registry.npmjs.org/npm-run-all2/9.0.3
+    Husky:
+      version: 9.1.7
+      url:
+        - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
+        - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/how-to.md
     Oxc Project Types:
       version: 0.153.0
       url: https://registry.npmjs.org/@oxc-project/types/0.153.0
@@ -80,7 +85,7 @@ Do not copy any fragment over an existing manifest, workspace configuration, or 
 ## Bounded Manifest Merge
 
 Preserve the target package name, workspaces, package manager, dependency versions, scripts, and unrelated fields.
-Add only missing `check` and `fix` script entries after reviewing existing commands.
+Add missing `check`, `fix`, `pre-commit`, `pre-push`, and `prepare` script entries after reviewing existing commands.
 Add `test` only when the target has a native test owner.
 If an existing script owns one of these names, preserve it and report the required command substitution.
 Do not silently replace an existing native check, formatter, test runner, or build task.
@@ -94,7 +99,26 @@ Do not add direct `oxlint` or `oxfmt` script entries.
 Route lint and format execution only through Ultracite.
 Add `npm-run-all2` only when the merged scripts use `run-p`.
 Add `@oxc-project/types` only when the target keeps TypeScript custom plugins and the target's Oxc version requires its declarations.
-Do not add Husky or create hooks automatically.
+Use the [Git hook integration](#git-hook-integration) for the script surface.
+
+## Git Hook Integration
+
+Add the compatible Husky catalog entry and development dependency when installing this script surface.
+The `prepare` script runs `husky` to install its Git dispatchers.
+Copy `.husky/pre-commit`, `.husky/pre-push`, and `.husky/.gitignore` from the pnpm tooling source to the selected Git root.
+The hooks invoke `pnpm run pre-commit` and `pnpm run pre-push` respectively.
+Both pnpm hook scripts run the target's `check` gate.
+The Gradle profile adds its selected native Gradle task after that gate.
+Keep the generated `.husky/_/` dispatchers ignored.
+
+Inspect `core.hooksPath`, existing Git hooks, and any existing `prepare` command before installation.
+Merge an existing lifecycle command explicitly and preserve its behavior.
+Resolve an existing hook manager's ownership before installing Husky instead of creating competing dispatchers or overwriting hooks.
+In a monorepo, keep one hook owner at the Git root and compose the selected package checks through that owner's scripts.
+Do not install independent Git dispatchers in each package.
+After merging, run `pnpm install` and `pnpm run prepare` at the selected root.
+Verify actual Git commit and push invocations in a disposable repository, including a failing check that blocks each operation.
+Manual script execution alone does not prove hook installation.
 
 The source configuration extends the target-installed Ultracite Oxc presets.
 The style plugin preserves the historical checks for blank lines and non-documentation comments inside block function bodies.

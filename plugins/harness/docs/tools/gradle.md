@@ -164,6 +164,47 @@ Do not use a machine-specific `systemPath` or require a registry publication for
 
 ## Commands
 
+### Node-Side Markdown And Hook Scripts
+
+Use pnpm for the Node-side tooling at each selected Gradle root.
+`tooling/gradle/package.json` is script and dependency merge guidance, following the pnpm profile's `package.fragment.json` convention.
+Merge its entries into the target manifest.
+Preserve existing identity, commands, dependencies, workspaces, and package-manager settings.
+Create a minimal private target manifest only when none exists, keeping project identity target-owned.
+For an existing script name, retain its command and report the required composition before changing that owner.
+
+The supplied script surface is:
+
+| Script | Command |
+| --- | --- |
+| `check` | `run-p check:*` |
+| `check:markdownlint-cli2` | `markdownlint-cli2` |
+| `fix` | `run-p fix:*` |
+| `fix:markdownlint-cli2` | `markdownlint-cli2 --fix` |
+| `gradle:check` | `./gradlew check` |
+| `gradle:ktlintCheck` | `./gradlew ktlintCheck` |
+| `pre-commit` | `run-s check gradle:ktlintCheck` |
+| `pre-push` | `run-s check gradle:check` |
+| `prepare` | `husky` |
+
+The pre-commit gate requires a real target-owned `ktlintCheck` task.
+If that task is missing, report the integration gap and resolve the Kotlin integration before activating this exact script surface.
+Do not silently substitute `check` for `ktlintCheck`.
+The hook scripts finish Node-side checks successfully before invoking Gradle.
+Install the shared pnpm profile's [Husky Git hooks](pnpm.md#git-hook-integration) to invoke these scripts through Git.
+Keep the checked-in wrapper at the selected root and preserve its task graph.
+
+Install the canonical Markdownlint configuration and `rules/` from `tooling/pnpm/`, omitting `*.test.ts` files.
+Use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the four development dependencies in this manifest.
+Resolve their catalog references in the target's `pnpm-workspace.yaml` before running `pnpm install`.
+Use missing entries from `pnpm-workspace.fragment.yaml` as merge guidance, preserving compatible target versions and unrelated workspace settings.
+Verify supported dependency versions through the npm registry before adding or upgrading them in a target.
+Do not select the Oxc or TypeScript profile solely to obtain Markdownlint.
+Use supported Node LTS with native TypeScript loading and compatible dependency engines.
+The [pnpm profile](pnpm.md#bounded-manifest-merge) owns the shared custom-rule runtime requirements.
+
+### Native Gradle Commands
+
 Run `./gradlew spotlessCheck checkstyleMain checkstyleTest` for the focused Java gate when those tasks exist.
 Run `./gradlew check` for the target's normal full gate.
 Run `./gradlew spotlessApply` only after reviewing the resulting Java diff.
