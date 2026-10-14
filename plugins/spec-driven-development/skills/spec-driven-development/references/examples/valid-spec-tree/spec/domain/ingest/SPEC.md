@@ -10,8 +10,6 @@ call: []
 metadata: {}
 ---
 
-# Domain Ingest
-
 ## Necessity
 
 This SPEC exists because ingest behavior needs its own reviewable boundary and testable acceptance criteria.

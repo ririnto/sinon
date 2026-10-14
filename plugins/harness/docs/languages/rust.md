@@ -1,4 +1,5 @@
 ---
+title: Rust Language Rules
 metadata:
   reference:
     Rust:
@@ -6,8 +7,6 @@ metadata:
         - https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html
         - https://doc.rust-lang.org/std/clone/trait.Clone.html
 ---
-
-# Rust Language Rules
 
 This document owns Rust-specific rules for the `rust` profile.
 The [shared rules](../rules.md) apply alongside these Rust-only invariants.

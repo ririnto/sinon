@@ -1,4 +1,5 @@
 ---
+title: Go Tool Reference
 metadata:
   reference:
     golangci-lint:
@@ -11,8 +12,6 @@ metadata:
     Go tool dependencies:
       url: https://go.dev/doc/modules/managing-dependencies#tools
 ---
-
-# Go Tool Reference
 
 This document owns the `go` profile commands, dependencies, and target integration rules for Go module targets.
 It accompanies the [Go language rules](../languages/go.md) and [shared rules](../rules.md).

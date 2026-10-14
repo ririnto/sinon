@@ -9,9 +9,6 @@
     "no-duplicate-heading": {
       "siblings_only": true
     },
-    "single-title": {
-      "front_matter_title": ""
-    },
     "code-block-style": {
       "style": "fenced"
     },

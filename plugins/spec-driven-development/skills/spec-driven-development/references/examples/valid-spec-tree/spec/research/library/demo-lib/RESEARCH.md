@@ -12,8 +12,6 @@ tag:
   - research
 ---
 
-# Demo Library Research
-
 ## Overview
 
 This research checks the demo library behavior that affects ingest validation and error semantics.

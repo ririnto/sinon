@@ -12,8 +12,6 @@ call:
 metadata: {}
 ---
 
-# Domain Capability
-
 ## Necessity
 
 The domain capability exists so reviewers can see the user-facing goal before looking at lower-level specs.

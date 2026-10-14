@@ -5,8 +5,6 @@ description: >-
 last_updated: "{{last_updated_date}}"
 ---
 
-# {{title_yaml}}
-
 ## Contract Scope
 
 This document defines contract units for the capability described in `SPEC.md`.

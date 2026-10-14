@@ -1,4 +1,5 @@
 ---
+title: pnpm
 metadata:
   reference:
     pnpm:
@@ -54,8 +55,6 @@ metadata:
       version: 0.72.0
       url: https://www.npmjs.com/package/oxfmt/v/0.72.0
 ---
-
-# pnpm
 
 Use this profile for a pnpm-managed JavaScript, TypeScript, or JSX project.
 

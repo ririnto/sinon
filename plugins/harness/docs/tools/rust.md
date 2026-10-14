@@ -1,4 +1,5 @@
 ---
+title: Rust Tool Reference
 metadata:
   reference:
     Clippy:
@@ -6,8 +7,6 @@ metadata:
     rustup:
       url: https://rust-lang.github.io/rustup/concepts/toolchains.html
 ---
-
-# Rust Tool Reference
 
 This document owns the `rust` profile commands, dependencies, and target integration rules for Cargo workspace targets.
 It accompanies the [Rust language rules](../languages/rust.md) and [shared rules](../rules.md).

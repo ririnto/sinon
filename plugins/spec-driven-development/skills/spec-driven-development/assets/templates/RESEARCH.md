@@ -10,8 +10,6 @@ subject:
 tag: []
 ---
 
-# {{title}}
-
 ## Overview
 
 TODO: State the external framework, library, or topic under investigation, why it matters now, and the scope boundary.

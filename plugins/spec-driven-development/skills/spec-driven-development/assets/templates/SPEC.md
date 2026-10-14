@@ -9,8 +9,6 @@ call: []
 metadata: {}
 ---
 
-# {{title}}
-
 ## Necessity
 
 Describe why this SPEC is needed and what problem it solves.

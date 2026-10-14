@@ -1,4 +1,5 @@
 ---
+title: Maven
 metadata:
   reference:
     Maven runtime:
@@ -25,8 +26,6 @@ metadata:
     Checkstyle Checks:
       url: https://checkstyle.org/checks.html
 ---
-
-# Maven
 
 Use this profile for an existing Maven project with Java sources.
 Detect the tool at the root that owns `pom.xml`.

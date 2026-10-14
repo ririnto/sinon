@@ -1,4 +1,5 @@
 ---
+title: TypeScript Rules
 metadata:
   reference:
     TypeScript:
@@ -6,8 +7,6 @@ metadata:
         - https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
         - https://tsdoc.org/pages/intro/approach/
 ---
-
-# TypeScript Rules
 
 These rules extend the [common rules](../rules.md) for TypeScript files.
 Read them together with that document.
