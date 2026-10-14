@@ -1,4 +1,5 @@
 ---
+title: Shell Tool Reference
 metadata:
   reference:
     ShellCheck:
@@ -8,8 +9,6 @@ metadata:
       version: 3.14.1
       url: https://raw.githubusercontent.com/mvdan/sh/v3.14.1/cmd/shfmt/shfmt.1.scd
 ---
-
-# Shell Tool Reference
 
 This document owns the `shell` profile commands and target integration rules for repositories with shell scripts.
 It accompanies the [shell language rules](../languages/shell.md) and [shared rules](../rules.md).

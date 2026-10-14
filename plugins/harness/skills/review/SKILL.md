@@ -1,4 +1,5 @@
 ---
+title: Review
 name: review
 description: Use when reviewing a diff or completed change for correctness and requirement compliance.
 metadata:
@@ -8,8 +9,6 @@ metadata:
     OpenAI skills:
       url: https://learn.chatgpt.com/docs/build-skills.md
 ---
-
-# Review
 
 Use the [shared engineering rules](../../docs/rules.md) for instruction discovery, authority, validation, evidence, and review criteria.
 From their index, load language and tool guidance only for affected files, profiles, or suspected findings.

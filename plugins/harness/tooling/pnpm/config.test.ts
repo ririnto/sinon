@@ -11,6 +11,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 
 import oxfmtConfig from "./oxfmt.config.js";
@@ -32,6 +33,30 @@ const markdownlintBin = path.join(
 );
 
 describe("pnpm profile configuration", () => {
+  test.each([
+    path.resolve(profileDirectory, "../../../..", ".markdownlint-cli2.jsonc"),
+    path.join(profileDirectory, ".markdownlint-cli2.jsonc")
+  ])("Markdownlint title policy in %s", async (configurationPath) => {
+    const { config } = JSON.parse(await readFile(configurationPath, "utf-8"));
+    const cases = [
+      {
+        rule: undefined,
+        text: "---\ntitle: Example\n---\n\n## Section\n\nBody.\n"
+      },
+      { rule: undefined, text: "# Example\n\nBody.\n" },
+      {
+        rule: "MD025",
+        text: "---\ntitle: Example\n---\n\n# Example\n\nBody.\n"
+      },
+      { rule: "MD041", text: "Body.\n" }
+    ];
+    for (const { text, rule } of cases) {
+      const errors = lint({ config, strings: { sample: text } }).sample;
+      expect(errors.map(({ ruleNames }) => ruleNames[0])).toEqual(
+        rule ? [rule] : []
+      );
+    }
+  });
   test("oxfmt configuration skips Markdown and trailing commas", () => {
     expect(oxfmtConfig.ignorePatterns).toContain("**/*.md");
     expect(oxfmtConfig.trailingComma).toBe("none");

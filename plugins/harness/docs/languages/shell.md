@@ -1,12 +1,11 @@
 ---
+title: Shell Language Rules
 metadata:
   reference:
     POSIX shell language:
       version: "2024"
       url: https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html
 ---
-
-# Shell Language Rules
 
 This document owns POSIX-shell-specific rules for the `shell` profile.
 The [shared rules](../rules.md) apply alongside these shell-only invariants.

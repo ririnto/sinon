@@ -6,8 +6,6 @@ last_updated: "2026-03-06"
 metadata: {}
 ---
 
-# Domain Ingest Contract
-
 ## Contract Scope
 
 This document defines the contract unit for the domain ingest capability.

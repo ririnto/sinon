@@ -1,4 +1,5 @@
 ---
+title: Gradle
 metadata:
   reference:
     Spotless Gradle Plugin:
@@ -48,8 +49,6 @@ metadata:
     Dependabot Configuration:
       url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 ---
-
-# Gradle
 
 Use this profile for an existing Gradle project with Java sources.
 Detect the tool at the root that owns `build.gradle`, `build.gradle.kts`, `settings.gradle`, or `settings.gradle.kts`.

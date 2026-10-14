@@ -1,4 +1,5 @@
 ---
+title: Engineering Rules
 metadata:
   reference:
     OpenAI skills:
@@ -13,8 +14,6 @@ metadata:
         - https://www.w3.org/TR/WCAG22/
         - https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 ---
-
-# Engineering Rules
 
 This document owns common engineering rules and workflow boundaries for the `implement` and `review` skills.
 Language and tool documents own their specific requirements.
@@ -134,6 +133,10 @@ Parse structured output (JSON, HTML, URLs, headers, event streams), and compare 
 Use membership assertions only when membership itself is the observable contract.
 
 ## Documentation Formatting
+
+Use a body H1 for ordinary Markdown titles.
+For documents that rely on frontmatter, use `title:` there and omit the duplicate body H1.
+Do not add frontmatter only to replace a body H1.
 
 Put each complete Markdown sentence on its own source line.
 Do not join separate sentences with semicolons or substitute punctuation.

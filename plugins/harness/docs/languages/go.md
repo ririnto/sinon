@@ -1,4 +1,5 @@
 ---
+title: Go Language Rules
 metadata:
   reference:
     Go:
@@ -6,8 +7,6 @@ metadata:
         - https://go.dev/doc/effective_go
         - https://go.dev/doc/comment
 ---
-
-# Go Language Rules
 
 This document owns Go-specific rules for the `go` profile.
 The [shared rules](../rules.md) apply alongside these Go-only invariants.

@@ -1,4 +1,5 @@
 ---
+title: Python Language Rules
 metadata:
   reference:
     Python:
@@ -6,8 +7,6 @@ metadata:
         - https://docs.python.org/3/library/pathlib.html
         - https://docs.python.org/3/library/typing.html#typing.Final
 ---
-
-# Python Language Rules
 
 This document owns Python-specific rules for the `uv` profile.
 The [shared rules](../rules.md) apply alongside these Python-only invariants.

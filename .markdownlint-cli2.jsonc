@@ -16,9 +16,6 @@
       "allowed_elements": ["details", "summary", "kbd", "img", "code"],
       "table_allowed_elements": ["br"]
     },
-    "single-title": {
-      "front_matter_title": ""
-    },
     "table-column-style": {
       "style": "compact"
     }

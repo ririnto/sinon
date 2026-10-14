@@ -57,6 +57,10 @@ Use double quotes only when the actual consumer requires the exact string type o
 
 ## Markdown Authoring
 
+Prefer a body H1 unless the document relies on frontmatter for its title.
+For Harness guidance and documents with a frontmatter title, keep the title only in frontmatter.
+Do not add frontmatter only to replace a body H1.
+
 Write one prose sentence per source line, including nested-list continuation lines.
 Separate paragraphs with blank lines.
 Do not pack multiple sentences into one line with semicolons.

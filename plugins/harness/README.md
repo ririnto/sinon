@@ -1,4 +1,5 @@
 ---
+title: Harness
 description: >-
   Overview of the Harness plugin for shared implementation, review, and target-repository installation guidance.
 metadata:
@@ -8,8 +9,6 @@ metadata:
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
 ---
-
-# Harness
 
 Harness provides three skills: `implement`, `review`, and `harness-install`.
 The installer materializes the implementation and review skills and their canonical documentation in a target repository.
