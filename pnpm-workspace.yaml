@@ -5,6 +5,7 @@ allowBuilds:
   esbuild: true
 
 catalog:
+  "@google/design.md": ^0.4.0
   "@oxc-project/types": ^0.153.0
   "@tsconfig/node-lts": ^24.0.1
   "@types/node": ^24.19.1

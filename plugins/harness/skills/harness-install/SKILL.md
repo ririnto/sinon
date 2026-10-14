@@ -18,6 +18,8 @@ Do not install this installer skill into the target.
 ## Target And Authority
 
 Obtain the target path and verify its repository identity, host instructions, skill root contents, and Git status before edits.
+Use the [project baseline eligibility and fresh-root setup](../../docs/tools/baseline.md) before selecting native integrations.
+Archived, inactive, and simple configuration-only targets that need no Harness return a no-write outcome.
 Inspect existing mapped paths before treating them as Harness-owned.
 Preserve unrelated changes, custom skills, configuration, and hooks.
 A dirty target is allowed when installation changes remain isolated.
@@ -67,7 +69,7 @@ Create these paths relative to the target root:
 Harness manages exactly two target skills: `implement` and `review`.
 Other existing skills remain untouched.
 Profile documents are support material, not skills.
-Copy the common rules and all eight language and seven tool documents by default to preserve the complete reference index.
+Copy the common rules and all language and tool documents by default to preserve the complete reference index.
 Consumers load only references relevant to their task, regardless of which documents are present.
 If installing selected documents only, filter the common index and include every linked companion.
 Never leave a reference to a document that was not copied.
@@ -90,8 +92,8 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<skill-root>/docs/rules.md` | `<plugin-root>/docs/rules.md` |
 | `<skill-root>/docs/languages/<name>.md` | `<plugin-root>/docs/languages/<name>.md` |
 | `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
-| `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm or Gradle Node-side checks are selected |
-| `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when pnpm or Gradle Node-side checks are selected |
+| `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when the Node-side baseline is selected |
+| `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when the Node-side baseline is selected |
 | `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/pnpm/.husky/<name>` for `pre-commit`, `pre-push`, and `.gitignore` when the Node-side script surface is selected |
 | `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
 | `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
@@ -130,6 +132,9 @@ Never delete files merely because they are absent from the mapping.
 
 ## Native Integration
 
+For an eligible fresh root, run the baseline configurator with the verified eligibility and project type before completing the selected native integration.
+It supplies the shared Node-side files from canonical sources without configuring project identity or native builds beyond their baseline manifest and version catalog.
+For frontend code, read [frontend guidance](../../docs/tools/frontend.md) and select its compatible renderer and React dependencies only when applicable.
 Read the target manifest, build files, editor configuration, CI, and project identity for each selected integration.
 Use the profile's merge rules.
 Add only missing settings and preserve target values on conflict.
@@ -141,7 +146,7 @@ For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs
 For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
 The pnpm profile owns the canonical Markdownlint configuration and rules, including config-based `node_modules` exclusion.
 Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
-For Gradle, merge its [Node-side Markdown and hook scripts](../../docs/tools/gradle.md#node-side-markdown-and-hook-scripts) and reuse those sources.
+For Gradle, Maven, and Go, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md) and reuse the shared Markdown and Husky sources.
 This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.

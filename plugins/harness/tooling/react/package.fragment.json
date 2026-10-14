@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "check:design": "designmd lint DESIGN.md",
+    "check:storybook": "storybook build --test",
+    "storybook": "storybook dev -p 6006"
+  },
+  "devDependencies": {
+    "@google/design.md": "catalog:",
+    "@storybook/react-vite": "catalog:",
+    "storybook": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  },
+  "dependencies": {
+    "@radix-ui/colors": "catalog:",
+    "@radix-ui/react-icons": "catalog:",
+    "@radix-ui/themes": "catalog:",
+    "radix-ui": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  }
+}
