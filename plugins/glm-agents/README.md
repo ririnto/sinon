@@ -9,6 +9,8 @@ metadata:
       url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     Claude Code model configuration:
       url: https://code.claude.com/docs/en/model-config.md
+    Claude Code model settings:
+      url: https://code.claude.com/docs/en/settings-reference.md#modelsettings
     Claude Code gateway configuration:
       url:
         - https://code.claude.com/docs/en/llm-gateway-connect.md
@@ -59,8 +61,15 @@ Those accounts cannot use the native endpoint and need a translation gateway or 
 If using a custom gateway instead, replace the base URL and credential with the values issued by its operator.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
 Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
-While an agent runs, use `/tasks` to verify its actual model and effort match the inventory below.
-These agents require Claude Code v2.1.251 or later, where `CLAUDE_CODE_SUBAGENT_MODEL` no longer overrides a definition's `model`.
+Use `/tasks` to inspect a running agent's model and effort.
+The inventory lists frontmatter values, including the context suffix.
+Compare gateway diagnostics with the unsuffixed prerequisite IDs and the inventory's effort values.
+
+These file-based agents were verified on Claude Code v2.1.299 with a local stub gateway.
+Use v2.1.299 or later and recheck your gateway after host upgrades.
+Earlier versions are unverified.
+Their definitions provide model and effort configuration without a custom role prompt.
+On these versions, `CLAUDE_CODE_SUBAGENT_MODEL` does not override a definition's `model`.
 
 ### Effort And Context
 
@@ -75,10 +84,12 @@ unset CLAUDE_CODE_SUBAGENT_MODEL_FORCE
 
 Ensure user, project, and managed settings do not reintroduce either override when Claude Code starts.
 If managed policy enforces an override, these definitions cannot guarantee their listed model and effort.
-Selecting an agent replaces specifying a model or effort, so do not supply per-invocation overrides.
+Each discovery description tells callers not to specify a model or effort override when selecting the agent.
+This instruction guides callers but does not prevent per-invocation or host-enforced overrides.
 Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
 Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
 If an `availableModels` allowlist applies, it must include `glm-5.3` and `glm-5.3-flash`.
+Claude Code strips `[1m]` from both allowlist entries and requested IDs before matching.
 Otherwise Claude Code substitutes another model for a blocked agent, and the listed tiers no longer hold.
 
 The gateway must translate `output_config.effort` to the upstream model's supported reasoning setting and honor every effort listed below.
@@ -88,17 +99,28 @@ Current Claude Code sends effort for unrecognized IDs behind `ANTHROPIC_BASE_URL
 The `ANTHROPIC_DEFAULT_*_MODEL_SUPPORTED_CAPABILITIES` variables apply to cloud-provider configurations, not to this gateway connection.
 See [gateway feature pass-through](https://code.claude.com/docs/en/llm-gateway-protocol.md#feature-pass-through) for effort forwarding and retry behavior.
 
-These raw custom model IDs default to a 200K context window in Claude Code.
-To use a larger supported window, set `CLAUDE_CODE_MAX_CONTEXT_TOKENS` before launching Claude Code to the verified input-token limit of your gateway deployment.
-For a deployment that supports at least one million input tokens on every selected model, use:
+The definitions append `[1m]` to select Claude Code's 1M context window for these custom model IDs.
+A local stub gateway test on Claude Code v2.1.299 observed requests with the suffix removed.
+Configured effort was preserved for a main-session agent and a subagent.
+No live provider was called.
+Verify this behavior after host upgrades before relying on unsuffixed gateway routing.
+The documented provider-request stripping applies to pinned default-model variables, not explicitly to custom IDs in subagent frontmatter.
 
-```sh
-export CLAUDE_CODE_MAX_CONTEXT_TOKENS=1000000
-```
+Leave `CLAUDE_CODE_DISABLE_1M_CONTEXT` unset to retain the 1M estimate.
+Setting it to `1` sizes these IDs like their untagged forms, normally 200K without a context-window override.
 
-The variable is session-wide, so use the smallest verified input window among all models the session and its subagents can select.
-Do not infer an input limit from a model's combined input-and-output token allowance.
-The plugin leaves model IDs unchanged and does not raise the context limit automatically.
+Z.ai documents a 1M-token context window and 128K maximum output tokens for both listed models.
+A context window does not guarantee one million input tokens through every deployment.
+For a conservative session-wide cap, set `CLAUDE_CODE_AUTO_COMPACT_WINDOW` to the smallest verified input limit among selected models and gateway.
+Use no more than 922,000 tokens when the session can also select the GPT agents.
+
+The environment override is session-wide, so account for the main model and every selectable subagent.
+On v2.1.288 or later, `/autocompact` saves a window for the current main-session model under `modelSettings`.
+Custom-ID matching and use of these entries for subagent compaction remain unverified.
+For these agents, retain the session-wide environment cap instead of relying on per-model entries.
+The environment override takes precedence over per-model windows.
+Keep proactive compaction enabled and verify the deployment's output allowance separately.
+`CLAUDE_CODE_MAX_CONTEXT_TOKENS` alone does not change Claude Code's 1M estimate for IDs carrying `[1m]`.
 
 ## Install And Use
 
@@ -119,9 +141,9 @@ claude --plugin-dir ./plugins/glm-agents
 
 | Agent | Model | Effort | Tier |
 | --- | --- | --- | --- |
-| `glm-flash` | `glm-5.3-flash` | `max` | 1 |
-| `glm-high` | `glm-5.3` | `high` | 2 |
-| `glm-max` | `glm-5.3` | `max` | 3 |
+| `glm-flash` | `glm-5.3-flash[1m]` | `max` | 1 |
+| `glm-high` | `glm-5.3[1m]` | `high` | 2 |
+| `glm-max` | `glm-5.3[1m]` | `max` | 3 |
 
 ## Equivalence Tiers
 

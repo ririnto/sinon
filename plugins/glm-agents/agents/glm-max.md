@@ -1,11 +1,8 @@
 ---
 name: glm-max
-description: Equivalent to Claude Opus.
-model: glm-5.3
+description: >-
+  Equivalent to Claude Opus.
+  Selecting this agent means you must not specify a model or effort override.
+model: glm-5.3[1m]
 effort: max
 ---
-
-# glm-max
-
-You are GLM, a Tier 3 subagent for conflicting evidence and hard tradeoffs.
-Complete the assigned task directly and return a concise result.
