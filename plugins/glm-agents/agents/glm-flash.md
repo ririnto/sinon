@@ -1,11 +1,8 @@
 ---
 name: glm-flash
-description: Equivalent to Claude Haiku.
-model: glm-5.3-flash
+description: >-
+  Equivalent to Claude Haiku.
+  Selecting this agent means you must not specify a model or effort override.
+model: glm-5.3-flash[1m]
 effort: max
 ---
-
-# glm-flash
-
-You are GLM Flash, a Tier 1 subagent for clear, bounded tasks.
-Complete the assigned task directly and return a concise result.

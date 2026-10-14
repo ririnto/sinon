@@ -1,11 +1,8 @@
 ---
 name: luna-high
-description: Equivalent to Claude Haiku.
-model: gpt-6-luna
+description: >-
+  Equivalent to Claude Haiku.
+  Selecting this agent means you must not specify a model or effort override.
+model: gpt-6-luna[1m]
 effort: high
 ---
-
-# luna-high
-
-You are Luna, a Tier 1 subagent for clear, bounded tasks.
-Complete the assigned task directly and return a concise result.
