@@ -37,19 +37,21 @@ export const isRecord = (value: unknown): value is MutableRecord =>
  * the first path that exists as a directory.
  */
 export const resolveDefaultSpecPath = (): string | undefined => {
+  let specPath: string | undefined;
   if (existsSync("spec") && statSync("spec").isDirectory()) {
-    return "spec";
+    specPath = "spec";
+  } else {
+    const envPath = process.env.SDD_SPEC_DIR;
+    if (
+      envPath !== undefined &&
+      envPath.length > 0 &&
+      existsSync(envPath) &&
+      statSync(envPath).isDirectory()
+    ) {
+      specPath = envPath;
+    }
   }
-  const envPath = process.env.SDD_SPEC_DIR;
-  if (
-    envPath !== undefined &&
-    envPath.length > 0 &&
-    existsSync(envPath) &&
-    statSync(envPath).isDirectory()
-  ) {
-    return envPath;
-  }
-  return undefined;
+  return specPath;
 };
 
 /**
@@ -69,26 +71,28 @@ export const parseYamlRecord = (text: string): MutableRecord | undefined => {
 };
 
 const formatCellText = (value: unknown): string => {
+  let text: string;
   if (Array.isArray(value)) {
-    return value.join(",");
+    text = value.join(",");
+  } else if (isRecord(value)) {
+    text = JSON.stringify(value);
+  } else {
+    text = String(value);
   }
-  if (isRecord(value)) {
-    return JSON.stringify(value);
-  }
-  return String(value);
+  return text;
 };
 
 /**
  * Converts a value to a TSV-safe string by replacing tab and newline
  * characters with spaces.
  */
-export const sanitizeTsvCell = (value: unknown): string => {
-  if (value === undefined || value === null) {
-    return "";
-  }
-  const text = formatCellText(value);
-  return text.replaceAll("\t", " ").replaceAll("\r", " ").replaceAll("\n", " ");
-};
+export const sanitizeTsvCell = (value: unknown): string =>
+  value === undefined || value === null
+    ? ""
+    : formatCellText(value)
+        .replaceAll("\t", " ")
+        .replaceAll("\r", " ")
+        .replaceAll("\n", " ");
 
 /**
  * Collects files matching a predicate in depth-first sorted order; the

@@ -114,15 +114,17 @@ public final class Money {
 
     @Override
     public boolean equals(Object o) {
+        boolean equal;
         if (this == o) {
-            return true;
+            equal = true;
+        } else if (o instanceof Money) {
+            Money money = (Money) o;
+            equal = currency.equals(money.currency)
+                && cents == money.cents;
+        } else {
+            equal = false;
         }
-        if (!(o instanceof Money)) {
-            return false;
-        }
-        Money money = (Money) o;
-        return currency.equals(money.currency)
-            && cents == money.cents;
+        return equal;
     }
 
     @Override

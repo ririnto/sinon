@@ -44,11 +44,11 @@ class InMemorySessionRepository implements SessionRepository<Session>, FindByInd
      */
     public Session findById(String id) {
         Session session = sessions.get(id);
-        if (session == null || !session.isExpired()) {
-            return session;
+        if (session != null && session.isExpired()) {
+            deleteById(id);
+            session = null;
         }
-        deleteById(id);
-        return null;
+        return session;
     }
     /**
      * Removes the session with the given id.

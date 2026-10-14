@@ -6,11 +6,14 @@ import { URL_SCHEME_RE } from "./shared.js";
 import type { JsonRecord } from "./shared.js";
 
 const findSpecRootFrom = (cursor: string): string | undefined => {
+  let root: string | undefined;
   if (path.basename(cursor) === "spec") {
-    return cursor;
+    root = cursor;
+  } else {
+    const parent = path.dirname(cursor);
+    root = parent === cursor ? undefined : findSpecRootFrom(parent);
   }
-  const parent = path.dirname(cursor);
-  return parent === cursor ? undefined : findSpecRootFrom(parent);
+  return root;
 };
 
 /**
@@ -30,14 +33,16 @@ export const resolveValidationRoots = (
 ): readonly [string, string] | undefined => {
   const resolved = path.resolve(specPath);
   const inSpecRoot = findSpecRoot(resolved);
+  let roots: readonly [string, string] | undefined;
   if (inSpecRoot !== undefined && inSpecRoot.length > 0) {
-    return [inSpecRoot, resolved];
+    roots = [inSpecRoot, resolved];
+  } else {
+    const localSpecRoot = path.join(resolved, "spec");
+    if (existsSync(localSpecRoot) && statSync(localSpecRoot).isDirectory()) {
+      roots = [localSpecRoot, localSpecRoot];
+    }
   }
-  const localSpecRoot = path.join(resolved, "spec");
-  if (existsSync(localSpecRoot) && statSync(localSpecRoot).isDirectory()) {
-    return [localSpecRoot, localSpecRoot];
-  }
-  return undefined;
+  return roots;
 };
 
 /**
@@ -51,27 +56,30 @@ export const resolveTargetPaths = (
 ): Set<string> => {
   const stripped = value.split("#", 1)[0].trim();
   const resolved = new Set<string>();
-  if (!stripped || URL_SCHEME_RE.test(stripped)) {
-    return resolved;
-  }
-  if (path.isAbsolute(stripped)) {
-    resolved.add(path.resolve(stripped));
-    return resolved;
-  }
-  const parts = stripped.split(/[\\/]/u).filter((part) => part.length > 0);
-  const specRoot = findSpecRoot(baseDir);
-  if (
-    parts[0] === "spec" &&
-    specRoot !== undefined &&
-    specRoot.length > 0 &&
-    !parts.includes("..")
-  ) {
-    resolved.add(path.resolve(path.dirname(specRoot), ...parts));
-    return resolved;
-  }
-  resolved.add(path.resolve(baseDir, ...parts));
-  if (specRoot !== undefined && specRoot.length > 0 && !parts.includes("..")) {
-    resolved.add(path.resolve(specRoot, ...parts));
+  if (stripped && !URL_SCHEME_RE.test(stripped)) {
+    if (path.isAbsolute(stripped)) {
+      resolved.add(path.resolve(stripped));
+    } else {
+      const parts = stripped.split(/[\\/]/u).filter((part) => part.length > 0);
+      const specRoot = findSpecRoot(baseDir);
+      if (
+        parts[0] === "spec" &&
+        specRoot !== undefined &&
+        specRoot.length > 0 &&
+        !parts.includes("..")
+      ) {
+        resolved.add(path.resolve(path.dirname(specRoot), ...parts));
+      } else {
+        resolved.add(path.resolve(baseDir, ...parts));
+        if (
+          specRoot !== undefined &&
+          specRoot.length > 0 &&
+          !parts.includes("..")
+        ) {
+          resolved.add(path.resolve(specRoot, ...parts));
+        }
+      }
+    }
   }
   return resolved;
 };
@@ -81,13 +89,15 @@ export const resolveTargetPaths = (
  * non-record entries.
  */
 export const extractCallPath = (rawCall: unknown): string => {
+  let callPath: string;
   if (typeof rawCall === "string") {
-    return rawCall;
+    callPath = rawCall;
+  } else if (isRecord(rawCall)) {
+    callPath = String(rawCall.path ?? "");
+  } else {
+    callPath = "";
   }
-  if (isRecord(rawCall)) {
-    return String(rawCall.path ?? "");
-  }
-  return "";
+  return callPath;
 };
 
 /**
@@ -107,26 +117,24 @@ export const extractLinkTargets = (
   sourceFile: string
 ): readonly LinkTarget[] => {
   const rawCalls = data.call;
-  if (!Array.isArray(rawCalls)) {
-    return [];
-  }
   const seen = new Set<string>();
   const result: LinkTarget[] = [];
-  for (const rawCall of rawCalls) {
-    const text = extractCallPath(rawCall).trim();
-    const stripped = text.split("#", 1)[0].trim();
-    if (
-      !stripped ||
-      URL_SCHEME_RE.test(stripped) ||
-      path.isAbsolute(stripped) ||
-      path.basename(stripped) !== "SPEC.md"
-    ) {
-      continue;
-    }
-    const resolved = path.resolve(path.dirname(sourceFile), stripped);
-    if (!seen.has(resolved)) {
-      seen.add(resolved);
-      result.push({ raw: text, resolved });
+  if (Array.isArray(rawCalls)) {
+    for (const rawCall of rawCalls) {
+      const text = extractCallPath(rawCall).trim();
+      const stripped = text.split("#", 1)[0].trim();
+      if (
+        stripped &&
+        !URL_SCHEME_RE.test(stripped) &&
+        !path.isAbsolute(stripped) &&
+        path.basename(stripped) === "SPEC.md"
+      ) {
+        const resolved = path.resolve(path.dirname(sourceFile), stripped);
+        if (!seen.has(resolved)) {
+          seen.add(resolved);
+          result.push({ raw: text, resolved });
+        }
+      }
     }
   }
   return result;

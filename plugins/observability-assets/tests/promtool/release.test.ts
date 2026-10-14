@@ -170,9 +170,9 @@ test("closes a sibling body when release body consumption fails", async () => {
   );
 });
 
-test.skipIf(process.platform === "win32")(
-  "stops its child and removes signal listeners when interrupted",
-  async () => {
+test.skipIf(process.platform === "win32").each(["SIGINT", "SIGTERM"] as const)(
+  "stops its child and removes signal listeners on %s",
+  async (interruption) => {
     const runnerPath = fileURLToPath(new URL("run.ts", import.meta.url));
     const fixtureSource =
       "console.log(process.pid); setTimeout(() => {}, 30000);";
@@ -200,9 +200,9 @@ process.exitCode = status;`;
       const wrapperClosed = once(wrapper, "close", {
         signal: AbortSignal.timeout(5000)
       });
-      wrapper.kill("SIGTERM");
+      wrapper.kill(interruption);
       const [code, signal] = await wrapperClosed;
-      expect(code).toBe(143);
+      expect(code).toBe(interruption === "SIGINT" ? 130 : 143);
       expect(signal).toBeNull();
       expect(processExists(childPid)).toBe(false);
     } finally {

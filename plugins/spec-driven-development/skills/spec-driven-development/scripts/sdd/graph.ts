@@ -34,13 +34,12 @@ export const generateMermaid = (specRoot: string): string => {
   for (const filePath of specFiles) {
     const from = ids.get(filePath);
     const entry = entries.get(filePath);
-    if (from === undefined || from.length === 0 || !entry) {
-      continue;
-    }
-    for (const target of extractLinkTargets(entry.data, filePath)) {
-      const to = ids.get(target.resolved);
-      if (to !== undefined && to.length > 0) {
-        edges.add(`  ${from} --> ${to}`);
+    if (from !== undefined && from.length > 0 && entry) {
+      for (const target of extractLinkTargets(entry.data, filePath)) {
+        const to = ids.get(target.resolved);
+        if (to !== undefined && to.length > 0) {
+          edges.add(`  ${from} --> ${to}`);
+        }
       }
     }
   }

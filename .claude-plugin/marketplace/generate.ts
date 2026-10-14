@@ -358,12 +358,10 @@ const validateLocalPlugin = async (
   return true;
 };
 
-const categoryLabel = (category?: string): string => {
-  if (category === undefined) {
-    return "Development";
-  }
-  return category.charAt(0).toUpperCase() + category.slice(1);
-};
+const categoryLabel = (category?: string): string =>
+  category === undefined
+    ? "Development"
+    : category.charAt(0).toUpperCase() + category.slice(1);
 
 const validateCodexOnlyPlugin = async (
   directory: string,

@@ -126,6 +126,8 @@ Preserve evaluation count and order, exception timing, mutable snapshots, captur
 Retain the binding and state the concrete reason when any of them would change.
 
 Replace an intermediate guard return with an inverted condition that encloses the trailing work when the two forms behave identically.
+Prefer condition inversion over mid-function `return`, `continue`, and `break`, and use a plain `if`/`else if`/`else` chain for repeated guards.
+Active lint rules and formatter output take precedence over this preference.
 Keep a guard return when inversion would change cleanup, exception timing, loop or caller control flow, or a returned value, or when the guard expresses validation failure or an early exit that inversion would obscure.
 
 Compare expected strings with full equality.

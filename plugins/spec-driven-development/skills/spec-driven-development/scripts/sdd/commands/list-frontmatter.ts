@@ -29,13 +29,16 @@ const buildListHeader = (
   inboundOf: string | undefined,
   fields: readonly string[] | undefined
 ): string => {
+  let header: string;
   if (inboundOf !== undefined && inboundOf.length > 0) {
-    return "target\tsource\traw_link";
+    header = "target\tsource\traw_link";
+  } else if (fields) {
+    header = ["file", ...fields.filter((field) => field !== "file")].join("\t");
+  } else {
+    header =
+      "file\ttitle\tstatus\tlast_updated\tupdated\tcreated\ttag\tsubject";
   }
-  if (fields) {
-    return ["file", ...fields.filter((field) => field !== "file")].join("\t");
-  }
-  return "file\ttitle\tstatus\tlast_updated\tupdated\tcreated\ttag\tsubject";
+  return header;
 };
 
 const formatInboundRow = (
@@ -123,13 +126,15 @@ const formatStandardRow = (
   jsonl: boolean,
   includeYaml: boolean
 ): string => {
+  let row: string;
   if (jsonl) {
-    return formatJsonlRow(entry, filePath, fields, includeYaml);
+    row = formatJsonlRow(entry, filePath, fields, includeYaml);
+  } else if (fields) {
+    row = formatFieldsTsvRow(entry, fields);
+  } else {
+    row = formatDefaultTsvRow(entry);
   }
-  if (fields) {
-    return formatFieldsTsvRow(entry, fields);
-  }
-  return formatDefaultTsvRow(entry);
+  return row;
 };
 
 const collectInboundRows = (
@@ -142,12 +147,11 @@ const collectInboundRows = (
 ): readonly string[] => {
   const rows: string[] = [];
   for (const target of extractLinkTargets(entry.data, filePath)) {
-    if (targetCandidates && !targetCandidates.has(target.resolved)) {
-      continue;
+    if (!targetCandidates || targetCandidates.has(target.resolved)) {
+      rows.push(
+        formatInboundRow(entry, filePath, target, inboundOf, includeYaml, jsonl)
+      );
     }
-    rows.push(
-      formatInboundRow(entry, filePath, target, inboundOf, includeYaml, jsonl)
-    );
   }
   return rows;
 };

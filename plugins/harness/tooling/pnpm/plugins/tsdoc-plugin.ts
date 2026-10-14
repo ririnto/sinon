@@ -45,29 +45,28 @@ interface RuleContext {
  * @returns The printable name, or undefined when the node carries none.
  */
 const nameOf = (value: unknown): string | undefined => {
-  if (typeof value !== "object" || value === null) {
-    return undefined;
+  let name: string | undefined;
+  if (typeof value === "object" && value !== null) {
+    if ("name" in value && typeof value.name === "string") {
+      ({ name } = value);
+    } else if (
+      "value" in value &&
+      (typeof value.value === "string" ||
+        typeof value.value === "number" ||
+        typeof value.value === "boolean" ||
+        typeof value.value === "bigint")
+    ) {
+      name = String(value.value);
+    } else if ("left" in value && "right" in value) {
+      const left = nameOf(value.left);
+      const right = nameOf(value.right);
+      name =
+        left !== undefined && right !== undefined
+          ? `${left}.${right}`
+          : undefined;
+    }
   }
-  if ("name" in value && typeof value.name === "string") {
-    return value.name;
-  }
-  if (
-    "value" in value &&
-    (typeof value.value === "string" ||
-      typeof value.value === "number" ||
-      typeof value.value === "boolean" ||
-      typeof value.value === "bigint")
-  ) {
-    return String(value.value);
-  }
-  if ("left" in value && "right" in value) {
-    const left = nameOf(value.left);
-    const right = nameOf(value.right);
-    return left !== undefined && right !== undefined
-      ? `${left}.${right}`
-      : undefined;
-  }
-  return undefined;
+  return name;
 };
 
 /**
@@ -217,17 +216,18 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const validateClassMembers = (node: Class): void => {
-      if (checkedClasses.has(node)) {
-        return;
-      }
-      checkedClasses.add(node);
-      for (const element of node.body.body) {
-        if (isPublicClassElement(element)) {
-          report(
-            element,
-            element.type.endsWith("PropertyDefinition") ? "property" : "method",
-            nodeName(element)
-          );
+      if (!checkedClasses.has(node)) {
+        checkedClasses.add(node);
+        for (const element of node.body.body) {
+          if (isPublicClassElement(element)) {
+            report(
+              element,
+              element.type.endsWith("PropertyDefinition")
+                ? "property"
+                : "method",
+              nodeName(element)
+            );
+          }
         }
       }
     };
@@ -240,21 +240,20 @@ const exportTsdocRule = {
     const validateExportedDeclaration = (
       node: Node | null | undefined
     ): void => {
-      if (!node) {
-        return;
-      }
-      const kind = declarationKinds[node.type];
-      if (isClassDeclaration(node)) {
-        report(node, "class", nodeName(node));
-        validateClassMembers(node);
-      } else if (kind !== undefined) {
-        report(
-          node,
-          kind,
-          node.type === "VariableDeclaration"
-            ? variableName(node)
-            : nodeName(node)
-        );
+      if (node) {
+        const kind = declarationKinds[node.type];
+        if (isClassDeclaration(node)) {
+          report(node, "class", nodeName(node));
+          validateClassMembers(node);
+        } else if (kind !== undefined) {
+          report(
+            node,
+            kind,
+            node.type === "VariableDeclaration"
+              ? variableName(node)
+              : nodeName(node)
+          );
+        }
       }
     };
     /**
@@ -287,47 +286,44 @@ const exportTsdocRule = {
         }
       }
     };
-    if (
-      !/\.(?:[cm]?ts|tsx)$/u.test(
-        context.filename ?? context.getFilename?.() ?? ""
-      )
-    ) {
-      return {};
-    }
-    return {
-      ExportAllDeclaration(node: ExportAllDeclaration) {
-        report(node, "re-export", exportStatementName(node));
-      },
-      ExportDefaultDeclaration(node: ExportDefaultDeclaration) {
-        if (node.declaration.type in declarationKinds) {
-          validateExportedDeclaration(node.declaration);
-        } else {
-          report(node, "default export", "default");
-          if (node.declaration.type === "Identifier") {
-            validateLocalClass(node, node.declaration.name);
-          }
-        }
-      },
-      ExportNamedDeclaration(node: ExportNamedDeclaration) {
-        if (node.declaration) {
-          validateExportedDeclaration(node.declaration);
-        } else if (node.source || node.specifiers.length > 0) {
-          report(
-            node,
-            node.source ? "re-export" : "export list",
-            exportStatementName(node)
-          );
-          if (!node.source) {
-            for (const specifier of node.specifiers) {
-              validateLocalClass(node, nameOf(specifier.local));
+    return /\.(?:[cm]?ts|tsx)$/u.test(
+      context.filename ?? context.getFilename?.() ?? ""
+    )
+      ? {
+          ExportAllDeclaration(node: ExportAllDeclaration) {
+            report(node, "re-export", exportStatementName(node));
+          },
+          ExportDefaultDeclaration(node: ExportDefaultDeclaration) {
+            if (node.declaration.type in declarationKinds) {
+              validateExportedDeclaration(node.declaration);
+            } else {
+              report(node, "default export", "default");
+              if (node.declaration.type === "Identifier") {
+                validateLocalClass(node, node.declaration.name);
+              }
             }
+          },
+          ExportNamedDeclaration(node: ExportNamedDeclaration) {
+            if (node.declaration) {
+              validateExportedDeclaration(node.declaration);
+            } else if (node.source || node.specifiers.length > 0) {
+              report(
+                node,
+                node.source ? "re-export" : "export list",
+                exportStatementName(node)
+              );
+              if (!node.source) {
+                for (const specifier of node.specifiers) {
+                  validateLocalClass(node, nameOf(specifier.local));
+                }
+              }
+            }
+          },
+          TSExportAssignment(node: TSExportAssignment) {
+            report(node, "export assignment", "=");
           }
         }
-      },
-      TSExportAssignment(node: TSExportAssignment) {
-        report(node, "export assignment", "=");
-      }
-    };
+      : {};
   },
   meta: {
     docs: {

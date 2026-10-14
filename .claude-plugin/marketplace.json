@@ -111,7 +111,7 @@
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness",
-      "version": "2026.10.15.04",
+      "version": "2026.10.15.05",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
       "keywords": [
         "harness",
@@ -132,7 +132,7 @@
       "license": "MIT",
       "name": "java",
       "source": "./plugins/java",
-      "version": "2026.10.03.03",
+      "version": "2026.10.15.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
       "keywords": [
         "java",
@@ -189,7 +189,7 @@
       "license": "MIT",
       "name": "netty",
       "source": "./plugins/netty",
-      "version": "2026.10.03.02",
+      "version": "2026.10.15.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/netty",
       "keywords": [
         "netty",
@@ -215,7 +215,7 @@
       "license": "MIT",
       "name": "observability-assets",
       "source": "./plugins/observability-assets",
-      "version": "2026.10.03.02",
+      "version": "2026.10.15.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/observability-assets",
       "keywords": [
         "prometheus",
@@ -261,7 +261,7 @@
       "license": "Apache-2.0",
       "name": "spec-driven-development",
       "source": "./plugins/spec-driven-development",
-      "version": "2026.10.15.01",
+      "version": "2026.10.15.02",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
       "keywords": ["spec", "specification", "workflow", "review", "research"],
       "repository": "https://github.com/ririnto/sinon"
@@ -275,7 +275,7 @@
       "license": "MIT",
       "name": "spring",
       "source": "./plugins/spring",
-      "version": "2026.10.03.03",
+      "version": "2026.10.15.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spring",
       "keywords": [
         "spring",

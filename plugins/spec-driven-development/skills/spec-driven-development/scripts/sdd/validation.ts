@@ -70,26 +70,27 @@ const validateSpecFields = (
   kind: string,
   data: JsonRecord
 ): readonly string[] => {
-  if (kind !== "spec") {
-    return [];
-  }
   const errors: string[] = [];
-  if (typeof data.status === "string" && !SPEC_STATUSES.has(data.status)) {
-    errors.push(
-      `FAIL [${filePath}]: status is not an allowed value: ${data.status}`
-    );
-  }
-  if (Array.isArray(data.call)) {
-    for (const item of data.call) {
-      const link = extractCallPath(item);
-      if (!link || !RELATIVE_SPEC_LINK_RE.test(link)) {
-        errors.push(
-          `FAIL [${filePath}]: call entries must be relative SPEC.md links`
-        );
-      }
+  if (kind === "spec") {
+    if (typeof data.status === "string" && !SPEC_STATUSES.has(data.status)) {
+      errors.push(
+        `FAIL [${filePath}]: status is not an allowed value: ${data.status}`
+      );
     }
-  } else {
-    errors.push(`FAIL [${filePath}]: frontmatter field must be an array: call`);
+    if (Array.isArray(data.call)) {
+      for (const item of data.call) {
+        const link = extractCallPath(item);
+        if (!link || !RELATIVE_SPEC_LINK_RE.test(link)) {
+          errors.push(
+            `FAIL [${filePath}]: call entries must be relative SPEC.md links`
+          );
+        }
+      }
+    } else {
+      errors.push(
+        `FAIL [${filePath}]: frontmatter field must be an array: call`
+      );
+    }
   }
   return errors;
 };
@@ -114,22 +115,22 @@ const validateResearchSubject = (
   kind: string,
   data: JsonRecord
 ): readonly string[] => {
-  if (kind !== "research") {
-    return [];
+  const errors: string[] = [];
+  if (kind === "research") {
+    const { subject } = data;
+    if (
+      !isRecord(subject) ||
+      typeof subject.name !== "string" ||
+      !subject.name ||
+      typeof subject.version !== "string" ||
+      !subject.version
+    ) {
+      errors.push(
+        `FAIL [${filePath}]: subject.name and subject.version are required strings`
+      );
+    }
   }
-  const { subject } = data;
-  if (
-    !isRecord(subject) ||
-    typeof subject.name !== "string" ||
-    !subject.name ||
-    typeof subject.version !== "string" ||
-    !subject.version
-  ) {
-    return [
-      `FAIL [${filePath}]: subject.name and subject.version are required strings`
-    ];
-  }
-  return [];
+  return errors;
 };
 
 /**

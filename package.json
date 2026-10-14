@@ -5,6 +5,7 @@
   "scripts": {
     "check": "run-p check:*",
     "check:codegraph": "vitest run plugins/codegraph/tests",
+    "check:java": "vitest run plugins/java/tests",
     "check:lint-rules": "vitest run plugins/harness/tooling/pnpm plugins/harness/tests",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:marketplace": "node --import tsx .claude-plugin/marketplace/generate.ts --check && vitest run .claude-plugin/marketplace/generate.test.ts",
