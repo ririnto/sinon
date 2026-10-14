@@ -58,8 +58,9 @@ The empty exclusion presets also prevent golangci-lint's standard error-handling
 Keep target-owned exclusions when merging.
 
 `godoclint` starts from `default: none` and enables five explicit documentation rules.
-They require package and exported-symbol documentation, one package comment, valid package comments, and identifier-led symbol comments.
-`containedctx` rejects context fields in structs.
+Read the [Go documentation requirements](../languages/go.md#documentation) when configuring these checks.
+The profile also checks that package comments are valid and unique.
+`containedctx` enforces the [Go context placement rule](../languages/go.md#context-and-concurrency).
 These checks enforce Go-specific contracts rather than multiline comment delimiters.
 
 ## Validation Commands
