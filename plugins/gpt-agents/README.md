@@ -111,9 +111,10 @@ export CLAUDE_CODE_AUTO_COMPACT_WINDOW=922000
 Use a lower value if any selected model or gateway has a smaller input limit.
 
 The environment override is session-wide, so account for the main model and every selectable subagent.
-For mixed-model sessions, `/autocompact` saves a separate window for each selected model under `modelSettings` on v2.1.288 or later.
-Set each model's `autoCompactWindow` to its verified deployment input limit.
-Leave `CLAUDE_CODE_AUTO_COMPACT_WINDOW` unset when using per-model windows, because the environment override takes precedence.
+On v2.1.288 or later, `/autocompact` saves a window for the current main-session model under `modelSettings`.
+Custom-ID matching and use of these entries for subagent compaction remain unverified.
+For these agents, retain the session-wide environment cap instead of relying on per-model entries.
+The environment override takes precedence over per-model windows.
 Keep proactive compaction enabled and verify the deployment's output allowance separately.
 `CLAUDE_CODE_MAX_CONTEXT_TOKENS` alone does not change Claude Code's 1M estimate for IDs carrying `[1m]`.
 

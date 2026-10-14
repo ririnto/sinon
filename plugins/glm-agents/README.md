@@ -111,13 +111,14 @@ Setting it to `1` sizes these IDs like their untagged forms, normally 200K witho
 
 Z.ai documents a 1M-token context window and 128K maximum output tokens for both listed models.
 A context window does not guarantee one million input tokens through every deployment.
-Before launching Claude Code, set `CLAUDE_CODE_AUTO_COMPACT_WINDOW` to the smallest verified input-token limit of the selected models and gateway.
+For a conservative session-wide cap, set `CLAUDE_CODE_AUTO_COMPACT_WINDOW` to the smallest verified input limit among selected models and gateway.
 Use no more than 922,000 tokens when the session can also select the GPT agents.
 
 The environment override is session-wide, so account for the main model and every selectable subagent.
-For mixed-model sessions, `/autocompact` saves a separate window for each selected model under `modelSettings` on v2.1.288 or later.
-Set each model's `autoCompactWindow` to its verified deployment input limit.
-Leave `CLAUDE_CODE_AUTO_COMPACT_WINDOW` unset when using per-model windows, because the environment override takes precedence.
+On v2.1.288 or later, `/autocompact` saves a window for the current main-session model under `modelSettings`.
+Custom-ID matching and use of these entries for subagent compaction remain unverified.
+For these agents, retain the session-wide environment cap instead of relying on per-model entries.
+The environment override takes precedence over per-model windows.
 Keep proactive compaction enabled and verify the deployment's output allowance separately.
 `CLAUDE_CODE_MAX_CONTEXT_TOKENS` alone does not change Claude Code's 1M estimate for IDs carrying `[1m]`.
 
