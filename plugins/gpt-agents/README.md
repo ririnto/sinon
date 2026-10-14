@@ -9,6 +9,8 @@ metadata:
       url: https://code.claude.com/docs/en/plugins/manifest-reference.md
     Claude Code model configuration:
       url: https://code.claude.com/docs/en/model-config.md
+    Claude Code model settings:
+      url: https://code.claude.com/docs/en/settings-reference.md#modelsettings
     Claude Code gateway configuration:
       url:
         - https://code.claude.com/docs/en/llm-gateway-connect.md
@@ -50,8 +52,13 @@ export ANTHROPIC_AUTH_TOKEN='<gateway-issued-token>'
 Replace the placeholders with your gateway's base URL and credential.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
 Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
-While an agent runs, use `/tasks` to verify its actual model and effort match the inventory below.
-These agents require Claude Code v2.1.281 or later, which supports empty agent prompts.
+Use `/tasks` to inspect a running agent's model and effort.
+The inventory lists frontmatter values, including the context suffix.
+Compare gateway diagnostics with the unsuffixed prerequisite IDs and the inventory's effort values.
+
+These file-based agents were verified on Claude Code v2.1.299 with a local stub gateway.
+Use v2.1.299 or later and recheck your gateway after host upgrades.
+Earlier versions are unverified.
 Their definitions provide model and effort configuration without a custom role prompt.
 On these versions, `CLAUDE_CODE_SUBAGENT_MODEL` does not override a definition's `model`.
 
@@ -84,12 +91,18 @@ The `ANTHROPIC_DEFAULT_*_MODEL_SUPPORTED_CAPABILITIES` variables apply to cloud-
 See [gateway feature pass-through](https://code.claude.com/docs/en/llm-gateway-protocol.md#feature-pass-through) for effort forwarding and retry behavior.
 
 The definitions append `[1m]` to select Claude Code's 1M context window for these custom model IDs.
-Claude Code strips the suffix before sending the model ID to the gateway.
-The gateway therefore routes the unsuffixed IDs listed in the prerequisites.
+A local stub gateway test on Claude Code v2.1.299 observed requests with the suffix removed.
+Configured effort was preserved for a main-session agent and a subagent.
+No live provider was called.
+Verify this behavior after host upgrades before relying on unsuffixed gateway routing.
+The documented provider-request stripping applies to pinned default-model variables, not explicitly to custom IDs in subagent frontmatter.
+
+Leave `CLAUDE_CODE_DISABLE_1M_CONTEXT` unset to retain the 1M estimate.
+Setting it to `1` sizes these IDs like their untagged forms, normally 200K without a context-window override.
 
 OpenAI documents a 1,050,000-token context window, a 922,000-token maximum input, and 128,000 maximum output tokens for each listed model.
 The suffix does not increase the upstream input limit.
-Before launching Claude Code, cap the auto-compact window at the verified deployment input limit, no higher than 922,000 tokens:
+For a conservative session-wide cap, use the verified deployment input limit, no higher than 922,000 tokens:
 
 ```sh
 export CLAUDE_CODE_AUTO_COMPACT_WINDOW=922000
@@ -97,7 +110,10 @@ export CLAUDE_CODE_AUTO_COMPACT_WINDOW=922000
 
 Use a lower value if any selected model or gateway has a smaller input limit.
 
-The auto-compact override is session-wide, so account for the main model and every selectable subagent.
+The environment override is session-wide, so account for the main model and every selectable subagent.
+For mixed-model sessions, `/autocompact` saves a separate window for each selected model under `modelSettings` on v2.1.288 or later.
+Set each model's `autoCompactWindow` to its verified deployment input limit.
+Leave `CLAUDE_CODE_AUTO_COMPACT_WINDOW` unset when using per-model windows, because the environment override takes precedence.
 Keep proactive compaction enabled and verify the deployment's output allowance separately.
 `CLAUDE_CODE_MAX_CONTEXT_TOKENS` alone does not change Claude Code's 1M estimate for IDs carrying `[1m]`.
 
