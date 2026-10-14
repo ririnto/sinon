@@ -71,12 +71,11 @@ The Ruff configuration extends native defaults with `B` for common bugs, `I` for
 Merge `extend-select` entries with the target's existing selections.
 Keep its `target-version` and `requires-python` constraints so syntax suggestions match the supported runtime.
 The profile adds `PTH` for pathlib replacements and explicit annotation and docstring rules.
-`ANN001` through `ANN003` require argument annotations, including arguments in private helpers.
-`ANN201`, `ANN204`, `ANN205`, and `ANN206` require public, special-method, static-method, and class-method return annotations.
-Private function returns remain optional unless a special, static, or class method rule applies.
+Read the [Python annotation requirements](../languages/python.md#syntax-and-style) when configuring the annotation checks.
+The selected checks are `ANN001` through `ANN003`, `ANN201`, `ANN204`, `ANN205`, and `ANN206`.
 `ANN202` is not selected.
-`D100` through `D107` require public API docstrings.
-`D209` and `D213` put closing quotes and summaries on separate lines for already multiline docstrings.
+Read the [Python docstring requirements](../languages/python.md#documentation) when configuring documentation checks.
+The selected docstring checks are `D100` through `D107`, `D209`, and `D213`.
 The profile enables no preview rules and avoids formatter-conflicting rules such as `D203`, `D206`, and `D212`.
 Its 120-column line length matches the Python EditorConfig section.
 
@@ -110,10 +109,7 @@ Add that stage to the target's pipeline stages when it does not exist.
 
 ## Known Limitations
 
-- Ruff does not require single-line docstrings to become multiline.
-  Review that requirement manually, including one-sentence docstrings.
-- Ruff argument annotation checks cannot be restricted to public functions.
-  They cover private helper arguments without requiring private return annotations.
+- Follow the [Python documentation review requirements](../languages/python.md#documentation) for docstring layout beyond Ruff's checks.
 - A local run needs the uv executable.
   When it is missing, report the gap and run nothing in its place.
 - `uv.lock` is generated output.

@@ -143,7 +143,7 @@ const excludePath = (cwd: string): string =>
   execFileSync(
     "git",
     ["rev-parse", "--path-format=absolute", "--git-path", "info/exclude"],
-    { cwd, encoding: "utf-8" }
+    { cwd, encoding: "utf-8", env: fixtureEnvironment() }
   ).trim();
 
 const readClaudeHooks = (): HookConfig =>

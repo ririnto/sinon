@@ -39,7 +39,7 @@ Parse structured data with the standard parsers (`json`, `urllib.parse`, `dateti
 
 Match the Ruff configuration's `quote-style` and formatting decisions.
 Keep type hints on public functions.
-Private function return annotations remain optional.
+Private helper return annotations remain optional outside special, static, and class methods.
 Ruff also requires argument annotations on private helpers because its argument checks do not distinguish public visibility.
 Prefer `match` statements over long `if/elif` chains when dispatching on one value.
 JS-style braces and Kotlin syntax do not apply to Python.

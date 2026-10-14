@@ -54,8 +54,7 @@ git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --
 ```
 
 `shfmt -w` applies approved formatting fixes in place.
-The null-delimited pipeline keeps names with spaces or shell metacharacters safe.
-The `--` option terminator prevents tracked paths from parsing as flags.
+Read the [shell path-handling rules](../languages/shell.md#files-and-paths) when adapting these pipelines.
 Missing ShellCheck or shfmt fails visibly.
 Never substitute a weaker check.
 

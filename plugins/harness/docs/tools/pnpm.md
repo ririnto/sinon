@@ -126,12 +126,9 @@ Manual script execution alone does not prove hook installation.
 The source configuration extends the target-installed Ultracite Oxc presets.
 The style plugin preserves the historical checks for blank lines and non-documentation comments inside block function bodies.
 It exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
-The TSDoc plugin checks every exported TypeScript declaration kind: functions, variables, classes, interfaces, type aliases, enums, namespaces, and import aliases.
-It also checks default exports, export lists, `export * from` and `export { a } from` re-exports, and export assignments on the statement itself.
-For exported classes, it checks public methods, including abstract methods and accessors, and public properties initialized with a function.
+The TSDoc plugin enforces the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
+Read those requirements when configuring TypeScript documentation checks.
 Protected, private, and `#private` members and constructors are exempt.
-It requires multiline TSDoc with opening and closing delimiters on separate lines.
-This format is a local rule.
 It reports missing documentation separately from invalid delimiter placement.
 The JavaScript override keeps the historical JSDoc parameter and return checks while allowing return descriptions.
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
