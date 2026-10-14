@@ -1,5 +1,6 @@
 catalog:
   "@oxc-project/types": ^0.153.0
+  husky: ^9.1.7
   markdownlint: ^0.41.1
   markdownlint-cli2: ^0.23.3
   npm-run-all2: ^9.0.3

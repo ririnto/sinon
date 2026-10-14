@@ -90,8 +90,9 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<skill-root>/docs/rules.md` | `<plugin-root>/docs/rules.md` |
 | `<skill-root>/docs/languages/<name>.md` | `<plugin-root>/docs/languages/<name>.md` |
 | `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
-| `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm is selected |
-| `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
+| `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when pnpm or Gradle Node-side checks are selected |
+| `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when pnpm or Gradle Node-side checks are selected |
+| `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/pnpm/.husky/<name>` for `pre-commit`, `pre-push`, and `.gitignore` when the Node-side script surface is selected |
 | `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
 | `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
@@ -138,7 +139,10 @@ Create native configuration only where the selected reference permits it and no 
 
 For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs/tools/pnpm.md#bounded-manifest-merge).
 For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
-The profile owns Markdownlint dependency/scripts and config-based `node_modules` exclusion, including targets without `.gitignore`.
+The pnpm profile owns the canonical Markdownlint configuration and rules, including config-based `node_modules` exclusion.
+Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
+For Gradle, merge its [Node-side Markdown and hook scripts](../../docs/tools/gradle.md#node-side-markdown-and-hook-scripts) and reuse those sources.
+This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.
 Do not install only a prebuilt JAR or substitute buildSrc classes for ruleset registration.

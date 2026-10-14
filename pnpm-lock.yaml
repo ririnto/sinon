@@ -176,6 +176,9 @@ catalogs:
     fast-sort:
       specifier: ^3.4.1
       version: 3.4.1
+    husky:
+      specifier: ^9.1.7
+      version: 9.1.7
     markdownlint:
       specifier: ^0.41.1
       version: 0.41.1
@@ -223,6 +226,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.19.1
+      husky:
+        specifier: 'catalog:'
+        version: 9.1.7
       markdownlint:
         specifier: 'catalog:'
         version: 0.41.1
@@ -1194,6 +1200,11 @@ packages:
   human-signals@8.0.1:
     resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
+
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   ignore@7.0.11:
     resolution: {integrity: sha512-YChdK5txDjwGUvgR7oCJcLGkwi3LDh8Zx8tS7ndYciLEg/oOCL26VUBSUEtgS7EjiybcBqFxh5j0rAdDX7/bbg==}
@@ -2466,6 +2477,8 @@ snapshots:
       unicorn-magic: 0.4.1
 
   human-signals@8.0.1: {}
+
+  husky@9.1.7: {}
 
   ignore@7.0.11: {}
 

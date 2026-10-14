@@ -38,6 +38,19 @@ type HookHost = "claude" | "codex";
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const pluginRoot = path.join(repositoryRoot, "plugins/codegraph");
 
+const fixtureEnvironment = (): NodeJS.ProcessEnv => {
+  const localNames = new Set(
+    execFileSync("git", ["rev-parse", "--local-env-vars"], {
+      encoding: "utf-8"
+    })
+      .trim()
+      .split("\n")
+  );
+  return Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !localNames.has(name))
+  );
+};
+
 const makeHarness = () => {
   const root = mkdtempSync(path.join(tmpdir(), "sinon-codegraph-test-"));
   onTestFinished(() => rmSync(root, { force: true, recursive: true }));
@@ -54,7 +67,7 @@ const makeHarness = () => {
   ].join("\n");
   writeFileSync(npxPath, npxSource, { mode: 0o755 });
   const env: NodeJS.ProcessEnv = {
-    ...process.env,
+    ...fixtureEnvironment(),
     CODEGRAPH_STUB_EXIT_INIT: "0",
     CODEGRAPH_STUB_LOG: logPath,
     PATH: binaryDirectory + path.delimiter + (process.env.PATH ?? ""),
@@ -73,7 +86,11 @@ const callsFrom = (logPath: string): NpxCall[] =>
     : [];
 
 const runGit = (cwd: string, args: string[]): void => {
-  execFileSync("git", args, { cwd, stdio: "ignore" });
+  execFileSync("git", args, {
+    cwd,
+    env: fixtureEnvironment(),
+    stdio: "ignore"
+  });
 };
 
 const makeRepository = (root: string): void => {

@@ -40,6 +40,8 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 - `docs/tools/`: profile-specific detection, native configuration, merge, command, CI, and limitation guidance.
 - `ci/`: optional GitHub Actions and GitLab CI catalogs for the seven supported profiles.
 - `tooling/`: native configuration fragments, the standalone Kotlin ruleset module, and profile-local rule plugins.
+- `tooling/gradle/package.json`: bounded pnpm manifest merge guidance for Markdown checks, Gradle aliases, and hook scripts.
+- `tooling/pnpm/.husky/`: shared Git hooks invoking the target's pnpm pre-commit and pre-push scripts.
 
 ## Ownership And Safety
 
