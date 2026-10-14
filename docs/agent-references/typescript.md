@@ -52,6 +52,8 @@ Use `readonly` for properties and arrays that must not change.
 Put braces around every `if` and `else` branch, including guard returns and one-line branches.
 When a guard only exits before trailing work, invert its condition and enclose that work when behavior stays identical.
 Use `if`/`else` or `switch` for mutually exclusive branches when it improves clarity.
+Use a plain `if`/`else if`/`else` chain for repeated guards when the lint contract permits it.
+Active lint rules and formatter output take precedence over control-flow preferences.
 Keep validation, loop-exit, cleanup, and other genuine early exits.
 Prefer recursion only when the actual call bound is stack-safe and the recursive form is clearer than an iterative form.
 Do not replace an unbounded or unknown-depth loop with recursion.

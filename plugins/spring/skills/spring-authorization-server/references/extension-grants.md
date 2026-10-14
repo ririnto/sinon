@@ -30,10 +30,11 @@ public final class CustomCodeGrantAuthenticationConverter implements Authenticat
     @Override
     public Authentication convert(HttpServletRequest request) {
         String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
-        if (!"urn:ietf:params:oauth:grant-type:custom_code".equals(grantType)) {
-            return null;
+        Authentication authentication = null;
+        if ("urn:ietf:params:oauth:grant-type:custom_code".equals(grantType)) {
+            authentication = new CustomCodeGrantAuthenticationToken(request.getParameter("code"), SecurityContextHolder.getContext().getAuthentication(), additionalParameters);
         }
-        return new CustomCodeGrantAuthenticationToken(request.getParameter("code"), SecurityContextHolder.getContext().getAuthentication(), additionalParameters);
+        return authentication;
     }
 }
 ```

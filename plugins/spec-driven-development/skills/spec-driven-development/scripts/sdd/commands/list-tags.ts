@@ -39,11 +39,10 @@ export const cmdListTags = (args: ParsedArgs): number => {
       fail(`FAIL [${filePath}]: ${result.message}`);
       return 1;
     }
-    if (result.kind === "missing") {
-      continue;
-    }
-    for (const tag of result.entry.tags) {
-      counter.set(tag, (counter.get(tag) ?? 0) + 1);
+    if (result.kind === "entry") {
+      for (const tag of result.entry.tags) {
+        counter.set(tag, (counter.get(tag) ?? 0) + 1);
+      }
     }
   }
   for (const tag of sort([...counter.keys()]).asc()) {

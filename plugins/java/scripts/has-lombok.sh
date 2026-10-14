@@ -25,28 +25,27 @@ project_root=${1:-$PWD}
 # @return 0 if Lombok dependency is found, 1 otherwise.
 contains_lombok_dependency() {
   file_path="$1"
-  if [ ! -f "${file_path}" ]; then
-    return 1
+  if [ -f "${file_path}" ]; then
+    case "${file_path}" in
+    */pom.xml)
+      grep -Eq 'org\.projectlombok|<artifactId>lombok</artifactId>' "${file_path}"
+      ;;
+    */build.gradle | */build.gradle.kts)
+      grep -Eq 'org\.projectlombok:lombok|io\.freefair\.lombok|annotationProcessor[^[:cntrl:]]*lombok|compileOnly[^[:cntrl:]]*lombok|testAnnotationProcessor[^[:cntrl:]]*lombok|testCompileOnly[^[:cntrl:]]*lombok|kapt[^[:cntrl:]]*lombok' "${file_path}"
+      ;;
+    */gradle/libs.versions.toml)
+      grep -Eq 'org\.projectlombok|module\s*=\s*"org\.projectlombok:lombok"|^lombok\s*=|\blombok\b' "${file_path}"
+      ;;
+    */.classpath | */.factorypath)
+      grep -Eq 'org\.projectlombok|lombok' "${file_path}"
+      ;;
+    *)
+      false
+      ;;
+    esac
+  else
+    false
   fi
-  case "${file_path}" in
-  */pom.xml)
-    grep -Eq 'org\.projectlombok|<artifactId>lombok</artifactId>' "${file_path}"
-    return
-    ;;
-  */build.gradle | */build.gradle.kts)
-    grep -Eq 'org\.projectlombok:lombok|io\.freefair\.lombok|annotationProcessor[^[:cntrl:]]*lombok|compileOnly[^[:cntrl:]]*lombok|testAnnotationProcessor[^[:cntrl:]]*lombok|testCompileOnly[^[:cntrl:]]*lombok|kapt[^[:cntrl:]]*lombok' "${file_path}"
-    return
-    ;;
-  */gradle/libs.versions.toml)
-    grep -Eq 'org\.projectlombok|module\s*=\s*"org\.projectlombok:lombok"|^lombok\s*=|\blombok\b' "${file_path}"
-    return
-    ;;
-  */.classpath | */.factorypath)
-    grep -Eq 'org\.projectlombok|lombok' "${file_path}"
-    return
-    ;;
-  esac
-  return 1
 }
 
 # Recursively find all build-system metadata files under a directory.
@@ -88,11 +87,12 @@ resolve_candidate_jar_path() {
     resolved_path="${source_dir}/${candidate_path}"
     ;;
   esac
+  candidate_status=1
   if [ -f "${resolved_path}" ]; then
     printf '%s\n' "${resolved_path}"
-    return 0
+    candidate_status=0
   fi
-  return 1
+  return "${candidate_status}"
 }
 
 # Extract the version string from a lombok jar filename.
@@ -109,21 +109,21 @@ version_from_lombok_path() {
 # @return Prints the resolved jar path on success, or returns 1 if none found.
 resolve_lombok_jar_from_metadata_file() {
   metadata_file="$1"
-  if ! candidate_paths=$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}"); then
-    return 1
-  fi
-  while IFS= read -r candidate_path; do
-    if resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}"); then
-      candidate_version=$(version_from_lombok_path "${resolved_path}")
-      if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
-        printf '%s\n' "${resolved_path}"
-        return 0
+  metadata_status=1
+  if candidate_paths=$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}"); then
+    while [ "${metadata_status}" -ne 0 ] && IFS= read -r candidate_path; do
+      if resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}"); then
+        candidate_version=$(version_from_lombok_path "${resolved_path}")
+        if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
+          printf '%s\n' "${resolved_path}"
+          metadata_status=0
+        fi
       fi
-    fi
-  done <<EOF
+    done <<EOF
 ${candidate_paths}
 EOF
-  return 1
+  fi
+  return "${metadata_status}"
 }
 
 # Check whether a Lombok version meets the minimum compatibility threshold.
@@ -165,22 +165,24 @@ is_compatible_lombok_version() {
 #
 # @return 0 if Lombok usage is detected anywhere in the project, 1 otherwise.
 project_uses_lombok() {
+  usage_status=1
   if contains_lombok_dependency "${project_root}/pom.xml" ||
     contains_lombok_dependency "${project_root}/build.gradle" ||
     contains_lombok_dependency "${project_root}/build.gradle.kts" ||
     contains_lombok_dependency "${project_root}/gradle/libs.versions.toml" ||
     contains_lombok_dependency "${project_root}/.classpath" ||
     contains_lombok_dependency "${project_root}/.factorypath"; then
-    return 0
-  fi
-  while IFS= read -r candidate_file; do
-    if contains_lombok_dependency "${candidate_file}"; then
-      return 0
-    fi
-  done <<EOF
+    usage_status=0
+  else
+    while [ "${usage_status}" -ne 0 ] && IFS= read -r candidate_file; do
+      if contains_lombok_dependency "${candidate_file}"; then
+        usage_status=0
+      fi
+    done <<EOF
 $(find_project_files)
 EOF
-  return 1
+  fi
+  return "${usage_status}"
 }
 
 # Find a compatible Lombok jar path from project metadata files.
@@ -188,25 +190,26 @@ EOF
 #
 # @return Prints the resolved jar path on success, or returns 1 if none found.
 resolve_project_lombok_jar() {
+  project_jar_status=1
   for metadata_file in "${project_root}/.classpath" "${project_root}/.factorypath"; do
-    if [ -f "${metadata_file}" ]; then
-      if resolve_lombok_jar_from_metadata_file "${metadata_file}"; then
-        return 0
-      fi
+    if [ "${project_jar_status}" -ne 0 ] && [ -f "${metadata_file}" ] && resolve_lombok_jar_from_metadata_file "${metadata_file}"; then
+      project_jar_status=0
     fi
   done
-  while IFS= read -r metadata_file; do
-    case "${metadata_file}" in
-    */.classpath | */.factorypath)
-      if resolve_lombok_jar_from_metadata_file "${metadata_file}"; then
-        return 0
-      fi
-      ;;
-    esac
-  done <<EOF
+  if [ "${project_jar_status}" -ne 0 ]; then
+    while [ "${project_jar_status}" -ne 0 ] && IFS= read -r metadata_file; do
+      case "${metadata_file}" in
+      */.classpath | */.factorypath)
+        if resolve_lombok_jar_from_metadata_file "${metadata_file}"; then
+          project_jar_status=0
+        fi
+        ;;
+      esac
+    done <<EOF
 $(find_project_files)
 EOF
-  return 1
+  fi
+  return "${project_jar_status}"
 }
 
 if [ ! -d "${project_root}" ]; then

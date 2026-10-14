@@ -420,10 +420,9 @@ Enum options are completed automatically when the option type is an enum.
 @Bean
 ExitStatusExceptionMapper exitStatusExceptionMapper() {
     return exception -> {
-        if (exception instanceof IllegalArgumentException) {
-            return new ExitStatus(2, "invalid argument");
-        }
-        return new ExitStatus(1, "error");
+        return exception instanceof IllegalArgumentException
+            ? new ExitStatus(2, "invalid argument")
+            : new ExitStatus(1, "error");
     };
 }
 ```

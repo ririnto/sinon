@@ -44,12 +44,11 @@ HttpClient.create()
     .port(8080)
     .websocket()
     .uri("/ws")
-    .handle((inbound, outbound) -> inbound.receive().asString().flatMap(text -> {
-        if ("close".equals(text)) {
-            return outbound.sendClose(1000, "bye").then();
-        }
-        return outbound.sendString(Mono.just(text)).then();
-    }).then())
+    .handle((inbound, outbound) -> inbound.receive().asString().flatMap(text ->
+        "close".equals(text)
+            ? outbound.sendClose(1000, "bye").then()
+            : outbound.sendString(Mono.just(text)).then()
+    ).then())
     .block();
 ```
 

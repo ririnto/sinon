@@ -86,11 +86,11 @@ export const requireChoice = (
   choices: readonly string[],
   label: string
 ): boolean => {
-  if (choices.includes(value)) {
-    return true;
+  const valid = choices.includes(value);
+  if (!valid) {
+    fail(`FAIL: invalid ${label}: ${value}`);
   }
-  fail(`FAIL: invalid ${label}: ${value}`);
-  return false;
+  return valid;
 };
 
 /**
@@ -106,15 +106,20 @@ export const commandSpecPath = (
   label: string
 ): string | undefined => {
   const explicit = args.positionals[index];
+  let specPath: string | undefined;
   if (explicit) {
-    return explicit;
+    specPath = explicit;
+  } else {
+    const fallback = resolveDefaultSpecPath();
+    if (fallback !== undefined && fallback.length > 0) {
+      specPath = fallback;
+    } else {
+      fail(
+        `FAIL: ${label} is required (no ./spec directory or $SDD_SPEC_DIR set)`
+      );
+    }
   }
-  const fallback = resolveDefaultSpecPath();
-  if (fallback !== undefined && fallback.length > 0) {
-    return fallback;
-  }
-  fail(`FAIL: ${label} is required (no ./spec directory or $SDD_SPEC_DIR set)`);
-  return undefined;
+  return specPath;
 };
 
 /**

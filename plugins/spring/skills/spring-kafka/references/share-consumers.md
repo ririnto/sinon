@@ -64,10 +64,9 @@ Set a custom recoverer on the factory or container.
 
 ```java
 factory.setShareConsumerRecordRecoverer((record, ex) -> {
-    if (ex instanceof TransientException) {
-        return AcknowledgeType.RELEASE;
-    }
-    return AcknowledgeType.REJECT;
+    return ex instanceof TransientException
+        ? AcknowledgeType.RELEASE
+        : AcknowledgeType.REJECT;
 });
 ```
 

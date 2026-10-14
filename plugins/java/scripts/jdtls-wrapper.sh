@@ -15,10 +15,12 @@ is_safe_path_token() {
   case "$1" in
   *" "* | *"	"* | *"
 "*)
-    return 1
+    false
+    ;;
+  *)
+    true
     ;;
   esac
-  return 0
 }
 
 # Check whether Lombok support is enabled from environment.
@@ -27,10 +29,12 @@ is_safe_path_token() {
 is_lombok_support_enabled() {
   case "${lombok_support_enabled}" in
   0 | false | FALSE | False | off | OFF | Off | no | NO | No)
-    return 1
+    false
+    ;;
+  *)
+    true
     ;;
   esac
-  return 0
 }
 
 # Check whether project-local Lombok jar discovery is enabled.
@@ -39,10 +43,12 @@ is_lombok_support_enabled() {
 is_project_lombok_jar_enabled() {
   case "${lombok_project_jar_enabled}" in
   1 | true | TRUE | True | on | ON | On | yes | YES | Yes)
-    return 0
+    true
+    ;;
+  *)
+    false
     ;;
   esac
-  return 1
 }
 
 # Walk up from PWD to find the project root directory.
@@ -51,14 +57,16 @@ is_project_lombok_jar_enabled() {
 # @return Prints the project root path and returns 0, or returns 1 if not found.
 find_project_root() {
   search_dir="${PWD}"
-  while [ "${search_dir}" != "/" ]; do
+  root_status=1
+  while [ "${search_dir}" != "/" ] && [ "${root_status}" -ne 0 ]; do
     if [ -f "${search_dir}/pom.xml" ] || [ -f "${search_dir}/build.gradle" ] || [ -f "${search_dir}/build.gradle.kts" ] || [ -f "${search_dir}/.classpath" ] || [ -f "${search_dir}/.factorypath" ] || [ -f "${search_dir}/settings.gradle" ] || [ -f "${search_dir}/settings.gradle.kts" ] || [ -f "${search_dir}/gradle/libs.versions.toml" ]; then
       printf '%s\n' "${search_dir}"
-      return 0
+      root_status=0
+    else
+      search_dir=$(dirname "${search_dir}")
     fi
-    search_dir=$(dirname "${search_dir}")
   done
-  return 1
+  return "${root_status}"
 }
 
 # Resolve the project Lombok jar path using has-lombok.sh.
@@ -78,14 +86,16 @@ strip_existing_lombok_agents() {
   for current_arg in ${JDK_JAVA_OPTIONS:-}; do
     case "${current_arg}" in
     -javaagent:*lombok*.jar)
-      continue
+      :
+      ;;
+    *)
+      if [ -n "${cleaned_options}" ]; then
+        cleaned_options="${cleaned_options} ${current_arg}"
+      else
+        cleaned_options="${current_arg}"
+      fi
       ;;
     esac
-    if [ -n "${cleaned_options}" ]; then
-      cleaned_options="${cleaned_options} ${current_arg}"
-    else
-      cleaned_options="${current_arg}"
-    fi
   done
   JDK_JAVA_OPTIONS=${cleaned_options}
 }
@@ -96,24 +106,25 @@ strip_existing_lombok_agents() {
 # @return Prints "source|jarpath" on success, or returns 1 if no jar selected.
 select_lombok_jar() {
   project_root="$1"
+  selection_status=1
   if [ -n "${lombok_override_jar}" ]; then
     if ! is_safe_path_token "${lombok_override_jar}"; then
       warn_optional_lombok_support "java: Lombok jar path must be a single filesystem token without whitespace. Ignoring override."
     elif [ -f "${lombok_override_jar}" ]; then
       printf '%s|%s\n' "override" "${lombok_override_jar}"
-      return 0
+      selection_status=0
     else
       warn_optional_lombok_support "java: Lombok override jar was not found at ${lombok_override_jar}. Ignoring override."
     fi
   fi
-  if [ -n "${project_root}" ] && is_project_lombok_jar_enabled; then
+  if [ "${selection_status}" -ne 0 ] && [ -n "${project_root}" ] && is_project_lombok_jar_enabled; then
     project_lombok_jar=$(resolve_project_lombok_jar "${project_root}")
     if [ -n "${project_lombok_jar}" ]; then
       printf '%s|%s\n' "project" "${project_lombok_jar}"
-      return 0
+      selection_status=0
     fi
   fi
-  return 1
+  return "${selection_status}"
 }
 
 # Print a warning message to stderr about Lombok support.
@@ -127,28 +138,24 @@ warn_optional_lombok_support() {
 #     Selects a jar source, validates safety, strips existing agents,
 #     and injects -javaagent via JDK_JAVA_OPTIONS.
 maybe_enable_lombok_agent() {
-  if ! is_lombok_support_enabled; then
-    return 0
+  if is_lombok_support_enabled; then
+    project_root=$(find_project_root) || true
+    selected_lombok=$(select_lombok_jar "${project_root}") || true
+    if [ -n "${selected_lombok}" ]; then
+      selected_source=${selected_lombok%%|*}
+      selected_jar=${selected_lombok#*|}
+      if ! is_safe_path_token "${selected_jar}"; then
+        warn_optional_lombok_support "java: Selected Lombok jar path must be a single filesystem token without whitespace. Starting jdtls without Lombok support."
+      elif [ ! -f "${selected_jar}" ]; then
+        warn_optional_lombok_support "java: Selected Lombok source (${selected_source}) was not found at ${selected_jar}. Starting jdtls without Lombok support."
+      else
+        strip_existing_lombok_agents
+        selected_agent="-javaagent:${selected_jar}"
+        export JDK_JAVA_OPTIONS="${selected_agent} ${JDK_JAVA_OPTIONS:-}"
+        warn_optional_lombok_support "java: Enabled Lombok support from ${selected_source} source (${selected_jar})."
+      fi
+    fi
   fi
-  project_root=$(find_project_root) || true
-  selected_lombok=$(select_lombok_jar "${project_root}") || true
-  if [ -z "${selected_lombok}" ]; then
-    return 0
-  fi
-  selected_source=${selected_lombok%%|*}
-  selected_jar=${selected_lombok#*|}
-  if ! is_safe_path_token "${selected_jar}"; then
-    warn_optional_lombok_support "java: Selected Lombok jar path must be a single filesystem token without whitespace. Starting jdtls without Lombok support."
-    return 0
-  fi
-  if [ ! -f "${selected_jar}" ]; then
-    warn_optional_lombok_support "java: Selected Lombok source (${selected_source}) was not found at ${selected_jar}. Starting jdtls without Lombok support."
-    return 0
-  fi
-  strip_existing_lombok_agents
-  selected_agent="-javaagent:${selected_jar}"
-  export JDK_JAVA_OPTIONS="${selected_agent} ${JDK_JAVA_OPTIONS:-}"
-  warn_optional_lombok_support "java: Enabled Lombok support from ${selected_source} source (${selected_jar})."
 }
 
 if ! jdtls_path=$(command -v jdtls); then

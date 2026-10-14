@@ -46,16 +46,18 @@ export const extractFrontmatterFromFile = (
  * Normalizes a single tag or tag array into trimmed, non-empty strings.
  */
 export const normalizeTag = (value: unknown): readonly string[] => {
+  let tags: string[];
   if (Array.isArray(value)) {
-    return value
+    tags = value
       .map((item) => String(item).trim())
       .filter((item) => item.length > 0);
+  } else if (value === undefined || value === null) {
+    tags = [];
+  } else {
+    const scalar = String(value).trim();
+    tags = scalar ? [scalar] : [];
   }
-  if (value === undefined || value === null) {
-    return [];
-  }
-  const scalar = String(value).trim();
-  return scalar ? [scalar] : [];
+  return tags;
 };
 
 /**
@@ -65,14 +67,15 @@ export const normalizeTag = (value: unknown): readonly string[] => {
 export const parseFields = (
   rawFields: string | undefined
 ): readonly string[] | undefined => {
-  if (rawFields === undefined || rawFields.length === 0) {
-    return undefined;
+  let fields: readonly string[] | undefined;
+  if (rawFields !== undefined && rawFields.length > 0) {
+    const parsed = rawFields
+      .split(",")
+      .map((field) => (field.trim() === "tags" ? "tag" : field.trim()))
+      .filter((field) => field.length > 0);
+    fields = parsed.length > 0 ? parsed : undefined;
   }
-  const fields = rawFields
-    .split(",")
-    .map((field) => (field.trim() === "tags" ? "tag" : field.trim()))
-    .filter((field) => field.length > 0);
-  return fields.length > 0 ? fields : undefined;
+  return fields;
 };
 
 /**
@@ -81,12 +84,13 @@ export const parseFields = (
  */
 export const subjectString = (data: JsonRecord): string => {
   const { subject } = data;
-  if (!isRecord(subject)) {
-    return "";
+  let text = "";
+  if (isRecord(subject)) {
+    const name = String(subject.name ?? "");
+    const version = String(subject.version ?? "");
+    text = name || version ? `${name}@${version}` : "";
   }
-  const name = String(subject.name ?? "");
-  const version = String(subject.version ?? "");
-  return name || version ? `${name}@${version}` : "";
+  return text;
 };
 
 /**
@@ -188,16 +192,12 @@ export const matchesFilters = (
       if (!values.some((value) => tagValues.includes(value))) {
         return false;
       }
-      continue;
-    }
-    if (Array.isArray(current)) {
+    } else if (Array.isArray(current)) {
       const currentValues = new Set(current.map(String));
       if (!values.some((value) => currentValues.has(value))) {
         return false;
       }
-      continue;
-    }
-    if (!values.includes(String(current))) {
+    } else if (!values.includes(String(current))) {
       return false;
     }
   }

@@ -34,14 +34,14 @@ export const verifiedExecutable = async (
   const chunks: Buffer[] = [];
   const parser = new Parser({
     filter: (member, entry) => {
+      let selected = false;
       if (entry instanceof ReadEntry && member === executableMember) {
         selectedEntries.add(entry);
-        return (
+        selected =
           selectedEntries.size === 1 &&
-          (entry.type === "File" || entry.type === "OldFile")
-        );
+          (entry.type === "File" || entry.type === "OldFile");
       }
-      return false;
+      return selected;
     },
     onReadEntry: (entry) => {
       entry.on("data", (chunk: Buffer) => {
@@ -208,16 +208,17 @@ export const execute = async (
     if (spawnError !== undefined) {
       throw spawnError;
     }
+    let status: number;
     if (interruptedBy === "SIGINT") {
-      return 130;
+      status = 130;
+    } else if (interruptedBy === "SIGTERM") {
+      status = 143;
+    } else if (typeof code === "number") {
+      status = code;
+    } else {
+      throw new TypeError(`Promtool terminated by signal ${signal}`);
     }
-    if (interruptedBy === "SIGTERM") {
-      return 143;
-    }
-    if (typeof code === "number") {
-      return code;
-    }
-    throw new TypeError(`Promtool terminated by signal ${signal}`);
+    return status;
   } finally {
     child.removeListener("error", onError);
     child.removeListener("close", onClose);
@@ -233,21 +234,27 @@ const main = async (args: readonly string[]): Promise<number> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-promtool-"));
   try {
     const binary = await installPromtool(directory);
-    if (args.length !== 0) {
-      return await execute(binary, args);
+    let status: number;
+    if (args.length === 0) {
+      const ruleExit = await execute(binary, [
+        "check",
+        "rules",
+        fileURLToPath(new URL("alerts/api-errors.rules.yaml", import.meta.url))
+      ]);
+      status =
+        ruleExit === 0
+          ? await execute(binary, [
+              "test",
+              "rules",
+              fileURLToPath(
+                new URL("alerts/api-errors.test.yaml", import.meta.url)
+              )
+            ])
+          : ruleExit;
+    } else {
+      status = await execute(binary, args);
     }
-    const ruleExit = await execute(binary, [
-      "check",
-      "rules",
-      fileURLToPath(new URL("alerts/api-errors.rules.yaml", import.meta.url))
-    ]);
-    return ruleExit === 0
-      ? await execute(binary, [
-          "test",
-          "rules",
-          fileURLToPath(new URL("alerts/api-errors.test.yaml", import.meta.url))
-        ])
-      : ruleExit;
+    return status;
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
