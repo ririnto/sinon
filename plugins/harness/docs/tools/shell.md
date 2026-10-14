@@ -12,14 +12,14 @@ metadata:
 
 This document owns the `shell` profile commands and target integration rules for repositories with shell scripts.
 It accompanies the [shell language rules](../languages/shell.md) and [shared rules](../rules.md).
-The only native configuration source lives under `tooling/shell/`.
+Native configuration and manifest sources live under `tooling/shell/`.
 
 ## Scope And Detection
 
 Select the `shell` profile for a repository root that tracks `*.sh` files.
-There is no manifest for this profile: the file list comes from git itself.
-The profile adds no wrapper script, no task runner, and no test harness.
-The commands below are the whole gate.
+The native file list comes from Git itself.
+The shared pnpm manifest composes the commands below with Markdown checks and Husky hooks.
+The profile introduces no shell test harness.
 
 ## Toolchain
 
@@ -42,6 +42,9 @@ Without parser or printer flags, shfmt reads these settings instead of using its
 When the target already owns an `.editorconfig`, keep its shell section and resolve conflicts in favor of the target.
 
 ## Validation Commands
+
+Use the [project baseline](baseline.md) for the root pnpm manifest, catalog, Markdownlint configuration and real Husky hooks.
+`tooling/shell/package.json` runs the shared check before ShellCheck and shfmt on both commit and push.
 
 Run at the repository root, over git-tracked scripts only:
 

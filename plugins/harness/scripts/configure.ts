@@ -1,4 +1,11 @@
-import { lstat, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  readFile,
+  readdir,
+  realpath,
+  writeFile
+} from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 
@@ -10,6 +17,9 @@ export type BaselineProfile =
   | "kotlin"
   | "maven"
   | "go"
+  | "rust"
+  | "uv"
+  | "shell"
   | "node"
   | "frontend"
   | "react";
@@ -46,7 +56,10 @@ const nativeProfiles = {
   kotlin: "gradle/package.json",
   maven: "maven/package.json",
   node: "pnpm/package.fragment.json",
-  react: "pnpm/package.fragment.json"
+  react: "pnpm/package.fragment.json",
+  rust: "rust/package.json",
+  shell: "shell/package.json",
+  uv: "uv/package.json"
 };
 const ignoredOutputs: Record<BaselineProfile, string[]> = {
   frontend: ["dist/", "storybook-static/", ".vite/"],
@@ -55,7 +68,10 @@ const ignoredOutputs: Record<BaselineProfile, string[]> = {
   kotlin: [".gradle/", ".kotlin/", "build/"],
   maven: ["target/"],
   node: ["dist/", "coverage/"],
-  react: ["dist/", "storybook-static/", ".vite/"]
+  react: ["dist/", "storybook-static/", ".vite/"],
+  rust: ["target/"],
+  shell: [],
+  uv: [".venv/", ".ruff_cache/", "__pycache__/", "*.pyc"]
 };
 
 const isProfile = (value: string): value is BaselineProfile =>
@@ -281,7 +297,10 @@ export const configureBaseline = async (
   return result;
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === import.meta.filename) {
+if (
+  process.argv[1] &&
+  (await realpath(process.argv[1])) === import.meta.filename
+) {
   const { values } = parseArgs({
     options: {
       eligibility: { type: "string" },
@@ -293,7 +312,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === import.meta.filename) {
   });
   if (values.help) {
     process.stdout.write(
-      "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> --non-interactive\n"
+      "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|rust|uv|shell|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> --non-interactive\n"
     );
   } else {
     if (

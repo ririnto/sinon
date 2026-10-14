@@ -25,7 +25,7 @@
     "./rules/sentence-per-line.ts",
     "./rules/table-separators.ts"
   ],
-  "gitignore": ".gitignore",
+  "gitignore": true,
   "globs": ["**/*.md"],
   "ignores": ["**/node_modules/**"]
 }

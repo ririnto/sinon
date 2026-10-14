@@ -1,12 +1,11 @@
-import { spawnSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, test } from "vitest";
 
+import { runUltracite } from "../../../tests/ultracite-fixture.js";
 import style from "./style-plugin.js";
 
 type Rule = (typeof style.rules)["no-blank-lines-in-functions"];
@@ -135,11 +134,11 @@ describe("pnpm style rules", () => {
   });
 });
 
-test("native Oxlint checks physical function body style", async () => {
+test("Ultracite checks physical function body style", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-function-style-"));
   try {
     await writeFile(
-      path.join(directory, "oxlint.json"),
+      path.join(directory, ".oxlintrc.json"),
       JSON.stringify({
         jsPlugins: [fileURLToPath(new URL("style-plugin.ts", import.meta.url))],
         rules: {
@@ -189,29 +188,11 @@ test("native Oxlint checks physical function body style", async () => {
       ["comments.tsx", 2],
       ["invalid.ts", 4]
     ] as const) {
-      const result = spawnSync(
-        process.execPath,
-        [
-          path.join(
-            path.dirname(
-              createRequire(import.meta.url).resolve("oxlint/package.json")
-            ),
-            "bin/oxlint"
-          ),
-          "--config",
-          path.join(directory, "oxlint.json"),
-          "--format",
-          "json",
-          path.join(directory, filename)
-        ],
-        { cwd: directory }
-      );
-      expect(result.error).toBeUndefined();
-      expect(result.status).toBe(diagnosticCount === 0 ? 0 : 1);
-      const {
-        diagnostics
-      }: { readonly diagnostics: readonly { readonly code?: string }[] } =
-        JSON.parse(result.stdout.toString());
+      if (diagnosticCount === 0) {
+        expect(runUltracite(directory, filename, "fix").status).toBe(0);
+      }
+      const { diagnostics, status } = runUltracite(directory, filename);
+      expect(status).toBe(diagnosticCount === 0 ? 0 : 1);
       expect(
         diagnostics.filter(({ code }) => code?.startsWith("style("))
       ).toHaveLength(diagnosticCount);
@@ -219,4 +200,4 @@ test("native Oxlint checks physical function body style", async () => {
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
-});
+}, 30_000);
