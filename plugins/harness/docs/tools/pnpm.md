@@ -62,6 +62,8 @@ metadata:
 ---
 
 Use this profile for a pnpm-managed JavaScript, TypeScript, or JSX project.
+Use the [project baseline](baseline.md) for eligibility and fresh-root materialization.
+For frontend or React code, also read [frontend guidance](frontend.md).
 
 ## Detection And Selection
 
@@ -95,6 +97,8 @@ Store shared versions in `pnpm-workspace.yaml` catalogs and reference them with 
 Merge missing catalog entries without replacing existing versions or unrelated catalogs.
 Preserve existing workspace package globs and unrelated settings when merging `pnpm-workspace.yaml`.
 Resolve catalog references from the target's workspace root before running installation.
+Merge the `allow-builds.fragment.yaml` entry for esbuild only when the selected Node tooling requires its native binary installation.
+Preserve existing build approval policy and review conflicts instead of approving every dependency's scripts.
 Do not add direct `oxlint` or `oxfmt` script entries.
 Route lint and format execution only through Ultracite.
 Add `npm-run-all2` only when the merged scripts use `run-p`.

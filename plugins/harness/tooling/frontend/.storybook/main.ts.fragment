@@ -1,0 +1,11 @@
+import type { StorybookConfig } from "@storybook/html-vite";
+
+const config: StorybookConfig = {
+  framework: "@storybook/html-vite",
+  stories: ["../src/**/*.stories.@(js|jsx|ts|tsx)"]
+};
+
+/**
+ * Build the selected Vite renderer's component stories.
+ */
+export default config;

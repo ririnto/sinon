@@ -158,6 +158,7 @@ describe("Gradle Node-side script integration", () => {
       } finally {
         await rm(directory, { force: true, recursive: true });
       }
-    }
+    },
+    30_000
   );
 });

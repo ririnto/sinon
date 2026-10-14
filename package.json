@@ -22,6 +22,7 @@
     "test:promtool": "tsx plugins/observability-assets/tests/promtool/run.ts"
   },
   "devDependencies": {
+    "@google/design.md": "catalog:",
     "@oxc-project/types": "catalog:",
     "@tsconfig/node-lts": "catalog:",
     "@types/node": "catalog:",

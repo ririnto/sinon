@@ -173,6 +173,8 @@ Use language documents for changed source, examples, and language-rule findings:
 
 Use tool documents for profile detection, native configuration, commands, CI catalogs, and integration limits:
 
+- [Project baseline](tools/baseline.md)
+- [Frontend](tools/frontend.md)
 - [pnpm](tools/pnpm.md)
 - [Gradle](tools/gradle.md)
 - [Maven](tools/maven.md)

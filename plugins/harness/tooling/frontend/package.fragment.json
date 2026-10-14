@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "check:design": "designmd lint DESIGN.md",
+    "check:storybook": "storybook build --test",
+    "storybook": "storybook dev -p 6006"
+  },
+  "devDependencies": {
+    "@google/design.md": "catalog:",
+    "@storybook/html-vite": "catalog:",
+    "storybook": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

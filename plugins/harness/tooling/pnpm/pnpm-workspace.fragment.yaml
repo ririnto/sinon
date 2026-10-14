@@ -1,4 +1,5 @@
 catalog:
+  "@google/design.md": ^0.4.0
   "@oxc-project/types": ^0.153.0
   husky: ^9.1.7
   markdownlint: ^0.41.1

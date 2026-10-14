@@ -64,6 +64,11 @@ These checks enforce Go-specific contracts rather than multiline comment delimit
 
 ## Validation Commands
 
+Use the [project baseline](baseline.md) for the root pnpm manifest, Markdownlint configuration, catalog, and real Husky hooks.
+`tooling/go/package.json` runs the shared check before native lint, formatting, and NilAway on commit.
+On push it also runs the race-enabled test gate.
+Install the native tools below and expose their project-local binaries on the hook's `PATH` before activation.
+
 Run inside the module root:
 
 ```sh

@@ -1,0 +1,10 @@
+---
+title: Design System
+name: Project
+---
+
+## Direction
+
+Replace this starter with the project's chosen visual identity and its actual design tokens before accepting frontend work.
+Describe typography, color, spacing, and component states using the design.md format.
+For React, derive the primary component and token choices from Radix Themes, Colors, Icons, and Primitives.

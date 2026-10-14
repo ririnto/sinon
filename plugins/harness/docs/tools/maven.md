@@ -130,8 +130,10 @@ Spotless Maven plugin `3.10.4` requires Maven to run on Java 17 or newer.
 Checkstyle engine `14.3.0` is the selected version for this profile.
 If the target's Java baseline is older, retain compatible existing tools or obtain explicit approval for an upgrade.
 
-This profile does not create Git hooks.
-Preserve existing hooks and configure a native hook only when the target explicitly selects one.
+Use the [project baseline](baseline.md) for the root pnpm manifest, Markdownlint configuration, catalog, and real Husky hooks.
+`tooling/maven/package.json` runs the shared check before `maven:lint` on commit and `maven:check` on push.
+The native commands are `./mvnw spotless:check checkstyle:check` and `./mvnw verify` respectively.
+Preserve existing hook and script owners through the pnpm profile's bounded merge.
 The GitLab catalog's `maven:3.10.0-eclipse-temurin-25` image records a profile baseline, not the current stable runtime.
 Before adopting it, check the official Maven and JDK image releases against the target's wrapper and Java baseline.
 The CI catalog assumes that the target contains a checked-in `./mvnw` wrapper.
