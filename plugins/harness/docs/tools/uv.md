@@ -17,9 +17,6 @@ metadata:
         - https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function/
         - https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
         - https://docs.astral.sh/ruff/rules/new-line-after-last-paragraph/
-    pre-commit:
-      version: 4.6.2
-      url: https://pre-commit.com/#local-hooks
     setup-uv:
       tag: v10.2.0
       url: https://raw.githubusercontent.com/astral-sh/setup-uv/v10.2.0/README.md
@@ -44,11 +41,9 @@ For a new empty target, report the initialization gap and run only `uv init` whe
 - uv: check the official releases for the latest stable version compatible with the target, then use its official installer.
 - Python: the target's `requires-python` field stays authoritative.
 - Ruff: `>= 0.16.10,<0.17` through the `dev` dependency group.
-- pre-commit: `>= 4.6.2,<5` through the `dev` dependency group, hooks only when explicitly selected.
-  This pre-commit line requires Python >= 3.10 in the target environment (4.2.x required >= 3.9).
 
 These bounds record the source profile's selected versions, not the latest PyPI releases.
-Before adding or upgrading Ruff or pre-commit, check PyPI for the latest stable version compatible with the target's `requires-python` and existing constraints.
+Before adding or upgrading Ruff, check PyPI for the latest stable version compatible with the target's `requires-python` and existing constraints.
 Honor a newer target-pinned version instead of downgrading it.
 Review the target manifest and lockfile before widening a `0.x` minor bound.
 Dependabot does not scan arbitrary fragments, so the target's merged `pyproject.toml` remains the native update manifest.
@@ -61,7 +56,6 @@ Name the gap instead.
 | --- | --- | --- |
 | `tooling/uv/pyproject.fragment.toml` | merge into existing `pyproject.toml` | merge only the `[tool.uv]` and `[dependency-groups]` tables |
 | `tooling/uv/ruff.toml` | `ruff.toml` at the project root | create; merge keys when a Ruff config already exists |
-| `tooling/uv/.pre-commit-config.yaml` | `.pre-commit-config.yaml` at the project root | create only when hooks are selected; merge `repos` entries when a file exists |
 | `tooling/uv/.editorconfig` | merge into existing `.editorconfig` | merge only missing sections and keys |
 
 Merge never replaces a whole manifest.
@@ -70,7 +64,8 @@ Never convert a real Python package into a virtual project: when the target decl
 Add `[tool.uv] package = false` only when the target has no `[tool.uv]` table and is an application environment.
 Merge `[dependency-groups]` by group name: add a missing group, and add missing requirements to an existing group.
 Never replace or drop the target's own group entries.
-If the target already owns hooks (for example an existing `repos` entry), keep that entry and add nothing unless the user selected hooks.
+Preserve existing target hook owners through the shared pnpm profile's bounded integration.
+Do not install a competing Python pre-commit configuration.
 
 The Ruff configuration extends native defaults with `B` for common bugs, `I` for imports, `UP` for supported syntax, and `ASYNC` for asynchronous code defects.
 Merge `extend-select` entries with the target's existing selections.
@@ -86,6 +81,10 @@ The profile enables no preview rules and avoids formatter-conflicting rules such
 Its 120-column line length matches the Python EditorConfig section.
 
 ## Validation Commands
+
+Use the [project baseline](baseline.md) for the root pnpm manifest, catalog, Markdownlint configuration and real Husky hooks.
+`tooling/uv/package.json` runs the shared check before Ruff lint and format checks on both commit and push.
+Retain the target's own Python test owner when composing an additional push gate.
 
 Run inside the project root after `uv sync`:
 
@@ -117,7 +116,5 @@ Add that stage to the target's pipeline stages when it does not exist.
   They cover private helper arguments without requiring private return annotations.
 - A local run needs the uv executable.
   When it is missing, report the gap and run nothing in its place.
-- pre-commit hooks execute third-party and local programs at commit time.
-  Review them before activation and never activate them silently.
 - `uv.lock` is generated output.
   Never copy it from this plugin.

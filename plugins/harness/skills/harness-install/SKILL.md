@@ -146,7 +146,7 @@ For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs
 For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
 The pnpm profile owns the canonical Markdownlint configuration and rules, including config-based `node_modules` exclusion.
 Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
-For Gradle, Maven, and Go, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md) and reuse the shared Markdown and Husky sources.
+For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md) and reuse the shared Markdown and Husky sources.
 This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.

@@ -24,6 +24,9 @@ const profiles: BaselineProfile[] = [
   "kotlin",
   "maven",
   "go",
+  "rust",
+  "uv",
+  "shell",
   "node",
   "frontend",
   "react"
@@ -106,6 +109,7 @@ describe("fresh-root baseline", () => {
         )
       );
       assertSortedKeys(configuration);
+      expect(configuration.gitignore).toBe(true);
       expect(configuration.config["table-column-style"]).toEqual({
         style: "compact"
       });
@@ -289,6 +293,15 @@ describe("fresh-root baseline", () => {
       "plugins/harness/scripts/configure.ts"
     );
     expect(spawnSync(process.execPath, [script, "--help"]).status).toBe(0);
+    const alias = path.join(directory, "plugin-alias");
+    await symlink(path.dirname(script), alias, "dir");
+    const aliasHelp = spawnSync(process.execPath, [
+      path.join(alias, "configure.ts"),
+      "--help"
+    ]);
+    expect(aliasHelp.status).toBe(0);
+    expect(aliasHelp.stdout.toString()).toContain("--profile");
+    await rm(alias);
     const invalid = spawnSync(process.execPath, [
       script,
       "--target",

@@ -25,6 +25,6 @@
     "./plugins/harness/tooling/pnpm/rules/sentence-per-line.ts",
     "./plugins/harness/tooling/pnpm/rules/table-separators.ts"
   ],
-  "gitignore": ".gitignore",
+  "gitignore": true,
   "globs": ["**/*.md"]
 }

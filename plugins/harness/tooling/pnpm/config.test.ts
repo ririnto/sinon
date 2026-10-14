@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import {
   cp,
+  mkdir,
   mkdtemp,
   readdir,
   readFile,
@@ -13,16 +14,14 @@ import path from "node:path";
 
 import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
+import { parseDocument } from "yaml";
 
+import { runUltracite } from "../../tests/ultracite-fixture.js";
 import oxfmtConfig from "./oxfmt.config.js";
 import oxlintConfig from "./oxlint.config.js";
 
 const profileDirectory = import.meta.dirname;
 const resolvePackage = createRequire(import.meta.url).resolve;
-const oxlintBin = path.join(
-  path.dirname(resolvePackage("oxlint/package.json")),
-  "bin/oxlint"
-);
 const tscBin = path.join(
   path.dirname(resolvePackage("typescript/package.json")),
   "bin/tsc"
@@ -32,12 +31,58 @@ const markdownlintBin = path.join(
   "markdownlint-cli2-bin.mjs"
 );
 
+const markdownFiles = async (directory: string): Promise<string[]> => {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map((entry) =>
+      entry.isDirectory()
+        ? markdownFiles(path.join(directory, entry.name))
+        : Promise.resolve([path.join(directory, entry.name)])
+    )
+  );
+  return files.flat().filter((file) => file.endsWith(".md"));
+};
+
 describe("pnpm profile configuration", () => {
+  test("Harness guidance parses and follows the frontmatter title policy", async () => {
+    const harnessRoot = path.resolve(profileDirectory, "../..");
+    const [documents, skills] = await Promise.all([
+      markdownFiles(path.join(harnessRoot, "docs")),
+      markdownFiles(path.join(harnessRoot, "skills"))
+    ]);
+    const files = [
+      path.join(harnessRoot, "README.md"),
+      ...documents,
+      ...skills
+    ];
+    expect(files.length).toBeGreaterThan(0);
+    await Promise.all(
+      files.map(async (file) => {
+        const text = await readFile(file, "utf-8");
+        const frontmatter = /^---\n(?<source>[\s\S]*?)\n---\n/u.exec(text);
+        const source = frontmatter?.groups?.source;
+        if (frontmatter && source) {
+          const document = parseDocument(source, { uniqueKeys: true });
+          expect(document.errors, file).toEqual([]);
+          expect(document.toJS().title, file).toBeTypeOf("string");
+          expect(document.toJS().title.trim(), file).not.toBe("");
+          expect(/^# /mu.test(text.slice(frontmatter[0].length)), file).toBe(
+            false
+          );
+        } else {
+          expect(/^# /mu.test(text), file).toBe(true);
+        }
+      })
+    );
+  });
   test.each([
     path.resolve(profileDirectory, "../../../..", ".markdownlint-cli2.jsonc"),
     path.join(profileDirectory, ".markdownlint-cli2.jsonc")
   ])("Markdownlint title policy in %s", async (configurationPath) => {
-    const { config } = JSON.parse(await readFile(configurationPath, "utf-8"));
+    const { config, gitignore } = JSON.parse(
+      await readFile(configurationPath, "utf-8")
+    );
+    expect(gitignore).toBe(true);
     const cases = [
       {
         rule: undefined,
@@ -72,29 +117,21 @@ describe("pnpm profile configuration", () => {
       "tsdoc/require-export-tsdoc": "deny"
     });
   });
-  test("native Oxlint loads the profile configuration and its plugins", async () => {
+  test("Ultracite loads the profile configuration and its plugins", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
     try {
+      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
       await writeFile(
         path.join(directory, "sample.ts"),
         "export function sample() {\n// explain\n\nreturn 1;\n}\n"
       );
-      const result = spawnSync(
-        process.execPath,
-        [
-          oxlintBin,
-          "--config",
-          path.join(profileDirectory, "oxlint.config.ts"),
-          "--format",
-          "json",
-          path.join(directory, "sample.ts")
-        ],
-        { cwd: directory }
+      const { diagnostics, status } = runUltracite(
+        directory,
+        "sample.ts",
+        "check",
+        path.join(profileDirectory, "oxlint.config.ts")
       );
-      expect(result.error).toBeUndefined();
-      const { diagnostics }: { diagnostics: { code?: string }[] } = JSON.parse(
-        result.stdout.toString()
-      );
+      expect(status).toBe(1);
       const codes = diagnostics.map(({ code }) => code);
       expect(codes).toContain("style(no-blank-lines-in-functions)");
       expect(codes).toContain("style(no-inline-comments-in-functions)");
@@ -124,6 +161,19 @@ describe("pnpm profile configuration", () => {
         "sentence-per-line.ts",
         "table-separators.ts"
       ]);
+      await mkdir(path.join(directory, "nested"));
+      await writeFile(
+        path.join(directory, "nested/.gitignore"),
+        "ignored.md\n"
+      );
+      await writeFile(
+        path.join(directory, "nested/ignored.md"),
+        "# First\n\n# Second\n"
+      );
+      const ignored = spawnSync(process.execPath, [markdownlintBin], {
+        cwd: directory
+      });
+      expect(ignored.status).toBe(0);
       await writeFile(
         path.join(directory, "sample.md"),
         "# Sample\n\nFirst sentence. Second sentence.\n\n| A |\n| -- |\n| 1 |\n\n──\n"

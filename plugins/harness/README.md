@@ -45,7 +45,7 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 - `scripts/configure.ts`: conflict-aware fresh-root baseline materialization for verified eligible projects.
 - `docs/tools/baseline.md`: standing eligibility, native profile selection, and installation proof.
 - `docs/tools/frontend.md`: frontend and React design, lint, Radix, and Storybook integration.
-- `tooling/maven/package.json` and `tooling/go/package.json`: native hook commands composed after the shared Node-side gate.
+- `tooling/{gradle,maven,go,rust,uv,shell}/package.json`: native hook commands composed after the shared Node-side gate.
 - `tooling/frontend/` and `tooling/react/`: bounded frontend manifests, catalogs, and Storybook renderer sources.
 
 ## Ownership And Safety

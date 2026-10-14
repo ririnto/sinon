@@ -16,11 +16,16 @@ metadata:
     Corepack:
       url: https://nodejs.org/docs/latest-v24.x/api/corepack.html
     Oxlint:
+      version: 1.87.0
       url:
         - https://oxc.rs/docs/guide/usage/linter/config.md
         - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.md
+        - https://www.npmjs.com/package/oxlint/v/1.87.0
     Oxfmt:
-      url: https://oxc.rs/docs/guide/usage/formatter/config.md
+      version: 0.72.0
+      url:
+        - https://oxc.rs/docs/guide/usage/formatter/config.md
+        - https://www.npmjs.com/package/oxfmt/v/0.72.0
     Markdownlint CLI2:
       version: 0.23.3
       url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.23.3/README.md
@@ -53,12 +58,6 @@ metadata:
     Oxc Project Types:
       version: 0.153.0
       url: https://registry.npmjs.org/@oxc-project/types/0.153.0
-    Oxlint:
-      version: 1.87.0
-      url: https://www.npmjs.com/package/oxlint/v/1.87.0
-    Oxfmt:
-      version: 0.72.0
-      url: https://www.npmjs.com/package/oxfmt/v/0.72.0
 ---
 
 Use this profile for a pnpm-managed JavaScript, TypeScript, or JSX project.

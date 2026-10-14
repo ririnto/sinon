@@ -1,12 +1,11 @@
-import { spawnSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, test } from "vitest";
 
+import { runUltracite } from "../../../tests/ultracite-fixture.js";
 import tsdoc from "./tsdoc-plugin.js";
 
 type Rule = (typeof tsdoc.rules)["require-export-tsdoc"];
@@ -25,40 +24,9 @@ interface Comment {
   readonly value: string;
 }
 
-interface Diagnostic {
-  readonly message: string;
-}
-
-const runOxlint = (
-  directory: string,
-  filename: string
-): { diagnostics: Diagnostic[]; status: number | null } => {
-  const result = spawnSync(
-    process.execPath,
-    [
-      path.join(
-        path.dirname(
-          createRequire(import.meta.url).resolve("oxlint/package.json")
-        ),
-        "bin/oxlint"
-      ),
-      "--config",
-      path.join(directory, "oxlint.json"),
-      "--format",
-      "json",
-      path.join(directory, filename)
-    ],
-    { cwd: directory }
-  );
-  return {
-    diagnostics: JSON.parse(result.stdout.toString()).diagnostics,
-    status: result.status
-  };
-};
-
 const writeConfig = (directory: string): Promise<void> =>
   writeFile(
-    path.join(directory, "oxlint.json"),
+    path.join(directory, ".oxlintrc.json"),
     JSON.stringify({
       jsPlugins: [fileURLToPath(new URL("tsdoc-plugin.ts", import.meta.url))],
       rules: { "tsdoc/require-export-tsdoc": "error" }
@@ -142,7 +110,7 @@ describe("pnpm TSDoc rule", () => {
   });
 });
 
-test("native Oxlint checks TSDoc delimiter lines on exports and methods", async () => {
+test("Ultracite checks TSDoc delimiter lines on exports and methods", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-"));
   try {
     await writeConfig(directory);
@@ -174,7 +142,10 @@ test("native Oxlint checks TSDoc delimiter lines on exports and methods", async 
       ["invalid.ts", 1, 8],
       ["source.js", 0, 0]
     ] as const) {
-      const { diagnostics, status } = runOxlint(directory, filename);
+      if (exitCode === 0) {
+        expect(runUltracite(directory, filename, "fix").status).toBe(0);
+      }
+      const { diagnostics, status } = runUltracite(directory, filename);
       expect(status).toBe(exitCode);
       expect(diagnostics).toHaveLength(diagnosticCount);
       if (filename === "invalid.ts") {
@@ -193,9 +164,9 @@ test("native Oxlint checks TSDoc delimiter lines on exports and methods", async 
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
-});
+}, 30_000);
 
-test("native Oxlint requires TSDoc on every exported form and public member", async () => {
+test("Ultracite requires TSDoc on every exported form and public member", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-forms-"));
   const doc = "/**\n * Document it.\n */\n";
   try {
@@ -245,10 +216,11 @@ test("native Oxlint requires TSDoc on every exported form and public member", as
       path.join(directory, "default-class.ts"),
       `${doc}export default class { read() { return 1; } }\n`
     );
-    const valid = runOxlint(directory, "valid.ts");
+    expect(runUltracite(directory, "valid.ts", "fix").status).toBe(0);
+    const valid = runUltracite(directory, "valid.ts");
     expect(valid.diagnostics).toEqual([]);
     expect(valid.status).toBe(0);
-    const invalid = runOxlint(directory, "invalid.ts");
+    const invalid = runUltracite(directory, "invalid.ts");
     expect(invalid.status).toBe(1);
     expect(invalid.diagnostics.map(({ message }) => message)).toEqual([
       'Missing TSDoc for exported public API interface "Shape".',
@@ -266,29 +238,29 @@ test("native Oxlint requires TSDoc on every exported form and public member", as
       'Missing TSDoc for exported public API property "build".'
     ]);
     expect(
-      runOxlint(directory, "assignment.ts").diagnostics.map(
+      runUltracite(directory, "assignment.ts").diagnostics.map(
         ({ message }) => message
       )
     ).toEqual(['Missing TSDoc for exported public API export assignment "=".']);
     expect(
-      runOxlint(directory, "default-function.ts").diagnostics.map(
+      runUltracite(directory, "default-function.ts").diagnostics.map(
         ({ message }) => message
       )
     ).toEqual([
       'Missing TSDoc for exported public API function "[anonymous]".'
     ]);
     expect(
-      runOxlint(directory, "default-class.ts").diagnostics.map(
+      runUltracite(directory, "default-class.ts").diagnostics.map(
         ({ message }) => message
       )
     ).toEqual(['Missing TSDoc for exported public API method "read".']);
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
-});
+}, 30_000);
 
 test.each(["ts", "tsx", "mts", "cts"])(
-  "native Oxlint checks indirectly exported class members in .%s",
+  "Ultracite checks indirectly exported class members in .%s",
   async (extension) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-tsdoc-indirect-")
@@ -314,7 +286,10 @@ test.each(["ts", "tsx", "mts", "cts"])(
         )
       );
       for (const { documented, filename } of fixtures) {
-        const result = runOxlint(directory, filename);
+        if (documented) {
+          expect(runUltracite(directory, filename, "fix").status).toBe(0);
+        }
+        const result = runUltracite(directory, filename);
         expect(result.status).toBe(documented ? 0 : 1);
         expect(result.diagnostics.map(({ message }) => message)).toEqual(
           documented
@@ -327,10 +302,11 @@ test.each(["ts", "tsx", "mts", "cts"])(
         "export class Service { run() {} }\n"
       );
       expect(
-        runOxlint(directory, `direct.${extension}`).diagnostics
+        runUltracite(directory, `direct.${extension}`).diagnostics
       ).toHaveLength(2);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
-  }
+  },
+  30_000
 );
