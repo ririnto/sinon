@@ -7,6 +7,9 @@ metadata:
       url: https://learn.chatgpt.com/docs/build-skills.md
     OpenAI plugin packaging:
       url: https://developers.openai.com/plugins/build/plugins.md
+    Codex Git subdirectory sources:
+      version: 0.162.1
+      url: https://raw.githubusercontent.com/openai/codex/rust-v0.162.1/codex-rs/core-plugins/src/marketplace.rs
     Codex plugin loading:
       version: 0.160.0
       url:
@@ -19,6 +22,10 @@ metadata:
         - https://code.claude.com/docs/en/plugins/manifest-reference.md
         - https://code.claude.com/docs/en/plugins/cli-reference.md
         - https://code.claude.com/docs/en/plugins/troubleshooting.md
+    Claude skill frontmatter:
+      url: https://code.claude.com/docs/en/skills.md
+    Claude subagent frontmatter:
+      url: https://code.claude.com/docs/en/sub-agents.md
 ---
 
 # Sinon
@@ -121,6 +128,30 @@ Sinon selects external plugins through its marketplace catalog.
   Install it as `codex-app-server@sinon` in either host.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the runtime, Skills, and version.
+- [pstack](https://github.com/cursor/plugins/tree/main/pstack): both catalogs follow the `pstack` subdirectory of `cursor/plugins` at `main`.
+  Lauren Tan maintains the upstream plugin under the MIT license.
+  Install it as `pstack@sinon` in Claude Code or Codex CLI 0.162.1 or later.
+
+### pstack Compatibility
+
+The catalogs use `git-subdir` to fetch pstack directly without copying its files into Sinon.
+Claude Code uses the marketplace entry as the manifest because pstack has no `.claude-plugin/plugin.json`.
+The entry sets `strict: false` and relies on default `skills/` and `agents/` discovery.
+Codex CLI 0.162.1 accepts the same source and reads pstack's portable root `plugin.json` and `skills/`.
+
+Claude Code 2.1.299 discovers 54 skills and both agents from upstream version 0.15.25 through `--plugin-dir`.
+Skill frontmatter uses `name`, `description`, `disable-model-invocation`, and `paths`, which Claude Code supports.
+The `icon` and `color` fields on `poteto-mode` do not configure Claude skills.
+The agent field `is_background` does not enable Claude background execution, whose field is `background`.
+Both agents omit tool restrictions and therefore inherit the host's available tools.
+
+Component discovery does not establish that every upstream workflow runs unchanged.
+Cursor `Task` options, `generalPurpose`, model slugs, and unscoped agent names need host-specific equivalents.
+The `poteto-agent` fallback searches `~/.cursor/plugins/` unless its parent supplies the skill's absolute path.
+The `setup-pstack` skill writes a Cursor rule under `~/.cursor/rules/`, which Claude Code and Codex do not apply.
+Some skills require Cursor's built-in `create-skill`, `cursor-team-kit` control skills, `deslop`, or other integrations.
+The nested `automations/` skills and Cursor automation definitions are outside default discovery.
+Sinon registers the upstream package without adapting these workflows or installing companion plugins.
 
 ## Registering This Marketplace in Claude Code
 
@@ -264,6 +295,7 @@ Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry
 Keep each local package's Codex identity aligned with its Claude marketplace entry.
 The marketplace catalog owns its generator and regression suite under `.claude-plugin/marketplace/`.
 Generate the native Codex view with `pnpm run marketplace:generate`.
+External `git-subdir` sources preserve their URL, subdirectory, and Git selector in the generated view.
 Commit the generated catalog with its source changes.
 The repository checks reject stale catalogs and invalid local package mappings.
 

@@ -40,7 +40,15 @@ interface UrlSource {
   readonly sha?: string;
 }
 
-type PluginSource = LocalSource | UrlSource;
+interface GitSubdirSource {
+  readonly source: "git-subdir";
+  readonly url: string;
+  readonly path: string;
+  readonly ref?: string;
+  readonly sha?: string;
+}
+
+type PluginSource = LocalSource | UrlSource | GitSubdirSource;
 
 interface NativePlugin {
   readonly name: string;
@@ -132,6 +140,27 @@ const parseCatalog = (value: unknown): SourceCatalog => {
   };
 };
 
+const gitSubdirectory = (value: unknown, pluginName: string): string => {
+  const subdirectory = requiredString(
+    value,
+    `Git subdirectory for ${pluginName}`
+  );
+  const components = subdirectory.replace(/^\.\//u, "").split("/");
+  if (
+    subdirectory.trim().length === 0 ||
+    subdirectory.includes("\\") ||
+    /^[A-Za-z]:/u.test(subdirectory) ||
+    components.some(
+      (component) => component === "" || component === "." || component === ".."
+    )
+  ) {
+    throw new Error(
+      `Git subdirectory for ${pluginName} must stay within the repository root`
+    );
+  }
+  return subdirectory;
+};
+
 const mapSource = (source: unknown, pluginName: string): PluginSource => {
   if (typeof source === "string") {
     if (!source.startsWith("./")) {
@@ -142,17 +171,19 @@ const mapSource = (source: unknown, pluginName: string): PluginSource => {
   if (!isRecord(source)) {
     throw new Error(`Unsupported marketplace source for ${pluginName}`);
   }
-  if (source.source !== "url") {
+  if (source.source !== "url" && source.source !== "git-subdir") {
     throw new Error(
       `Unsupported marketplace source "${String(source.source)}" for ${pluginName}`
     );
   }
   const unsupportedKeys = Object.keys(source).filter(
-    (key) => !["source", "url", "ref", "sha"].includes(key)
+    (key) =>
+      !["source", "url", "ref", "sha"].includes(key) &&
+      !(source.source === "git-subdir" && key === "path")
   );
   if (unsupportedKeys.length > 0) {
     throw new Error(
-      `Unsupported URL source fields for ${pluginName}: ${unsupportedKeys.join(", ")}`
+      `Unsupported ${source.source} source fields for ${pluginName}: ${unsupportedKeys.join(", ")}`
     );
   }
   const url = requiredString(source.url, `URL source for ${pluginName}`);
@@ -166,6 +197,15 @@ const mapSource = (source: unknown, pluginName: string): PluginSource => {
     throw new Error(
       `URL source for ${pluginName} cannot specify both ref and sha`
     );
+  }
+  if (source.source === "git-subdir") {
+    return {
+      ...(source.ref === undefined ? {} : { ref: source.ref }),
+      ...(source.sha === undefined ? {} : { sha: source.sha }),
+      path: gitSubdirectory(source.path, pluginName),
+      source: "git-subdir",
+      url
+    };
   }
   return {
     ...(source.ref === undefined ? {} : { ref: source.ref }),

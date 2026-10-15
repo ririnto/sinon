@@ -106,6 +106,105 @@ test("maps local packages and preserves external URL selectors", async () => {
   });
 });
 
+test.each([
+  { path: "pstack", ref: "main" },
+  { path: "tools/pstack" },
+  { path: "./tools/pstack", sha: "a".repeat(40) }
+])("preserves a Git subdirectory source with $path", async (selector) => {
+  const source = {
+    ...selector,
+    source: "git-subdir",
+    url: "https://github.com/cursor/plugins.git"
+  };
+  const result = await createCodexMarketplace(
+    catalog([{ ...localEntry("pstack"), source }]),
+    makeRoot()
+  );
+  expect(result.plugins).toEqual([
+    {
+      category: "Development",
+      name: "pstack",
+      policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
+      source
+    }
+  ]);
+});
+
+test.each([
+  { path: undefined },
+  { path: 7 },
+  { path: "" },
+  { path: " " },
+  { path: "/pstack" },
+  { path: "C:/pstack" },
+  { path: "../pstack" },
+  { path: "tools/../../pstack" },
+  { path: "tools/./pstack" },
+  { path: "tools//pstack" },
+  { path: "tools\\pstack" },
+  { path: "." },
+  { path: "./" },
+  { url: undefined },
+  { url: "" },
+  { ref: 7 },
+  { sha: 7 },
+  { ref: "main", sha: "a".repeat(40) },
+  { directory: "pstack" }
+])("rejects a malformed Git subdirectory source: %j", async (overrides) => {
+  await expect(
+    createCodexMarketplace(
+      catalog([
+        {
+          ...localEntry("pstack"),
+          source: {
+            path: "pstack",
+            source: "git-subdir",
+            url: "https://github.com/cursor/plugins.git",
+            ...overrides
+          }
+        }
+      ]),
+      makeRoot()
+    )
+  ).rejects.toThrow(Error);
+});
+
+test("rejects a subdirectory field on an ordinary URL source", async () => {
+  await expect(
+    createCodexMarketplace(
+      catalog([
+        {
+          ...localEntry("pstack"),
+          source: {
+            path: "pstack",
+            source: "url",
+            url: "https://github.com/cursor/plugins.git"
+          }
+        }
+      ]),
+      makeRoot()
+    )
+  ).rejects.toThrow(Error);
+});
+
+test("rejects duplicate identities across URL and Git subdirectory sources", async () => {
+  await expect(
+    createCodexMarketplace(
+      catalog(
+        ["url", "git-subdir"].map((source) => ({
+          ...localEntry("pstack"),
+          source: {
+            ...(source === "git-subdir" ? { path: "pstack" } : {}),
+            source,
+            url: "https://github.com/cursor/plugins.git"
+          }
+        }))
+      ),
+      makeRoot()
+    )
+  ).rejects.toThrow(Error);
+});
+
 test("rejects unsupported source types and duplicate local identities", async () => {
   const root = makeRoot();
   await expect(
