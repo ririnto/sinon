@@ -102,6 +102,9 @@ class KotestTestAssertions :
                 null
             }
         }
+        if (KotlinLexicalScope.isDeclared(callName, this)) {
+            return null
+        }
         val imported =
             file.importDirectives
                 .mapNotNull { directive ->
@@ -120,19 +123,13 @@ class KotestTestAssertions :
                 ?.takeIf { path -> path in ASSERTION_FUNCTIONS.map { name -> "kotlin.$name" } }
                 ?.substringAfterLast('.')
         }
-        if (KotlinLexicalScope.isDeclared(callName, this)) {
-            return null
-        }
-        if (file.importDirectives.any { directive -> directive.isAllUnder && directive.importedFqName?.asString() == "kotlin" }) {
-            return null
-        }
         return callName.takeIf { name -> name in ASSERTION_FUNCTIONS }
     }
 
     private fun KtSafeQualifiedExpression.isAssertedSafeCall(file: KtFile): Boolean {
         (selectorExpression as? KtCallExpression)?.let { call ->
             val name = call.calleeExpression?.text.orEmpty()
-            if (file.importsKotestAssertion(name)) {
+            if (file.importsKotestAssertion(name, call)) {
                 return true
             }
         }
@@ -143,29 +140,35 @@ class KotestTestAssertions :
         val parent = assertedExpression.parent
         if (parent is KtDotQualifiedExpression) {
             val call = parent.selectorExpression as? KtCallExpression
-            val name = call?.calleeExpression?.text.orEmpty()
-            if (parent.receiverExpression === assertedExpression && file.importsKotestAssertion(name)) {
-                return true
+            if (parent.receiverExpression === assertedExpression && call !== null) {
+                val name = call.calleeExpression?.text.orEmpty()
+                if (file.importsKotestAssertion(name, call)) {
+                    return true
+                }
             }
         }
         if (parent is KtBinaryExpression) {
             val name = parent.operationReference.text
-            return parent.left === assertedExpression && file.importsKotestAssertion(name)
+            return parent.left === assertedExpression && file.importsKotestAssertion(name, parent)
         }
         return false
     }
 
-    private fun KtFile.importsKotestAssertion(name: String): Boolean =
-        importDirectives.any { directive ->
-            val path = directive.importedFqName?.asString().orEmpty()
-            val originalName = path.substringAfterLast('.')
-            val importedName = directive.aliasName ?: originalName
-            val kotestPath = path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers.")
-            kotestPath &&
-                if (directive.isAllUnder) {
-                    name in KOTEST_ASSERTIONS
-                } else {
-                    importedName == name && originalName in KOTEST_ASSERTIONS
-                }
-        }
+    private fun KtFile.importsKotestAssertion(
+        name: String,
+        expression: KtExpression
+    ): Boolean =
+        !KotlinLexicalScope.isDeclared(name, expression) &&
+            importDirectives.any { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                val originalName = path.substringAfterLast('.')
+                val importedName = directive.aliasName ?: originalName
+                val kotestPath = path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers.")
+                kotestPath &&
+                    if (directive.isAllUnder) {
+                        name in KOTEST_ASSERTIONS
+                    } else {
+                        importedName == name && originalName in KOTEST_ASSERTIONS
+                    }
+            }
 }
