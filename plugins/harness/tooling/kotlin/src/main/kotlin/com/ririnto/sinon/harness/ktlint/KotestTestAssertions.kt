@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
@@ -186,7 +187,10 @@ class KotestTestAssertions :
         }
         var enclosingClass = enclosingScope ?: return emptyList()
         val visibleScopes = mutableListOf(enclosingClass)
-        while ((enclosingClass as? KtClass)?.hasModifier(KtTokens.INNER_KEYWORD) == true) {
+        while (
+            (enclosingClass as? KtClass)?.hasModifier(KtTokens.INNER_KEYWORD) == true ||
+            (enclosingClass as? KtObjectDeclaration)?.isObjectLiteral() == true
+        ) {
             var outerScope = enclosingClass.parent
             while (outerScope !== null && outerScope !is KtClassOrObject) {
                 outerScope = outerScope.parent

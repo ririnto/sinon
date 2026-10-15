@@ -285,6 +285,18 @@ class KotestTestAssertionsTest :
                         }
                     }
 
+                    open class ObjectBase {
+                        fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    class ObjectExpressionTest : ObjectBase() {
+                        fun verify(condition: Boolean) {
+                            val anonymous = object {
+                                fun run() { assertTrue(condition) }
+                            }
+                        }
+                    }
+
                     class QualifiedExternalBaseTest : external.Base() {
                         fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
                     }
