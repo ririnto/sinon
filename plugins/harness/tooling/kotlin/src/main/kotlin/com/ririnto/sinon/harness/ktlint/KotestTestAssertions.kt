@@ -165,7 +165,7 @@ class KotestTestAssertions :
         return matcher?.takeIf { hasKotlinTestWildcard && !mayBeShadowedByInheritedMember(callName, file) }
     }
 
-    private fun KtCallExpression.mayBeShadowedByInheritedMember(
+    private fun PsiElement.mayBeShadowedByInheritedMember(
         name: String,
         file: KtFile
     ): Boolean =
@@ -173,7 +173,15 @@ class KotestTestAssertions :
             enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE
         }
 
-    private fun KtCallExpression.visibleEnclosingClassScopes(): List<KtClassOrObject> {
+    private fun PsiElement.hasInheritedMember(
+        name: String,
+        file: KtFile
+    ): Boolean =
+        visibleEnclosingClassScopes().any { enclosingClass ->
+            enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) == InheritedMemberStatus.FOUND
+        }
+
+    private fun PsiElement.visibleEnclosingClassScopes(): List<KtClassOrObject> {
         var enclosingScope = parent
         while (enclosingScope !== null && enclosingScope !is KtClassOrObject) {
             enclosingScope = enclosingScope.parent
@@ -280,6 +288,7 @@ class KotestTestAssertions :
     private fun KtFile.isKotlinPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin" &&
             !KotlinLexicalScope.isDeclared("kotlin", expression) &&
+            !expression.hasInheritedMember("kotlin", this) &&
             importDirectives.none { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
                 val importedName = directive.aliasName ?: path.substringAfterLast('.')
@@ -289,6 +298,7 @@ class KotestTestAssertions :
     private fun KtFile.isKotlinTestPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin.test" &&
             !KotlinLexicalScope.isDeclared("kotlin", expression) &&
+            !expression.hasInheritedMember("kotlin", this) &&
             importDirectives.none { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
                 val importedName = directive.aliasName ?: path.substringAfterLast('.')

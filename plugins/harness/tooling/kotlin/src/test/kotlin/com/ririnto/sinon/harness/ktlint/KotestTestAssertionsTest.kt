@@ -87,6 +87,29 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("leaves package-qualified assertions shadowed by inherited kotlin properties") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertTrue
+
+                    class PackageLike {
+                        val test: PackageLike = this
+                        fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    open class PackageBase(val kotlin: PackageLike)
+
+                    class QualifiedShadowTest : PackageBase(PackageLike()) {
+                        fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
         test("respects inherited standard assertion names and private visibility") {
             val result =
                 KtLintRuleTestEngine.execute(
@@ -108,8 +131,8 @@ class KotestTestAssertionsTest :
                     """.trimIndent() + "\n",
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            result.diagnostics shouldContainExactlyInAnyOrder
+                listOf(KtLintRuleTestEngine.Diagnostic(11, 9, "harness:kotest-test-assertions", canBeAutoCorrected = false))
         }
 
         test("flags kotlin.test Boolean assertions through imports, aliases, and package qualifiers") {
@@ -232,11 +255,11 @@ class KotestTestAssertionsTest :
                     """.trimIndent() + "\n",
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+            result.diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    "use Kotest `shouldBeTrue()` on the asserted condition",
-                    "use Kotest `shouldBeTrue()` on the asserted condition",
-                    "use Kotest `shouldBeTrue()` on the asserted condition"
+                    KtLintRuleTestEngine.Diagnostic(13, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(21, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(39, 50, "harness:kotest-test-assertions", canBeAutoCorrected = false)
                 )
         }
 
