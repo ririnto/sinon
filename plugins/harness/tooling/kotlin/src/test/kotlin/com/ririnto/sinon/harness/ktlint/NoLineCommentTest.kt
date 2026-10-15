@@ -7,7 +7,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 /**
- * Verifies that inline comments are rejected only inside function bodies.
+ * Verifies that ordinary Kotlin comments are rejected throughout source.
  */
 class NoLineCommentTest :
     FunSpec({
@@ -28,7 +28,7 @@ class NoLineCommentTest :
                         // comment
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 5))
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5))
         }
 
         test("trailing line comment in a function body is flagged") {
@@ -40,7 +40,7 @@ class NoLineCommentTest :
                         val x = 1 // comment
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 15))
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 15))
         }
 
         test("block comment in a function body is flagged") {
@@ -52,7 +52,7 @@ class NoLineCommentTest :
                         /* block */
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 5))
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5))
         }
 
         test("mixed comments in a function body are all flagged") {
@@ -66,7 +66,7 @@ class NoLineCommentTest :
                         /* three */ val y = 2
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(bodyComment(2, 5), bodyComment(3, 15), bodyComment(4, 5))
+                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5), comment(3, 15), comment(4, 5))
         }
 
         test("comments in lambdas accessors initializers and constructors are flagged") {
@@ -108,25 +108,45 @@ class NoLineCommentTest :
                 .map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(2, 8, 14, 19, 26)
         }
 
-        test("comments outside function bodies are not flagged") {
+        test("file declaration member parameter property and region comments are reported") {
             val source =
                 """
-                // file-level comment
-                // region helpers
-                class Sample {
-                    // property note
-                    val value: Int = 1 // trailing note
+                #!/usr/bin/env kotlin
+                // file header
 
-                    /* member block */
+                // @license MIT
+                // adjacent ordinary comment
+                // region declarations
+                // declaration comment
+                class Sample {
+                    // property comment
+                    val value: Int = 1 // trailing property comment
+
+                    // member comment
+                    /* block member comment */
                     fun work(
-                        // parameter note
+                        // parameter comment
                         value: Int
                     ): Int = value
                 }
                 // endregion
+                // file footer
                 """.trimIndent() + "\n"
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        comment(2, 1),
+                        comment(5, 1),
+                        comment(6, 1),
+                        comment(7, 1),
+                        comment(9, 5),
+                        comment(10, 24),
+                        comment(12, 5),
+                        comment(13, 5),
+                        comment(15, 9),
+                        comment(19, 1),
+                        comment(20, 1)
+                    )
                 formattedCode shouldBe source
             }
         }
@@ -167,6 +187,38 @@ class NoLineCommentTest :
             }
         }
 
+        test("adjacent ordinary comments are reported around required comments") {
+            val source =
+                """
+                fun work() {
+                    // @formatter:off
+                    // ordinary before suppression
+                    // noinspection UnusedVariable
+                    // ordinary after suppression
+                    run()
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(comment(3, 5), comment(5, 5))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("nested block comment is reported as one ordinary comment") {
+            val source =
+                """
+                fun work() {
+                    /* outer
+                       /* nested */
+                    */
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5))
+                formattedCode shouldBe source
+            }
+        }
+
         test("comment markers inside raw string are ignored") {
             val source =
                 """
@@ -175,6 +227,26 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
+        test("shebang and attached kdoc are outside ordinary comment tokens") {
+            val source =
+                """
+                #!/usr/bin/env kotlin
+                /**
+                 * Script documentation.
+                 */
+                class Sample {
+                    /**
+                     * Property documentation.
+                     */
+                    val value: Int = 1
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
                 formattedCode shouldBe source
             }
@@ -193,7 +265,7 @@ class NoLineCommentTest :
     companion object {
         private val ruleProvider: RuleProvider = RuleProvider(::NoLineComment)
 
-        private fun bodyComment(
+        private fun comment(
             line: Int,
             column: Int
         ): KtLintRuleTestEngine.Diagnostic =
