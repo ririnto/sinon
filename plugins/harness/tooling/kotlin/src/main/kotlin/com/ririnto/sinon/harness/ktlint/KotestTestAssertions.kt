@@ -26,7 +26,7 @@ class KotestTestAssertions :
     ),
     RuleAutocorrectApproveHandler {
     private companion object {
-        val ASSERTION_FUNCTIONS: Set<String> = setOf("require", "check", "requireNotNull", "checkNotNull")
+        val ASSERTION_FUNCTIONS: Set<String> = setOf("assert", "require", "check", "requireNotNull", "checkNotNull")
     }
 
     override fun beforeVisitChildNodes(

@@ -43,6 +43,29 @@ class KotestTestAssertionsTest :
                 """.trimIndent() + "\n"
         }
 
+        test("flags Kotlin assert calls including qualified and aliased calls") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.assert as assertCondition
+
+                    fun verify(condition: Boolean) {
+                        assert(condition)
+                        assertCondition(condition)
+                        kotlin.assert(condition)
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(6, 12, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                )
+        }
+
         test("flags safe calls whose values are asserted by Kotest matchers") {
             val result =
                 KtLintRuleTestEngine.execute(
@@ -207,7 +230,12 @@ class KotestTestAssertionsTest :
                     "src/test/kotlin/SampleTest.kt" to
                         "fun sample(value: String?) {\n    fun String?.shouldBe(expected: Int) = Unit\n    value?.shouldBe(1)\n}\n",
                     "src/test/kotlin/SampleTest.kt" to
-                        "fun sample(value: String?) {\n    fun requireNotNull(value: String?) = value\n    requireNotNull(value)\n}\n"
+                        "fun sample(value: String?) {\n    fun requireNotNull(value: String?) = value\n    requireNotNull(value)\n}\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "fun sample(assert: (Boolean) -> Unit, condition: Boolean) { assert(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import example.assert\nfun sample(condition: Boolean) = assert(condition)\n",
+                    "src/main/kotlin/SampleTest.kt" to "fun sample(condition: Boolean) = assert(condition)\n"
                 )
             sources.forEach { (path, source) ->
                 KtLintRuleTestEngine.execute(ruleProvider, source, sourcePath = Path.of(path)).diagnostics shouldContainExactlyInAnyOrder
