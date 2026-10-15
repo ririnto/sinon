@@ -8,11 +8,14 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
@@ -74,10 +77,8 @@ class KotestTestAssertions :
             .replace('\\', '/')
             .split('/')
             .let { segments ->
-                segments.indices.any { index ->
-                    segments[index].equals("src", ignoreCase = true) &&
-                        segments.getOrNull(index + 1)?.isTestSourceSet() == true
-                }
+                val sourceRootIndex = segments.indexOfLast { segment -> segment.equals("src", ignoreCase = true) }
+                segments.getOrNull(sourceRootIndex + 1)?.isTestSourceSet() == true
             }
 
     private fun String.isTestSourceSet(): Boolean =
@@ -137,6 +138,9 @@ class KotestTestAssertions :
         if (qualified?.selectorExpression === this) {
             return matcher.takeIf { file.isKotlinTestPackageReceiver(qualified.receiverExpression) }
         }
+        if (hasInheritedMember(callName, file)) {
+            return null
+        }
         val explicitImports =
             file.importDirectives.filter { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
@@ -153,6 +157,42 @@ class KotestTestAssertions :
             }
         }
     }
+
+    private fun KtCallExpression.hasInheritedMember(
+        name: String,
+        file: KtFile
+    ): Boolean {
+        var enclosingScope = parent
+        while (enclosingScope !== null && enclosingScope !is KtClassOrObject) {
+            enclosingScope = enclosingScope.parent
+        }
+        val enclosingClass = enclosingScope ?: return false
+        return enclosingClass.inheritsMember(name, file, mutableSetOf())
+    }
+
+    private fun KtClassOrObject.inheritsMember(
+        name: String,
+        file: KtFile,
+        visited: MutableSet<String>
+    ): Boolean =
+        superTypeListEntries.any { entry ->
+            val supertypeName =
+                entry.typeReference
+                    ?.text
+                    ?.substringAfterLast('.')
+                    ?.substringBefore('<') ?: return@any false
+            if (!visited.add(supertypeName)) {
+                return@any false
+            }
+            val supertype =
+                file.declarations
+                    .filterIsInstance<KtClassOrObject>()
+                    .singleOrNull { declaration -> declaration.name == supertypeName } ?: return@any false
+            supertype.declarations.any { declaration ->
+                (declaration is KtNamedFunction && declaration.name == name) ||
+                    (declaration is KtProperty && declaration.name == name)
+            } || supertype.inheritsMember(name, file, visited)
+        }
 
     private fun KtFile.isKotlinPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin" &&

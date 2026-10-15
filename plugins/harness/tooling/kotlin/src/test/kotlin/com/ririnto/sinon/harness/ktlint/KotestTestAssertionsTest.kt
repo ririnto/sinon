@@ -279,7 +279,11 @@ class KotestTestAssertionsTest :
                         "import kotlin.test.*\nimport example.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
                     "src/test/kotlin/SampleTest.kt" to
                         "import kotlin.test.*\nfun sample(kotlin: TestApi, condition: Boolean) { kotlin.test.assertTrue(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nopen class Base { fun assertTrue(condition: Boolean) = Unit }\nclass SampleTest : Base() { fun verify(condition: Boolean) { assertTrue(condition) } }\n",
                     "src/main/kotlin/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
+                    "/workspace/src/test-project/repo/src/main/kotlin/SampleTest.kt" to
                         "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
                     "src/main/kotlin/SampleTest.kt" to "fun sample(condition: Boolean) = assert(condition)\n"
                 )
