@@ -162,7 +162,13 @@ class KotestTestAssertions :
             file.importDirectives.any { directive ->
                 directive.isAllUnder && directive.importedFqName?.asString() == "kotlin.test"
             }
-        return matcher?.takeIf { hasKotlinTestWildcard && !mayBeShadowedByInheritedMember(callName, file) }
+        val hasOtherWildcard =
+            file.importDirectives.any { directive ->
+                directive.isAllUnder && directive.importedFqName?.asString() != "kotlin.test"
+            }
+        return matcher?.takeIf {
+            hasKotlinTestWildcard && !hasOtherWildcard && !mayBeShadowedByInheritedMember(callName, file)
+        }
     }
 
     private fun PsiElement.mayBeShadowedByInheritedMember(

@@ -206,6 +206,16 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("leaves wildcard assertion names ambiguous with another package wildcard") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.*\nimport example.*\nfun verify() { assertTrue(\"ready\") }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
         test("flags imported assertions inside nested classes without outer instance access") {
             val result =
                 KtLintRuleTestEngine.execute(
