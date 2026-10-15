@@ -227,7 +227,12 @@ class KotestTestAssertionsTest :
                         fun assertTrue(condition: Boolean) = Unit
 
                         class NestedTest {
-                            fun verify(condition: Boolean) { assertTrue(condition) }
+                            fun verify(condition: Boolean) {
+                                assertTrue(condition)
+                                val anonymous = object {
+                                    fun run() { assertTrue(condition) }
+                                }
+                            }
                         }
                     }
 
@@ -240,7 +245,10 @@ class KotestTestAssertionsTest :
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
             result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
-                listOf("use Kotest `shouldBeTrue()` on the asserted condition")
+                listOf(
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition"
+                )
         }
 
         test("accounts for inherited members when resolving Kotlin test assertions") {

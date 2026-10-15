@@ -204,7 +204,7 @@ class KotestTestAssertions :
     private fun PsiElement.inaccessibleEnclosingScopes(): Set<PsiElement> {
         val visibleClasses = visibleEnclosingClassScopes().toSet()
         val nearestClass = visibleClasses.firstOrNull() ?: return emptySet()
-        if (nearestClass.parent !is KtClassBody) {
+        if (nearestClass.parent !is KtClassBody && (nearestClass as? KtObjectDeclaration)?.isObjectLiteral() != true) {
             return emptySet()
         }
         val inaccessibleScopes = mutableSetOf<PsiElement>()
