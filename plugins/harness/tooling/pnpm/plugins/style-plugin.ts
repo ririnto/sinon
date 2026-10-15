@@ -70,7 +70,7 @@ const preservedComment = (value: string): boolean =>
   /^\s*(?:[#@]__(?:PURE|NO_SIDE_EFFECTS)__|[#@]\s*source(?:Mapping)?URL=|@vite-ignore\b|webpack[A-Z]\w*\s*:|\/\s*<(?:reference|amd-module|amd-dependency)\b)/u.test(
     value
   ) ||
-  /(?:@license\b|@preserve\b|SPDX-License-Identifier:|\bcopyright\b)/iu.test(
+  /^\s*!?\s*\*?\s*(?:@license\b|@preserve\b|SPDX-License-Identifier:|\bcopyright\b)/iu.test(
     value
   );
 

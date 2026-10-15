@@ -19,6 +19,50 @@ class NoLineCommentTest :
             }
         }
 
+        test("legal markers inside explanatory comments do not exempt them") {
+            val source =
+                """
+                fun work() {
+                    // This comment discusses copyright.
+                    // The @license marker appears here as prose.
+                    /* This text mentions SPDX-License-Identifier: without declaring one. */
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(comment(2, 5), comment(3, 5), comment(4, 5))
+                formattedCode shouldBe source
+            }
+        }
+
+        test("leading copyright and SPDX markers preserve a multiline notice") {
+            val source =
+                """
+                /*
+                 * Copyright 2026 Sinon contributors.
+                 * SPDX-License-Identifier: MIT
+                 */
+                fun work() {}
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
+        test("leading markers in bang comments preserve license notices") {
+            val source =
+                """
+                /*! @license MIT */
+                /*! Copyright 2026 Sinon contributors. */
+                fun work() {}
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
         test("standalone line comment in a function body is flagged") {
             KtLintRuleTestEngine
                 .execute(

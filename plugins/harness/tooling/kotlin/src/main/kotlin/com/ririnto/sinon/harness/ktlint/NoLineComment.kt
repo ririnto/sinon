@@ -46,7 +46,7 @@ class NoLineComment :
             .trimStart()
             .let { value ->
                 value.startsWith(FORMATTER_DIRECTIVE_PREFIX) ||
-                    """^(?:ktlint|noinspection)\b|@license\b|@preserve\b|SPDX-License-Identifier:|\bcopyright\b"""
+                    """^(?:ktlint|noinspection)\b|^!?\s*\*?\s*(?:@license\b|@preserve\b|SPDX-License-Identifier:|\bcopyright\b)"""
                         .toRegex(
                             RegexOption.IGNORE_CASE
                         ).containsMatchIn(value)
