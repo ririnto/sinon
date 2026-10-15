@@ -27,6 +27,8 @@ class KotestTestAssertions :
     RuleAutocorrectApproveHandler {
     private companion object {
         val ASSERTION_FUNCTIONS: Set<String> = setOf("assert", "require", "check", "requireNotNull", "checkNotNull")
+        val KOTLIN_TEST_BOOLEAN_ASSERTIONS: Map<String, String> =
+            mapOf("assertTrue" to "shouldBeTrue", "assertFalse" to "shouldBeFalse")
     }
 
     override fun beforeVisitChildNodes(
@@ -40,13 +42,17 @@ class KotestTestAssertions :
         }
         when (expression) {
             is KtCallExpression -> {
-                expression.stdlibAssertionName(file)?.let { name ->
-                    val message =
+                val message =
+                    expression.kotlinTestBooleanAssertionName(file)?.let { matcher ->
+                        "use Kotest `$matcher()` on the asserted condition"
+                    } ?: expression.stdlibAssertionName(file)?.let { name ->
                         when (name) {
                             "requireNotNull", "checkNotNull" -> "use Kotest `shouldNotBeNull()` for null assertions"
                             else -> "use Kotest `shouldBeTrue()` on the asserted condition"
                         }
-                    emit(expression.textOffset, message, false)
+                    }
+                message?.let { diagnosticMessage ->
+                    emit(expression.textOffset, diagnosticMessage, false)
                 }
             }
 
@@ -120,8 +126,45 @@ class KotestTestAssertions :
         return callName.takeIf { name -> name in ASSERTION_FUNCTIONS }
     }
 
+    private fun KtCallExpression.kotlinTestBooleanAssertionName(file: KtFile): String? {
+        val reference = calleeExpression as? KtNameReferenceExpression ?: return null
+        val callName = reference.getReferencedName()
+        if (KotlinLexicalScope.isDeclared(callName, this)) {
+            return null
+        }
+        val matcher = KOTLIN_TEST_BOOLEAN_ASSERTIONS[callName]
+        val qualified = parent as? KtQualifiedExpression
+        if (qualified?.selectorExpression === this) {
+            return matcher.takeIf { file.isKotlinTestPackageReceiver(qualified.receiverExpression) }
+        }
+        val explicitImports =
+            file.importDirectives.filter { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                !directive.isAllUnder && (directive.aliasName ?: path.substringAfterLast('.')) == callName
+            }
+        if (explicitImports.isNotEmpty()) {
+            val path = explicitImports.singleOrNull()?.importedFqName?.asString() ?: return null
+            val importedName = path.substringAfterLast('.')
+            return KOTLIN_TEST_BOOLEAN_ASSERTIONS[importedName].takeIf { path == "kotlin.test.$importedName" }
+        }
+        return matcher?.takeIf {
+            file.importDirectives.any { directive ->
+                directive.isAllUnder && directive.importedFqName?.asString() == "kotlin.test"
+            }
+        }
+    }
+
     private fun KtFile.isKotlinPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin" &&
+            !KotlinLexicalScope.isDeclared("kotlin", expression) &&
+            importDirectives.none { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                val importedName = directive.aliasName ?: path.substringAfterLast('.')
+                !directive.isAllUnder && importedName == "kotlin"
+            }
+
+    private fun KtFile.isKotlinTestPackageReceiver(expression: KtExpression): Boolean =
+        expression.text == "kotlin.test" &&
             !KotlinLexicalScope.isDeclared("kotlin", expression) &&
             importDirectives.none { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()

@@ -66,6 +66,44 @@ class KotestTestAssertionsTest :
                 )
         }
 
+        test("flags kotlin.test Boolean assertions through imports, aliases, and package qualifiers") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertFalse
+                    import kotlin.test.assertTrue as verifyCondition
+
+                    fun verify(condition: Boolean, inverted: Boolean) {
+                        assertFalse(inverted)
+                        verifyCondition(condition)
+                        kotlin.test.assertTrue(condition)
+                        kotlin.test.assertFalse { inverted }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                listOf(
+                    "use Kotest `shouldBeFalse()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeFalse()` on the asserted condition"
+                )
+            result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
+        }
+
+        test("flags kotlin.test Boolean assertions imported by wildcard") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.*\nfun verify(condition: Boolean) { assertTrue(condition) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
         test("flags safe calls whose values are asserted by Kotest matchers") {
             val result =
                 KtLintRuleTestEngine.execute(
@@ -235,6 +273,14 @@ class KotestTestAssertionsTest :
                         "fun sample(assert: (Boolean) -> Unit, condition: Boolean) { assert(condition) }\n",
                     "src/test/kotlin/SampleTest.kt" to
                         "import example.assert\nfun sample(condition: Boolean) = assert(condition)\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.*\nfun sample(assertTrue: (Boolean) -> Unit, condition: Boolean) { assertTrue(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.*\nimport example.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.*\nfun sample(kotlin: TestApi, condition: Boolean) { kotlin.test.assertTrue(condition) }\n",
+                    "src/main/kotlin/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
                     "src/main/kotlin/SampleTest.kt" to "fun sample(condition: Boolean) = assert(condition)\n"
                 )
             sources.forEach { (path, source) ->
