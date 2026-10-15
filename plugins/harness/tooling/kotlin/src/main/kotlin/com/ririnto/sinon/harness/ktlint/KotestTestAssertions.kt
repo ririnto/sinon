@@ -35,8 +35,8 @@ class KotestTestAssertions :
     RuleAutocorrectApproveHandler {
     private companion object {
         val ASSERTION_FUNCTIONS: Set<String> = setOf("assert", "require", "check", "requireNotNull", "checkNotNull")
-        val KOTLIN_TEST_BOOLEAN_ASSERTIONS: Map<String, String> =
-            mapOf("assertTrue" to "shouldBeTrue", "assertFalse" to "shouldBeFalse")
+        val KOTLIN_TEST_ASSERTIONS: Map<String, String> =
+            mapOf("assertTrue" to "shouldBeTrue", "assertFalse" to "shouldBeFalse", "assertNotNull" to "shouldNotBeNull")
     }
 
     override fun beforeVisitChildNodes(
@@ -51,8 +51,11 @@ class KotestTestAssertions :
         when (expression) {
             is KtCallExpression -> {
                 val message =
-                    expression.kotlinTestBooleanAssertionName(file)?.let { matcher ->
-                        "use Kotest `$matcher()` on the asserted condition"
+                    expression.kotlinTestAssertionName(file)?.let { matcher ->
+                        when (matcher) {
+                            "shouldNotBeNull" -> "use Kotest `shouldNotBeNull()` for null assertions"
+                            else -> "use Kotest `$matcher()` on the asserted condition"
+                        }
                     } ?: expression.stdlibAssertionName(file)?.let { name ->
                         when (name) {
                             "requireNotNull", "checkNotNull" -> "use Kotest `shouldNotBeNull()` for null assertions"
@@ -135,10 +138,10 @@ class KotestTestAssertions :
         return callName.takeIf { name -> name in ASSERTION_FUNCTIONS }
     }
 
-    private fun KtCallExpression.kotlinTestBooleanAssertionName(file: KtFile): String? {
+    private fun KtCallExpression.kotlinTestAssertionName(file: KtFile): String? {
         val reference = calleeExpression as? KtNameReferenceExpression ?: return null
         val callName = reference.getReferencedName()
-        val matcher = KOTLIN_TEST_BOOLEAN_ASSERTIONS[callName]
+        val matcher = KOTLIN_TEST_ASSERTIONS[callName]
         val qualified = parent as? KtQualifiedExpression
         if (qualified?.selectorExpression === this) {
             return matcher.takeIf { file.isKotlinTestPackageReceiver(qualified.receiverExpression) }
@@ -155,7 +158,7 @@ class KotestTestAssertions :
             val path = explicitImports.singleOrNull()?.importedFqName?.asString() ?: return null
             val importedName = path.substringAfterLast('.')
             val importedMatcher =
-                KOTLIN_TEST_BOOLEAN_ASSERTIONS[importedName]?.takeIf { path == "kotlin.test.$importedName" }
+                KOTLIN_TEST_ASSERTIONS[importedName]?.takeIf { path == "kotlin.test.$importedName" }
                     ?: return null
             return importedMatcher.takeIf { !mayBeShadowedByInheritedMember(callName, file) }
         }

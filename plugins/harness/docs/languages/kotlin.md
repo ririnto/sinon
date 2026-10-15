@@ -151,6 +151,7 @@ The `harness:kotest-test-assertions` rule reports standard-library `requireNotNu
 It reports `require` and `check` calls and asks for `shouldBeTrue()` on the asserted condition.
 It also reports Kotlin standard-library `assert` calls and asks for `shouldBeTrue()` on the asserted condition.
 It reports imported `kotlin.test.assertTrue` and `assertFalse` calls and asks for `shouldBeTrue()` or `shouldBeFalse()` on the asserted condition.
+It reports imported `kotlin.test.assertNotNull` calls and asks for `shouldNotBeNull()` for null assertions.
 The Kotlin test assertion detection supports explicit imports, aliases, and wildcard imports.
 Unqualified imported assertions inside classes with unresolved supertypes are left unchanged because an inherited member may take precedence.
 It reports a safe-call expression when an imported Kotest matcher directly asserts its value.
