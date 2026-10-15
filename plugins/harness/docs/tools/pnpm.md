@@ -124,7 +124,13 @@ Verify actual Git commit and push invocations in a disposable repository, includ
 Manual script execution alone does not prove hook installation.
 
 The source configuration extends the target-installed Ultracite Oxc presets.
-The style plugin preserves the historical checks for blank lines and non-documentation comments inside block function bodies.
+The style plugin checks physical blank lines inside executable function bodies and allows documentation only at recognized declarations.
+It diagnoses other comments without deleting them and preserves license markers.
+Sibling tests and lifecycle hooks receive one blank line only when an unshadowed named import from Vitest, Jest globals, or Bun proves the registration boundary.
+Direct `describe` callbacks and program-level registrations are recognized, including named import aliases, static `only`, `skip`, `concurrent`, and `sequential` modifiers, and direct `each` factories.
+Global names, namespace calls, unknown factories, shadowed bindings, ordinary callbacks, and gaps containing comments remain outside the registration-spacing diagnostic.
+Required directives between registrations stay intact because moving them can change their target.
+The built-in test-padding rule supplies padding around test calls but does not express this exact sibling lifecycle and proven-binding contract, so the AST-aware diagnostic handles it without an automatic fix.
 It exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
 The TSDoc plugin enforces the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
 Read those requirements when configuring TypeScript documentation checks.
@@ -134,12 +140,17 @@ The JavaScript override keeps the historical JSDoc parameter and return checks w
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
-The profile ships three custom Markdownlint rules under `rules/`.
+The profile ships its custom Markdownlint rules under `rules/`.
 `docs/no-box-drawing` rejects Unicode box drawing characters.
 `docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and ignores fenced code and ordinary data rows.
 `docs/sentence-per-line` reports clear packed sentences and incorrect continuation boundaries in paragraphs, list items, and authored GitHub alerts.
 Its [detection limits](#markdown-sentence-boundaries) preserve literal quotations and syntax that cannot safely follow prose formatting.
 The profile and Sinon root enable this diagnostic rule without providing automatic prose fixes.
+`docs/no-em-dash` reports em dashes in the same authored prose contexts.
+`docs/no-relative-skill-links` reports relative `SKILL.md` destinations in authored links and reference definitions.
+Ordinary reference links and absolute URLs remain valid.
+Both new rules preserve code, frontmatter, quotations, and generated or licensed documents and provide no automatic fixes.
+Sinon initially enables the new diagnostics only for Harness content, while the portable profile enables them for installed projects.
 Copy that directory alongside the config so the `customRules` paths resolve.
 The profile-owned `ignores` entry excludes `node_modules` even when a fresh target has no `.gitignore`.
 Retain the target's existing ignore configuration when merging.
@@ -184,6 +195,18 @@ Lowercase sentence starts, unfamiliar semicolon clauses, and capitalized wrapped
 Continuation checks can mistake deliberately arranged unpunctuated prose for wrapped sentences.
 Review each diagnostic manually and preserve meaning when separating sentences or restoring terminators.
 Passing this rule establishes only that its supported patterns were absent.
+
+## Type-Aware Promise Checks
+
+Install the profile's compatible `oxlint-tsgolint` development dependency alongside Ultracite.
+The profile scripts pass `--type-aware` through Ultracite and the native configuration enables the built-in `typescript/no-floating-promises` rule with `ignoreVoid: false`.
+The regression fixture invokes only Ultracite, proves the diagnostic disappears when type awareness is off, and proves normal fixes preserve `void` expressions.
+The rule diagnoses unhandled promises rather than every use of `void`.
+It accepts explicit rejection handling, awaited calls, and returned promises.
+It provides suggestions upstream, but normal Ultracite fixes do not rewrite `void` into `await`.
+Keep that conversion under the [common async policy](../rules.md#code-rules-common-to-all-languages) because scheduling and cancellation require semantic review.
+Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
+The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.87.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%407.12.4/packages/cli/src/commands/check.ts).
 
 ## TypeScript Strictness Merge
 

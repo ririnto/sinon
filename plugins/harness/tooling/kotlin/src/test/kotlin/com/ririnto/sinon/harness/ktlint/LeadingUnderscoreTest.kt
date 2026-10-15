@@ -27,7 +27,7 @@ class LeadingUnderscoreTest :
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             25,
-                            "remove the leading underscore from declaration `_unused`",
+                            "harness:leading-underscore",
                             canBeAutoCorrected = true
                         )
                     )
@@ -54,7 +54,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         25,
-                        "remove the leading underscore from declaration `_value`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )
@@ -74,7 +74,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         17,
-                        "remove the leading underscore from declaration `_unused`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )
@@ -107,7 +107,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         25,
-                        "remove the leading underscore from declaration `_base`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )
@@ -129,7 +129,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         25,
-                        "remove the leading underscore from declaration `_unused`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )
@@ -141,7 +141,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         27,
-                        "remove the leading underscore from declaration `_id`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )
@@ -161,7 +161,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         17,
-                        "remove the leading underscore from declaration `_value`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )
@@ -215,7 +215,7 @@ class LeadingUnderscoreTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         9,
-                        "remove the leading underscore from declaration `_value`",
+                        "harness:leading-underscore",
                         canBeAutoCorrected = false
                     )
                 )

@@ -4,7 +4,11 @@ import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 
 import boxDrawing from "./no-box-drawing.js";
-import sentencePerLine from "./sentence-per-line.js";
+import {
+  sentencePerLine,
+  noEmDash,
+  noRelativeSkillLinks
+} from "./sentence-per-line.js";
 import tableSeparators from "./table-separators.js";
 
 interface Violation {
@@ -42,11 +46,13 @@ describe("docs/no-box-drawing", () => {
       violations(boxDrawing, "Plain text with +-- and | markers.\n").found
     ).toEqual([]);
   });
+
   test("reports the first box drawing character with its column", () => {
     expect(
       violations(boxDrawing, "Plain box: ─── and │ text.\n").found
     ).toEqual([{ detail, lineNumber: 1, range: [12, 1] }]);
   });
+
   test("reports one violation per line, including fenced code", () => {
     expect(
       violations(boxDrawing, "```text\n├── a\n└── b\n```\n").found
@@ -69,6 +75,7 @@ describe("docs/table-separators", () => {
       ).found
     ).toEqual([]);
   });
+
   test("reports short, long, and misaligned separator cells", () => {
     const { found, fixed } = violations(
       tableSeparators,
@@ -83,6 +90,7 @@ describe("docs/table-separators", () => {
       "| A | B | C | D |\n| --- | --- | :---: | ---: |\n| 1 | 2 | 3 | 4 |\n"
     );
   });
+
   test("ignores data rows that only contain hyphens", () => {
     expect(
       violations(
@@ -91,16 +99,19 @@ describe("docs/table-separators", () => {
       ).found
     ).toEqual([]);
   });
+
   test("ignores lines that look like tables inside fenced code", () => {
     expect(
       violations(tableSeparators, "```markdown\n| A |\n| - |\n```\n").found
     ).toEqual([]);
   });
+
   test("checks pipeless tables", () => {
     expect(
       violations(tableSeparators, "A | B\n-- | ---\n1 | 2\n").found
     ).toEqual([{ detail: separatorDetail(1), lineNumber: 2, range: [1, 2] }]);
   });
+
   test("checks tables nested in a blockquote", () => {
     expect(
       violations(tableSeparators, "> | A |\n> | - |\n> | 1 |\n").found
@@ -157,6 +168,7 @@ describe("docs/sentence-per-line", () => {
   ])("accepts %s", (_name, input) => {
     expect(violations(sentencePerLine, input).found).toEqual([]);
   });
+
   test.each([
     ["a paragraph", "First sentence. Second sentence follows.\n", 15],
     [
@@ -177,6 +189,7 @@ describe("docs/sentence-per-line", () => {
       { detail: multiple, lineNumber: 1, range: [column, 1] }
     ]);
   });
+
   test.each([
     [
       "table headers and cells",
@@ -196,6 +209,7 @@ describe("docs/sentence-per-line", () => {
       found: []
     });
   });
+
   test("preserves exact blockquotes surrounding a protected table", () => {
     const input =
       "> First sentence. Second follows.\n>\n> | First sentence. Second follows. |\n> | --- |\n> | First stands; therefore second follows. |\n>\n> - First stands; therefore second follows.\n";
@@ -204,6 +218,7 @@ describe("docs/sentence-per-line", () => {
       found: []
     });
   });
+
   test("checks authored GitHub alerts while preserving exact blockquotes", () => {
     const input = "> [!WARNING]\n>\n> Restart now. Verify status.\n";
     expect(violations(sentencePerLine, input)).toEqual({
@@ -211,6 +226,7 @@ describe("docs/sentence-per-line", () => {
       found: [{ detail: multiple, lineNumber: 3, range: [14, 1] }]
     });
   });
+
   test("checks semicolon joins after a literal quotation", () => {
     const input = 'The value is "bad"; therefore retry.\n';
     expect(violations(sentencePerLine, input)).toEqual({
@@ -218,6 +234,7 @@ describe("docs/sentence-per-line", () => {
       found: [{ detail: semicolon, lineNumber: 1, range: [19, 1] }]
     });
   });
+
   test.each([
     [
       "a capitalized tail",
@@ -251,6 +268,7 @@ describe("docs/sentence-per-line", () => {
       { detail: semicolon, lineNumber: 1, range: [column, 1] }
     ]);
   });
+
   test.each([
     [
       "numeric histogram observations",
@@ -298,6 +316,7 @@ describe("docs/sentence-per-line", () => {
       found: [{ detail: multiple, lineNumber: 1, range: [column, 1] }]
     });
   });
+
   test.each([
     [
       "wrapped list prose",
@@ -317,6 +336,7 @@ describe("docs/sentence-per-line", () => {
       found: [{ detail, lineNumber: 2, range: [column, 1] }]
     });
   });
+
   test.each([
     [
       "frontmatter",
@@ -380,6 +400,7 @@ describe("docs/sentence-per-line", () => {
       found: []
     });
   });
+
   test.each([
     "LICENSE",
     "LICENSE.md",
@@ -391,5 +412,37 @@ describe("docs/sentence-per-line", () => {
       fixed: input,
       found: []
     });
+  });
+});
+
+describe("authored Markdown diagnostics", () => {
+  test.each([
+    [noEmDash, "Keep prose \u2014 clear.\n", 1],
+    [
+      noEmDash,
+      "`code \u2014 text` and [URL](https://example.org/a\u2014b).\n",
+      0
+    ],
+    [noEmDash, '> Exact \u2014 quotation.\n\n"Literal \u2014 quote."\n', 0],
+    [noEmDash, "---\ntitle: Literal \u2014 metadata\n---\n\nProse.\n", 0],
+    [noEmDash, "```text\ncode \u2014 text\n```\n", 0],
+    [noRelativeSkillLinks, "Use [skill](../other/SKILL.md).\n", 1],
+    [noRelativeSkillLinks, "See [skill][s].\n\n[s]: ../other/SKILL.md\n", 1],
+    [noRelativeSkillLinks, "Use [guide][g].\n\n[g]: ../guide.md\n", 0],
+    [noRelativeSkillLinks, "Use [skill](https://example.org/SKILL.md).\n", 0],
+    [
+      noRelativeSkillLinks,
+      '`[skill](../SKILL.md)`\n\n> [skill](../SKILL.md)\n\n"[skill](../SKILL.md)"\n',
+      0
+    ],
+    [
+      noRelativeSkillLinks,
+      "---\ntitle: '[skill](../SKILL.md)'\n---\n\n```md\n[skill](../SKILL.md)\n```\n",
+      0
+    ]
+  ] as const)("checks %s with protected syntax", (rule, input, count) => {
+    const result = violations(rule, input);
+    expect(result.found).toHaveLength(count);
+    expect(result.fixed).toBe(input);
   });
 });

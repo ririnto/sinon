@@ -81,6 +81,7 @@ describe("pnpm TSDoc rule", () => {
     expect(reports[0]?.messageId).toBe("missingTsdoc");
     expect(reports[0]?.data).toEqual({ kind: "function", name: "parse" });
   });
+
   test.each(["* Parse input. ", "* Parse input.\n ", "*\n * Parse input. "])(
     "reports documentation with a shared delimiter line: %s",
     (value) => {
@@ -92,6 +93,7 @@ describe("pnpm TSDoc rule", () => {
       expect(reports).toHaveLength(1);
     }
   );
+
   test("allows a documented export and ignores JavaScript files", () => {
     const documented = makeContext([
       { type: "Block", value: "*\n * Parse input.\n " }

@@ -83,4 +83,3 @@ Repeat configuration and confirm no new files or changed bytes.
 Verify each independently deliverable unit before integrating its successor.
 Check the actual target artifacts and native outcomes rather than inferring success from copied files or script names.
 A wrapper stub proves dispatch and failure propagation, not native compilation.
-Session ownership, delegation, publication coordination, and process cleanup remain with the active host and Workgraph guidance.

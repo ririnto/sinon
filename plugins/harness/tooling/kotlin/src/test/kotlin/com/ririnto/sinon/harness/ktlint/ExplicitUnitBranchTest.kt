@@ -34,12 +34,12 @@ class ExplicitUnitBranchTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(3, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(7, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(8, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(9, 14, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(13, 17, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                    KtLintRuleTestEngine.Diagnostic(3, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(7, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(8, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(9, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(13, 17, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
         }
 
@@ -78,7 +78,7 @@ class ExplicitUnitBranchTest :
                     }
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(2, 20, "explicit Unit branch result is forbidden", canBeAutoCorrected = false))
+                listOf(KtLintRuleTestEngine.Diagnostic(2, 20, "harness:explicit-unit-branch", canBeAutoCorrected = false))
         }
 
         test("flags both branches in simple if else") {
@@ -92,8 +92,8 @@ class ExplicitUnitBranchTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 20, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(2, 30, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                    KtLintRuleTestEngine.Diagnostic(2, 20, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(2, 30, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
         }
 
@@ -108,9 +108,9 @@ class ExplicitUnitBranchTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 16, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(2, 38, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(2, 48, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                    KtLintRuleTestEngine.Diagnostic(2, 16, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(2, 38, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(2, 48, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
         }
 
@@ -132,8 +132,8 @@ class ExplicitUnitBranchTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(3, 29, "explicit Unit branch result is forbidden", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 18, "explicit Unit branch result is forbidden", canBeAutoCorrected = false)
+                    KtLintRuleTestEngine.Diagnostic(3, 29, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 18, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
         }
     }) {

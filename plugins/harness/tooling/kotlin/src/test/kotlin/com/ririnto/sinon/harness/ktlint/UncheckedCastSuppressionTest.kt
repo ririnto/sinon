@@ -27,7 +27,7 @@ class UncheckedCastSuppressionTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "avoid suppression of forbidden tokens (`@Suppress(\"UNCHECKED_CAST\")`); refactor to type-safe cast or explicit handling",
+                            "harness:unchecked-cast-suppression",
                             canBeAutoCorrected = true
                         )
                     )
@@ -50,7 +50,7 @@ class UncheckedCastSuppressionTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "avoid suppression of forbidden tokens (`@Suppress(\"UNCHECKED_CAST\")`); refactor to type-safe cast or explicit handling",
+                            "harness:unchecked-cast-suppression",
                             canBeAutoCorrected = true
                         )
                     )
@@ -76,7 +76,7 @@ class UncheckedCastSuppressionTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "avoid suppression of forbidden tokens (`@file:Suppress(\"UNCHECKED_CAST\")`); refactor to type-safe cast or explicit handling",
+                            "harness:unchecked-cast-suppression",
                             canBeAutoCorrected = true
                         )
                     )
@@ -105,7 +105,7 @@ class UncheckedCastSuppressionTest :
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             1,
-                            "avoid suppression of forbidden tokens (`@Suppress(\"UNCHECKED_CAST\")`); refactor to type-safe cast or explicit handling",
+                            "harness:unchecked-cast-suppression",
                             canBeAutoCorrected = true
                         )
                     )
@@ -131,7 +131,7 @@ class UncheckedCastSuppressionTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         1,
-                        "avoid suppression of forbidden tokens (`@Suppress(\"UNCHECKED_CAST\")`); refactor to type-safe cast or explicit handling",
+                        "harness:unchecked-cast-suppression",
                         canBeAutoCorrected = false
                     )
                 )
@@ -150,7 +150,7 @@ class UncheckedCastSuppressionTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         1,
-                        "avoid suppression of forbidden tokens (`@Suppress(\"UNCHECKED_CAST\", \"DEPRECATION\")`); refactor to type-safe cast or explicit handling",
+                        "harness:unchecked-cast-suppression",
                         canBeAutoCorrected = false
                     )
                 )
@@ -192,7 +192,7 @@ class UncheckedCastSuppressionTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "avoid suppression of forbidden tokens (`@Suppress(\"USELESS_CAST\")`); refactor to type-safe cast or explicit handling",
+                            "harness:unchecked-cast-suppression",
                             canBeAutoCorrected = true
                         )
                     )
@@ -234,7 +234,7 @@ class UncheckedCastSuppressionTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "avoid suppression of forbidden tokens (`@kotlin.Suppress(\"UNCHECKED_CAST\")`); refactor to type-safe cast or explicit handling",
+                            "harness:unchecked-cast-suppression",
                             canBeAutoCorrected = true
                         )
                     )

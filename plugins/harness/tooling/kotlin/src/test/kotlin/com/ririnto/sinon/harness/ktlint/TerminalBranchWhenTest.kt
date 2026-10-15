@@ -32,7 +32,7 @@ class TerminalBranchWhenTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         5,
-                        "if/else chain compares one subject; use `when (subject)`",
+                        "harness:terminal-branch-when",
                         canBeAutoCorrected = false
                     )
                 )
@@ -68,7 +68,7 @@ class TerminalBranchWhenTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         5,
-                        "if/else chain compares one subject; use `when (subject)`",
+                        "harness:terminal-branch-when",
                         canBeAutoCorrected = false
                     )
                 )

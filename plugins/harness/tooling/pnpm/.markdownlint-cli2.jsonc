@@ -5,6 +5,8 @@
       "style": "fenced"
     },
     "docs/no-box-drawing": true,
+    "docs/no-em-dash": true,
+    "docs/no-relative-skill-links": true,
     "docs/sentence-per-line": true,
     "docs/table-separators": true,
     "line-length": false,

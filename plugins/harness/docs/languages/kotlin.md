@@ -69,7 +69,6 @@ The `harness:public-declaration-doc-comment` rule is on by default and reports e
 It skips `override` functions and properties.
 It accepts a public primary-constructor `val` or `var` parameter that has its own KDoc or an `@property` tag in the class KDoc.
 A `private` primary constructor does not hide its properties.
-Disable the rule for a target with `ktlint_harness_public-declaration-doc-comment = disabled` in `.editorconfig`.
 
 ## Function Bodies And Comments
 
@@ -103,7 +102,8 @@ The `harness:function-body-blank-lines` rule removes decorative blank lines insi
 It keeps the separation around local functions, local classes, annotations, and comments.
 It leaves Kotest registration scopes to `harness:kotest-sibling-spacing`.
 The `harness:no-line-comment` rule reports `//` and `/* */` comments inside function, lambda, initializer, accessor, and secondary-constructor bodies.
-It leaves KDoc and comments outside bodies alone, and it allows tool directives that start with `@formatter:`.
+It leaves KDoc and comments outside bodies alone, and it preserves recognized formatter, lint-suppression, and license directives without a deleting fix.
+Other comment placement remains subject to the common declaration-documentation policy.
 Put rationale in KDoc on the declaration instead.
 The `harness:unstructured-logging` rule reports `print`, `println`, `System.out` and `System.err` print calls, and `printStackTrace`.
 It skips console functions and stream roots shadowed by lexical declarations or conflicting imports.
@@ -194,13 +194,8 @@ It does not report `resolve` calls on unrelated receivers or Java NIO operations
 Use `when (subject)` for a complete branch chain that compares the same subject with `==` or `is`.
 Keep arbitrary boolean conditions, reversed equality operands, and negated comparisons when they do not map to the same `when (subject)` behavior.
 The `harness:terminal-branch-when` rule reports same-subject chains that end with `else` and use a stable function parameter.
-The `harness:mid-function-exit` rule reports an unlabelled single exit before later block statements.
-It checks either branch of an `if` used as a direct block statement.
-Its supported exits are `return`, `break`, and `continue`.
-It ignores terminal exits, labeled exits, lambda bodies, and value-producing `if` expressions.
-Use condition inversion or `?.let` only when it preserves validation, failure, evaluation, and return semantics.
-The `harness:nullable-elvis-return` rule reports lookup-backed property initializers whose Elvis fallback returns, including a bare `return`.
-Use `?.let` for optional nullable work, and keep required failures explicit.
+Follow the [common early-exit policy](../rules.md#code-rules-common-to-all-languages).
+These preferences have no lint diagnostic or automatic rewrite because control-flow changes can affect cleanup, cancellation, and return semantics.
 
 ## Member Properties And Tests
 

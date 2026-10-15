@@ -5,6 +5,12 @@
       "style": "fenced"
     },
     "docs/no-box-drawing": true,
+    "docs/no-em-dash": {
+      "paths": ["plugins/harness/"]
+    },
+    "docs/no-relative-skill-links": {
+      "paths": ["plugins/harness/"]
+    },
     "docs/sentence-per-line": true,
     "docs/table-separators": true,
     "line-length": false,

@@ -29,7 +29,7 @@ class ExplicitPropertyTypeTest :
                             KtLintRuleTestEngine.Diagnostic(
                                 1,
                                 source.indexOf(name) + 1,
-                                "declare an explicit type on member property `$name`",
+                                "harness:explicit-property-type",
                                 canBeAutoCorrected = true
                             )
                         )
@@ -45,7 +45,7 @@ class ExplicitPropertyTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             34,
-                            "declare an explicit type on companion object property `n`",
+                            "harness:explicit-property-type",
                             canBeAutoCorrected = true
                         )
                     )
@@ -57,7 +57,7 @@ class ExplicitPropertyTypeTest :
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "object O { val n = 42 }")) {
                 diagnostics shouldContainExactlyInAnyOrder
                     listOf(
-                        KtLintRuleTestEngine.Diagnostic(1, 16, "declare an explicit type on member property `n`", canBeAutoCorrected = true)
+                        KtLintRuleTestEngine.Diagnostic(1, 16, "harness:explicit-property-type", canBeAutoCorrected = true)
                     )
                 formattedCode shouldBe "object O { val n: Int = 42 }"
             }
@@ -78,7 +78,7 @@ class ExplicitPropertyTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             15,
-                            "declare an explicit type on member property `x`",
+                            "harness:explicit-property-type",
                             canBeAutoCorrected = false
                         )
                     )
@@ -111,7 +111,7 @@ class ExplicitPropertyTypeTest :
                             KtLintRuleTestEngine.Diagnostic(
                                 1,
                                 source.indexOf("top") + 1,
-                                "declare an explicit type on top-level property `top`",
+                                "harness:explicit-property-type",
                                 canBeAutoCorrected = true
                             )
                         )
@@ -126,7 +126,7 @@ class ExplicitPropertyTypeTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         13,
-                        "declare an explicit type on top-level property `top`",
+                        "harness:explicit-property-type",
                         canBeAutoCorrected = false
                     )
                 )
@@ -147,7 +147,7 @@ class ExplicitPropertyTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             35,
-                            "declare an explicit type on member property `name`",
+                            "harness:explicit-property-type",
                             canBeAutoCorrected = true
                         )
                     )

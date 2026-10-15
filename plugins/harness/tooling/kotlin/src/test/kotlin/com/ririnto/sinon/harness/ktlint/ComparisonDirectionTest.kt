@@ -17,7 +17,7 @@ class ComparisonDirectionTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         33,
-                        "avoid `>` in comparisons; prefer `<` with operands swapped",
+                        "harness:comparison-direction",
                         canBeAutoCorrected = false
                     )
                 )
@@ -29,7 +29,7 @@ class ComparisonDirectionTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         33,
-                        "avoid `>=` in comparisons; prefer `<=` with operands swapped",
+                        "harness:comparison-direction",
                         canBeAutoCorrected = false
                     )
                 )

@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,7 +48,9 @@ const makeContext = (
       messages.push(messageId);
     },
     sourceCode: {
+      getCommentsBefore: () => [],
       getCommentsInside: () => comments,
+      getLocFromIndex: () => ({ column: 0, line: 1 }),
       getTokens: () => [],
       text
     }
@@ -67,6 +69,7 @@ describe("pnpm style rules", () => {
     }
     expect(messages).toEqual(["noBlankLines"]);
   });
+
   test("reports a non-documentation comment inside a function body", () => {
     const text =
       "function invalid() {\n  // explain the return value\n  return 1;\n}";
@@ -82,6 +85,7 @@ describe("pnpm style rules", () => {
     }
     expect(messages).toEqual(["noInlineComments"]);
   });
+
   test.each([
     " @ts-expect-error reason",
     " @ts-ignore",
@@ -100,6 +104,7 @@ describe("pnpm style rules", () => {
     visitor["FunctionDeclaration:exit"]?.(makeNode(text));
     expect(messages).toEqual([]);
   });
+
   test("reports a comment that only resembles a tool directive", () => {
     const value = " @ts-expect-errors are discouraged";
     const text = `function invalid() {\n  //${value}\n  return 1;\n}`;
@@ -112,7 +117,8 @@ describe("pnpm style rules", () => {
     visitor["FunctionDeclaration:exit"]?.(makeNode(text));
     expect(messages).toEqual(["noInlineComments"]);
   });
-  test("allows documentation comments inside a function body", () => {
+
+  test("reports unattached documentation inside a function body", () => {
     const text =
       "function valid() {\n  /**\n   * Document the return contract.\n   */\n  return 1;\n}";
     const comments = [
@@ -130,7 +136,7 @@ describe("pnpm style rules", () => {
     if (inspect) {
       inspect(makeNode(text));
     }
-    expect(messages).toEqual([]);
+    expect(messages).toEqual(["noInlineComments"]);
   });
 });
 
@@ -201,3 +207,128 @@ test("Ultracite checks physical function body style", async () => {
     await rm(directory, { force: true, recursive: true });
   }
 }, 30_000);
+
+test("Ultracite reconciles only proven sibling registration boundaries", async () => {
+  const directory = await mkdtemp(
+    path.join(tmpdir(), "sinon-registration-style-")
+  );
+  try {
+    await writeFile(
+      path.join(directory, ".oxlintrc.json"),
+      JSON.stringify({
+        jsPlugins: [fileURLToPath(new URL("style-plugin.ts", import.meta.url))],
+        rules: {
+          "style/no-blank-lines-in-functions": "error",
+          "style/no-inline-comments-in-functions": "error",
+          "style/sibling-test-spacing": "error"
+        }
+      })
+    );
+    const cases = [
+      [
+        "valid.ts",
+        'import { describe as suite, test as example, beforeEach } from "vitest";\nsuite("group", () => {\nbeforeEach(() => {});\n\nexample("first", () => {});\n\nexample.skip("second", () => {});\n});',
+        0,
+        0
+      ],
+      [
+        "missing.ts",
+        'import { describe, test, afterEach } from "@jest/globals";\ndescribe("group", () => {\ntest("first", () => {});\nafterEach(() => {});\n});',
+        1,
+        0
+      ],
+      [
+        "extra.ts",
+        'import { test, afterAll } from "bun:test";\ntest("first", () => {});\n\n\nafterAll(() => {});',
+        1,
+        0
+      ],
+      [
+        "shadow.ts",
+        'import { describe, test } from "vitest";\nfunction ordinary(describe: Function) {\ndescribe("group", () => {\ntest("first", () => {});\n\ntest("second", () => {});\n});\n}',
+        0,
+        1
+      ],
+      [
+        "callback.ts",
+        'import { describe, test } from "vitest";\ndescribe("group", () => {\ntest("first", () => {\nfirst();\n\nsecond();\n});\n\ntest("second", () => {});\n});',
+        0,
+        1
+      ],
+      [
+        "global.ts",
+        'describe("group", () => {\ntest("first", () => {});\n\ntest("second", () => {});\n});',
+        0,
+        1
+      ],
+      [
+        "dynamic.ts",
+        'import { describe, test } from "vitest";\ndescribe.factory([[1]])("group", () => {\ntest("first", () => {});\n\ntest("second", () => {});\n});',
+        0,
+        1
+      ],
+      [
+        "shebang.ts",
+        '#!/usr/bin/env node\n/// <reference types="node" />\n/* #__PURE__ */\nconst result = work();\nconsume(result);\n',
+        0,
+        0
+      ],
+      [
+        "docs.ts",
+        "/** First declaration contract. */\n/** Declaration contract. */\nconst value = 1;\n/* @license MIT */\nfunction valid() {\n// @ts-expect-error intentional fixture\nconsume(value);\n}",
+        0,
+        0
+      ],
+      [
+        "plain.ts",
+        "// explanatory top-level comment\nfunction invalid() {\n/** Not declaration documentation. */\nreturn 1;\n}",
+        0,
+        0
+      ],
+      [
+        "directive-gap.ts",
+        'import { describe, test } from "vitest";\ndescribe("group", () => {\ntest("first", () => {});\n\n// @ts-expect-error intentional directive\ntest("second", () => {});\n});',
+        0,
+        0
+      ],
+      [
+        "each.ts",
+        'import { describe, test, beforeEach } from "vitest";\ndescribe.each([[1]])("group", () => {\nbeforeEach(() => {});\n\ntest.each([[1]])("first", () => {});\n\ntest("second", () => {});\n});',
+        0,
+        0
+      ]
+    ] as const;
+    await Promise.all(
+      cases.map(async ([filename, text, spacing, blanks]) => {
+        await writeFile(path.join(directory, filename), text);
+        const { diagnostics } = runUltracite(directory, filename);
+        expect(
+          diagnostics.filter(
+            ({ code }) => code === "style(sibling-test-spacing)"
+          ),
+          filename
+        ).toHaveLength(spacing);
+        expect(
+          diagnostics.filter(
+            ({ code }) => code === "style(no-blank-lines-in-functions)"
+          ),
+          filename
+        ).toHaveLength(blanks);
+        const comments = diagnostics.filter(
+          ({ code }) => code === "style(no-inline-comments-in-functions)"
+        );
+        expect(comments, filename).toHaveLength(
+          filename === "plain.ts" ? 2 : 0
+        );
+        if (filename === "plain.ts") {
+          runUltracite(directory, filename, "fix");
+          const fixed = await readFile(path.join(directory, filename), "utf-8");
+          expect(fixed).toContain("// explanatory top-level comment");
+          expect(fixed).toContain("/** Not declaration documentation. */");
+        }
+      })
+    );
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+}, 60_000);

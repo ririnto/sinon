@@ -17,7 +17,7 @@ class NoImportAliasTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         17,
-                        "remove the import alias `Foo` that duplicates the imported simple name",
+                        "harness:no-import-alias",
                         canBeAutoCorrected = false
                     )
                 )

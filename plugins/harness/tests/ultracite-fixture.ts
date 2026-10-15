@@ -16,7 +16,8 @@ export const runUltracite = (
   directory: string,
   filename: string,
   action: "check" | "fix" = "check",
-  configuration?: string
+  configuration?: string,
+  extraArguments: readonly string[] = []
 ): {
   diagnostics: { code?: string; message: string }[];
   status: number | null;
@@ -29,6 +30,7 @@ export const runUltracite = (
       "--format",
       "json",
       ...(configuration ? ["--config", configuration] : []),
+      ...extraArguments,
       filename
     ],
     {
