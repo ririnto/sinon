@@ -98,8 +98,8 @@ class KotestTestAssertions :
         if (qualified?.selectorExpression === this) {
             return if (
                 qualified.receiverExpression.text == "kotlin" &&
-                    !KotlinLexicalScope.isDeclared("kotlin", qualified.receiverExpression) &&
-                    callName in ASSERTION_FUNCTIONS
+                !KotlinLexicalScope.isDeclared("kotlin", qualified.receiverExpression) &&
+                callName in ASSERTION_FUNCTIONS
             ) {
                 callName
             } else {
