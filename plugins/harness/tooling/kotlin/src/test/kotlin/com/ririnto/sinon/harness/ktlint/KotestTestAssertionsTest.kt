@@ -103,6 +103,16 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("prefers an explicit non-Kotest matcher import over a Kotest wildcard") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import io.kotest.matchers.collections.*\nimport example.shouldHaveSize\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
         test("flags standard-library assertions with a Kotlin wildcard import") {
             val result =
                 KtLintRuleTestEngine.execute(

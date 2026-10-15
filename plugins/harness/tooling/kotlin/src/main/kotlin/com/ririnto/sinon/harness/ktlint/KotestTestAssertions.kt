@@ -160,18 +160,28 @@ class KotestTestAssertions :
     private fun KtFile.importsKotestAssertion(
         name: String,
         expression: KtExpression
-    ): Boolean =
-        !KotlinLexicalScope.isDeclared(name, expression) &&
-            importDirectives.any { directive ->
+    ): Boolean {
+        if (KotlinLexicalScope.isDeclared(name, expression)) {
+            return false
+        }
+        val explicitImports =
+            importDirectives.filter { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                !directive.isAllUnder && (directive.aliasName ?: path.substringAfterLast('.')) == name
+            }
+        if (explicitImports.isNotEmpty()) {
+            return explicitImports.singleOrNull()?.let { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
                 val originalName = path.substringAfterLast('.')
-                val importedName = directive.aliasName ?: originalName
                 val kotestPath = path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers.")
-                kotestPath &&
-                    if (directive.isAllUnder) {
-                        name.startsWith("should")
-                    } else {
-                        importedName == name && originalName.startsWith("should")
-                    }
+                kotestPath && originalName.startsWith("should")
+            } == true
+        }
+        return name.startsWith("should") &&
+            importDirectives.any { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                directive.isAllUnder &&
+                    (path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers."))
             }
+    }
 }
