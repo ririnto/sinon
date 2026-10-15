@@ -195,6 +195,64 @@ class KotestTestAssertionsTest :
             result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
         }
 
+        test("flags kotlin.test assertNotNull through imports, aliases, and package qualifiers") {
+            val imported =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.assertNotNull\nfun verify(value: String?) { assertNotNull(value); kotlin.test.assertNotNull(value) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            imported.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                listOf(
+                    "use Kotest `shouldNotBeNull()` for null assertions",
+                    "use Kotest `shouldNotBeNull()` for null assertions"
+                )
+            imported.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
+            val aliased =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.assertNotNull as verifyNotNull\nfun verify(value: String?) { verifyNotNull(value) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            aliased.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                listOf("use Kotest `shouldNotBeNull()` for null assertions")
+        }
+
+        test("flags kotlin.test assertNotNull through a wildcard import") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.*\nfun verify(value: String?) { assertNotNull(value) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+            val ambiguous =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.*\nimport example.*\nfun verify(value: String?) { assertNotNull(value) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            ambiguous.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
+        test("leaves shadowed and production assertNotNull calls unchanged") {
+            val shadowed =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.assertNotNull\nfun verify(value: String?) {\n    fun assertNotNull(value: String?) = Unit\n    assertNotNull(value)\n}\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            shadowed.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            val production =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.assertNotNull\nfun verify(value: String?) { assertNotNull(value) }\n",
+                    sourcePath = Path.of("src/main/kotlin/Sample.kt")
+                )
+            production.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
         test("flags kotlin.test Boolean assertions imported by wildcard") {
             val result =
                 KtLintRuleTestEngine.execute(
