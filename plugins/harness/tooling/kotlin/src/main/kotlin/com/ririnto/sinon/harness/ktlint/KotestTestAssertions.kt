@@ -78,7 +78,7 @@ class KotestTestAssertions :
             .split('/')
             .let { segments ->
                 val sourceRootIndex = segments.indexOfLast { segment -> segment.equals("src", ignoreCase = true) }
-                segments.getOrNull(sourceRootIndex + 1)?.isTestSourceSet() == true
+                0 <= sourceRootIndex && segments.getOrNull(sourceRootIndex + 1)?.isTestSourceSet() == true
             }
 
     private fun String.isTestSourceSet(): Boolean =

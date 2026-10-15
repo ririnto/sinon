@@ -285,6 +285,8 @@ class KotestTestAssertionsTest :
                         "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
                     "/workspace/src/test-project/repo/src/main/kotlin/SampleTest.kt" to
                         "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
+                    "test-project/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
                     "src/main/kotlin/SampleTest.kt" to "fun sample(condition: Boolean) = assert(condition)\n"
                 )
             sources.forEach { (path, source) ->
