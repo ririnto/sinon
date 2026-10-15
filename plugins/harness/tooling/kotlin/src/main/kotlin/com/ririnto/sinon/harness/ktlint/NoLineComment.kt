@@ -6,18 +6,13 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.KtAnonymousInitializer
-import org.jetbrains.kotlin.psi.KtDeclarationWithBody
-import org.jetbrains.kotlin.psi.KtFunctionLiteral
 
 /**
- * Forbids line and block comments inside function, lambda, accessor, initializer, and constructor bodies.
+ * Forbids ordinary line and block comments throughout Kotlin source.
  *
- * Comments outside bodies and KDoc are not checked.
- * Formatter directives such as `@formatter:off` stay allowed because tools consume them.
+ * KDoc and shebangs are outside this rule's token set.
+ * Required formatter directives, suppressions, and notices remain allowed.
  */
 class NoLineComment :
     Rule(
@@ -34,12 +29,11 @@ class NoLineComment :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         if ((node.elementType == KtTokens.EOL_COMMENT || node.elementType == KtTokens.BLOCK_COMMENT) &&
-            !node.isRequiredComment() &&
-            node.psi.isInsideFunctionBody()
+            !node.isRequiredComment()
         ) {
             emit(
                 node.psi.textOffset,
-                "remove the comment from the function body; put the rationale in KDoc on the declaration",
+                "remove the comment; put the rationale in KDoc on the declaration",
                 false
             )
         }
@@ -57,17 +51,4 @@ class NoLineComment :
                             RegexOption.IGNORE_CASE
                         ).containsMatchIn(value)
             }
-
-    private fun PsiElement.isInsideFunctionBody(): Boolean =
-        generateSequence(parent, PsiElement::getParent).any { scope ->
-            bodyOf(scope)?.let { body -> PsiTreeUtil.isAncestor(body, this, false) } == true
-        }
-
-    private fun bodyOf(scope: PsiElement): PsiElement? =
-        when (scope) {
-            is KtFunctionLiteral -> scope
-            is KtDeclarationWithBody -> scope.bodyExpression
-            is KtAnonymousInitializer -> scope.body
-            else -> null
-        }
 }
