@@ -103,6 +103,17 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
         }
 
+        test("recognizes the Kotlin package when an imported name is aliased away") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "package example\n\nimport example.other.kotlin as guards\n\nobject other { object kotlin { fun require(condition: Boolean) = Unit } }\nfun sample(condition: Boolean) { kotlin.require(condition) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
         test("ignores imported names shadowed by parameters and local matcher declarations") {
             val sources =
                 listOf(
