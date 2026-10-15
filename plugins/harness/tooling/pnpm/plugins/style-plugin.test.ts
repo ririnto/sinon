@@ -118,6 +118,49 @@ describe("pnpm style rules", () => {
     expect(messages).toEqual(["noInlineComments"]);
   });
 
+  test("reports comments that mention legal markers without declaring notices", () => {
+    const text =
+      "function invalid() {\n  // This comment discusses copyright.\n  /* The @license marker appears here as prose. */\n  return 1;\n}";
+    const comments = [
+      {
+        end: text.indexOf("\n", text.indexOf("//")),
+        start: text.indexOf("//"),
+        type: "Line",
+        value: " This comment discusses copyright."
+      },
+      {
+        end: text.indexOf("*/") + 2,
+        start: text.indexOf("/*"),
+        type: "Block",
+        value: " The @license marker appears here as prose. "
+      }
+    ];
+    const { context, messages } = makeContext(text, comments);
+    const visitor =
+      style.rules["no-inline-comments-in-functions"].create(context);
+    visitor["FunctionDeclaration:exit"]?.(makeNode(text));
+    expect(messages).toEqual(["noInlineComments", "noInlineComments"]);
+  });
+
+  test("preserves legal notices whose marker starts the comment", () => {
+    const text =
+      "function valid() {\n  /*\n   * Copyright 2026 Sinon contributors.\n   * SPDX-License-Identifier: MIT\n   */\n  return 1;\n}";
+    const comments = [
+      {
+        end: text.indexOf("*/") + 2,
+        start: text.indexOf("/*"),
+        type: "Block",
+        value:
+          "\n   * Copyright 2026 Sinon contributors.\n   * SPDX-License-Identifier: MIT\n   "
+      }
+    ];
+    const { context, messages } = makeContext(text, comments);
+    const visitor =
+      style.rules["no-inline-comments-in-functions"].create(context);
+    visitor["FunctionDeclaration:exit"]?.(makeNode(text));
+    expect(messages).toEqual([]);
+  });
+
   test("reports unattached documentation inside a function body", () => {
     const text =
       "function valid() {\n  /**\n   * Document the return contract.\n   */\n  return 1;\n}";
