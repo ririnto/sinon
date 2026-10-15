@@ -155,6 +155,7 @@ The Kotlin test assertion detection supports explicit imports, aliases, and wild
 Unqualified imported assertions inside classes with unresolved supertypes are left unchanged because an inherited member may take precedence.
 It reports a safe-call expression when an imported Kotest matcher directly asserts its value.
 The matcher detection supports direct imports, aliases, and wildcard imports for Kotest `should` matchers.
+Wildcard matcher calls remain unchanged when another package wildcard makes the name ambiguous.
 The rule recognizes test source sets immediately below `src`, including `test`, `androidTest`, `commonTest`, source sets beginning with `test`, and source sets ending in `Test` or `Tests`.
 Use `shouldNotBeNull()` before assertions that require a nullable value to be present.
 These diagnostics have no automatic fixes because changing assertion calls can change exceptions, evaluation, and failure behavior.

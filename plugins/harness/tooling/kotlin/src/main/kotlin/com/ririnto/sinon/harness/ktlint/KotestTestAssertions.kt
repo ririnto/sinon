@@ -360,6 +360,12 @@ class KotestTestAssertions :
                 val path = directive.importedFqName?.asString().orEmpty()
                 directive.isAllUnder &&
                     (path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers."))
+            } &&
+            importDirectives.none { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                directive.isAllUnder &&
+                    path != "io.kotest.matchers" &&
+                    !path.startsWith("io.kotest.matchers.")
             }
     }
 }

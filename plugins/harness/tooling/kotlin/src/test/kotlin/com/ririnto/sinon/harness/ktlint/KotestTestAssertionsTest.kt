@@ -398,6 +398,16 @@ class KotestTestAssertionsTest :
             result.diagnostics shouldContainExactlyInAnyOrder emptyList()
         }
 
+        test("leaves Kotest wildcard matcher calls ambiguous with another package wildcard") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import io.kotest.matchers.nulls.*\nimport example.*\nfun verify(value: String?) { value?.shouldNotBeNull() }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
         test("flags standard-library assertions with a Kotlin wildcard import") {
             val result =
                 KtLintRuleTestEngine.execute(
