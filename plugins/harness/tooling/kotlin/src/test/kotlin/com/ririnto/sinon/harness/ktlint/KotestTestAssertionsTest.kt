@@ -87,6 +87,31 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("respects inherited standard assertion names and private visibility") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.requireNotNull
+
+                    open class AssertionBase {
+                        fun requireNotNull(value: String?) = value
+                        private fun check(condition: Boolean) = Unit
+                    }
+
+                    class DerivedTest : AssertionBase() {
+                        fun verify(value: String?, condition: Boolean) {
+                            requireNotNull(value)
+                            check(condition)
+                        }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
         test("flags kotlin.test Boolean assertions through imports, aliases, and package qualifiers") {
             val result =
                 KtLintRuleTestEngine.execute(

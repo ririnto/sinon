@@ -107,6 +107,9 @@ class KotestTestAssertions :
                 null
             }
         }
+        if (mayBeShadowedByInheritedMember(callName, file)) {
+            return null
+        }
         if (KotlinLexicalScope.isDeclared(callName, this, inaccessibleEnclosingScopes())) {
             return null
         }
