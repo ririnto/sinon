@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "herdr",
+  "version": "0.9.5",
+  "description": "Explicit-use, HERDR_ENV-gated guidance for controlling Herdr workspaces and agents.",
+  "author": {
+    "name": "herdrdev"
+  },
+  "homepage": "https://github.com/herdrdev/herdr/tree/v0.9.5/skills/herdr",
+  "repository": "https://github.com/herdrdev/herdr",
+  "license": "Apache-2.0",
+  "keywords": ["herdr", "terminal", "agents", "workspace"]
+}

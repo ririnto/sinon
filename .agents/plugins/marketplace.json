@@ -91,6 +91,18 @@
     },
     {
       "category": "Development",
+      "name": "herdr",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/herdr",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
       "name": "java",
       "policy": {
         "authentication": "ON_INSTALL",

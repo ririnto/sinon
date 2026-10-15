@@ -76,6 +76,20 @@
     },
     {
       "author": {
+        "name": "herdrdev"
+      },
+      "category": "development",
+      "description": "Explicit-use, HERDR_ENV-gated guidance for controlling Herdr workspaces and agents.",
+      "license": "Apache-2.0",
+      "name": "herdr",
+      "source": "./plugins/herdr",
+      "version": "0.9.5",
+      "homepage": "https://github.com/herdrdev/herdr/tree/v0.9.5/skills/herdr",
+      "keywords": ["herdr", "terminal", "agents", "workspace"],
+      "repository": "https://github.com/herdrdev/herdr"
+    },
+    {
+      "author": {
         "name": "ririnto"
       },
       "category": "development",
