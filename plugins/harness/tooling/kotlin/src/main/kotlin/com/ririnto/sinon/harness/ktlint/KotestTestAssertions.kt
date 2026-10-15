@@ -173,14 +173,6 @@ class KotestTestAssertions :
             enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE
         }
 
-    private fun PsiElement.hasInheritedMember(
-        name: String,
-        file: KtFile
-    ): Boolean =
-        visibleEnclosingClassScopes().any { enclosingClass ->
-            enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) == InheritedMemberStatus.FOUND
-        }
-
     private fun PsiElement.visibleEnclosingClassScopes(): List<KtClassOrObject> {
         var enclosingScope = parent
         while (enclosingScope !== null && enclosingScope !is KtClassOrObject) {
@@ -199,7 +191,7 @@ class KotestTestAssertions :
         return visibleScopes
     }
 
-    private fun KtCallExpression.inaccessibleEnclosingScopes(): Set<PsiElement> {
+    private fun PsiElement.inaccessibleEnclosingScopes(): Set<PsiElement> {
         val visibleClasses = visibleEnclosingClassScopes().toSet()
         val nearestClass = visibleClasses.firstOrNull() ?: return emptySet()
         if (nearestClass.parent !is KtClassBody) {
@@ -287,8 +279,8 @@ class KotestTestAssertions :
 
     private fun KtFile.isKotlinPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin" &&
-            !KotlinLexicalScope.isDeclared("kotlin", expression) &&
-            !expression.hasInheritedMember("kotlin", this) &&
+            !KotlinLexicalScope.isDeclared("kotlin", expression, expression.inaccessibleEnclosingScopes()) &&
+            !expression.mayBeShadowedByInheritedMember("kotlin", this) &&
             importDirectives.none { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
                 val importedName = directive.aliasName ?: path.substringAfterLast('.')
@@ -297,8 +289,8 @@ class KotestTestAssertions :
 
     private fun KtFile.isKotlinTestPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin.test" &&
-            !KotlinLexicalScope.isDeclared("kotlin", expression) &&
-            !expression.hasInheritedMember("kotlin", this) &&
+            !KotlinLexicalScope.isDeclared("kotlin", expression, expression.inaccessibleEnclosingScopes()) &&
+            !expression.mayBeShadowedByInheritedMember("kotlin", this) &&
             importDirectives.none { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
                 val importedName = directive.aliasName ?: path.substringAfterLast('.')

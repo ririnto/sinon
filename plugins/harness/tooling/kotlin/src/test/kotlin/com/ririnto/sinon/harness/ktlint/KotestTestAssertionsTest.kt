@@ -110,6 +110,32 @@ class KotestTestAssertionsTest :
             result.diagnostics shouldContainExactlyInAnyOrder emptyList()
         }
 
+        test("ignores inaccessible outer kotlin declarations in qualified receivers") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertTrue
+
+                    class PackageLike {
+                        val test: PackageLike = this
+                        fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    class Outer {
+                        val kotlin: PackageLike = PackageLike()
+
+                        class NestedTest {
+                            fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
+                        }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
         test("respects inherited standard assertion names and private visibility") {
             val result =
                 KtLintRuleTestEngine.execute(
@@ -258,8 +284,7 @@ class KotestTestAssertionsTest :
             result.diagnostics shouldContainExactlyInAnyOrder
                 listOf(
                     KtLintRuleTestEngine.Diagnostic(13, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(21, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(39, 50, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                    KtLintRuleTestEngine.Diagnostic(21, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false)
                 )
         }
 
