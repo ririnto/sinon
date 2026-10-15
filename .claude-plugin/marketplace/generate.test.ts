@@ -137,6 +137,8 @@ test.each([
   { path: " " },
   { path: "/pstack" },
   { path: "C:/pstack" },
+  { path: "./C:/pstack" },
+  { path: "./C:pstack" },
   { path: "../pstack" },
   { path: "tools/../../pstack" },
   { path: "tools/./pstack" },

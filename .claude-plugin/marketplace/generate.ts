@@ -145,11 +145,12 @@ const gitSubdirectory = (value: unknown, pluginName: string): string => {
     value,
     `Git subdirectory for ${pluginName}`
   );
-  const components = subdirectory.replace(/^\.\//u, "").split("/");
+  const relativePath = subdirectory.replace(/^\.\//u, "");
+  const components = relativePath.split("/");
   if (
     subdirectory.trim().length === 0 ||
     subdirectory.includes("\\") ||
-    /^[A-Za-z]:/u.test(subdirectory) ||
+    /^[A-Za-z]:/u.test(relativePath) ||
     components.some(
       (component) => component === "" || component === "." || component === ".."
     )
