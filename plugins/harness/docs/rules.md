@@ -8,6 +8,12 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    pstack project safety:
+      version: 0.15.25
+      url:
+        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/correct/SKILL.md
+        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-make-operations-idempotent/SKILL.md
+        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md
     WCAG:
       version: "2.2"
       url:
@@ -90,6 +96,16 @@ A new commit hash or parent alone does not invalidate that evidence.
 Rerun affected checks after changes or failures, and broaden only for unresolved concerns or explicit requirements.
 Record each command, numeric exit code, and evidence scope.
 Never substitute a weaker check for a required gate or report an unrun gate as passed.
+
+## Rule Rollout
+
+Prefer built-in rules and supported configuration before custom checks.
+Use AST-aware custom rules only in proven syntax contexts, with positive and negative fixtures covering violations and valid cases.
+Offer automatic fixes only when evaluation order, side effects, and observable behavior remain unchanged.
+Verify fix convergence with the target formatter.
+Stage new rules through read-only reports on representative source before enabling mandatory enforcement.
+Keep items with side-effect risk as policy text and record the risk instead of adding diagnostics or fixes.
+Never weaken configuration to make a rollout pass.
 
 ## Evidence Classes
 
@@ -201,6 +217,14 @@ Prefer reversible operations, especially for shared state.
 Default to explicit feedback over silent operations.
 Error messages name the constraint and the next safe action.
 Use plain language and one term for one concept.
+
+## State And Retry Safety
+
+Design retryable project commands to converge after repeated execution or partial failure.
+Preserve intentional repeated effects and require an explicit recovery contract where convergence is impossible.
+Prefer separate mutable state for concurrent operations that do not require a shared object.
+Serialize required shared writes with the target's supported concurrency primitives.
+These choices require semantic review because retries and serialization can change effects, ordering, cancellation, and durability.
 
 ## Frontend And Accessible Interfaces
 
