@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
 /**
@@ -75,21 +76,31 @@ class KotestTestAssertions :
             .orEmpty()
             .replace('\\', '/')
             .split('/')
-            .any { segment ->
-                segment.equals("test", ignoreCase = true) ||
-                    segment.equals("androidTest", ignoreCase = true) ||
-                    segment.equals("commonTest", ignoreCase = true) ||
-                    segment.startsWith("test", ignoreCase = true) ||
-                    segment.endsWith("Test") ||
-                    segment.endsWith("Tests")
+            .let { segments ->
+                segments.indices.any { index ->
+                    segments[index].equals("src", ignoreCase = true) &&
+                        segments.getOrNull(index + 1)?.isTestSourceSet() == true
+                }
             }
+
+    private fun String.isTestSourceSet(): Boolean =
+        equals("test", ignoreCase = true) ||
+            equals("androidTest", ignoreCase = true) ||
+            equals("commonTest", ignoreCase = true) ||
+            startsWith("test", ignoreCase = true) ||
+            endsWith("Test", ignoreCase = true) ||
+            endsWith("Tests", ignoreCase = true)
 
     private fun KtCallExpression.stdlibAssertionName(file: KtFile): String? {
         val reference = calleeExpression as? KtNameReferenceExpression ?: return null
         val callName = reference.getReferencedName()
-        val qualified = parent as? KtDotQualifiedExpression
+        val qualified = parent as? KtQualifiedExpression
         if (qualified?.selectorExpression === this) {
-            return callName.takeIf { qualified.receiverExpression.text == "kotlin" && callName in ASSERTION_FUNCTIONS }
+            return if (qualified.receiverExpression.text == "kotlin" && callName in ASSERTION_FUNCTIONS) {
+                callName
+            } else {
+                null
+            }
         }
         val imported =
             file.importDirectives

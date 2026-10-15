@@ -92,11 +92,37 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("flags assertions in the androidTest source set") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "fun verify(condition: Boolean) = check(condition)\n",
+                    sourcePath = Path.of("src/androidTest/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
+        test("does not treat safe-qualified selectors as standard-library calls") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.check\nfun sample(validator: Any?, condition: Boolean) { validator?.check(condition) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
         test("leaves production code and non-asserting test safe calls unchanged") {
             val sources =
                 listOf(
                     "src/main/kotlin/SampleTest.kt" to "fun sample(value: String?) = requireNotNull(value)\n",
+                    "src/main/kotlin/TestSupport.kt" to "fun sample(value: String?) = requireNotNull(value)\n",
+                    "testing/src/main/kotlin/Sample.kt" to "fun sample(value: String?) = requireNotNull(value)\n",
+                    "/workspace/test-project/src/main/kotlin/Sample.kt" to "fun sample(value: String?) = requireNotNull(value)\n",
                     "src/test/kotlin/SampleTest.kt" to "fun sample(value: String?) = value?.length\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "class Validator { fun check(condition: Boolean) = condition }\nfun sample(validator: Validator?) { validator?.check(true) }\n",
                     "src/test/kotlin/SampleTest.kt" to
                         "fun sample(value: String?) {\n    fun String?.shouldBe(expected: Int) = Unit\n    value?.shouldBe(1)\n}\n",
                     "src/test/kotlin/SampleTest.kt" to
