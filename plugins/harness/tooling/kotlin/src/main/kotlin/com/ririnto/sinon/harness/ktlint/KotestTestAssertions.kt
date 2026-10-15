@@ -131,13 +131,13 @@ class KotestTestAssertions :
     private fun KtCallExpression.kotlinTestBooleanAssertionName(file: KtFile): String? {
         val reference = calleeExpression as? KtNameReferenceExpression ?: return null
         val callName = reference.getReferencedName()
-        if (KotlinLexicalScope.isDeclared(callName, this)) {
-            return null
-        }
         val matcher = KOTLIN_TEST_BOOLEAN_ASSERTIONS[callName]
         val qualified = parent as? KtQualifiedExpression
         if (qualified?.selectorExpression === this) {
             return matcher.takeIf { file.isKotlinTestPackageReceiver(qualified.receiverExpression) }
+        }
+        if (KotlinLexicalScope.isDeclared(callName, this)) {
+            return null
         }
         val explicitImports =
             file.importDirectives.filter { directive ->

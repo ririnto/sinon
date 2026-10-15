@@ -80,6 +80,12 @@ class KotestTestAssertionsTest :
                         kotlin.test.assertTrue(condition)
                         kotlin.test.assertFalse { inverted }
                     }
+
+                    fun verifyWithLocalShadow(condition: Boolean) {
+                        fun assertTrue(condition: Boolean) = Unit
+                        assertTrue(condition)
+                        kotlin.test.assertTrue(condition)
+                    }
                     """.trimIndent() + "\n",
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
@@ -88,7 +94,8 @@ class KotestTestAssertionsTest :
                     "use Kotest `shouldBeFalse()` on the asserted condition",
                     "use Kotest `shouldBeTrue()` on the asserted condition",
                     "use Kotest `shouldBeTrue()` on the asserted condition",
-                    "use Kotest `shouldBeFalse()` on the asserted condition"
+                    "use Kotest `shouldBeFalse()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition"
                 )
             result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
         }
