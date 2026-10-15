@@ -95,8 +95,9 @@ const noInlineCommentsRule = {
       }
     };
     const inspect = (node: Node, comments: readonly Comment[]): void => {
-      for (const { start, value } of comments) {
+      for (const { start, type, value } of comments) {
         if (
+          type !== "Shebang" &&
           !documentation.has(start) &&
           !preservedComment(value) &&
           !reportedOffsets.has(start)

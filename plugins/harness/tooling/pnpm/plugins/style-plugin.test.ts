@@ -268,6 +268,12 @@ test("Ultracite reconciles only proven sibling registration boundaries", async (
         1
       ],
       [
+        "shebang.ts",
+        '#!/usr/bin/env node\n/// <reference types="node" />\n/* #__PURE__ */\nconst result = work();\nconsume(result);\n',
+        0,
+        0
+      ],
+      [
         "docs.ts",
         "/** First declaration contract. */\n/** Declaration contract. */\nconst value = 1;\n/* @license MIT */\nfunction valid() {\n// @ts-expect-error intentional fixture\nconsume(value);\n}",
         0,
