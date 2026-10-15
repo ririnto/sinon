@@ -97,8 +97,7 @@ class KotestTestAssertions :
         val qualified = parent as? KtQualifiedExpression
         if (qualified?.selectorExpression === this) {
             return if (
-                qualified.receiverExpression.text == "kotlin" &&
-                !KotlinLexicalScope.isDeclared("kotlin", qualified.receiverExpression) &&
+                file.isKotlinPackageReceiver(qualified.receiverExpression) &&
                 callName in ASSERTION_FUNCTIONS
             ) {
                 callName
@@ -129,6 +128,14 @@ class KotestTestAssertions :
         }
         return callName.takeIf { name -> name in ASSERTION_FUNCTIONS }
     }
+
+    private fun KtFile.isKotlinPackageReceiver(expression: KtExpression): Boolean =
+        expression.text == "kotlin" &&
+            !KotlinLexicalScope.isDeclared("kotlin", expression) &&
+            importDirectives.none { directive ->
+                val path = directive.importedFqName?.asString().orEmpty()
+                (directive.aliasName ?: path.substringAfterLast('.')) == "kotlin"
+            }
 
     private fun KtSafeQualifiedExpression.isAssertedSafeCall(file: KtFile): Boolean {
         (selectorExpression as? KtCallExpression)?.let { call ->
