@@ -104,6 +104,43 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("accounts for inherited members when resolving Kotlin test assertions") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import external.Base
+                    import kotlin.test.assertTrue
+
+                    open class PrivateBase {
+                        private fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    class PrivateMemberTest : PrivateBase() {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class ExternalBaseTest : external.Base() {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class ImportedExternalBaseTest : Base() {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class QualifiedExternalBaseTest : external.Base() {
+                        fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                listOf(
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition"
+                )
+        }
+
         test("flags safe calls whose values are asserted by Kotest matchers") {
             val result =
                 KtLintRuleTestEngine.execute(

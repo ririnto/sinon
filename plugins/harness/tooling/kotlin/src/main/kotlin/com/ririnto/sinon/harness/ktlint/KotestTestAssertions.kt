@@ -6,6 +6,7 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -149,16 +150,16 @@ class KotestTestAssertions :
             val importedMatcher =
                 KOTLIN_TEST_BOOLEAN_ASSERTIONS[importedName]?.takeIf { path == "kotlin.test.$importedName" }
                     ?: return null
-            return importedMatcher.takeIf { !hasInheritedMember(callName, file) }
+            return importedMatcher.takeIf { !mayBeShadowedByInheritedMember(callName, file) }
         }
         val hasKotlinTestWildcard =
             file.importDirectives.any { directive ->
                 directive.isAllUnder && directive.importedFqName?.asString() == "kotlin.test"
             }
-        return matcher?.takeIf { hasKotlinTestWildcard && !hasInheritedMember(callName, file) }
+        return matcher?.takeIf { hasKotlinTestWildcard && !mayBeShadowedByInheritedMember(callName, file) }
     }
 
-    private fun KtCallExpression.hasInheritedMember(
+    private fun KtCallExpression.mayBeShadowedByInheritedMember(
         name: String,
         file: KtFile
     ): Boolean {
@@ -167,32 +168,67 @@ class KotestTestAssertions :
             enclosingScope = enclosingScope.parent
         }
         val enclosingClass = enclosingScope ?: return false
-        return enclosingClass.inheritsMember(name, file, mutableSetOf())
+        return enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE
     }
 
-    private fun KtClassOrObject.inheritsMember(
+    private enum class InheritedMemberStatus {
+        FOUND,
+        UNKNOWN,
+        NONE
+    }
+
+    private fun KtClassOrObject.inheritedMemberStatus(
         name: String,
         file: KtFile,
         visited: MutableSet<String>
-    ): Boolean =
-        superTypeListEntries.any { entry ->
-            val supertypeName =
-                entry.typeReference
-                    ?.text
-                    ?.substringAfterLast('.')
-                    ?.substringBefore('<') ?: return@any false
-            if (!visited.add(supertypeName)) {
-                return@any false
+    ): InheritedMemberStatus {
+        var status = InheritedMemberStatus.NONE
+        superTypeListEntries.forEach { entry ->
+            val typeText = entry.typeReference?.text ?: return InheritedMemberStatus.UNKNOWN
+            if ('.' in typeText) {
+                return InheritedMemberStatus.UNKNOWN
             }
-            val supertype =
+            val supertypeName =
+                typeText.substringBefore('<')
+            if (!visited.add(supertypeName)) {
+                return@forEach
+            }
+            if (
+                file.importDirectives.any { directive ->
+                    !directive.isAllUnder &&
+                        (directive.aliasName ?: directive.importedFqName?.asString()?.substringAfterLast('.')) == supertypeName
+                }
+            ) {
+                status = InheritedMemberStatus.UNKNOWN
+                return@forEach
+            }
+            val declarations =
                 file.declarations
                     .filterIsInstance<KtClassOrObject>()
-                    .singleOrNull { declaration -> declaration.name == supertypeName } ?: return@any false
-            supertype.declarations.any { declaration ->
-                (declaration is KtNamedFunction && declaration.name == name) ||
-                    (declaration is KtProperty && declaration.name == name)
-            } || supertype.inheritsMember(name, file, visited)
+                    .filter { declaration -> declaration.name == supertypeName }
+            val supertype = declarations.singleOrNull()
+            if (supertype === null) {
+                status = InheritedMemberStatus.UNKNOWN
+                return@forEach
+            }
+            if (supertype.declarations.any { declaration ->
+                    (declaration is KtNamedFunction || declaration is KtProperty) &&
+                        declaration.name == name &&
+                        !declaration.hasModifier(KtTokens.PRIVATE_KEYWORD)
+                }
+            ) {
+                return InheritedMemberStatus.FOUND
+            }
+            val inheritedStatus = supertype.inheritedMemberStatus(name, file, visited)
+            if (inheritedStatus == InheritedMemberStatus.FOUND) {
+                return InheritedMemberStatus.FOUND
+            }
+            if (inheritedStatus == InheritedMemberStatus.UNKNOWN) {
+                status = InheritedMemberStatus.UNKNOWN
+            }
         }
+        return status
+    }
 
     private fun KtFile.isKotlinPackageReceiver(expression: KtExpression): Boolean =
         expression.text == "kotlin" &&

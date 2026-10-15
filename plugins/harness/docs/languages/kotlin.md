@@ -150,6 +150,7 @@ It reports `require` and `check` calls and asks for `shouldBeTrue()` on the asse
 It also reports Kotlin standard-library `assert` calls and asks for `shouldBeTrue()` on the asserted condition.
 It reports imported `kotlin.test.assertTrue` and `assertFalse` calls and asks for `shouldBeTrue()` or `shouldBeFalse()` on the asserted condition.
 The Kotlin test assertion detection supports explicit imports, aliases, and wildcard imports.
+Unqualified imported assertions inside classes with unresolved supertypes are left unchanged because an inherited member may take precedence.
 It reports a safe-call expression when an imported Kotest matcher directly asserts its value.
 The matcher detection supports direct imports, aliases, and wildcard imports for Kotest `should` matchers.
 The rule recognizes test source sets immediately below `src`, including `test`, `androidTest`, `commonTest`, source sets beginning with `test`, and source sets ending in `Test` or `Tests`.
