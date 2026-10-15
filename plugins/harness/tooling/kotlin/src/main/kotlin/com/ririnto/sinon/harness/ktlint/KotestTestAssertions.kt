@@ -134,8 +134,8 @@ class KotestTestAssertions :
             !KotlinLexicalScope.isDeclared("kotlin", expression) &&
             importDirectives.none { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
-                directive.aliasName == "kotlin" ||
-                    (!directive.isAllUnder && path.substringAfterLast('.') == "kotlin")
+                val importedName = directive.aliasName ?: path.substringAfterLast('.')
+                !directive.isAllUnder && importedName == "kotlin"
             }
 
     private fun KtSafeQualifiedExpression.isAssertedSafeCall(file: KtFile): Boolean {
