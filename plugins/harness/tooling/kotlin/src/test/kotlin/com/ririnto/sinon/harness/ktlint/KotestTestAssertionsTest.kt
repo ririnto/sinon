@@ -92,6 +92,17 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("flags safe calls asserted by any imported Kotest should matcher") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import io.kotest.matchers.collections.shouldHaveSize\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
         test("flags standard-library assertions with a Kotlin wildcard import") {
             val result =
                 KtLintRuleTestEngine.execute(

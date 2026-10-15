@@ -27,15 +27,6 @@ class KotestTestAssertions :
     RuleAutocorrectApproveHandler {
     private companion object {
         val ASSERTION_FUNCTIONS: Set<String> = setOf("require", "check", "requireNotNull", "checkNotNull")
-        val KOTEST_ASSERTIONS: Set<String> =
-            setOf(
-                "shouldBe",
-                "shouldNotBe",
-                "shouldBeTrue",
-                "shouldBeFalse",
-                "shouldBeNull",
-                "shouldNotBeNull"
-            )
     }
 
     override fun beforeVisitChildNodes(
@@ -178,9 +169,9 @@ class KotestTestAssertions :
                 val kotestPath = path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers.")
                 kotestPath &&
                     if (directive.isAllUnder) {
-                        name in KOTEST_ASSERTIONS
+                        name.startsWith("should")
                     } else {
-                        importedName == name && originalName in KOTEST_ASSERTIONS
+                        importedName == name && originalName.startsWith("should")
                     }
             }
 }
