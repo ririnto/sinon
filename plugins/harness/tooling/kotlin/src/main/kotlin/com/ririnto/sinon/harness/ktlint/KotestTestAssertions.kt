@@ -6,10 +6,12 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -105,7 +107,7 @@ class KotestTestAssertions :
                 null
             }
         }
-        if (KotlinLexicalScope.isDeclared(callName, this)) {
+        if (KotlinLexicalScope.isDeclared(callName, this, inaccessibleEnclosingScopes())) {
             return null
         }
         val imported =
@@ -137,7 +139,7 @@ class KotestTestAssertions :
         if (qualified?.selectorExpression === this) {
             return matcher.takeIf { file.isKotlinTestPackageReceiver(qualified.receiverExpression) }
         }
-        if (KotlinLexicalScope.isDeclared(callName, this)) {
+        if (KotlinLexicalScope.isDeclared(callName, this, inaccessibleEnclosingScopes())) {
             return null
         }
         val explicitImports =
@@ -163,26 +165,45 @@ class KotestTestAssertions :
     private fun KtCallExpression.mayBeShadowedByInheritedMember(
         name: String,
         file: KtFile
-    ): Boolean {
+    ): Boolean =
+        visibleEnclosingClassScopes().any { enclosingClass ->
+            enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE
+        }
+
+    private fun KtCallExpression.visibleEnclosingClassScopes(): List<KtClassOrObject> {
         var enclosingScope = parent
         while (enclosingScope !== null && enclosingScope !is KtClassOrObject) {
             enclosingScope = enclosingScope.parent
         }
-        var enclosingClass = enclosingScope ?: return false
-        while (true) {
-            if (enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE) {
-                return true
-            }
-            val innerClass = enclosingClass as? KtClass ?: return false
-            if (!innerClass.hasModifier(KtTokens.INNER_KEYWORD)) {
-                return false
-            }
+        var enclosingClass = enclosingScope ?: return emptyList()
+        val visibleScopes = mutableListOf(enclosingClass)
+        while ((enclosingClass as? KtClass)?.hasModifier(KtTokens.INNER_KEYWORD) == true) {
             var outerScope = enclosingClass.parent
             while (outerScope !== null && outerScope !is KtClassOrObject) {
                 outerScope = outerScope.parent
             }
-            enclosingClass = outerScope ?: return false
+            enclosingClass = outerScope ?: return visibleScopes
+            visibleScopes.add(enclosingClass)
         }
+        return visibleScopes
+    }
+
+    private fun KtCallExpression.inaccessibleEnclosingScopes(): Set<PsiElement> {
+        val visibleClasses = visibleEnclosingClassScopes().toSet()
+        val nearestClass = visibleClasses.firstOrNull() ?: return emptySet()
+        if (nearestClass.parent !is KtClassBody) {
+            return emptySet()
+        }
+        val inaccessibleScopes = mutableSetOf<PsiElement>()
+        generateSequence(parent, { scope -> scope.parent })
+            .takeWhile { scope -> scope !is KtFile }
+            .filterIsInstance<KtClassOrObject>()
+            .forEach { scope ->
+                if (scope !in visibleClasses) {
+                    inaccessibleScopes.add(scope)
+                }
+            }
+        return inaccessibleScopes
     }
 
     private enum class InheritedMemberStatus {
@@ -230,6 +251,15 @@ class KotestTestAssertions :
                         declaration.name == name &&
                         !declaration.hasModifier(KtTokens.PRIVATE_KEYWORD)
                 }
+            ) {
+                return InheritedMemberStatus.FOUND
+            }
+            if (
+                (supertype as? KtClass)?.primaryConstructorParameters?.any { parameter ->
+                    parameter.hasValOrVar() &&
+                        parameter.name == name &&
+                        !parameter.hasModifier(KtTokens.PRIVATE_KEYWORD)
+                } == true
             ) {
                 return InheritedMemberStatus.FOUND
             }
