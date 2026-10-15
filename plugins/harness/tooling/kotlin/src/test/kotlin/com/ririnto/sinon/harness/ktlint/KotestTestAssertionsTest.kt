@@ -107,7 +107,7 @@ class KotestTestAssertionsTest :
                 )
             val ruleIds =
                 listOf(result, wildcardResult)
-                    .flatMap { it.diagnostics }
+                    .flatMap { matcherResult -> matcherResult.diagnostics }
                     .map { diagnostic -> diagnostic.ruleId }
             ruleIds shouldContainExactlyInAnyOrder
                 listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
