@@ -50,6 +50,19 @@ class NoLineCommentTest :
             }
         }
 
+        test("leading markers in bang comments preserve license notices") {
+            val source =
+                """
+                /*! @license MIT */
+                /*! Copyright 2026 Sinon contributors. */
+                fun work() {}
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
         test("standalone line comment in a function body is flagged") {
             KtLintRuleTestEngine
                 .execute(
