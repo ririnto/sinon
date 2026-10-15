@@ -147,6 +147,7 @@ Do not add factories, DSLs, or layers for appearance.
 In Kotlin test sources, use Kotest matchers for null and Boolean assertions.
 The `harness:kotest-test-assertions` rule reports standard-library `requireNotNull` and `checkNotNull` calls, including imports under aliases.
 It reports `require` and `check` calls and asks for `shouldBeTrue()` on the asserted condition.
+It also reports Kotlin standard-library `assert` calls and asks for `shouldBeTrue()` on the asserted condition.
 It reports a safe-call expression when an imported Kotest matcher directly asserts its value.
 The matcher detection supports direct imports, aliases, and wildcard imports for Kotest `should` matchers.
 The rule recognizes test source sets immediately below `src`, including `test`, `androidTest`, `commonTest`, source sets beginning with `test`, and source sets ending in `Test` or `Tests`.
