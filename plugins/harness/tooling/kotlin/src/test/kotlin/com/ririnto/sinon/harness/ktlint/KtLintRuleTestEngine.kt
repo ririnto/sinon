@@ -10,20 +10,22 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EXPERIMENTAL_RULES_EXECUTION_PROPERTY
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.RuleExecution
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.createRuleSetExecutionEditorConfigProperty
+import java.nio.file.Path
 
 internal object KtLintRuleTestEngine {
     fun execute(
         ruleProvider: RuleProvider,
         source: String,
         isKotlinScript: Boolean = false,
-        editorConfigOverride: EditorConfigOverride = EditorConfigOverride.EMPTY_EDITOR_CONFIG_OVERRIDE
+        editorConfigOverride: EditorConfigOverride = EditorConfigOverride.EMPTY_EDITOR_CONFIG_OVERRIDE,
+        sourcePath: Path? = null
     ): Result {
         val engine =
             KtLintRuleEngine(
                 ruleProviders = setOf(ruleProvider),
                 editorConfigOverride = editorConfigOverride.enableRuleSet(ruleProvider)
             )
-        val code = Code.fromSnippet(source, isKotlinScript)
+        val code = sourcePath?.let { path -> Code.fromSnippetWithPath(source, path) } ?: Code.fromSnippet(source, isKotlinScript)
         return Result(
             diagnostics =
                 buildList {

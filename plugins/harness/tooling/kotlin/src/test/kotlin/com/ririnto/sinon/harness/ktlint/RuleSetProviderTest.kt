@@ -33,6 +33,7 @@ class RuleSetProviderTest :
                     "harness:import-over-fqn",
                     "harness:kotest-sibling-spacing",
                     "harness:kotlin-top-level-declaration-count",
+                    "harness:kotest-test-assertions",
                     "harness:leading-underscore",
                     "harness:multiline-kdoc",
                     "harness:nested-data-class-last",

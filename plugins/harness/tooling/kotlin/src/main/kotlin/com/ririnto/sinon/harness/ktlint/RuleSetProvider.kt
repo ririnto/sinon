@@ -20,6 +20,7 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("harness")) {
             RuleProvider(::ImplicitLambdaIt),
             RuleProvider(::ImportOverFqn),
             RuleProvider(::KotestSiblingSpacing),
+            RuleProvider(::KotestTestAssertions),
             RuleProvider(::KotlinTopLevelDeclarationCount),
             RuleProvider(::LeadingUnderscore),
             RuleProvider(::MultilineKdoc),
