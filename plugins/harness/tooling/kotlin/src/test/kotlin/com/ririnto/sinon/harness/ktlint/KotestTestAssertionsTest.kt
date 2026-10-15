@@ -161,6 +161,8 @@ class KotestTestAssertionsTest :
                     "src/test/kotlin/SampleTest.kt" to
                         "class Validator { fun require(condition: Boolean) = Unit }\nfun sample(kotlin: Validator, condition: Boolean) { kotlin.require(condition) }\n",
                     "src/test/kotlin/SampleTest.kt" to
+                        "package example\n\nimport example.Guards as kotlin\n\nobject Guards { fun require(condition: Boolean) = Unit }\nfun sample(condition: Boolean) { kotlin.require(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
                         "fun sample(value: String?) {\n    fun String?.shouldBe(expected: Int) = Unit\n    value?.shouldBe(1)\n}\n",
                     "src/test/kotlin/SampleTest.kt" to
                         "fun sample(value: String?) {\n    fun requireNotNull(value: String?) = value\n    requireNotNull(value)\n}\n"
