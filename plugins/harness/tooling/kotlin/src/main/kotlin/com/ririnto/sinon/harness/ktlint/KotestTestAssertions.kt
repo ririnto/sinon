@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -167,8 +168,21 @@ class KotestTestAssertions :
         while (enclosingScope !== null && enclosingScope !is KtClassOrObject) {
             enclosingScope = enclosingScope.parent
         }
-        val enclosingClass = enclosingScope ?: return false
-        return enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE
+        var enclosingClass = enclosingScope ?: return false
+        while (true) {
+            if (enclosingClass.inheritedMemberStatus(name, file, mutableSetOf()) != InheritedMemberStatus.NONE) {
+                return true
+            }
+            val innerClass = enclosingClass as? KtClass ?: return false
+            if (!innerClass.hasModifier(KtTokens.INNER_KEYWORD)) {
+                return false
+            }
+            var outerScope = enclosingClass.parent
+            while (outerScope !== null && outerScope !is KtClassOrObject) {
+                outerScope = outerScope.parent
+            }
+            enclosingClass = outerScope ?: return false
+        }
     }
 
     private enum class InheritedMemberStatus {

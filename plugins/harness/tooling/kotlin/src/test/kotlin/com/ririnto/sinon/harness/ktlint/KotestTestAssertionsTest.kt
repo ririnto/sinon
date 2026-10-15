@@ -135,6 +135,12 @@ class KotestTestAssertionsTest :
                         fun verify(condition: Boolean) { assertTrue(condition) }
                     }
 
+                    class ExternalBaseOuterTest : external.Base() {
+                        inner class NestedTest {
+                            fun verify(condition: Boolean) { assertTrue(condition) }
+                        }
+                    }
+
                     class QualifiedExternalBaseTest : external.Base() {
                         fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
                     }
