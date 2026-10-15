@@ -92,15 +92,25 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
-        test("flags safe calls asserted by any imported Kotest should matcher") {
+        test("flags safe calls asserted by direct and wildcard Kotest should matchers") {
             val result =
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import io.kotest.matchers.collections.shouldHaveSize\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            val wildcardResult =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import io.kotest.matchers.collections.*\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            val ruleIds =
+                listOf(result, wildcardResult)
+                    .flatMap { it.diagnostics }
+                    .map { diagnostic -> diagnostic.ruleId }
+            ruleIds shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
         }
 
         test("prefers an explicit non-Kotest matcher import over a Kotest wildcard") {
