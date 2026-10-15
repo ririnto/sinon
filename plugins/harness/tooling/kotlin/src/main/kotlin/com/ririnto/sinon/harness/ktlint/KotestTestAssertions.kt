@@ -138,9 +138,6 @@ class KotestTestAssertions :
         if (qualified?.selectorExpression === this) {
             return matcher.takeIf { file.isKotlinTestPackageReceiver(qualified.receiverExpression) }
         }
-        if (hasInheritedMember(callName, file)) {
-            return null
-        }
         val explicitImports =
             file.importDirectives.filter { directive ->
                 val path = directive.importedFqName?.asString().orEmpty()
@@ -149,13 +146,16 @@ class KotestTestAssertions :
         if (explicitImports.isNotEmpty()) {
             val path = explicitImports.singleOrNull()?.importedFqName?.asString() ?: return null
             val importedName = path.substringAfterLast('.')
-            return KOTLIN_TEST_BOOLEAN_ASSERTIONS[importedName].takeIf { path == "kotlin.test.$importedName" }
+            val importedMatcher =
+                KOTLIN_TEST_BOOLEAN_ASSERTIONS[importedName]?.takeIf { path == "kotlin.test.$importedName" }
+                    ?: return null
+            return importedMatcher.takeIf { !hasInheritedMember(callName, file) }
         }
-        return matcher?.takeIf {
+        val hasKotlinTestWildcard =
             file.importDirectives.any { directive ->
                 directive.isAllUnder && directive.importedFqName?.asString() == "kotlin.test"
             }
-        }
+        return matcher?.takeIf { hasKotlinTestWildcard && !hasInheritedMember(callName, file) }
     }
 
     private fun KtCallExpression.hasInheritedMember(
