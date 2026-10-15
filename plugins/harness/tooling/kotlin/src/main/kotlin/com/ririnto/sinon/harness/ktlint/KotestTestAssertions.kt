@@ -1,0 +1,160 @@
+package com.ririnto.sinon.harness.ktlint
+
+import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
+import com.pinterest.ktlint.rule.engine.core.api.Rule
+import com.pinterest.ktlint.rule.engine.core.api.Rule.About
+import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
+import com.pinterest.ktlint.rule.engine.core.api.RuleId
+import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
+
+/**
+ * Requires Kotest matchers for null and Boolean assertions in Kotlin test sources.
+ */
+class KotestTestAssertions :
+    Rule(
+        ruleId = RuleId("harness:kotest-test-assertions"),
+        about = About()
+    ),
+    RuleAutocorrectApproveHandler {
+    private companion object {
+        val ASSERTION_FUNCTIONS: Set<String> = setOf("require", "check", "requireNotNull", "checkNotNull")
+        val KOTEST_ASSERTIONS: Set<String> =
+            setOf(
+                "shouldBe",
+                "shouldNotBe",
+                "shouldBeTrue",
+                "shouldBeFalse",
+                "shouldBeNull",
+                "shouldNotBeNull"
+            )
+    }
+
+    override fun beforeVisitChildNodes(
+        node: ASTNode,
+        emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) {
+        val expression = node.psi
+        val file = expression.containingFile as? KtFile ?: return
+        if (!file.isTestSource()) {
+            return
+        }
+        when (expression) {
+            is KtCallExpression -> {
+                expression.stdlibAssertionName(file)?.let { name ->
+                    val message =
+                        when (name) {
+                            "requireNotNull", "checkNotNull" -> "use Kotest `shouldNotBeNull()` for null assertions"
+                            else -> "use Kotest `shouldBeTrue()` on the asserted condition"
+                        }
+                    emit(expression.textOffset, message, false)
+                }
+            }
+
+            is KtSafeQualifiedExpression -> {
+                if (expression.isAssertedSafeCall(file)) {
+                    emit(
+                        expression.textOffset,
+                        "use Kotest `shouldNotBeNull()` before asserting a nullable value",
+                        false
+                    )
+                }
+            }
+        }
+    }
+
+    private fun KtFile.isTestSource(): Boolean =
+        virtualFilePath
+            .orEmpty()
+            .replace('\\', '/')
+            .split('/')
+            .any { segment ->
+                segment.equals("test", ignoreCase = true) ||
+                    segment.equals("androidTest", ignoreCase = true) ||
+                    segment.equals("commonTest", ignoreCase = true) ||
+                    segment.startsWith("test", ignoreCase = true) ||
+                    segment.endsWith("Test") ||
+                    segment.endsWith("Tests")
+            }
+
+    private fun KtCallExpression.stdlibAssertionName(file: KtFile): String? {
+        val reference = calleeExpression as? KtNameReferenceExpression ?: return null
+        val callName = reference.getReferencedName()
+        val qualified = parent as? KtDotQualifiedExpression
+        if (qualified?.selectorExpression === this) {
+            return callName.takeIf { qualified.receiverExpression.text == "kotlin" && callName in ASSERTION_FUNCTIONS }
+        }
+        val imported =
+            file.importDirectives
+                .mapNotNull { directive ->
+                    val path = directive.importedFqName?.asString() ?: return@mapNotNull null
+                    val alias = directive.aliasName
+                    val importedName = alias ?: path.substringAfterLast('.')
+                    if (importedName == callName) {
+                        path
+                    } else {
+                        null
+                    }
+                }.distinct()
+        if (imported.isNotEmpty()) {
+            return imported
+                .singleOrNull()
+                ?.takeIf { path -> path in ASSERTION_FUNCTIONS.map { name -> "kotlin.$name" } }
+                ?.substringAfterLast('.')
+        }
+        if (KotlinLexicalScope.isDeclared(callName, this)) {
+            return null
+        }
+        if (file.importDirectives.any { directive -> directive.isAllUnder && directive.importedFqName?.asString() == "kotlin" }) {
+            return null
+        }
+        return callName.takeIf { name -> name in ASSERTION_FUNCTIONS }
+    }
+
+    private fun KtSafeQualifiedExpression.isAssertedSafeCall(file: KtFile): Boolean {
+        (selectorExpression as? KtCallExpression)?.let { call ->
+            val name = call.calleeExpression?.text.orEmpty()
+            if (file.importsKotestAssertion(name)) {
+                return true
+            }
+        }
+        var assertedExpression: KtExpression = this
+        while (assertedExpression.parent is KtParenthesizedExpression) {
+            assertedExpression = assertedExpression.parent as KtParenthesizedExpression
+        }
+        val parent = assertedExpression.parent
+        if (parent is KtDotQualifiedExpression) {
+            val call = parent.selectorExpression as? KtCallExpression
+            val name = call?.calleeExpression?.text.orEmpty()
+            if (parent.receiverExpression === assertedExpression && file.importsKotestAssertion(name)) {
+                return true
+            }
+        }
+        if (parent is KtBinaryExpression) {
+            val name = parent.operationReference.text
+            return parent.left === assertedExpression && file.importsKotestAssertion(name)
+        }
+        return false
+    }
+
+    private fun KtFile.importsKotestAssertion(name: String): Boolean =
+        importDirectives.any { directive ->
+            val path = directive.importedFqName?.asString().orEmpty()
+            val originalName = path.substringAfterLast('.')
+            val importedName = directive.aliasName ?: originalName
+            val kotestPath = path == "io.kotest.matchers" || path.startsWith("io.kotest.matchers.")
+            kotestPath &&
+                if (directive.isAllUnder) {
+                    name in KOTEST_ASSERTIONS
+                } else {
+                    importedName == name && originalName in KOTEST_ASSERTIONS
+                }
+        }
+}

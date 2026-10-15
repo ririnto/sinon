@@ -179,7 +179,7 @@ Use double quotes only when the actual consumer requires the exact string type o
 Use language documents for changed source, examples, and language-rule findings:
 
 - [Java](languages/java.md)
-- [Kotlin](languages/kotlin.md)
+- The [Kotlin rules](languages/kotlin.md) include `harness:kotest-test-assertions`.
 - [TypeScript](languages/typescript.md)
 - [JavaScript and JSX](languages/javascript.md)
 - [Python](languages/python.md)
