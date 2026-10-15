@@ -96,7 +96,11 @@ class KotestTestAssertions :
         val callName = reference.getReferencedName()
         val qualified = parent as? KtQualifiedExpression
         if (qualified?.selectorExpression === this) {
-            return if (qualified.receiverExpression.text == "kotlin" && callName in ASSERTION_FUNCTIONS) {
+            return if (
+                qualified.receiverExpression.text == "kotlin" &&
+                    !KotlinLexicalScope.isDeclared("kotlin", qualified.receiverExpression) &&
+                    callName in ASSERTION_FUNCTIONS
+            ) {
                 callName
             } else {
                 null
