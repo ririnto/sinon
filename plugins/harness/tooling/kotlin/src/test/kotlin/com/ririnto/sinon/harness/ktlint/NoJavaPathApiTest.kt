@@ -48,19 +48,19 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         6,
                         5,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         5,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         8,
                         12,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -81,7 +81,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         35,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -101,7 +101,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         3,
                         35,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -123,7 +123,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         34,
-                        "Use kotlin.io.path APIs instead of File path helpers",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -150,19 +150,19 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         5,
-                        "Use kotlin.io.path APIs instead of File path helpers",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         5,
-                        "Use kotlin.io.path APIs instead of File path helpers",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         6,
                         5,
-                        "Use kotlin.io.path APIs instead of File path helpers",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -183,13 +183,13 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         34,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         50,
-                        "Use kotlin.io.path APIs for this java.nio.file.Files helper",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -252,7 +252,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         30,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -273,8 +273,8 @@ class NoJavaPathApiTest :
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(7, 8)
-                diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldBe
-                    List(2) { "Use the kotlin.io.path division operator for Path child paths" }
+                diagnostics.map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldBe
+                    List(2) { "harness:no-java-path-api" }
                 formattedCode shouldBe source
             }
         }
@@ -336,13 +336,13 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         10,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         17,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -383,7 +383,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         3,
                         48,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -417,49 +417,49 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         9,
                         23,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         10,
                         19,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         11,
                         32,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         12,
                         23,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         13,
                         19,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         14,
                         21,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         15,
                         21,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         16,
                         23,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -510,7 +510,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         10,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -537,43 +537,43 @@ class NoJavaPathApiTest :
                         KtLintRuleTestEngine.Diagnostic(
                             5,
                             10,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             5,
                             23,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             6,
                             10,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             6,
                             25,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             7,
                             48,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             8,
                             21,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             9,
                             24,
-                            "Use the kotlin.io.path division operator for Path child paths",
+                            "harness:no-java-path-api",
                             canBeAutoCorrected = false
                         )
                     )
@@ -632,19 +632,19 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         8,
                         22,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         9,
                         29,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         10,
                         27,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -665,7 +665,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         20,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -720,7 +720,7 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         10,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -748,13 +748,13 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         44,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         10,
                         10,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )
@@ -781,13 +781,13 @@ class NoJavaPathApiTest :
                     KtLintRuleTestEngine.Diagnostic(
                         6,
                         33,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         9,
                         10,
-                        "Use the kotlin.io.path division operator for Path child paths",
+                        "harness:no-java-path-api",
                         canBeAutoCorrected = false
                     )
                 )

@@ -27,7 +27,7 @@ class CompanionObjectPositionTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         15,
-                        "place the companion object before other class members",
+                        "harness:companion-object-position",
                         canBeAutoCorrected = false
                     )
                 )
@@ -98,7 +98,7 @@ class CompanionObjectPositionTest :
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         19,
-                        "place the companion object before other class members",
+                        "harness:companion-object-position",
                         canBeAutoCorrected = false
                     )
                 )

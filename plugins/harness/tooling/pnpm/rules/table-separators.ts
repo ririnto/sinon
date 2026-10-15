@@ -37,7 +37,7 @@ const rule: Rule = {
         "tableDelimiter"
       ).entries()) {
         const [filler] = collect(cell.children, "tableDelimiterFiller");
-        if (filler && filler.text !== separatorFiller) {
+        if (filler !== undefined && filler.text !== separatorFiller) {
           onError({
             context: row.text.trim(),
             detail: `Separator cell ${index + 1} must use exactly ${separatorFiller}.`,

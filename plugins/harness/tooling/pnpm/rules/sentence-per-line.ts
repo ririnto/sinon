@@ -143,7 +143,7 @@ const rebuildLine = (segments: readonly Segment[]): string => {
  */
 const protectText = (text: string): string =>
   text.replaceAll(protectedTextPattern, (match) => {
-    const ending = match.match(/[.!?]["'”’]$/u)?.[0] ?? "";
+    const ending = /[.!?]["'”’]$/u.exec(match)?.[0] ?? "";
     const masked = match.replaceAll(/[^\r\n]/gu, (character) =>
       " ".repeat(character.length)
     );
@@ -174,12 +174,14 @@ const continuation = (
 ): Finding | undefined => {
   const start = line.trimStart();
   if (
-    previous &&
+    previous !== undefined &&
+    previous !== "" &&
     /[a-z0-9]$/iu.test(previous.trimEnd()) &&
     (/^[a-z]/u.test(start) || imperativeContinuationPattern.test(start))
   ) {
     return { column: line.length - start.length + 1, length: 1 };
   }
+  return undefined;
 };
 
 /**
@@ -211,6 +213,7 @@ const joinedSentence = (line: string): Finding | undefined => {
       return { column: index + 1, length: 1 };
     }
   }
+  return undefined;
 };
 
 /**
@@ -230,22 +233,23 @@ const joinedSemicolon = (line: string): Finding | undefined => {
       wordBeforePattern.test(previous) &&
       wordAfterPattern.test(next)
     ) {
-      const firstTailWord = tail.match(/^[\w'’-]+/u)?.[0] ?? "";
+      const firstTailWord = /^[\w'’-]+/u.exec(tail)?.[0] ?? "";
       const independent =
         sentenceLikeStartPattern.test(firstTailWord) ||
         conjunctiveAdverbPattern.test(tail) ||
         lowercaseClauseStartPattern.test(tail);
       if (independent) {
-        return { column: index + 1, length: [...match[0]].length };
+        return { column: index + 1, length: match[0].length };
       }
     }
   }
+  return undefined;
 };
 
 /**
  * Markdownlint rule requiring one prose sentence per source line.
  */
-const rule: Rule = {
+export const sentencePerLine: Rule = {
   description: "Prose sentences must be separated by physical source lines",
   function: (params, onError) => {
     if (!protectedDocument(params)) {
@@ -301,7 +305,116 @@ const rule: Rule = {
   tags: ["docs", "sentences"]
 };
 
+const selectedDocument = (params: RuleParams): boolean => {
+  const config: unknown = params.config;
+  const paths: unknown =
+    typeof config === "object" && config !== null && "paths" in config
+      ? config.paths
+      : undefined;
+  const name = params.name.replaceAll("\\", "/");
+  return (
+    !Array.isArray(paths) ||
+    paths.some(
+      (prefix: unknown) =>
+        typeof prefix === "string" &&
+        (name.startsWith(prefix) || name.includes(`/${prefix}`))
+    )
+  );
+};
+
 /**
- * Provide the one-sentence-per-line Markdownlint rule.
+ * Report authored prose punctuation without rewriting source or quotations.
  */
-export default rule;
+export const noEmDash: Rule = {
+  description: "Avoid em dashes in authored prose",
+  function: (params, onError) => {
+    if (!protectedDocument(params) && selectedDocument(params)) {
+      for (const paragraph of proseBlocks(
+        params.parsers.micromark?.tokens ?? []
+      )) {
+        const sourceLines = [...segmentsByLine(paragraph)];
+        const protectedLines = protectText(
+          sourceLines.map(([, segments]) => rebuildLine(segments)).join("\n")
+        ).split("\n");
+        for (const [index, [lineNumber]] of sourceLines.entries()) {
+          for (const match of (protectedLines[index] ?? "").matchAll(
+            /\u2014/gu
+          )) {
+            onError({ lineNumber, range: [(match.index ?? 0) + 1, 1] });
+          }
+        }
+      }
+    }
+  },
+  names: ["docs/no-em-dash"],
+  parser: "micromark",
+  tags: ["docs", "prose"]
+};
+
+/**
+ * Diagnose relative skill-file destinations without resolving or rewriting links.
+ */
+export const noRelativeSkillLinks: Rule = {
+  description: "Use skill names instead of relative skill-file links",
+  function: (params, onError) => {
+    if (!protectedDocument(params) && selectedDocument(params)) {
+      const visit = (
+        token: MicromarkToken,
+        quoted = new Map<number, string>()
+      ): void => {
+        let protectedLines = quoted;
+        if (token.type === "paragraph") {
+          protectedLines = new Map(
+            protectText(token.text)
+              .split(/\r\n|\r|\n/u)
+              .map((line, index) => [
+                token.startLine + index,
+                `${" ".repeat(index === 0 ? token.startColumn - 1 : 0)}${line}`
+              ])
+          );
+        }
+        if (
+          token.type === "resourceDestination" ||
+          token.type === "definitionDestination"
+        ) {
+          const destination = token.text.replaceAll(/^<|>$/gu, "");
+          const visible = protectedLines
+            .get(token.startLine)
+            ?.slice(token.startColumn - 1, token.endColumn - 1);
+          if (
+            (visible === undefined || visible.trim() !== "") &&
+            !/^(?:[a-z][a-z\d+.-]*:|\/|#)/iu.test(destination) &&
+            /(?:^|\/)SKILL\.md(?:[?#].*)?$/u.test(destination)
+          ) {
+            onError({
+              lineNumber: token.startLine,
+              range: [
+                token.startColumn,
+                Math.max(1, token.endColumn - token.startColumn)
+              ]
+            });
+          }
+        } else if (
+          !skippedContainerTypes.has(token.type) &&
+          token.type !== "codeText" &&
+          (token.type !== "blockQuote" || alertPattern.test(token.text))
+        ) {
+          for (const child of token.children) {
+            visit(child, protectedLines);
+          }
+        }
+      };
+      for (const token of params.parsers.micromark?.tokens ?? []) {
+        visit(token);
+      }
+    }
+  },
+  names: ["docs/no-relative-skill-links"],
+  parser: "micromark",
+  tags: ["docs", "links"]
+};
+
+/**
+ * Share the Micromark-aware diagnostic rules through one parser integration.
+ */
+export default [sentencePerLine, noEmDash, noRelativeSkillLinks];

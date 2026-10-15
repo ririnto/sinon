@@ -75,6 +75,7 @@ describe("pnpm profile configuration", () => {
       })
     );
   });
+
   test.each([
     path.resolve(profileDirectory, "../../../..", ".markdownlint-cli2.jsonc"),
     path.join(profileDirectory, ".markdownlint-cli2.jsonc")
@@ -102,10 +103,12 @@ describe("pnpm profile configuration", () => {
       );
     }
   });
+
   test("oxfmt configuration skips Markdown and trailing commas", () => {
     expect(oxfmtConfig.ignorePatterns).toContain("**/*.md");
     expect(oxfmtConfig.trailingComma).toBe("none");
   });
+
   test("oxlint configuration enables the profile plugin rules", () => {
     expect(oxlintConfig.jsPlugins).toEqual([
       "./plugins/style-plugin.ts",
@@ -117,6 +120,7 @@ describe("pnpm profile configuration", () => {
       "tsdoc/require-export-tsdoc": "deny"
     });
   });
+
   test("Ultracite loads the profile configuration and its plugins", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
     try {
@@ -140,6 +144,7 @@ describe("pnpm profile configuration", () => {
       await rm(directory, { force: true, recursive: true });
     }
   });
+
   test("Markdownlint configuration resolves from an installed copy", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-md-"));
     try {
@@ -190,6 +195,7 @@ describe("pnpm profile configuration", () => {
       await rm(directory, { force: true, recursive: true });
     }
   });
+
   test("tsconfig fragment options compile under the installed TypeScript", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-ts-"));
     try {

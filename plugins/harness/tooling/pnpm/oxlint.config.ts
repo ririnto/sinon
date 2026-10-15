@@ -24,10 +24,12 @@ export default defineConfig({
   rules: {
     "style/no-blank-lines-in-functions": "deny",
     "style/no-inline-comments-in-functions": "deny",
+    "style/sibling-test-spacing": "deny",
     "tsdoc/require-export-tsdoc": "deny",
     "typescript/consistent-type-imports": [
       "error",
       { fixStyle: "separate-type-imports", prefer: "type-imports" }
-    ]
+    ],
+    "typescript/no-floating-promises": ["error", { ignoreVoid: false }]
   }
 });

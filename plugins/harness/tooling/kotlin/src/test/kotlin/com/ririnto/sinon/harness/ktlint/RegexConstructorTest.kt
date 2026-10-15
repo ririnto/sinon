@@ -25,7 +25,7 @@ class RegexConstructorTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             15,
-                            "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                            "harness:no-regex-constructor",
                             canBeAutoCorrected = true
                         )
                     )
@@ -50,7 +50,7 @@ class RegexConstructorTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             15,
-                            "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                            "harness:no-regex-constructor",
                             canBeAutoCorrected = true
                         )
                     )
@@ -75,7 +75,7 @@ class RegexConstructorTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             21,
-                            "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                            "harness:no-regex-constructor",
                             canBeAutoCorrected = true
                         )
                     )
@@ -103,25 +103,25 @@ class RegexConstructorTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         17,
-                        "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                        "harness:no-regex-constructor",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         3,
                         18,
-                        "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                        "harness:no-regex-constructor",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         17,
-                        "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                        "harness:no-regex-constructor",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         12,
-                        "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                        "harness:no-regex-constructor",
                         canBeAutoCorrected = false
                     )
                 )
@@ -153,7 +153,7 @@ class RegexConstructorTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             27,
-                            "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                            "harness:no-regex-constructor",
                             canBeAutoCorrected = true
                         )
                     )
@@ -180,7 +180,7 @@ class RegexConstructorTest :
                         KtLintRuleTestEngine.Diagnostic(
                             3,
                             28,
-                            "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
+                            "harness:no-regex-constructor",
                             canBeAutoCorrected = true
                         )
                     )

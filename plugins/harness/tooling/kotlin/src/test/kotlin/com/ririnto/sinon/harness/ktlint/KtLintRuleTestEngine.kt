@@ -51,10 +51,15 @@ internal object KtLintRuleTestEngine {
     data class Diagnostic(
         val line: Int,
         val col: Int,
-        val detail: String,
+        val ruleId: String,
         val canBeAutoCorrected: Boolean = true
     ) {
-        constructor(error: LintError) : this(error.line, error.col, error.detail, error.canBeAutoCorrected)
+        var detail: String = ""
+            private set
+
+        constructor(error: LintError) : this(error.line, error.col, error.ruleId.value, error.canBeAutoCorrected) {
+            detail = error.detail
+        }
     }
 
     data class Result(

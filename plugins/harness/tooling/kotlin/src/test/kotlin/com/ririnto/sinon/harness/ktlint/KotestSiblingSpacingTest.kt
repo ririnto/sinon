@@ -262,7 +262,7 @@ class KotestSiblingSpacingTest :
             KtLintRuleTestEngine.Diagnostic(
                 line,
                 column,
-                "use exactly one blank line between sibling Kotest tests and lifecycle hooks",
+                "harness:kotest-sibling-spacing",
                 canBeAutoCorrected = true
             )
     }

@@ -34,7 +34,7 @@ class NoLineComment :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         if ((node.elementType == KtTokens.EOL_COMMENT || node.elementType == KtTokens.BLOCK_COMMENT) &&
-            !node.isFormatterDirective() &&
+            !node.isRequiredComment() &&
             node.psi.isInsideFunctionBody()
         ) {
             emit(
@@ -45,12 +45,18 @@ class NoLineComment :
         }
     }
 
-    private fun ASTNode.isFormatterDirective(): Boolean =
+    private fun ASTNode.isRequiredComment(): Boolean =
         text
             .removePrefix("//")
             .removePrefix("/*")
             .trimStart()
-            .startsWith(FORMATTER_DIRECTIVE_PREFIX)
+            .let { value ->
+                value.startsWith(FORMATTER_DIRECTIVE_PREFIX) ||
+                    """^(?:ktlint|noinspection)\b|@license\b|@preserve\b|SPDX-License-Identifier:|\bcopyright\b"""
+                        .toRegex(
+                            RegexOption.IGNORE_CASE
+                        ).containsMatchIn(value)
+            }
 
     private fun PsiElement.isInsideFunctionBody(): Boolean =
         generateSequence(parent, PsiElement::getParent).any { scope ->

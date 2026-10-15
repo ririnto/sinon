@@ -22,7 +22,7 @@ class ImplicitLambdaItTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             source.indexOf("it", source.indexOf('{')) + 1,
-                            "use an explicit name for the implicit `it` lambda parameter",
+                            "harness:implicit-lambda-it",
                             canBeAutoCorrected = true
                         )
                     )
@@ -44,7 +44,7 @@ class ImplicitLambdaItTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             source.indexOf("it", source.indexOf('{')) + 1,
-                            "use an explicit name for the implicit `it` lambda parameter",
+                            "harness:implicit-lambda-it",
                             canBeAutoCorrected = true
                         )
                     )
@@ -67,7 +67,7 @@ class ImplicitLambdaItTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         source.indexOf("it", source.indexOf('{')) - source.indexOf('\n'),
-                        "use an explicit name for the implicit `it` lambda parameter",
+                        "harness:implicit-lambda-it",
                         canBeAutoCorrected = true
                     )
                 )
@@ -84,13 +84,13 @@ class ImplicitLambdaItTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             source.indexOf("it", source.indexOf('{')) + 1,
-                            "use an explicit name for the implicit `it` lambda parameter",
+                            "harness:implicit-lambda-it",
                             true
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             source.lastIndexOf("it") + 1,
-                            "use an explicit name for the implicit `it` lambda parameter",
+                            "harness:implicit-lambda-it",
                             true
                         )
                     )
@@ -114,7 +114,7 @@ class ImplicitLambdaItTest :
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             source.indexOf("it", source.indexOf('{')) - source.indexOf('\n'),
-                            "use an explicit name for the implicit `it` lambda parameter",
+                            "harness:implicit-lambda-it",
                             canBeAutoCorrected = true
                         )
                     )
@@ -139,7 +139,7 @@ class ImplicitLambdaItTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             source.indexOf("it", source.indexOf('{')) + 1,
-                            "use an explicit name for the implicit `it` lambda parameter",
+                            "harness:implicit-lambda-it",
                             canBeAutoCorrected = true
                         )
                     )
@@ -160,7 +160,7 @@ class ImplicitLambdaItTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         source.lastIndexOf("it") + 1,
-                        "use an explicit name for the implicit `it` lambda parameter",
+                        "harness:implicit-lambda-it",
                         canBeAutoCorrected = true
                     )
                 )

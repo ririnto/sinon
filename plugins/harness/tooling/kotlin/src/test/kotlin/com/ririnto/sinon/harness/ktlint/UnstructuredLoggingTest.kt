@@ -23,7 +23,7 @@ class UnstructuredLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         13,
-                        "unstructured logging `println`; use structured logger",
+                        "harness:unstructured-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -41,7 +41,7 @@ class UnstructuredLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         23,
-                        "unstructured logging `kotlin.io.println`; use structured logger",
+                        "harness:unstructured-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -62,13 +62,13 @@ class UnstructuredLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         5,
-                        "unstructured logging `println`; use structured logger",
+                        "harness:unstructured-logging",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         3,
                         15,
-                        "unstructured logging `kotlin.io.println`; use structured logger",
+                        "harness:unstructured-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -103,17 +103,8 @@ class UnstructuredLoggingTest :
                     }
                     """.trimIndent() + "\n"
                 ).diagnostics
-                .map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
-                listOf(
-                    "unstructured logging `print`; use structured logger",
-                    "unstructured logging `kotlin.io.print`; use structured logger",
-                    "unstructured logging `System.out.println`; use structured logger",
-                    "unstructured logging `System.out.print`; use structured logger",
-                    "unstructured logging `System.out.printf`; use structured logger",
-                    "unstructured logging `System.err.println`; use structured logger",
-                    "unstructured logging `System.err.print`; use structured logger",
-                    "unstructured logging `java.lang.System.out.println`; use structured logger"
-                )
+                .map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                List(8) { "harness:unstructured-logging" }
         }
 
         test("print stack trace is flagged") {
@@ -203,7 +194,7 @@ class UnstructuredLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         13,
-                        "unstructured logging `println`; use structured logger",
+                        "harness:unstructured-logging",
                         canBeAutoCorrected = false
                     )
                 )

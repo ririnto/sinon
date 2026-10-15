@@ -25,10 +25,10 @@ class NullComparisonIdentityTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 5, "use `===` or `!==` for comparisons with null", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(3, 5, "use `===` or `!==` for comparisons with null", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(4, 5, "use `===` or `!==` for comparisons with null", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 5, "use `===` or `!==` for comparisons with null", canBeAutoCorrected = false)
+                    KtLintRuleTestEngine.Diagnostic(2, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(3, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:null-comparison-identity", canBeAutoCorrected = false)
                 )
         }
 

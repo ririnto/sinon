@@ -14,13 +14,35 @@ interface Comment extends SourceRange {
   readonly value: string;
 }
 
+interface Scope {
+  readonly upper: Scope | null;
+  readonly variables: readonly {
+    readonly name: string;
+    readonly defs: readonly {
+      readonly type: string;
+      readonly node: Node;
+      readonly parent: Node | null;
+    }[];
+  }[];
+}
+
 interface RuleContext {
   readonly sourceCode: {
+    readonly getLocFromIndex: (offset: number) => {
+      line: number;
+      column: number;
+    };
+    readonly getAllComments: () => readonly Comment[];
+    readonly getCommentsBefore: (node: Node) => readonly Comment[];
+    readonly getScope: (node: Node) => Scope;
     readonly getCommentsInside: (node: Node) => readonly Comment[];
     readonly getTokens: (node: Node) => readonly SourceRange[];
     readonly text: string;
   };
   readonly report: (diagnostic: {
+    readonly loc?: {
+      readonly start: { readonly line: number; readonly column: number };
+    };
     readonly messageId: string;
     readonly node: Node;
   }) => void;
@@ -43,40 +65,197 @@ const isFunctionNode = (node: Node): node is FunctionNode =>
   node.type === "FunctionExpression" ||
   node.type === "ArrowFunctionExpression";
 
+const preservedComment = (value: string): boolean =>
+  toolDirectivePattern.test(value) ||
+  /^\s*(?:[#@]__(?:PURE|NO_SIDE_EFFECTS)__|[#@]\s*source(?:Mapping)?URL=|@vite-ignore\b|webpack[A-Z]\w*\s*:|\/\s*<(?:reference|amd-module|amd-dependency)\b)/u.test(
+    value
+  ) ||
+  /(?:@license\b|@preserve\b|SPDX-License-Identifier:|\bcopyright\b)/iu.test(
+    value
+  );
+
 const noInlineCommentsRule = {
   create(context: RuleContext) {
+    const documentation = new Set<number>();
     const reportedOffsets = new Set<number>();
+    const declaration = (node: Node): void => {
+      let boundary = node.start;
+      const comments = context.sourceCode.getCommentsBefore(node);
+      for (let index = comments.length - 1; index >= 0; index -= 1) {
+        const comment = comments[index];
+        if (
+          comment !== undefined &&
+          comment.type === "Block" &&
+          comment.value.startsWith("*") &&
+          context.sourceCode.text.slice(comment.end, boundary).trim() === ""
+        ) {
+          documentation.add(comment.start);
+          boundary = comment.start;
+        }
+      }
+    };
+    const inspect = (node: Node, comments: readonly Comment[]): void => {
+      for (const { start, value } of comments) {
+        if (
+          !documentation.has(start) &&
+          !preservedComment(value) &&
+          !reportedOffsets.has(start)
+        ) {
+          reportedOffsets.add(start);
+          context.report({ messageId: "noInlineComments", node });
+        }
+      }
+    };
     const inspectFunction = (node: Node): void => {
       if (isFunctionNode(node) && node.body?.type === "BlockStatement") {
-        const { body } = node;
-        const forbiddenComments = context.sourceCode
-          .getCommentsInside(body)
-          .filter(
-            ({ type, value }) =>
-              (type === "Line" ||
-                (type === "Block" && !value.startsWith("*"))) &&
-              !toolDirectivePattern.test(value)
-          );
-        for (const { start } of forbiddenComments) {
-          if (!reportedOffsets.has(start)) {
-            reportedOffsets.add(start);
-            context.report({ messageId: "noInlineComments", node });
-          }
-        }
+        inspect(node, context.sourceCode.getCommentsInside(node.body));
       }
     };
     return {
       "ArrowFunctionExpression:exit": inspectFunction,
+      "FunctionDeclaration, VariableDeclaration, ClassDeclaration, MethodDefinition, PropertyDefinition, TSInterfaceDeclaration, TSTypeAliasDeclaration, TSEnumDeclaration, TSDeclareFunction, TSMethodSignature, TSPropertySignature, ExportNamedDeclaration, ExportDefaultDeclaration":
+        declaration,
       "FunctionDeclaration:exit": inspectFunction,
-      "FunctionExpression:exit": inspectFunction
+      "FunctionExpression:exit": inspectFunction,
+      "Program:exit"(node: Node) {
+        inspect(node, context.sourceCode.getAllComments());
+      }
     };
   },
   meta: {
     docs: {
-      description: "Disallow non-documentation comments inside function bodies."
+      description:
+        "Allow declaration documentation and required directive or license comments."
     },
     messages: {
-      noInlineComments: "Remove inline comments from function bodies."
+      noInlineComments:
+        "Use declaration documentation instead of explanatory comments."
+    },
+    type: "problem"
+  } as const
+};
+
+const registrations = new Set([
+  "describe",
+  "test",
+  "it",
+  "beforeEach",
+  "afterEach",
+  "beforeAll",
+  "afterAll"
+]);
+const frameworks = new Set(["vitest", "@jest/globals", "bun:test"]);
+
+const importedRegistration = (
+  definition: Scope["variables"][number]["defs"][number] | undefined
+): string | undefined => {
+  const specifier = definition?.node;
+  const source = definition?.parent;
+  if (
+    definition?.type === "ImportBinding" &&
+    specifier?.type === "ImportSpecifier" &&
+    source?.type === "ImportDeclaration" &&
+    frameworks.has(source.source.value) &&
+    specifier.imported.type === "Identifier" &&
+    registrations.has(specifier.imported.name)
+  ) {
+    return specifier.imported.name;
+  }
+  return undefined;
+};
+
+const registration = (node: Node, context: RuleContext): string | undefined => {
+  if (node.type === "CallExpression") {
+    let { callee } = node;
+    if (
+      callee.type === "CallExpression" &&
+      callee.callee.type === "MemberExpression" &&
+      !callee.callee.computed &&
+      callee.callee.property.type === "Identifier" &&
+      callee.callee.property.name === "each"
+    ) {
+      callee = callee.callee.object;
+    }
+    while (
+      callee.type === "MemberExpression" &&
+      !callee.computed &&
+      callee.property.type === "Identifier" &&
+      ["only", "skip", "concurrent", "sequential"].includes(
+        callee.property.name
+      )
+    ) {
+      callee = callee.object;
+    }
+    if (callee.type === "Identifier") {
+      let scope: Scope | null = context.sourceCode.getScope(callee);
+      while (scope) {
+        const variable = scope.variables.find(
+          ({ name }) => name === callee.name
+        );
+        if (variable) {
+          const definition =
+            variable.defs.length === 1 ? variable.defs[0] : undefined;
+          return importedRegistration(definition);
+        }
+        scope = scope.upper;
+      }
+    }
+  }
+  return undefined;
+};
+
+const siblingGaps = (node: Node, context: RuleContext): SourceRange[] => {
+  const { parent } = node;
+  const call = parent?.parent;
+  const suite =
+    node.type === "BlockStatement" &&
+    parent !== undefined &&
+    parent !== null &&
+    isFunctionNode(parent) &&
+    call?.type === "CallExpression" &&
+    call.arguments.includes(parent) &&
+    registration(call, context) === "describe";
+  const gaps: SourceRange[] = [];
+  if (node.type === "Program" || (node.type === "BlockStatement" && suite)) {
+    for (const [index, statement] of node.body.entries()) {
+      const previous = node.body[index - 1];
+      if (
+        previous?.type === "ExpressionStatement" &&
+        statement.type === "ExpressionStatement" &&
+        registration(previous.expression, context) !== undefined &&
+        registration(statement.expression, context) !== undefined
+      ) {
+        gaps.push({ end: statement.start, start: previous.end });
+      }
+    }
+  }
+  return gaps;
+};
+
+const siblingTestSpacingRule = {
+  create(context: RuleContext) {
+    const inspect = (node: Node): void => {
+      for (const gap of siblingGaps(node, context)) {
+        if (
+          /^\s*$/u.test(context.sourceCode.text.slice(gap.start, gap.end)) &&
+          context.sourceCode.text
+            .slice(gap.start, gap.end)
+            .split(/\r\n|[\n\r\u2028\u2029]/u).length !== 3
+        ) {
+          context.report({ messageId: "siblingSpacing", node });
+        }
+      }
+    };
+    return { BlockStatement: inspect, Program: inspect };
+  },
+  meta: {
+    docs: {
+      description:
+        "Require one blank line between proven sibling test registrations."
+    },
+    messages: {
+      siblingSpacing:
+        "Separate sibling tests and lifecycle registrations with one blank line."
     },
     type: "problem"
   } as const
@@ -85,6 +264,7 @@ const noInlineCommentsRule = {
 const noBlankLinesRule = {
   create(context: RuleContext) {
     const reportedOffsets = new Set<number>();
+    const registrationGaps: SourceRange[] = [];
     const inspectFunction = (node: Node): void => {
       if (isFunctionNode(node) && node.body?.type === "BlockStatement") {
         const { body } = node;
@@ -121,17 +301,31 @@ const noBlankLinesRule = {
               !(bodyText[index - 1] === "\r" && bodyText[index] === "\n")
           )
           .map((index) => index + body.start)
-          .filter((offset) => !isProtected(offset) && !isExempted(offset));
+          .filter(
+            (offset) =>
+              !isProtected(offset) &&
+              !isExempted(offset) &&
+              !registrationGaps.some(
+                ({ start, end }) => start <= offset && offset < end
+              )
+          );
         for (const offset of blankLineOffsets) {
           if (!reportedOffsets.has(offset)) {
             reportedOffsets.add(offset);
-            context.report({ messageId: "noBlankLines", node });
+            context.report({
+              loc: { start: context.sourceCode.getLocFromIndex(offset) },
+              messageId: "noBlankLines",
+              node
+            });
           }
         }
       }
     };
     return {
       "ArrowFunctionExpression:exit": inspectFunction,
+      BlockStatement: (node: Node) => {
+        registrationGaps.push(...siblingGaps(node, context));
+      },
       "FunctionDeclaration:exit": inspectFunction,
       "FunctionExpression:exit": inspectFunction
     };
@@ -151,7 +345,8 @@ const style = {
   meta: { name: "style" },
   rules: {
     "no-blank-lines-in-functions": noBlankLinesRule,
-    "no-inline-comments-in-functions": noInlineCommentsRule
+    "no-inline-comments-in-functions": noInlineCommentsRule,
+    "sibling-test-spacing": siblingTestSpacingRule
   }
 };
 

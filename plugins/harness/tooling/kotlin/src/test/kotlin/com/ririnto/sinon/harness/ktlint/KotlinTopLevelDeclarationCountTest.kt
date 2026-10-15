@@ -50,7 +50,7 @@ class KotlinTopLevelDeclarationCountTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "declare a single top-level type declaration in this file",
+                            "harness:kotlin-top-level-declaration-count",
                             canBeAutoCorrected = false
                         )
                     )
@@ -88,7 +88,7 @@ class KotlinTopLevelDeclarationCountTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             1,
-                            "declare a single top-level type declaration in this file",
+                            "harness:kotlin-top-level-declaration-count",
                             canBeAutoCorrected = false
                         )
                     )

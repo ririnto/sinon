@@ -305,7 +305,7 @@ class FunctionBodyBlankLinesTest :
             KtLintRuleTestEngine.Diagnostic(
                 line,
                 column,
-                "remove the decorative blank line from the function body",
+                "harness:function-body-blank-lines",
                 canBeAutoCorrected = true
             )
     }

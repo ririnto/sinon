@@ -11,6 +11,14 @@ import io.kotest.matchers.shouldBe
  */
 class NoLineCommentTest :
     FunSpec({
+        test("required license and suppression directives are preserved") {
+            val source = "fun work() {\n/* @license MIT */\n// noinspection UnusedVariable\nval value = 1\n}\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
         test("standalone line comment in a function body is flagged") {
             KtLintRuleTestEngine
                 .execute(
@@ -192,7 +200,7 @@ class NoLineCommentTest :
             KtLintRuleTestEngine.Diagnostic(
                 line,
                 column,
-                "remove the comment from the function body; put the rationale in KDoc on the declaration",
+                "harness:no-line-comment",
                 canBeAutoCorrected = false
             )
     }

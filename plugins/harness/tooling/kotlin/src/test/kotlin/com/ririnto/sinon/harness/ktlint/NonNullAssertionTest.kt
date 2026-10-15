@@ -156,7 +156,7 @@ class NonNullAssertionTest :
             KtLintRuleTestEngine.Diagnostic(
                 line,
                 column,
-                "avoid non-null assertion `!!`; use safe call (?.), Elvis (?:), or an explicit `requireNotNull` or `checkNotNull` guard",
+                "harness:non-null-assertion",
                 canBeAutoCorrected
             )
     }

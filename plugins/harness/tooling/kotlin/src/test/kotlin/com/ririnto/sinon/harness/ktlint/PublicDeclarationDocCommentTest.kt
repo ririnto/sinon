@@ -64,8 +64,8 @@ class PublicDeclarationDocCommentTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(1, 7, "add a documentation comment to public declaration `Service`", false),
-                    KtLintRuleTestEngine.Diagnostic(2, 9, "add a documentation comment to public declaration `work`", false)
+                    KtLintRuleTestEngine.Diagnostic(1, 7, "harness:public-declaration-doc-comment", false),
+                    KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
                 )
         }
 
@@ -97,8 +97,8 @@ class PublicDeclarationDocCommentTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(1, 11, "add a documentation comment to public declaration `Repository`", false),
-                    KtLintRuleTestEngine.Diagnostic(2, 9, "add a documentation comment to public declaration `find`", false)
+                    KtLintRuleTestEngine.Diagnostic(1, 11, "harness:public-declaration-doc-comment", false),
+                    KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
                 )
         }
 
@@ -175,9 +175,9 @@ class PublicDeclarationDocCommentTest :
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
                 listOf(
-                    KtLintRuleTestEngine.Diagnostic(5, 9, "add a documentation comment to public declaration `id`", false),
-                    KtLintRuleTestEngine.Diagnostic(6, 9, "add a documentation comment to public declaration `label`", false),
-                    KtLintRuleTestEngine.Diagnostic(7, 19, "add a documentation comment to public declaration `owner`", false)
+                    KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false),
+                    KtLintRuleTestEngine.Diagnostic(6, 9, "harness:public-declaration-doc-comment", false),
+                    KtLintRuleTestEngine.Diagnostic(7, 19, "harness:public-declaration-doc-comment", false)
                 )
         }
 
@@ -216,7 +216,7 @@ class PublicDeclarationDocCommentTest :
                     )
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(5, 9, "add a documentation comment to public declaration `id`", false))
+                listOf(KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false))
         }
 
         test("ignores declarations hidden by internal or private enclosures") {

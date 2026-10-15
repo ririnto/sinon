@@ -166,8 +166,12 @@ describe("fresh-root baseline", () => {
         );
       }
       if (profile === "node" || profile === "frontend" || profile === "react") {
-        expect(manifest.scripts["check:ultracite"]).toBe("ultracite check");
-        expect(manifest.scripts["fix:ultracite"]).toBe("ultracite fix");
+        expect(manifest.scripts["check:ultracite"]).toBe(
+          "ultracite check --type-aware"
+        );
+        expect(manifest.scripts["fix:ultracite"]).toBe(
+          "ultracite fix --type-aware"
+        );
         expect(
           Object.values(manifest.scripts).filter((command) =>
             /^(?:oxlint|oxfmt)\b/u.test(String(command))

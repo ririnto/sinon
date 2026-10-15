@@ -28,7 +28,7 @@ class NestedDataClassLastTest :
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             16,
-                            "move the nested data class `Row` to the bottom of its enclosing class",
+                            "harness:nested-data-class-last",
                             canBeAutoCorrected = true
                         )
                     )
@@ -73,8 +73,8 @@ class NestedDataClassLastTest :
             ) {
                 diagnostics shouldContainExactlyInAnyOrder
                     listOf(
-                        KtLintRuleTestEngine.Diagnostic(2, 16, "move the nested data class `Row1` to the bottom of its enclosing class"),
-                        KtLintRuleTestEngine.Diagnostic(4, 16, "move the nested data class `Row2` to the bottom of its enclosing class")
+                        KtLintRuleTestEngine.Diagnostic(2, 16, "harness:nested-data-class-last"),
+                        KtLintRuleTestEngine.Diagnostic(4, 16, "harness:nested-data-class-last")
                     )
                 formattedCode shouldBe
                     """
@@ -111,7 +111,7 @@ class NestedDataClassLastTest :
                         KtLintRuleTestEngine.Diagnostic(
                             5,
                             16,
-                            "move the nested data class `Row` to the bottom of its enclosing class",
+                            "harness:nested-data-class-last",
                             canBeAutoCorrected = true
                         )
                     )
@@ -147,7 +147,7 @@ class NestedDataClassLastTest :
                         KtLintRuleTestEngine.Diagnostic(
                             3,
                             16,
-                            "move the nested data class `Row` to the bottom of its enclosing class",
+                            "harness:nested-data-class-last",
                             canBeAutoCorrected = true
                         )
                     )
@@ -182,7 +182,7 @@ class NestedDataClassLastTest :
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             16,
-                            "move the nested data class `Row` to the bottom of its enclosing class",
+                            "harness:nested-data-class-last",
                             canBeAutoCorrected = true
                         )
                     )
@@ -234,13 +234,13 @@ class NestedDataClassLastTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         16,
-                        "move the nested data class `Row` to the bottom of its enclosing class",
+                        "harness:nested-data-class-last",
                         canBeAutoCorrected = true
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         6,
                         16,
-                        "move the nested data class `Entry` to the bottom of its enclosing class",
+                        "harness:nested-data-class-last",
                         canBeAutoCorrected = true
                     )
                 )
@@ -265,7 +265,7 @@ class NestedDataClassLastTest :
                         KtLintRuleTestEngine.Diagnostic(
                             3,
                             20,
-                            "move the nested data class `Row` to the bottom of its enclosing class",
+                            "harness:nested-data-class-last",
                             canBeAutoCorrected = true
                         )
                     )
@@ -313,7 +313,7 @@ class NestedDataClassLastTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         16,
-                        "move the nested data class `Item` to the bottom of its enclosing class",
+                        "harness:nested-data-class-last",
                         canBeAutoCorrected = false
                     )
                 )

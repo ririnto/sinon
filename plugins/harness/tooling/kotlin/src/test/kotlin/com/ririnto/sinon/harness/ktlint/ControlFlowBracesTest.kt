@@ -25,8 +25,8 @@ class ControlFlowBracesTest :
             ) {
                 diagnostics shouldContainExactlyInAnyOrder
                     listOf(
-                        KtLintRuleTestEngine.Diagnostic(2, 16, "wrap the `if` branch in `{ ... }`"),
-                        KtLintRuleTestEngine.Diagnostic(3, 10, "wrap the `else` branch in `{ ... }`")
+                        KtLintRuleTestEngine.Diagnostic(2, 16, "harness:control-flow-braces"),
+                        KtLintRuleTestEngine.Diagnostic(3, 10, "harness:control-flow-braces")
                     )
                 formattedCode shouldBe
                     """
@@ -57,9 +57,9 @@ class ControlFlowBracesTest :
             ) {
                 diagnostics shouldContainExactlyInAnyOrder
                     listOf(
-                        KtLintRuleTestEngine.Diagnostic(2, 25, "wrap the `for` body in `{ ... }`"),
-                        KtLintRuleTestEngine.Diagnostic(3, 19, "wrap the `while` body in `{ ... }`"),
-                        KtLintRuleTestEngine.Diagnostic(4, 8, "wrap the `do-while` body in `{ ... }`")
+                        KtLintRuleTestEngine.Diagnostic(2, 25, "harness:control-flow-braces"),
+                        KtLintRuleTestEngine.Diagnostic(3, 19, "harness:control-flow-braces"),
+                        KtLintRuleTestEngine.Diagnostic(4, 8, "harness:control-flow-braces")
                     )
                 formattedCode shouldBe
                     """
@@ -86,8 +86,8 @@ class ControlFlowBracesTest :
                     "val value = if (ready) {\n    1\n} else {\n    2\n}\n"
             ).forEach { (source, expected) ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
-                        listOf("wrap the `if` branch in `{ ... }`", "wrap the `else` branch in `{ ... }`")
+                    diagnostics.map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        List(2) { "harness:control-flow-braces" }
                     formattedCode shouldBe expected
                 }
             }
@@ -105,7 +105,7 @@ class ControlFlowBracesTest :
                     }
                     """.trimIndent() + "\n"
                 ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(2, 16, "wrap the `if` branch in `{ ... }`", canBeAutoCorrected = false))
+                listOf(KtLintRuleTestEngine.Diagnostic(2, 16, "harness:control-flow-braces", canBeAutoCorrected = false))
         }
     }) {
     companion object {

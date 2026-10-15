@@ -35,7 +35,7 @@ class ExplicitFunctionReturnTypeTest :
                             KtLintRuleTestEngine.Diagnostic(
                                 1,
                                 source.indexOf(name) + 1,
-                                "declare an explicit return type on named function `$name`",
+                                "harness:explicit-function-return-type",
                                 canBeAutoCorrected = true
                             )
                         )
@@ -51,7 +51,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             5,
-                            "declare an explicit return type on named function `compute`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = false
                         )
                     )
@@ -60,7 +60,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             5,
-                            "declare an explicit return type on named function `neg`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = false
                         )
                     )
@@ -69,7 +69,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             5,
-                            "declare an explicit return type on named function `composed`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = false
                         )
                     )
@@ -88,7 +88,7 @@ class ExplicitFunctionReturnTypeTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         14,
-                        "declare an explicit return type on named function `name`",
+                        "harness:explicit-function-return-type",
                         canBeAutoCorrected = false
                     )
                 )
@@ -127,7 +127,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             13,
-                            "omit the redundant `Unit` return type on named function `noop`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = true
                         )
                     )
@@ -142,7 +142,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             13,
-                            "omit the redundant `Unit` return type on named function `noop`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = true
                         )
                     )
@@ -177,7 +177,7 @@ class ExplicitFunctionReturnTypeTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         5,
-                        "declare an explicit return type on named function `clear`",
+                        "harness:explicit-function-return-type",
                         canBeAutoCorrected = false
                     )
                 )
@@ -197,7 +197,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             13,
-                            "omit the redundant `Unit` return type on named function `noop`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = true
                         )
                     )
@@ -222,7 +222,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             5,
-                            "declare an explicit return type on named function `greet`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = true
                         )
                     )
@@ -248,7 +248,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             5,
-                            "declare an explicit return type on named function `greet`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = true
                         )
                     )
@@ -267,7 +267,7 @@ class ExplicitFunctionReturnTypeTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             14,
-                            "omit the redundant `Unit` return type on named function `noop`",
+                            "harness:explicit-function-return-type",
                             canBeAutoCorrected = true
                         )
                     )

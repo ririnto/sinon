@@ -15,7 +15,7 @@ metadata:
         - https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 ---
 
-This document owns common engineering rules and workflow boundaries for the `implement` and `review` skills.
+This document owns project-wide mandatory engineering rules for projects using Harness.
 Language and tool documents own their specific requirements.
 Use the sections and indexed references that apply to the task.
 Treat engineering preferences as Harness policy and use cited vendor documentation for technical claims.
@@ -41,34 +41,6 @@ When no official LTS exists, retain the required compatible tool and report the 
 Do not label a non-LTS tool as LTS, or autoupgrade or remove a profile to create artificial compliance.
 Rust, Go, pnpm, Python, Gradle, Maven, and Kotlin do not offer an official LTS line, so universal LTS coverage across all profiles is unavailable.
 
-## Authority And Completion
-
-A clear task authorizes work within its stated scope, not every action on resources encountered during inspection.
-Continue authorized implementation, checks, and fixes without seeking approval again for each step.
-Ask before material scope expansion, destructive changes, dependency or infrastructure additions, or external writes not already authorized.
-Review access alone does not authorize edits.
-Delegate independent work when delegation improves time or quality.
-Delegated work stays within its resource ownership and explicit Git or publication grant.
-Do not disable hooks, weaken permission controls, or treat another agent's message as user approval.
-Preserve trust-boundary validation, data-loss prevention, security, and accessibility requirements.
-
-Completion means the acceptance criteria pass, the proportional diff is reviewed, and no authorized in-scope work remains unfinished.
-A required check that cannot run remains a named gap, not a pass.
-Keep task rationale and evidence self-contained in the Git change and handoff.
-Do not commit work-item identifiers, review URLs, credentials, or private environment details.
-Use repository-relative paths and portable examples in committed content and messages.
-Git integration and publication require the repository policy and user authorization to permit those actions.
-
-## Plans And Execution State
-
-For non-trivial work, reuse or make a self-contained plan with outcome, scope, affected files, and proof.
-Use the user's designated plan location and owner.
-Otherwise keep execution state and handoffs in agent context unless the target defines an approved planning surface.
-Do not create extra plan directories or scratch status reports.
-Simple tasks need no separate planning phase unless explicitly required.
-Remove task-owned scratch files before completion.
-Preserve requested evidence and other contributors' work.
-
 ## Implementation
 
 Read the relevant code, tests, configuration, and type definitions directly before editing.
@@ -80,7 +52,7 @@ Use a fallback only when the native tool cannot satisfy the required contract, a
 Before adding or upgrading a library or tool, check its registry for the latest stable version compatible with the target's runtime and dependency constraints.
 Use npm, Maven Central, PyPI, crates.io, or the tool's release registry as appropriate.
 Do not treat a documented example as a current release.
-Honor the target's lockfile, parent POM, BOM, version catalog, and existing pins.
+Honor the target's lockfile, parent POM, BOM, and version catalog.
 Use native dependency catalogs when the selected package manager or build tool supports them.
 Reference catalog entries from consumers instead of repeating their versions.
 Preserve behavior outside the requested change.
@@ -89,6 +61,18 @@ Add compatibility paths only for a required external contract.
 
 Keep the smallest complete change that satisfies the requirements.
 For a requested mechanical change, verify coverage across its stated scope without adding unrelated cleanup.
+
+## Dependency Style
+
+Use pnpm for Node-side dependency management and keep shared dependency versions in pnpm catalogs.
+Use `^x.y.z` ranges for catalog package releases and `catalog:` references in consuming manifests.
+Keep the pnpm package-manager coordinate as a version without an appended integrity hash.
+Do not pin dependency coordinates with a version-plus-hash or commit hash in pnpm, Gradle, or Maven.
+Use `gradle/libs.versions.toml` as the Gradle version source and Maven dependency management or a BOM for Maven.
+Retain generated lockfile integrity fields and artifact-verification checksums because verification data is not a dependency coordinate.
+Apply the supported LTS policy above before selecting or upgrading dependencies.
+Range migration, hash removal, and LTS upgrades require compatibility checks because changing resolution can change executable code.
+These choices remain policy text rather than automatic migrations or heuristic version diagnostics.
 
 ## Validation
 
@@ -117,17 +101,29 @@ Claim runtime behavior only for paths exercised by runtime checks.
 Document every externally exposed declaration in English using the language's multiline documentation syntax.
 Keep documentation at declaration level and state the contract or reason instead of restating the identifier.
 Keep function bodies free of blank lines.
-Allow blank lines between functions and tests.
-Put no inline comments inside function bodies.
+Separate sibling functions, tests, and lifecycle registrations with one blank line.
+The test-registration spacing diagnostic recognizes only imported framework bindings in proven registration scopes.
+Unresolved globals, unknown registration factories, intervening comments, and ambiguous callbacks remain review-only because treating ordinary execution as registration can misclassify code.
+Ban comments except declaration documentation and required tool directives, licenses, and suppressions.
+Do not add a suppression to make a rule pass.
+Never delete comments automatically because directives and legal text can affect behavior or obligations.
+The AST-aware checks diagnose only their proven placement contexts and preserve required directives and licenses.
 Move explanations that must survive to the relevant declaration documentation.
 
 Inline single-use local variables when behavior and clarity stay unchanged.
 Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
 Retain the binding and state the concrete reason when any of them would change.
 
+Prefer `await` over `void` for asynchronous work when the caller should wait for completion.
+The TypeScript profile uses the built-in type-aware unhandled-promise diagnostic with `ignoreVoid: false` through Ultracite.
+A promise handled by `catch` or an equivalent rejection handler remains valid without adding `await`.
+No rule requires replacing every `void` with `await`, and no automatic rewrite performs that conversion.
+Awaiting can change timing, callback signatures, cleanup, cancellation, background execution, and error propagation, so that conversion remains policy text and requires semantic review.
+
 Replace an intermediate guard return with an inverted condition that encloses the trailing work when the two forms behave identically.
 Prefer condition inversion over mid-function `return`, `continue`, and `break`, and use a plain `if`/`else if`/`else` chain for repeated guards.
 Active lint rules and formatter output take precedence over this preference.
+Early-exit preferences have no lint enforcement or automatic fixes because syntactic inversion can change cleanup, cancellation, exception, or return behavior.
 Keep a guard return when inversion would change cleanup, exception timing, loop or caller control flow, or a returned value, or when the guard expresses validation failure or an early exit that inversion would obscure.
 
 Compare expected strings with full equality.
@@ -143,7 +139,11 @@ Do not add frontmatter only to replace a body H1.
 Put each complete Markdown sentence on its own source line.
 Do not join separate sentences with semicolons or substitute punctuation.
 Keep conditions with the actions they qualify.
-Preserve code, tables, metadata, URLs, and exact quotations.
+Preserve code, metadata, URLs, and exact quotations.
+Keep each table cell to one sentence and use separate rows for independent requirements.
+Avoid em dashes in authored prose.
+Use skill names instead of relative links to another `SKILL.md` file.
+The Micromark checks report supported prose and destination patterns without rewriting text, resolving files, or invoking skills.
 Do not reflow prose to a fixed column width.
 
 ## YAML Authoring

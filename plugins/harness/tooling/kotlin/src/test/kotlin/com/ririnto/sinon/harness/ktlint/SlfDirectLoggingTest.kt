@@ -33,7 +33,7 @@ class SlfDirectLoggingTest :
                         KtLintRuleTestEngine.Diagnostic(
                             10,
                             16,
-                            "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                            "harness:slf-direct-logging",
                             false
                         )
                     )
@@ -64,7 +64,7 @@ class SlfDirectLoggingTest :
                         KtLintRuleTestEngine.Diagnostic(
                             11,
                             16,
-                            "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                            "harness:slf-direct-logging",
                             false
                         )
                     )
@@ -95,7 +95,7 @@ class SlfDirectLoggingTest :
                         KtLintRuleTestEngine.Diagnostic(
                             9,
                             38,
-                            "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                            "harness:slf-direct-logging",
                             false
                         )
                     )
@@ -124,31 +124,31 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         12,
-                        "direct SLF4J logging `trace`; use `logger.atTrace()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         6,
                         12,
-                        "direct SLF4J logging `debug`; use `logger.atDebug()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         12,
-                        "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         8,
                         12,
-                        "direct SLF4J logging `warn`; use `logger.atWarn()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         9,
                         12,
-                        "direct SLF4J logging `error`; use `logger.atError()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -166,7 +166,7 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         1,
                         57,
-                        "direct SLF4J logging `info`; use `org.slf4j.LoggerFactory.getLogger(\"sample\").atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -189,7 +189,7 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         12,
-                        "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -211,7 +211,7 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         12,
-                        "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -266,7 +266,7 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         4,
                         13,
-                        "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -286,7 +286,7 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         2,
                         13,
-                        "direct SLF4J logging `info`; use `logger.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -320,7 +320,7 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         5,
                         13,
-                        "direct SLF4J logging `info`; use `log.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )
@@ -383,13 +383,13 @@ class SlfDirectLoggingTest :
                     KtLintRuleTestEngine.Diagnostic(
                         7,
                         16,
-                        "direct SLF4J logging `info`; use `member.atInfo()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     ),
                     KtLintRuleTestEngine.Diagnostic(
                         8,
                         16,
-                        "direct SLF4J logging `warn`; use `logger.atWarn()` fluent logging",
+                        "harness:slf-direct-logging",
                         canBeAutoCorrected = false
                     )
                 )

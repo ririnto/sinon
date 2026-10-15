@@ -23,7 +23,7 @@ class ImportOverFqnTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             12,
-                            "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
+                            "harness:import-over-fqn",
                             canBeAutoCorrected = true
                         )
                     )
@@ -51,12 +51,12 @@ class ImportOverFqnTest :
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             8,
-                            "fully qualified name `java.util.ArrayList` used inline; add an import and use the simple name"
+                            "harness:import-over-fqn"
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             2,
                             8,
-                            "fully qualified name `kotlin.collections.LinkedList` used inline; add an import and use the simple name"
+                            "harness:import-over-fqn"
                         )
                     )
                 formattedCode shouldBe
@@ -86,7 +86,7 @@ class ImportOverFqnTest :
                         KtLintRuleTestEngine.Diagnostic(
                             3,
                             12,
-                            "fully qualified name `alpha.beta.Foo` used inline; add an import and use the simple name",
+                            "harness:import-over-fqn",
                             canBeAutoCorrected = true
                         )
                     )
@@ -142,7 +142,7 @@ class ImportOverFqnTest :
                         KtLintRuleTestEngine.Diagnostic(
                             3,
                             12,
-                            "fully qualified name `kotlin.collections.ArrayList` used inline; add an import and use the simple name",
+                            "harness:import-over-fqn",
                             canBeAutoCorrected = true
                         )
                     )
