@@ -92,6 +92,41 @@ class KotestTestAssertionsTest :
                 listOf("harness:kotest-test-assertions")
         }
 
+        test("flags standard-library assertions with a Kotlin wildcard import") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.*\nfun verify(value: String?) { requireNotNull(value) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
+        test("ignores imported names shadowed by parameters and local matcher declarations") {
+            val sources =
+                listOf(
+                    "import kotlin.require as assertCondition\nfun verify(assertCondition: (Boolean) -> Unit, condition: Boolean) { assertCondition(condition) }\n",
+                    """
+                    import io.kotest.matchers.shouldBe
+
+                    fun verify(value: String?) {
+                        fun String?.shouldBe(expected: Int) = Unit
+                        value?.shouldBe(1)
+                    }
+                    """.trimIndent() + "\n"
+                )
+            sources.forEach { source ->
+                val result =
+                    KtLintRuleTestEngine.execute(
+                        ruleProvider,
+                        source,
+                        sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    )
+                result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            }
+        }
+
         test("flags assertions in the androidTest source set") {
             val result =
                 KtLintRuleTestEngine.execute(
