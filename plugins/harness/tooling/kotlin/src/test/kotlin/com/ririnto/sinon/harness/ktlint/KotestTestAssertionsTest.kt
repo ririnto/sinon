@@ -66,6 +66,258 @@ class KotestTestAssertionsTest :
                 )
         }
 
+        test("ignores inaccessible outer declarations when resolving standard assertions") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.requireNotNull
+
+                    class Outer {
+                        fun requireNotNull(value: String?) = value
+
+                        class NestedTest {
+                            fun verify(value: String?) { requireNotNull(value) }
+                        }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
+        test("leaves package-qualified assertions shadowed by inherited kotlin properties") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertTrue
+
+                    class PackageLike {
+                        val test: PackageLike = this
+                        fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    open class PackageBase(val kotlin: PackageLike)
+
+                    class QualifiedShadowTest : PackageBase(PackageLike()) {
+                        fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
+        test("ignores inaccessible outer kotlin declarations in qualified receivers") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertTrue
+
+                    class PackageLike {
+                        val test: PackageLike = this
+                        fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    class Outer {
+                        val kotlin: PackageLike = PackageLike()
+
+                        class NestedTest {
+                            fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
+                        }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
+        test("respects inherited standard assertion names and private visibility") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.requireNotNull
+
+                    open class AssertionBase {
+                        fun requireNotNull(value: String?) = value
+                        private fun check(condition: Boolean) = Unit
+                    }
+
+                    class DerivedTest : AssertionBase() {
+                        fun verify(value: String?, condition: Boolean) {
+                            requireNotNull(value)
+                            check(condition)
+                        }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder
+                listOf(KtLintRuleTestEngine.Diagnostic(11, 9, "harness:kotest-test-assertions", canBeAutoCorrected = false))
+        }
+
+        test("flags kotlin.test Boolean assertions through imports, aliases, and package qualifiers") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertFalse
+                    import kotlin.test.assertTrue as verifyCondition
+
+                    fun verify(condition: Boolean, inverted: Boolean) {
+                        assertFalse(inverted)
+                        verifyCondition(condition)
+                        kotlin.test.assertTrue(condition)
+                        kotlin.test.assertFalse { inverted }
+                    }
+
+                    fun verifyWithLocalShadow(condition: Boolean) {
+                        fun assertTrue(condition: Boolean) = Unit
+                        assertTrue(condition)
+                        kotlin.test.assertTrue(condition)
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                listOf(
+                    "use Kotest `shouldBeFalse()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeFalse()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition"
+                )
+            result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
+        }
+
+        test("flags kotlin.test Boolean assertions imported by wildcard") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.*\nfun verify(condition: Boolean) { assertTrue(condition) }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
+                listOf("harness:kotest-test-assertions")
+        }
+
+        test("leaves wildcard assertion names ambiguous with another package wildcard") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    "import kotlin.test.*\nimport example.*\nfun verify() { assertTrue(\"ready\") }\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
+        test("flags imported assertions inside nested classes without outer instance access") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import kotlin.test.assertTrue
+
+                    class Outer {
+                        fun assertTrue(condition: Boolean) = Unit
+
+                        class NestedTest {
+                            fun verify(condition: Boolean) {
+                                assertTrue(condition)
+                                val anonymous = object {
+                                    fun run() { assertTrue(condition) }
+                                }
+                            }
+                        }
+                    }
+
+                    fun holder(assertTrue: (Boolean) -> Unit) {
+                        class LocalTest {
+                            fun verify() { assertTrue(true) }
+                        }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                listOf(
+                    "use Kotest `shouldBeTrue()` on the asserted condition",
+                    "use Kotest `shouldBeTrue()` on the asserted condition"
+                )
+        }
+
+        test("accounts for inherited members when resolving Kotlin test assertions") {
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    """
+                    import external.Base
+                    import kotlin.test.assertTrue
+
+                    open class PrivateBase {
+                        private fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    open class PropertyBase(val assertTrue: (Boolean) -> Unit)
+
+                    open class PrivatePropertyBase(private val assertTrue: (Boolean) -> Unit)
+
+                    class PrivateMemberTest : PrivateBase() {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class InheritedPropertyTest : PropertyBase({}) {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class PrivateInheritedPropertyTest : PrivatePropertyBase({}) {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class ExternalBaseTest : external.Base() {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class ImportedExternalBaseTest : Base() {
+                        fun verify(condition: Boolean) { assertTrue(condition) }
+                    }
+
+                    class ExternalBaseOuterTest : external.Base() {
+                        inner class NestedTest {
+                            fun verify(condition: Boolean) { assertTrue(condition) }
+                        }
+                    }
+
+                    open class ObjectBase {
+                        fun assertTrue(condition: Boolean) = Unit
+                    }
+
+                    class ObjectExpressionTest : ObjectBase() {
+                        fun verify(condition: Boolean) {
+                            val anonymous = object {
+                                fun run() { assertTrue(condition) }
+                            }
+                        }
+                    }
+
+                    class QualifiedExternalBaseTest : external.Base() {
+                        fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
+                    }
+                    """.trimIndent() + "\n",
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(13, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(21, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                )
+        }
+
         test("flags safe calls whose values are asserted by Kotest matchers") {
             val result =
                 KtLintRuleTestEngine.execute(
@@ -235,6 +487,20 @@ class KotestTestAssertionsTest :
                         "fun sample(assert: (Boolean) -> Unit, condition: Boolean) { assert(condition) }\n",
                     "src/test/kotlin/SampleTest.kt" to
                         "import example.assert\nfun sample(condition: Boolean) = assert(condition)\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.*\nfun sample(assertTrue: (Boolean) -> Unit, condition: Boolean) { assertTrue(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.*\nimport example.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.*\nfun sample(kotlin: TestApi, condition: Boolean) { kotlin.test.assertTrue(condition) }\n",
+                    "src/test/kotlin/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nopen class Base { fun assertTrue(condition: Boolean) = Unit }\nclass SampleTest : Base() { fun verify(condition: Boolean) { assertTrue(condition) } }\n",
+                    "src/main/kotlin/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
+                    "/workspace/src/test-project/repo/src/main/kotlin/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
+                    "test-project/SampleTest.kt" to
+                        "import kotlin.test.assertTrue\nfun sample(condition: Boolean) { assertTrue(condition) }\n",
                     "src/main/kotlin/SampleTest.kt" to "fun sample(condition: Boolean) = assert(condition)\n"
                 )
             sources.forEach { (path, source) ->

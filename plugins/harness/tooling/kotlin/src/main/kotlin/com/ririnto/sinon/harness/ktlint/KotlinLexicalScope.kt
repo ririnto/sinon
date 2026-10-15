@@ -22,51 +22,55 @@ internal object KotlinLexicalScope {
      */
     fun isDeclared(
         name: String,
-        element: PsiElement
+        element: PsiElement,
+        ignoredScopes: Set<PsiElement> = emptySet()
     ): Boolean =
         generateSequence(element, PsiElement::getParent).any { scope ->
-            hasTypeParameter(scope, name) ||
-                when (scope) {
-                    is KtFile -> {
-                        scope.declarations.any { declaration -> (declaration as? KtNamedDeclaration)?.name == name }
-                    }
+            scope !in ignoredScopes &&
+                (
+                    hasTypeParameter(scope, name) ||
+                        when (scope) {
+                            is KtFile -> {
+                                scope.declarations.any { declaration -> (declaration as? KtNamedDeclaration)?.name == name }
+                            }
 
-                    is KtBlockExpression -> {
-                        scope.children.any { child -> (child as? KtNamedDeclaration)?.name == name } ||
-                            scope.children
-                                .filterIsInstance<KtDestructuringDeclaration>()
-                                .any { declaration -> declaration.entries.any { entry -> entry.name == name } }
-                    }
+                            is KtBlockExpression -> {
+                                scope.children.any { child -> (child as? KtNamedDeclaration)?.name == name } ||
+                                    scope.children
+                                        .filterIsInstance<KtDestructuringDeclaration>()
+                                        .any { declaration -> declaration.entries.any { entry -> entry.name == name } }
+                            }
 
-                    is KtFunctionLiteral -> {
-                        hasShadowedParameter(scope, name)
-                    }
+                            is KtFunctionLiteral -> {
+                                hasShadowedParameter(scope, name)
+                            }
 
-                    is KtNamedFunction -> {
-                        scope.valueParameters.any { parameter -> parameter.name == name }
-                    }
+                            is KtNamedFunction -> {
+                                scope.valueParameters.any { parameter -> parameter.name == name }
+                            }
 
-                    is KtForExpression -> {
-                        scope.loopParameter?.name == name ||
-                            scope.destructuringDeclaration?.entries?.any { entry -> entry.name == name } == true
-                    }
+                            is KtForExpression -> {
+                                scope.loopParameter?.name == name ||
+                                    scope.destructuringDeclaration?.entries?.any { entry -> entry.name == name } == true
+                            }
 
-                    is KtCatchClause -> {
-                        scope.catchParameter?.name == name
-                    }
+                            is KtCatchClause -> {
+                                scope.catchParameter?.name == name
+                            }
 
-                    is KtClassOrObject -> {
-                        scope.name == name ||
-                            scope.declarations.any { declaration -> (declaration as? KtNamedDeclaration)?.name == name } ||
-                            (scope as? KtClass)?.primaryConstructorParameters?.any { parameter ->
-                                parameter.name == name
-                            } == true
-                    }
+                            is KtClassOrObject -> {
+                                scope.name == name ||
+                                    scope.declarations.any { declaration -> (declaration as? KtNamedDeclaration)?.name == name } ||
+                                    (scope as? KtClass)?.primaryConstructorParameters?.any { parameter ->
+                                        parameter.name == name
+                                    } == true
+                            }
 
-                    else -> {
-                        false
-                    }
-                }
+                            else -> {
+                                false
+                            }
+                        }
+                )
         }
 
     private fun hasTypeParameter(
