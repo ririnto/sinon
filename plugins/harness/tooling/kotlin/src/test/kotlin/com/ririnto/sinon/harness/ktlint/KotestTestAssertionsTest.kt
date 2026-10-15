@@ -96,11 +96,11 @@ class KotestTestAssertionsTest :
             val result =
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
-                    "import kotlin.*\nfun verify(value: String?) { requireNotNull(value) }\n",
+                    "import kotlin.*\nfun verify(value: String?, condition: Boolean) {\n    requireNotNull(value)\n    kotlin.require(condition)\n}\n",
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
             result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+                listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
         }
 
         test("ignores imported names shadowed by parameters and local matcher declarations") {
