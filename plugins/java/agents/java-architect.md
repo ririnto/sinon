@@ -2,7 +2,6 @@
 name: java-architect
 description: >-
   Resolve Java architecture decisions that cross language design, testing, dependencies, or concurrency.
-model: haiku
 color: green
 tools:
   - Read

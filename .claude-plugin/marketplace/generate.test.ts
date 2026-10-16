@@ -643,7 +643,6 @@ interface ModelAgentContract {
   readonly model: string;
   readonly effort: string;
   readonly family: string;
-  readonly tier: number;
 }
 
 const modelAgentPackages = [
@@ -653,36 +652,31 @@ const modelAgentPackages = [
         effort: "high",
         family: "Haiku",
         model: "gpt-6-luna[1m]",
-        name: "luna-high",
-        tier: 1
+        name: "luna-high"
       },
       {
         effort: "max",
         family: "Sonnet",
         model: "gpt-6-luna[1m]",
-        name: "luna-max",
-        tier: 2
+        name: "luna-max"
       },
       {
         effort: "medium",
         family: "Opus",
         model: "gpt-6.1-sol[1m]",
-        name: "sol-medium",
-        tier: 3
+        name: "sol-medium"
       },
       {
         effort: "high",
         family: "Opus",
         model: "gpt-6.1-sol[1m]",
-        name: "sol-high",
-        tier: 3
+        name: "sol-high"
       },
       {
         effort: "high",
         family: "Fable",
         model: "gpt-6-astra[1m]",
-        name: "astra",
-        tier: 4
+        name: "astra"
       }
     ],
     name: "gpt-agents"
@@ -693,22 +687,19 @@ const modelAgentPackages = [
         effort: "max",
         family: "Haiku",
         model: "glm-5.3-flash[1m]",
-        name: "glm-flash",
-        tier: 1
+        name: "glm-flash"
       },
       {
         effort: "high",
         family: "Sonnet",
         model: "glm-5.3[1m]",
-        name: "glm-high",
-        tier: 2
+        name: "glm-high"
       },
       {
         effort: "max",
         family: "Opus",
         model: "glm-5.3[1m]",
-        name: "glm-max",
-        tier: 3
+        name: "glm-max"
       }
     ],
     name: "glm-agents"
@@ -784,16 +775,14 @@ const assertModelInventory = (
     .split(/\r?\n\r?\n/u)
     .filter(
       (block) =>
-        tableCells(block.split(/\r?\n/u)[0]).join("|") ===
-        "Agent|Model|Effort|Tier"
+        tableCells(block.split(/\r?\n/u)[0]).join("|") === "Agent|Model|Effort"
     );
   expect(tables).toHaveLength(1);
   expect(tables[0].split(/\r?\n/u).slice(2).map(tableCells)).toEqual(
     contracts.map((contract) => [
       contract.name,
       contract.model,
-      contract.effort,
-      String(contract.tier)
+      contract.effort
     ])
   );
 };

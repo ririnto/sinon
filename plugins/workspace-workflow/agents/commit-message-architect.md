@@ -1,7 +1,6 @@
 ---
 name: commit-message-architect
 description: Draft a Conventional Commit message from staged changes and assess whether they form one logical commit.
-model: haiku
 color: purple
 tools:
   - Read

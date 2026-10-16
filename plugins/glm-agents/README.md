@@ -35,6 +35,8 @@ Claude Code loads the agents from the plugin's default `agents/` directory.
 Each agent's `effort` value requests its reasoning effort through the configured gateway.
 Codex lists the plugin through its native manifest but loads no components from it.
 Codex plugin manifests declare skills, MCP servers, apps, and hooks, but not custom agents, so the package ships no Codex agent definitions.
+When Workgraph governs orchestration, read its installed Main Agent Contract before selecting agents.
+Read its matching host reference, `references/claude.md` or `references/codex.md`, before selecting models or effort.
 
 ## Gateway Prerequisites
 
@@ -60,7 +62,7 @@ Accounts that previously held a GLM Coding Plan subscription, including expired 
 Those accounts cannot use the native endpoint and need a translation gateway or another eligible account.
 If using a custom gateway instead, replace the base URL and credential with the values issued by its operator.
 Use `ANTHROPIC_API_KEY` instead if the gateway requires `x-api-key` authentication.
-Confirm the gateway URL in `/status` and test each agent through the gateway before relying on its tier.
+Confirm the gateway URL in `/status` and test each agent through the gateway before relying on it.
 Use `/tasks` to inspect a running agent's model and effort.
 The inventory lists frontmatter values, including the context suffix.
 Compare gateway diagnostics with the unsuffixed prerequisite IDs and the inventory's effort values.
@@ -87,10 +89,10 @@ If managed policy enforces an override, these definitions cannot guarantee their
 Each discovery description tells callers not to specify a model or effort override when selecting the agent.
 This instruction guides callers but does not prevent per-invocation or host-enforced overrides.
 Managed `maxEffortLevel` and any applicable organization effort limits must permit the requested level.
-Otherwise Claude Code can clamp effort, and the listed tiers no longer imply distinct reasoning settings.
+Otherwise Claude Code can clamp effort, so the requested effort values may not take effect.
 If an `availableModels` allowlist applies, it must include `glm-5.3` and `glm-5.3-flash`.
 Claude Code strips `[1m]` from both allowlist entries and requested IDs before matching.
-Otherwise Claude Code substitutes another model for a blocked agent, and the listed tiers no longer hold.
+Otherwise Claude Code substitutes another model for a blocked agent, so the inventory's model value may not apply.
 
 The gateway must translate `output_config.effort` to the upstream model's supported reasoning setting and honor every effort listed below.
 Verify distinct effort values in gateway request diagnostics without exposing credentials or conversation content.
@@ -139,26 +141,11 @@ claude --plugin-dir ./plugins/glm-agents
 
 ## Included Agents
 
-| Agent | Model | Effort | Tier |
-| --- | --- | --- | --- |
-| `glm-flash` | `glm-5.3-flash[1m]` | `max` | 1 |
-| `glm-high` | `glm-5.3[1m]` | `high` | 2 |
-| `glm-max` | `glm-5.3[1m]` | `max` | 3 |
-
-## Equivalence Tiers
-
-These tiers are repository task-routing preferences, not vendor claims of equal performance or cost.
-Pick an agent by tier when a task calls for a Claude model class.
-Tier 4 agents run only on explicit request.
-
-| Tier | Workload | Claude | `gpt-agents` | `glm-agents` |
-| --- | --- | --- | --- | --- |
-| 1 | Clear, bounded tasks | `haiku` | `luna-high` | `glm-flash` |
-| 2 | Broader development and analysis | `sonnet` | `luna-max` | `glm-high` |
-| 3 | Conflicting evidence and hard tradeoffs | `opus` | `sol-medium`, `sol-high` | `glm-max` |
-| 4 | Hardest or longest work | `fable` | `astra` | None |
-
-`sol-medium` and `sol-high` mirror the medium and high effort choices for Tier 3 work.
+| Agent | Model | Effort |
+| --- | --- | --- |
+| `glm-flash` | `glm-5.3-flash[1m]` | `max` |
+| `glm-high` | `glm-5.3[1m]` | `high` |
+| `glm-max` | `glm-5.3[1m]` | `max` |
 
 ## Package Contents
 
