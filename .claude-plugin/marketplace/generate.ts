@@ -574,8 +574,31 @@ export const createCodexMarketplace = async (
   };
 };
 
+const assertOutputEntry = async (
+  entryPath: string,
+  expectedType: "directory" | "file"
+): Promise<void> => {
+  let entry;
+  try {
+    entry = await lstat(entryPath);
+  } catch (error) {
+    if (isRecord(error) && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
+  const allowed =
+    expectedType === "file"
+      ? entry.isFile() && entry.nlink === 1
+      : entry.isDirectory();
+  if (!allowed) {
+    throw new Error(`Unsafe generated marketplace output: ${entryPath}`);
+  }
+};
+
 /**
  * Generates the checked-in marketplace or verifies that it matches current inputs.
+ * Output admission assumes no concurrent mutation of the repository output tree.
  * Check mode reads the generated file and reports drift without writing files.
  */
 export const syncCodexMarketplace = async (
@@ -588,6 +611,9 @@ export const syncCodexMarketplace = async (
     repositoryRoot
   );
   const outputPath = path.resolve(repositoryRoot, generatedCatalogPath);
+  await assertOutputEntry(path.dirname(path.dirname(outputPath)), "directory");
+  await assertOutputEntry(path.dirname(outputPath), "directory");
+  await assertOutputEntry(outputPath, "file");
   const expected = `${JSON.stringify(marketplace, null, 2)}\n`;
   if (checkOnly) {
     let current: string;

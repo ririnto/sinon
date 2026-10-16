@@ -1,8 +1,14 @@
+import { spawnSync } from "node:child_process";
 import {
+  copyFileSync,
+  linkSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
+  readlinkSync,
+  realpathSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -385,6 +391,215 @@ test("check mode reports drift without rewriting the generated marketplace", asy
   await expect(syncCodexMarketplace(source, root, true)).rejects.toThrow(Error);
   expect(readFileSync(outputPath, "utf-8")).toBe(drift);
 });
+
+const outputComponents = [
+  ".agents",
+  ".agents/plugins",
+  ".agents/plugins/marketplace.json"
+];
+
+const emptyMarketplace =
+  '{\n  "interface": {\n    "displayName": "Sinon"\n  },\n  "name": "sinon",\n  "plugins": []\n}\n';
+
+test.each(
+  outputComponents.flatMap((component) =>
+    [false, true].flatMap((checkOnly) =>
+      [false, true].map((dangling) => ({ checkOnly, component, dangling }))
+    )
+  )
+)(
+  "rejects output symlink $component with check=$checkOnly and dangling=$dangling",
+  async ({ component, checkOnly, dangling }) => {
+    const root = makeRoot();
+    const outside = makeRoot();
+    const target = path.join(outside, dangling ? "missing" : "target");
+    const isFile = component.endsWith(".json");
+    const sentinel = isFile
+      ? target
+      : path.join(
+          target,
+          component === ".agents" ? "plugins" : "",
+          "marketplace.json"
+        );
+    const original = checkOnly ? emptyMarketplace : "external sentinel\n";
+    if (!dangling) {
+      mkdirSync(path.dirname(sentinel), { recursive: true });
+      writeFileSync(sentinel, original);
+      utimesSync(sentinel, 1, 1);
+    }
+    const link = path.join(root, component);
+    mkdirSync(path.dirname(link), { recursive: true });
+    symlinkSync(target, link, isFile ? "file" : "dir");
+    const originalEntries = readdirSync(root, { recursive: true }).toSorted();
+    const outsideEntries = readdirSync(outside, { recursive: true }).toSorted();
+    await expect(
+      syncCodexMarketplace(catalog([]), root, checkOnly)
+    ).rejects.toThrow(Error);
+    expect(lstatSync(link).isSymbolicLink()).toBe(true);
+    expect(readlinkSync(link)).toBe(target);
+    expect(readdirSync(root, { recursive: true }).toSorted()).toEqual(
+      originalEntries
+    );
+    expect(readdirSync(outside, { recursive: true }).toSorted()).toEqual(
+      outsideEntries
+    );
+    if (!dangling) {
+      expect(readFileSync(sentinel, "utf-8")).toBe(original);
+      expect(statSync(sentinel).mtimeMs).toBe(1000);
+    }
+  }
+);
+
+test.each(
+  outputComponents
+    .slice(0, -1)
+    .flatMap((component) =>
+      [false, true].map((checkOnly) => ({ checkOnly, component }))
+    )
+)(
+  "rejects a regular file at output directory $component with check=$checkOnly",
+  async ({ component, checkOnly }) => {
+    const root = makeRoot();
+    const target = path.join(root, component);
+    mkdirSync(path.dirname(target), { recursive: true });
+    writeFileSync(target, "directory sentinel\n");
+    await expect(
+      syncCodexMarketplace(catalog([]), root, checkOnly)
+    ).rejects.toThrow(Error);
+    expect(readFileSync(target, "utf-8")).toBe("directory sentinel\n");
+  }
+);
+
+test.each([false, true])(
+  "rejects an output directory with check=%s without modification",
+  async (checkOnly) => {
+    const root = makeRoot();
+    const output = path.join(root, ".agents/plugins/marketplace.json");
+    mkdirSync(output, { recursive: true });
+    const sentinel = path.join(output, "sentinel");
+    writeFileSync(sentinel, "directory sentinel\n");
+    await expect(
+      syncCodexMarketplace(catalog([]), root, checkOnly)
+    ).rejects.toThrow(Error);
+    expect(readdirSync(output)).toEqual(["sentinel"]);
+    expect(readFileSync(sentinel, "utf-8")).toBe("directory sentinel\n");
+  }
+);
+
+test.each([false, true])(
+  "rejects a multiply linked output with check=%s without modification",
+  async (checkOnly) => {
+    const root = makeRoot();
+    const output = path.join(root, ".agents/plugins/marketplace.json");
+    mkdirSync(path.dirname(output), { recursive: true });
+    const outside = path.join(makeRoot(), "sentinel");
+    writeFileSync(outside, emptyMarketplace);
+    linkSync(outside, output);
+    await expect(
+      syncCodexMarketplace(catalog([]), root, checkOnly)
+    ).rejects.toThrow(Error);
+    expect(readFileSync(outside, "utf-8")).toBe(emptyMarketplace);
+    expect(readFileSync(output, "utf-8")).toBe(emptyMarketplace);
+    expect(statSync(output).nlink).toBe(2);
+    expect(statSync(output).ino).toBe(statSync(outside).ino);
+  }
+);
+
+test.each([false, true])(
+  "creates and refreshes ordinary output with existing agents=%s",
+  async (existingAgents) => {
+    const root = makeRoot();
+    const output = path.join(root, ".agents/plugins/marketplace.json");
+    if (existingAgents) {
+      mkdirSync(path.join(root, ".agents"));
+    }
+    const originalEntries = readdirSync(root, { recursive: true }).toSorted();
+    await expect(syncCodexMarketplace(catalog([]), root, true)).rejects.toThrow(
+      Error
+    );
+    expect(readdirSync(root, { recursive: true }).toSorted()).toEqual(
+      originalEntries
+    );
+    await syncCodexMarketplace(catalog([]), root, false);
+    expect(readFileSync(output, "utf-8")).toBe(emptyMarketplace);
+    writeFileSync(output, "stale\n");
+    await syncCodexMarketplace(catalog([]), root, false);
+    expect(readFileSync(output, "utf-8")).toBe(emptyMarketplace);
+  }
+);
+
+test.each(outputComponents)(
+  "CLI rejects output symlink %s and preserves external bytes",
+  (component) => {
+    const root = realpathSync(makeRoot());
+    const outside = makeRoot();
+    const generator = path.join(root, ".claude-plugin/marketplace/generate.ts");
+    mkdirSync(path.dirname(generator), { recursive: true });
+    copyFileSync(new URL("generate.ts", import.meta.url), generator);
+    writeFileSync(path.join(root, "package.json"), '{"type":"module"}\n');
+    writeFileSync(
+      path.join(root, ".claude-plugin/marketplace.json"),
+      JSON.stringify(catalog([]))
+    );
+    const sentinel = path.join(
+      outside,
+      component === ".agents" ? "plugins" : "",
+      "marketplace.json"
+    );
+    writeFileSync(sentinel, emptyMarketplace);
+    const link = path.join(root, component);
+    mkdirSync(path.dirname(link), { recursive: true });
+    const target = component.endsWith(".json") ? sentinel : outside;
+    symlinkSync(target, link, component.endsWith(".json") ? "file" : "dir");
+    for (const args of [[], ["--check"]]) {
+      const result = spawnSync(
+        process.execPath,
+        ["--import", import.meta.resolve("tsx"), generator, ...args],
+        { encoding: "utf-8", timeout: 10_000 }
+      );
+      expect(result.error).toBeUndefined();
+      expect(result.signal).toBeNull();
+      expect(result.status).toBe(1);
+      expect(readFileSync(sentinel, "utf-8")).toBe(emptyMarketplace);
+      expect(readlinkSync(link)).toBe(target);
+    }
+  }
+);
+
+test.each(
+  outputComponents.flatMap((component) =>
+    [false, true].map((checkOnly) => ({ checkOnly, component }))
+  )
+)(
+  "rejects relative in-repository output symlink $component with check=$checkOnly",
+  async ({ component, checkOnly }) => {
+    const root = makeRoot();
+    const target = path.join(root, "target");
+    const isFile = component.endsWith(".json");
+    const sentinel = isFile
+      ? target
+      : path.join(
+          target,
+          component === ".agents" ? "plugins" : "",
+          "marketplace.json"
+        );
+    mkdirSync(path.dirname(sentinel), { recursive: true });
+    writeFileSync(sentinel, emptyMarketplace);
+    const link = path.join(root, component);
+    mkdirSync(path.dirname(link), { recursive: true });
+    const relativeTarget = path.relative(path.dirname(link), target);
+    symlinkSync(relativeTarget, link, isFile ? "file" : "dir");
+    const originalEntries = readdirSync(root, { recursive: true }).toSorted();
+    await expect(
+      syncCodexMarketplace(catalog([]), root, checkOnly)
+    ).rejects.toThrow(Error);
+    expect(readlinkSync(link)).toBe(relativeTarget);
+    expect(readFileSync(sentinel, "utf-8")).toBe(emptyMarketplace);
+    expect(readdirSync(root, { recursive: true }).toSorted()).toEqual(
+      originalEntries
+    );
+  }
+);
 
 interface ModelAgentContract {
   readonly name: string;
