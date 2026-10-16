@@ -157,18 +157,18 @@ describe("docs/sentence-per-line", () => {
       [18, 1]
     ],
     [
-      "an inline-code object placeholder",
-      "A status is stale; reviewers changed the `endpoint`.\n",
+      "an auxiliary clause with an inline-code object",
+      "A status is stale; reviewers have changed the `endpoint`.\n",
       [18, 1]
     ],
     [
-      "a link object placeholder",
-      "A status is stale; reviewers changed the [endpoint](https://example.com).\n",
+      "an auxiliary clause with a link object",
+      "A status is stale; reviewers have changed the [endpoint](https://example.com).\n",
       [18, 1]
     ],
     [
-      "a quoted object placeholder",
-      'A status is stale; reviewers changed the "endpoint".\n',
+      "an auxiliary clause with a quoted object",
+      'A status is stale; reviewers have changed the "endpoint".\n',
       [18, 1]
     ],
     [
@@ -182,8 +182,8 @@ describe("docs/sentence-per-line", () => {
       [18, 1]
     ],
     [
-      "a quoted label and inline-code object after astral prose",
-      '😀 "label" A status is stale; reviewers changed the `endpoint`.\n',
+      "a visible object after a quoted label and astral prose",
+      '😀 "label" A status is stale; reviewers changed the endpoint.\n',
       [29, 1]
     ],
     [
@@ -258,6 +258,33 @@ describe("docs/sentence-per-line", () => {
     expect(applyFixes(input, errors)).toBe(input);
   });
 
+  test("reports the semicolon after a degree list", () => {
+    const input =
+      "The kit contains tools used the least; tools used the most; reviewers changed the endpoint.\n";
+    const errors =
+      lint({
+        config: { default: false, "docs/sentence-per-line": true },
+        customRules: rootSentenceRules,
+        strings: { input }
+      }).input ?? [];
+    expect(
+      errors.map((error) => ({
+        errorRange: error.errorRange,
+        fixInfo: error.fixInfo,
+        lineNumber: error.lineNumber,
+        ruleNames: error.ruleNames
+      }))
+    ).toEqual([
+      {
+        errorRange: [59, 1],
+        fixInfo: null,
+        lineNumber: 1,
+        ruleNames: ["docs/sentence-per-line"]
+      }
+    ]);
+    expect(applyFixes(input, errors)).toBe(input);
+  });
+
   test.each([
     [
       "the apps, services, and workers list",
@@ -274,6 +301,46 @@ describe("docs/sentence-per-line", () => {
     [
       "the removed temporal list",
       "The archive contains documents removed the previous day; files removed the same day.\n"
+    ],
+    [
+      "a temporal link object",
+      "The archive contains documents removed the previous day; files removed the [same day](https://example.com).\n"
+    ],
+    [
+      "a temporal inline-code object",
+      "The archive contains documents removed the previous day; files removed the `same day`.\n"
+    ],
+    [
+      "a temporal quoted object",
+      'The archive contains documents removed the previous day; files removed the "same day".\n'
+    ],
+    [
+      "a degree list from least to most",
+      "The kit contains tools used the least; tools used the most.\n"
+    ],
+    [
+      "a degree list from most to least",
+      "The archive contains documents changed the most; files changed the least.\n"
+    ],
+    [
+      "a degree list from shortest to longest",
+      "The kit contains tools used the shortest; tools used the longest.\n"
+    ],
+    [
+      "a degree list from worst to best",
+      "The kit contains tools used the worst; tools used the best.\n"
+    ],
+    [
+      "a degree list from best to worst",
+      "The kit contains tools used the best; tools used the worst.\n"
+    ],
+    [
+      "a degree list from slowest to fastest",
+      "The kit contains tools changed the slowest; tools changed the fastest.\n"
+    ],
+    [
+      "a degree list from fastest to furthest",
+      "The kit contains tools changed the fastest; tools changed the furthest.\n"
     ],
     [
       "week and day references",
