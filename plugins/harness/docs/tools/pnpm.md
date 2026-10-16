@@ -176,6 +176,12 @@ Extend the existing rule rather than adding a second parser, rule package, or pr
 
 The rule reports `.`, `!`, or `?` followed by an uppercase or numeric sentence start on the same line.
 It recognizes common abbreviations and semicolon joins using bounded English patterns.
+New regular past forms come only from existing imperative verbs that end in `e`, with `d` added and `leave` and `write` excluded.
+The rule recognizes these forms only with a one-word object introduced by `the` at the end of a clause.
+The object word must end immediately before `.`, `!`, `?`, `;`, `；`, or the physical line ending.
+The object word may start with a Unicode letter, number, or underscore and continue with Unicode letters, numbers, combining marks, underscores, apostrophes, or hyphens.
+These restrictions apply only to the additional forms and preserve the existing finite-verb patterns.
+The extension does not cover other object markers, object pronouns, multiword objects, irregular or unlisted past forms, or adverbs between a bare subject and its verb.
 Organization suffixes such as `Inc.` and enumeration suffixes such as `etc.` can end a sentence when the following text starts a recognized independent clause or instruction.
 Capitalization alone does not establish an independent clause after a semicolon.
 Conjunctive adverbs must start the following clause rather than occur inside a later list item.

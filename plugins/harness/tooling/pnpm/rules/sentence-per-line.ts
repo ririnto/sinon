@@ -14,7 +14,16 @@ const conjunctiveAdverbPattern =
 const imperativeTailVerbs =
   "retry|rerun|resume|restart|return|repeat|replace|remove|restore|reset|rebuild|record|report|repoint|reject|require|request|reuse|run|write|use|set|send|keep|leave|copy|check|confirm|continue|verify|wait|add|apply|change|delete|drop|edit|fix|load|open|pin|scan|show|skip|test|treat|validate|view";
 const finiteTailVerbs =
-  "is|are|was|were|be|been|being|has|have|had|does|do|did|will|would|can|could|shall|should|may|might|must|stays?|remains?|starts?|ends?|fails?|passes?|follows?|returns?|owns?|moves?|loses?|gains?|keeps?|uses?|covers?|certif(?:ies|y)|validates?|loads?|ships?|runs?|exists?";
+  "is|are|was|were|be|been|being|has|have|had|does|do|did|will|would|can|could|shall|should|may|might|must|stays?|remains?|starts?|ends?|fails?|passes?|follows?|returns?|owns?|moves?|loses?|gains?|keeps?|uses?|covers?|certif(?:ies|y)|validates?|loads?|ships?|runs?|exists?|" +
+  `(?:${imperativeTailVerbs
+    .split("|")
+    .filter(
+      (stem) => stem.endsWith("e") && stem !== "leave" && stem !== "write"
+    )
+    .map((stem) => `${stem}d`)
+    .join(
+      "|"
+    )})(?=\\s+the\\s+[\\p{L}\\p{N}_][\\p{L}\\p{N}\\p{M}_'’-]*(?:[.!?;；]|$))`;
 const subjectLeads =
   "this|that|these|those|it|they|we|you|he|she|who|which|another|each|every|some|all|both|one|two|three|the|a|an";
 const clauseStartPattern = new RegExp(

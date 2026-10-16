@@ -3,6 +3,7 @@ import type { Rule } from "markdownlint";
 import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 
+import rootSentenceRules from "../../../../../rules/sentence-per-line.js";
 import boxDrawing from "./no-box-drawing.js";
 import {
   sentencePerLine,
@@ -124,6 +125,183 @@ describe("docs/sentence-per-line", () => {
     "Multiple sentences on one line; put each sentence on its own line.";
   const semicolon =
     "Semicolon-joined sentences on one line; put each sentence on its own line.";
+  test.each([
+    [
+      "the reported regular past-tense clause",
+      "The configuration is stale; reviewers changed the endpoint.\n",
+      [27, 1]
+    ],
+    [
+      "a pronoun subject",
+      "A status is stale; They changed the endpoint.\n",
+      [18, 1]
+    ],
+    [
+      "a determiner-led subject",
+      "A status is stale; The reviewers changed the endpoint.\n",
+      [18, 1]
+    ],
+    [
+      "a regular past form derived from remove",
+      "A status is stale; reviewers removed the record.\n",
+      [18, 1]
+    ],
+    [
+      "a regular past form derived from restore",
+      "A status is stale; reviewers restored the guide.\n",
+      [18, 1]
+    ],
+    [
+      "a regular past form derived from validate",
+      "A status is stale; reviewers validated the settings.\n",
+      [18, 1]
+    ],
+    [
+      "an inline-code object placeholder",
+      "A status is stale; reviewers changed the `endpoint`.\n",
+      [18, 1]
+    ],
+    [
+      "a link object placeholder",
+      "A status is stale; reviewers changed the [endpoint](https://example.com).\n",
+      [18, 1]
+    ],
+    [
+      "a quoted object placeholder",
+      'A status is stale; reviewers changed the "endpoint".\n',
+      [18, 1]
+    ],
+    [
+      "an object with a combining mark",
+      "A status is stale; reviewers changed the e\u0301ndpoint.\n",
+      [18, 1]
+    ],
+    [
+      "a non-Latin object",
+      "A status is stale; reviewers changed the 配置.\n",
+      [18, 1]
+    ],
+    [
+      "a quoted label and inline-code object after astral prose",
+      '😀 "label" A status is stale; reviewers changed the `endpoint`.\n',
+      [29, 1]
+    ],
+    [
+      "a fullwidth semicolon",
+      "A status is stale； reviewers changed the endpoint.\n",
+      [18, 1]
+    ],
+    [
+      "the same clause on a later physical line",
+      "First stands alone.\nA status is stale; reviewers changed the endpoint.\n",
+      [18, 1],
+      2
+    ]
+  ])(
+    "reports a regular past-tense clause after %s",
+    (_name, input, range, lineNumber = 1) => {
+      const errors =
+        lint({
+          config: { default: false, "docs/sentence-per-line": true },
+          customRules: rootSentenceRules,
+          strings: { input }
+        }).input ?? [];
+      expect(
+        errors.map((error) => ({
+          errorRange: error.errorRange,
+          fixInfo: error.fixInfo,
+          lineNumber: error.lineNumber,
+          ruleNames: error.ruleNames
+        }))
+      ).toEqual([
+        {
+          errorRange: range,
+          fixInfo: null,
+          lineNumber,
+          ruleNames: ["docs/sentence-per-line"]
+        }
+      ]);
+      expect(applyFixes(input, errors)).toBe(input);
+    }
+  );
+
+  test("keeps the shared abbreviation check and one diagnostic per kind", () => {
+    const input =
+      "The vendor is Acme Inc. Reviewers changed the endpoint; reviewers restored the guide; reviewers removed the record.\n";
+    const errors =
+      lint({
+        config: { default: false, "docs/sentence-per-line": true },
+        customRules: rootSentenceRules,
+        strings: { input }
+      }).input ?? [];
+    expect(
+      errors.map((error) => ({
+        errorRange: error.errorRange,
+        fixInfo: error.fixInfo,
+        lineNumber: error.lineNumber,
+        ruleNames: error.ruleNames
+      }))
+    ).toEqual([
+      {
+        errorRange: [23, 1],
+        fixInfo: null,
+        lineNumber: 1,
+        ruleNames: ["docs/sentence-per-line"]
+      },
+      {
+        errorRange: [55, 1],
+        fixInfo: null,
+        lineNumber: 1,
+        ruleNames: ["docs/sentence-per-line"]
+      }
+    ]);
+    expect(applyFixes(input, errors)).toBe(input);
+  });
+
+  test.each([
+    [
+      "the apps, services, and workers list",
+      "The components are apps named the controller; services named the gateway; and workers named the queue.\n"
+    ],
+    [
+      "the document, record, and note list",
+      "The inventory includes a document titled The Guide; a record named the index; and a note labeled the summary.\n"
+    ],
+    [
+      "the copied and changed temporal list",
+      "The archive contains documents filed the previous day; files copied the same day; and records changed the next day.\n"
+    ],
+    [
+      "the removed temporal list",
+      "The archive contains documents removed the previous day; files removed the same day.\n"
+    ],
+    [
+      "week and day references",
+      "The archive contains documents changed this week; files changed that day.\n"
+    ],
+    [
+      "day and week age references",
+      "The archive contains documents removed a day ago; files removed a week ago.\n"
+    ],
+    [
+      "an object marker without a word",
+      "A status is stale; reviewers changed the.\n"
+    ],
+    [
+      "a punctuation-only object",
+      "A status is stale; reviewers changed the -.\n"
+    ]
+  ])("preserves %s without diagnostics or fixes", (_name, input) => {
+    const errors =
+      lint({
+        config: { default: false, "docs/sentence-per-line": true },
+        customRules: rootSentenceRules,
+        strings: { input }
+      }).input ?? [];
+    expect(errors).toEqual([]);
+    expect(applyFixes(input, errors)).toBe(input);
+  });
+
   test.each([
     ["one sentence per line", "First stands alone.\nSecond follows.\n"],
     [
