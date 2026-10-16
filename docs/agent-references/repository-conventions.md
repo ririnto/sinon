@@ -69,7 +69,9 @@ State a contract or reason instead of restating the identifier.
 
 Keep supported `continuation_indent_size` and `ij_continuation_indent_size` settings equal to the language's `indent_size`, including narrower section overrides.
 Verify section glob matching with the supported consumer before changing valid selectors.
-Use supported IDE import preferences to permit star imports without weakening lint rules.
+Allow explicit imports and valid wildcard imports without weakening lint rules.
+Preserve existing import style and prior or default conversion thresholds.
+Do not introduce star-import preferences, threshold-one overrides, or automatic single-import-to-star conversion merely to allow wildcard imports.
 Inspect the actual IDE property names instead of deriving them from a UI label.
 Preserve target-owned configuration and apply authorized bounded merges.
 

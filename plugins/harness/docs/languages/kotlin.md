@@ -2,11 +2,6 @@
 title: Kotlin Rules
 metadata:
   reference:
-    JetBrains import preferences:
-      url:
-        - https://www.jetbrains.com/help/idea/code-style-kotlin.html
-        - https://raw.githubusercontent.com/JetBrains/intellij-community/master/plugins/kotlin/idea/tests/testData/codeStyle/officialCodeStyle.json
-        - https://raw.githubusercontent.com/JetBrains/intellij-community/master/plugins/kotlin/idea/tests/testData/editor/optimizeImports/common/basic/UsedStarImport.kt
     Kotlin Coding Conventions:
       url: https://kotlinlang.org/docs/_llms/coding-conventions.txt
     Kotlin Callable References:
@@ -171,8 +166,6 @@ Production source paths remain unaffected.
 Prefer a class import when its simple name is unambiguous.
 Keep a fully qualified name when importing it would collide with a declaration, another imported type, or an alias.
 Wildcard imports are permitted.
-The EditorConfig profile sets `ij_kotlin_name_count_to_use_star_import` and `ij_kotlin_name_count_to_use_star_import_for_members` to `1` so IDE import optimization can retain wildcard imports.
-These IDE preferences also allow optimization to create wildcard imports without changing lint policy.
 The Kotlin profile disables ktlint's standard wildcard-import ban to honor this repository rule.
 Meaningful Kotlin aliases remain available when two imported declarations share a simple name.
 The `harness:import-over-fqn` rule examines fully qualified type references only and reports candidates with one import path for their simple name and no conflicting declaration, import, alias, wildcard import, same-package reference, or existing unqualified use.

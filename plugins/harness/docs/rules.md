@@ -108,7 +108,9 @@ JetBrains uses `ij_continuation_indent_size` for this preference.
 The unprefixed `continuation_indent_size` is not an EditorConfig core property and does not establish support in another IDE.
 Validate any consumer that uses the unprefixed hint separately.
 Verify section glob matching with the supported consumer before changing valid selectors.
-Use supported IDE import preferences to permit star imports without weakening lint rules.
+Allow explicit imports and valid wildcard imports without weakening lint rules.
+Preserve existing import style and prior or default conversion thresholds.
+Do not introduce star-import preferences, threshold-one overrides, or automatic single-import-to-star conversion merely to allow wildcard imports.
 Inspect the actual IDE property names instead of deriving them from a UI label.
 Preserve target-owned configuration and apply authorized bounded merges through the selected profile.
 Source profile updates do not automatically update existing target projects.
