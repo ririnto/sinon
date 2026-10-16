@@ -41,6 +41,25 @@
     },
     {
       "author": {
+        "name": "Eric Zakariasson"
+      },
+      "category": "development",
+      "description": "Upstream engineering workflow skills with Cursor-specific agents and rules.",
+      "license": "MIT",
+      "name": "cursor-team-kit",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/cursor/plugins.git",
+        "path": "cursor-team-kit",
+        "ref": "main"
+      },
+      "strict": false,
+      "homepage": "https://github.com/cursor/plugins/tree/main/cursor-team-kit",
+      "repository": "https://github.com/cursor/plugins",
+      "keywords": ["cursor-team-kit", "workflow", "skills", "verification"]
+    },
+    {
+      "author": {
         "name": "ririnto"
       },
       "description": "DDGS web search and content extraction MCP tools.",
@@ -257,7 +276,6 @@
         "ref": "main"
       },
       "strict": false,
-      "version": "0.15.25",
       "homepage": "https://github.com/cursor/plugins/tree/main/pstack",
       "repository": "https://github.com/cursor/plugins",
       "keywords": ["pstack", "workflow", "principles", "subagents", "unslop"]

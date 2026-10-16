@@ -19,7 +19,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { expect, onTestFinished, test } from "vitest";
-import { isScalar, parseDocument, Scalar } from "yaml";
+import { isMap, isScalar, isSeq, parseDocument, Scalar } from "yaml";
 
 import { createCodexMarketplace, syncCodexMarketplace } from "./generate.js";
 
@@ -135,6 +135,43 @@ test.each([
     }
   ]);
 });
+
+test.each(["cursor-team-kit", "pstack"])(
+  "registers original upstream %s without a catalog version",
+  async (name) => {
+    const document = parseDocument(
+      readFileSync(new URL("../marketplace.json", import.meta.url), "utf-8")
+    );
+    const plugins = document.get("plugins", true);
+    if (!isSeq(plugins)) {
+      throw new Error("Missing catalog plugins");
+    }
+    const entry = plugins.items.find(
+      (plugin) => isMap(plugin) && plugin.get("name") === name
+    );
+    if (!isMap(entry)) {
+      throw new Error(`Missing catalog plugin ${name}`);
+    }
+    const source = {
+      path: name,
+      ref: "main",
+      source: "git-subdir",
+      url: "https://github.com/cursor/plugins.git"
+    };
+    expect(entry.has("version")).toBe(false);
+    expect(entry.toJSON()).toMatchObject({ name, source, strict: false });
+    const result = await createCodexMarketplace(
+      document.toJSON(),
+      realpathSync(new URL("../../", import.meta.url))
+    );
+    expect(result.plugins.find((plugin) => plugin.name === name)).toEqual({
+      category: "Development",
+      name,
+      policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
+      source
+    });
+  }
+);
 
 test.each([
   { path: undefined },

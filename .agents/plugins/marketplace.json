@@ -43,6 +43,20 @@
     },
     {
       "category": "Development",
+      "name": "cursor-team-kit",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "ref": "main",
+        "path": "cursor-team-kit",
+        "source": "git-subdir",
+        "url": "https://github.com/cursor/plugins.git"
+      }
+    },
+    {
+      "category": "Development",
       "name": "ddgs",
       "policy": {
         "authentication": "ON_INSTALL",
