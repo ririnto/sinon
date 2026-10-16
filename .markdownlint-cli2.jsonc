@@ -27,9 +27,9 @@
     }
   },
   "customRules": [
-    "./plugins/harness/tooling/pnpm/rules/no-box-drawing.ts",
-    "./plugins/harness/tooling/pnpm/rules/sentence-per-line.ts",
-    "./plugins/harness/tooling/pnpm/rules/table-separators.ts"
+    "plugins/harness/tooling/pnpm/rules/no-box-drawing.ts",
+    "plugins/harness/tooling/pnpm/rules/sentence-per-line.ts",
+    "plugins/harness/tooling/pnpm/rules/table-separators.ts"
   ],
   "gitignore": true,
   "globs": ["**/*.md"]

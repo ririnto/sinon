@@ -6,6 +6,9 @@ metadata:
       url: https://github.com/grafana/grafana/releases/tag/v13.2.3
     Grafana releases:
       url: https://github.com/grafana/grafana/releases
+    Grafana query variable reducer:
+      version: Grafana 13.2.3
+      url: https://raw.githubusercontent.com/grafana/grafana/v13.2.3/public/app/features/variables/query/reducer.ts
     Grafana variable docs:
       version: Grafana 13.2.3
       url:

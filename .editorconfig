@@ -4,11 +4,12 @@ root = true
 charset = utf-8
 end_of_line = lf
 indent_size = 4
+continuation_indent_size = 4
+ij_continuation_indent_size = 4
 indent_style = space
 insert_final_newline = true
 max_line_length = 120
 tab_width = 4
-ij_continuation_indent_size = 4
 ij_formatter_off_tag = @formatter:off
 ij_formatter_on_tag = @formatter:on
 ij_formatter_tags_enabled = true
@@ -26,6 +27,8 @@ ij_editorconfig_spaces_around_assignment_operators = true
 
 [{*.bash,*.sh,*.zsh}]
 indent_size = 2
+continuation_indent_size = 2
+ij_continuation_indent_size = 2
 tab_width = 2
 ij_shell_binary_ops_start_line = false
 ij_shell_keep_column_alignment_padding = false
@@ -36,6 +39,8 @@ ij_shell_use_unix_line_separator = true
 
 [{*.markdown,*.md}]
 indent_size = 2
+continuation_indent_size = 2
+ij_continuation_indent_size = 2
 tab_width = 2
 max_line_length = unset
 ij_markdown_force_one_space_after_blockquote_symbol = true
@@ -57,16 +62,22 @@ ij_markdown_wrap_text_inside_blockquotes = false
 
 [{*.json}]
 indent_size = 2
+continuation_indent_size = 2
+ij_continuation_indent_size = 2
 tab_width = 2
 max_line_length = unset
 
 [{*.js,*.jsx,*.mjs,*.cjs,*.ts,*.tsx}]
 indent_size = 2
+continuation_indent_size = 2
+ij_continuation_indent_size = 2
 tab_width = 2
 max_line_length = unset
 
 [{*.yaml,*.yml}]
 indent_size = 2
+continuation_indent_size = 2
+ij_continuation_indent_size = 2
 tab_width = 2
 max_line_length = unset
 ij_yaml_align_values_properties = do_not_align

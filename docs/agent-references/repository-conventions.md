@@ -9,6 +9,10 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     Rethinking Skills and Prompts for GPT-6 Astra:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    EditorConfig:
+      url: https://editorconfig.org/
+    JetBrains EditorConfig:
+      url: https://www.jetbrains.com/help/idea/editorconfig.html
 ---
 
 # Repository Conventions
@@ -31,9 +35,28 @@ For TypeScript source, use [TypeScript Conventions](typescript.md).
 Prefer an available AST, PSI, or parser.
 Use text or regex surgery only for lexical, small, or no-parser work, and name the edited node when you do.
 Preserve public declaration documentation and local comment conventions.
+Use meaningful named regex groups and name-based access whenever extracting captures, including the full match.
+Do not use ordinal access such as `match[0]`, `match[1]`, capture destructuring, or numbered subgroup calls.
+Use named replacement references instead of positional capture references.
+Keep ordinary array indexing separate from regex capture access.
+Prefer an existing parser or literal operation when it expresses the extraction more clearly.
+For engines without named groups, use a clearer native alternative or report the unsupported requirement.
+Do not invent named-group support, add artificial wrappers, or add packages solely for this convention.
+Preserve optional groups, selected matches, flags, Unicode, offsets, iteration, replacements, negative cases, evaluation order, and cleanup.
+Exclude third-party, vendored, and generated code from this convention's migration scope.
 Keep function bodies free of blank lines, and separate function or class declarations with one blank line.
-Inline single-use local variables when behavior and clarity stay unchanged.
-Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
+Subject to configured lint, inline variables used only once and keep single-use logic inline.
+Do not extract or retain helpers for hypothetical future reuse or test convenience.
+Do not count test references as production reuse.
+Preserve behavior, evaluation count and order, side effects, resource lifetime, and required production interfaces.
+Preserve exception timing, mutable snapshots, capture, and overload or receiver resolution.
+Retain bindings or helpers only for required production interfaces, preserved semantics, or configured lint.
+State the concrete reason for each retained binding or helper.
+Do not suppress, weaken, or reconfigure lint to satisfy these preferences.
+
+Change production code only for a real product requirement or an actual defect.
+Never change production code to accommodate tests, expose internals, add test hooks, or manufacture test seams.
+Adapt tests to production interfaces and behavior.
 
 Write docstrings and source documentation comments in English.
 Apply these formatting rules to maintained source and code samples.
@@ -43,6 +66,14 @@ When the language uses delimiters, put the opening and closing delimiters on sep
 State a contract or reason instead of restating the identifier.
 
 ## Documentation and Configuration
+
+Keep supported `continuation_indent_size` and `ij_continuation_indent_size` settings equal to the language's `indent_size`, including narrower section overrides.
+Verify section glob matching with the supported consumer before changing valid selectors.
+Allow explicit imports and valid wildcard imports without weakening lint rules.
+Preserve existing import style and prior or default conversion thresholds.
+Do not introduce star-import preferences, threshold-one overrides, or automatic single-import-to-star conversion merely to allow wildcard imports.
+Inspect the actual IDE property names instead of deriving them from a UI label.
+Preserve target-owned configuration and apply authorized bounded merges.
 
 Use English headings unless an existing document intentionally differs.
 Leave blank lines around headings, lists, and language-tagged fences.

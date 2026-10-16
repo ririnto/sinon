@@ -2,7 +2,7 @@ import type { MicromarkToken, Rule, RuleParams } from "markdownlint";
 
 const terminatorPattern = /[.!?]/gu;
 const whitespacePattern = /\s/u;
-const semicolonPattern = /[;；;]/gu;
+const semicolonPattern = /(?<semicolon>[;；;])/gu;
 const abbreviationTailPattern =
   /(?:\b(?:e\.g|i\.e|etc|vs|cf|approx|Inc|Ltd|Co|Corp|Jr|Sr|Dr|Mr|Mrs|Ms|St|Fig|No|ed|al)|(?:[A-Z]\.)+[A-Z])$/u;
 const initialNameContextPattern =
@@ -10,22 +10,21 @@ const initialNameContextPattern =
 const surnameStartPattern = /^[A-Z][a-z]+\b/u;
 const entityTailPattern = /&(?:#\d+|#[\da-fA-F]+|[a-zA-Z][\d]{2,31})$/u;
 const conjunctiveAdverbPattern =
-  /\b(?:however|therefore|thus|hence|instead|otherwise|besides|accordingly|consequently|furthermore|moreover|nevertheless|nonetheless|similarly|likewise|meanwhile|subsequently|additionally|alternatively)\b/iu;
+  /^(?:however|therefore|thus|hence|instead|otherwise|besides|accordingly|consequently|furthermore|moreover|nevertheless|nonetheless|similarly|likewise|meanwhile|subsequently|additionally|alternatively)\b/iu;
 const imperativeTailVerbs =
   "retry|rerun|resume|restart|return|repeat|replace|remove|restore|reset|rebuild|record|report|repoint|reject|require|request|reuse|run|write|use|set|send|keep|leave|copy|check|confirm|continue|verify|wait|add|apply|change|delete|drop|edit|fix|load|open|pin|scan|show|skip|test|treat|validate|view";
 const finiteTailVerbs =
   "is|are|was|were|be|been|being|has|have|had|does|do|did|will|would|can|could|shall|should|may|might|must|stays?|remains?|starts?|ends?|fails?|passes?|follows?|returns?|owns?|moves?|loses?|gains?|keeps?|uses?|covers?|certif(?:ies|y)|validates?|loads?|ships?|runs?|exists?";
 const subjectLeads =
   "this|that|these|those|it|they|we|you|he|she|who|which|another|each|every|some|all|both|one|two|three|the|a|an";
-const lowercaseClauseStartPattern = new RegExp(
-  `^(?:(?:${imperativeTailVerbs})\\b|(?!${subjectLeads}\\b)[a-z][\\w'’-]*\\s+(?:${finiteTailVerbs})\\b|(?:${subjectLeads})\\b(?:\\s+[a-z][\\w'’-]*){1,2}\\s+(?:${finiteTailVerbs})\\b)`,
-  "u"
+const clauseStartPattern = new RegExp(
+  `^(?:(?:${imperativeTailVerbs})\\b|(?!${subjectLeads}\\b)[a-z\\d][\\w'’-]*\\s+(?:${finiteTailVerbs})\\b|(?:this|that|these|those|it|they|we|you|he|she|who|which)\\s+(?:${finiteTailVerbs})\\b|(?:${subjectLeads})\\b(?:\\s+[a-z][\\w'’-]*){1,2}\\s+(?:${finiteTailVerbs})\\b)`,
+  "iu"
 );
 const imperativeContinuationPattern = new RegExp(
   `^(?:${imperativeTailVerbs}|preserve|do)\\b`,
   "iu"
 );
-const sentenceLikeStartPattern = /^[A-Z0-9]/u;
 const sentenceStartPattern = /^[A-Z0-9"'“([「『*]/u;
 const wordBeforePattern = /[\w"”’\])]/u;
 const wordAfterPattern = /[\w"'“([/]/u;
@@ -143,7 +142,7 @@ const rebuildLine = (segments: readonly Segment[]): string => {
  */
 const protectText = (text: string): string =>
   text.replaceAll(protectedTextPattern, (match) => {
-    const ending = /[.!?]["'”’]$/u.exec(match)?.[0] ?? "";
+    const ending = /(?<ending>[.!?]["'”’])$/u.exec(match)?.groups?.ending ?? "";
     const masked = match.replaceAll(/[^\r\n]/gu, (character) =>
       " ".repeat(character.length)
     );
@@ -185,14 +184,6 @@ const continuation = (
 };
 
 /**
- * Recognizes single-letter initials only in a bounded personal-name context.
- */
-const nameInitial = (before: string, remainder: string): boolean =>
-  initialNameContextPattern.test(before.trimStart()) &&
-  surnameStartPattern.test(remainder) &&
-  !imperativeContinuationPattern.test(remainder);
-
-/**
  * Finds a terminator that ends one independent sentence and starts another.
  */
 const joinedSentence = (line: string): Finding | undefined => {
@@ -205,8 +196,14 @@ const joinedSentence = (line: string): Finding | undefined => {
     if (
       (next === undefined || whitespacePattern.test(next)) &&
       wordBeforePattern.test(line[index - 1] ?? "") &&
-      !abbreviationTailPattern.test(before) &&
-      !nameInitial(before, remainder) &&
+      (!abbreviationTailPattern.test(before) ||
+        (/\b(?:etc|Inc|Ltd|Co|Corp)$/u.test(before) &&
+          clauseStartPattern.test(remainder))) &&
+      !(
+        initialNameContextPattern.test(before.trimStart()) &&
+        surnameStartPattern.test(remainder) &&
+        !imperativeContinuationPattern.test(remainder)
+      ) &&
       remainder !== "" &&
       sentenceStartPattern.test(remainder)
     ) {
@@ -231,16 +228,18 @@ const joinedSemicolon = (line: string): Finding | undefined => {
       previous !== undefined &&
       next !== undefined &&
       wordBeforePattern.test(previous) &&
-      wordAfterPattern.test(next)
+      wordAfterPattern.test(next) &&
+      !(
+        /(?:^|[.!?]\s+)[^.!?]*:/u.test(before) &&
+        /^[^;]*,/u.test(tail) &&
+        /;\s*(?:and|or)\b[^;]*$/iu.test(tail)
+      ) &&
+      (conjunctiveAdverbPattern.test(tail) || clauseStartPattern.test(tail))
     ) {
-      const firstTailWord = /^[\w'’-]+/u.exec(tail)?.[0] ?? "";
-      const independent =
-        sentenceLikeStartPattern.test(firstTailWord) ||
-        conjunctiveAdverbPattern.test(tail) ||
-        lowercaseClauseStartPattern.test(tail);
-      if (independent) {
-        return { column: index + 1, length: match[0].length };
-      }
+      return {
+        column: index + 1,
+        length: match.groups?.semicolon.length ?? 0
+      };
     }
   }
   return undefined;
@@ -253,9 +252,10 @@ export const sentencePerLine: Rule = {
   description: "Prose sentences must be separated by physical source lines",
   function: (params, onError) => {
     if (!protectedDocument(params)) {
-      const tokens = params.parsers.micromark?.tokens ?? [];
       const reported = new Set<string>();
-      for (const paragraph of proseBlocks(tokens)) {
+      for (const paragraph of proseBlocks(
+        params.parsers.micromark?.tokens ?? []
+      )) {
         const sourceLines = [...segmentsByLine(paragraph)];
         const protectedLines = protectText(
           sourceLines.map(([, segments]) => rebuildLine(segments)).join("\n")

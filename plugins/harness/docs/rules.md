@@ -8,6 +8,10 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    EditorConfig:
+      url: https://editorconfig.org/
+    JetBrains EditorConfig:
+      url: https://www.jetbrains.com/help/idea/editorconfig.html
     pstack project safety:
       version: 0.15.25
       url:
@@ -97,6 +101,20 @@ Rerun affected checks after changes or failures, and broaden only for unresolved
 Record each command, numeric exit code, and evidence scope.
 Never substitute a weaker check for a required gate or report an unrun gate as passed.
 
+## Editor Configuration
+
+Keep supported `continuation_indent_size` and `ij_continuation_indent_size` settings equal to the language's `indent_size`, including narrower section overrides.
+JetBrains uses `ij_continuation_indent_size` for this preference.
+The unprefixed `continuation_indent_size` is not an EditorConfig core property and does not establish support in another IDE.
+Validate any consumer that uses the unprefixed hint separately.
+Verify section glob matching with the supported consumer before changing valid selectors.
+Allow explicit imports and valid wildcard imports without weakening lint rules.
+Preserve existing import style and prior or default conversion thresholds.
+Do not introduce star-import preferences, threshold-one overrides, or automatic single-import-to-star conversion merely to allow wildcard imports.
+Inspect the actual IDE property names instead of deriving them from a UI label.
+Preserve target-owned configuration and apply authorized bounded merges through the selected profile.
+Source profile updates do not automatically update existing target projects.
+
 ## Rule Rollout
 
 Prefer built-in rules and supported configuration before custom checks.
@@ -114,6 +132,16 @@ Claim runtime behavior only for paths exercised by runtime checks.
 
 ## Code Rules Common To All Languages
 
+Use meaningful named regex groups and name-based access whenever extracting captures, including the full match.
+Do not use ordinal access such as `match[0]`, `match[1]`, capture destructuring, or numbered subgroup calls.
+Use named replacement references instead of positional capture references.
+Keep ordinary array indexing separate from regex capture access.
+Prefer an existing parser or literal operation when it expresses the extraction more clearly.
+For engines without named groups, use a clearer native alternative or report the unsupported requirement.
+Do not invent named-group support, add artificial wrappers, or add packages solely for this convention.
+Preserve optional groups, selected matches, flags, Unicode, offsets, iteration, replacements, negative cases, evaluation order, and cleanup.
+Exclude third-party, vendored, and generated code from this convention's migration scope.
+
 Document every externally exposed declaration in English using the language's multiline documentation syntax.
 Keep documentation at declaration level and state the contract or reason instead of restating the identifier.
 Keep function bodies free of blank lines.
@@ -126,9 +154,18 @@ Never delete comments automatically because directives and legal text can affect
 The AST-aware checks diagnose only their proven placement contexts and preserve required directives and licenses.
 Move explanations that must survive to the relevant declaration documentation.
 
-Inline single-use local variables when behavior and clarity stay unchanged.
-Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
-Retain the binding and state the concrete reason when any of them would change.
+Subject to configured lint, inline variables used only once and keep single-use logic inline.
+Do not extract or retain helpers for hypothetical future reuse or test convenience.
+Do not count test references as production reuse.
+Preserve behavior, evaluation count and order, side effects, resource lifetime, and required production interfaces.
+Preserve exception timing, mutable snapshots, capture, and overload or receiver resolution.
+Retain bindings or helpers only for required production interfaces, preserved semantics, or configured lint.
+State the concrete reason for each retained binding or helper.
+Do not suppress, weaken, or reconfigure lint to satisfy these preferences.
+
+Change production code only for a real product requirement or an actual defect.
+Never change production code to accommodate tests, expose internals, add test hooks, or manufacture test seams.
+Adapt tests to production interfaces and behavior.
 
 Prefer `await` over `void` for asynchronous work when the caller should wait for completion.
 The TypeScript profile uses the built-in type-aware unhandled-promise diagnostic with `ignoreVoid: false` through Ultracite.

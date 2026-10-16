@@ -71,8 +71,8 @@ These examples list all label values, list values matching a filter, list metric
 Regex extraction from query results:
 
 When `regex` is set, Grafana applies it to each result row and uses capture groups to produce the option value.
-The first capture group becomes the value.
-If there are two groups, group 1 is value and group 2 is display text.
+Use the named `value` group for the option value and the named `text` group for its display text.
+When only one named group is present, Grafana uses it for both fields.
 
 ```json
 {
@@ -80,7 +80,7 @@ If there are two groups, group 1 is value and group 2 is display text.
   "type": "query",
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "query": "kube_pod_info{namespace=\"$namespace\"}",
-  "regex": "/pod=\"([^\"]+)\"/",
+  "regex": "/pod=\"(?<value>[^\"]+)\"/",
   "sort": 3
 }
 

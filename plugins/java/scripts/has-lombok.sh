@@ -95,14 +95,6 @@ resolve_candidate_jar_path() {
   return "${candidate_status}"
 }
 
-# Extract the version string from a lombok jar filename.
-#
-# @param jar_path Path to a lombok-<version>.jar file.
-# @return Prints the version string, or nothing if the pattern does not match.
-version_from_lombok_path() {
-  basename "$1" | sed -n 's/^lombok-\([0-9][0-9A-Za-z._-]*\)\.jar$/\1/p'
-}
-
 # Find a compatible Lombok jar path from one metadata file.
 #
 # @param metadata_file Build metadata file that may reference Lombok jars.
@@ -113,7 +105,12 @@ resolve_lombok_jar_from_metadata_file() {
   if candidate_paths=$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}"); then
     while [ "${metadata_status}" -ne 0 ] && IFS= read -r candidate_path; do
       if resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}"); then
-        candidate_version=$(version_from_lombok_path "${resolved_path}")
+        candidate_version=$(basename "${resolved_path}" | sed -n '
+          /^lombok-[0-9][0-9A-Za-z._-]*\.jar$/ {
+            s/^lombok-//
+            s/\.jar$//
+            p
+          }')
         if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
           printf '%s\n' "${resolved_path}"
           metadata_status=0

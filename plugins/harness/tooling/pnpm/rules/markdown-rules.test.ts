@@ -136,6 +136,26 @@ describe("docs/sentence-per-line", () => {
     ],
     ["a single sentence", "Only one sentence here.\n"],
     [
+      "a complex list with capitalized names",
+      "The contributors are Alice, editor; Bob, reviewer; Carol, maintainer.\n"
+    ],
+    [
+      "an adverb inside a complex list item",
+      "The process has three stages: an input stage; a validation stage, which is therefore mandatory; and a reporting stage.\n"
+    ],
+    [
+      "an ambiguous imperative word in a complex list",
+      "The lifecycle has three phases: setup; restart, if needed; and cleanup.\n"
+    ],
+    [
+      "an organization abbreviation within a sentence",
+      "The vendor is Acme Inc. and will restart the server.\n"
+    ],
+    [
+      "an enumeration abbreviation within a sentence",
+      "Include lint, tests, etc. before restarting the build.\n"
+    ],
+    [
       "a noun-phrase tail with a verb-like word",
       "Header uses key; value pairs.\n"
     ],
@@ -171,6 +191,21 @@ describe("docs/sentence-per-line", () => {
 
   test.each([
     ["a paragraph", "First sentence. Second sentence follows.\n", 15],
+    [
+      "an organization abbreviation before an instruction",
+      "The vendor is Acme Inc. Restart the server.\n",
+      23
+    ],
+    [
+      "an organization abbreviation before an independent clause",
+      "The vendor is Acme Ltd. The server is ready.\n",
+      23
+    ],
+    [
+      "an enumeration abbreviation before an instruction",
+      "Include lint, tests, etc. Restart the build.\n",
+      25
+    ],
     [
       "prose before a link",
       "First sentence. Second sentence [label](https://example.com).\n",
@@ -252,6 +287,23 @@ describe("docs/sentence-per-line", () => {
       19
     ],
     ["a fullwidth semicolon", "The request failed；retry the request.\n", 19],
+    [
+      "an imperative with an object",
+      "Setup is complete; restart the service.\n",
+      18
+    ],
+    [
+      "an imperative followed by a comma",
+      "Setup is complete; restart, if needed.\n",
+      18
+    ],
+    [
+      "an instruction after a colon without a later list join",
+      "Before release: all checks passed; restart the service, if needed.\n",
+      34
+    ],
+    ["a capitalized subject", "First stands alone; This is ready.\n", 19],
+    ["a lowercase subject", "First stands alone; this is ready.\n", 19],
     [
       "a determiner-led subject",
       "Consumes nothing from other tasks; this task is first.\n",

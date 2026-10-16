@@ -59,6 +59,8 @@ describe("Java shell script behavior", () => {
     ["1.18.39", 1],
     ["1.18.40", 0],
     ["1.18.40.0", 0],
+    ["1.18.40-RC_a.1", 0],
+    ["1.18.40+build", 1],
     ["1.18.42", 0],
     ["2.0.0", 0]
   ])("project jar version %s", async (version, status) => {
