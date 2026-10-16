@@ -231,20 +231,17 @@ const joinedSemicolon = (line: string): Finding | undefined => {
       previous !== undefined &&
       next !== undefined &&
       wordBeforePattern.test(previous) &&
-      wordAfterPattern.test(next)
-    ) {
-      const firstTailWord =
-        /^(?<word>[\w'’-]+)/u.exec(tail)?.groups?.word ?? "";
-      const independent =
-        sentenceLikeStartPattern.test(firstTailWord) ||
+      wordAfterPattern.test(next) &&
+      (sentenceLikeStartPattern.test(
+        /^(?<word>[\w'’-]+)/u.exec(tail)?.groups?.word ?? ""
+      ) ||
         conjunctiveAdverbPattern.test(tail) ||
-        lowercaseClauseStartPattern.test(tail);
-      if (independent) {
-        return {
-          column: index + 1,
-          length: match.groups?.semicolon.length ?? 0
-        };
-      }
+        lowercaseClauseStartPattern.test(tail))
+    ) {
+      return {
+        column: index + 1,
+        length: match.groups?.semicolon.length ?? 0
+      };
     }
   }
   return undefined;
@@ -257,9 +254,10 @@ export const sentencePerLine: Rule = {
   description: "Prose sentences must be separated by physical source lines",
   function: (params, onError) => {
     if (!protectedDocument(params)) {
-      const tokens = params.parsers.micromark?.tokens ?? [];
       const reported = new Set<string>();
-      for (const paragraph of proseBlocks(tokens)) {
+      for (const paragraph of proseBlocks(
+        params.parsers.micromark?.tokens ?? []
+      )) {
         const sourceLines = [...segmentsByLine(paragraph)];
         const protectedLines = protectText(
           sourceLines.map(([, segments]) => rebuildLine(segments)).join("\n")

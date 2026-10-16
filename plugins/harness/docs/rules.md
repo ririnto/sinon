@@ -136,9 +136,18 @@ Never delete comments automatically because directives and legal text can affect
 The AST-aware checks diagnose only their proven placement contexts and preserve required directives and licenses.
 Move explanations that must survive to the relevant declaration documentation.
 
-Inline single-use local variables when behavior and clarity stay unchanged.
-Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
-Retain the binding and state the concrete reason when any of them would change.
+Subject to configured lint, inline variables used only once and keep single-use logic inline.
+Do not extract or retain helpers for hypothetical future reuse or test convenience.
+Do not count test references as production reuse.
+Preserve behavior, evaluation count and order, side effects, resource lifetime, and required production interfaces.
+Preserve exception timing, mutable snapshots, capture, and overload or receiver resolution.
+Retain bindings or helpers only for required production interfaces, preserved semantics, or configured lint.
+State the concrete reason for each retained binding or helper.
+Do not suppress, weaken, or reconfigure lint to satisfy these preferences.
+
+Change production code only for a real product requirement or an actual defect.
+Never change production code to accommodate tests, expose internals, add test hooks, or manufacture test seams.
+Adapt tests to production interfaces and behavior.
 
 Prefer `await` over `void` for asynchronous work when the caller should wait for completion.
 The TypeScript profile uses the built-in type-aware unhandled-promise diagnostic with `ignoreVoid: false` through Ultracite.

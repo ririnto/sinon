@@ -41,8 +41,18 @@ Do not invent named-group support, add artificial wrappers, or add packages sole
 Preserve optional groups, selected matches, flags, Unicode, offsets, iteration, replacements, negative cases, evaluation order, and cleanup.
 Exclude third-party, vendored, and generated code from this convention's migration scope.
 Keep function bodies free of blank lines, and separate function or class declarations with one blank line.
-Inline single-use local variables when behavior and clarity stay unchanged.
-Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
+Subject to configured lint, inline variables used only once and keep single-use logic inline.
+Do not extract or retain helpers for hypothetical future reuse or test convenience.
+Do not count test references as production reuse.
+Preserve behavior, evaluation count and order, side effects, resource lifetime, and required production interfaces.
+Preserve exception timing, mutable snapshots, capture, and overload or receiver resolution.
+Retain bindings or helpers only for required production interfaces, preserved semantics, or configured lint.
+State the concrete reason for each retained binding or helper.
+Do not suppress, weaken, or reconfigure lint to satisfy these preferences.
+
+Change production code only for a real product requirement or an actual defect.
+Never change production code to accommodate tests, expose internals, add test hooks, or manufacture test seams.
+Adapt tests to production interfaces and behavior.
 
 Write docstrings and source documentation comments in English.
 Apply these formatting rules to maintained source and code samples.
