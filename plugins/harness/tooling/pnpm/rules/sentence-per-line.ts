@@ -10,22 +10,21 @@ const initialNameContextPattern =
 const surnameStartPattern = /^[A-Z][a-z]+\b/u;
 const entityTailPattern = /&(?:#\d+|#[\da-fA-F]+|[a-zA-Z][\d]{2,31})$/u;
 const conjunctiveAdverbPattern =
-  /\b(?:however|therefore|thus|hence|instead|otherwise|besides|accordingly|consequently|furthermore|moreover|nevertheless|nonetheless|similarly|likewise|meanwhile|subsequently|additionally|alternatively)\b/iu;
+  /^(?:however|therefore|thus|hence|instead|otherwise|besides|accordingly|consequently|furthermore|moreover|nevertheless|nonetheless|similarly|likewise|meanwhile|subsequently|additionally|alternatively)\b/iu;
 const imperativeTailVerbs =
   "retry|rerun|resume|restart|return|repeat|replace|remove|restore|reset|rebuild|record|report|repoint|reject|require|request|reuse|run|write|use|set|send|keep|leave|copy|check|confirm|continue|verify|wait|add|apply|change|delete|drop|edit|fix|load|open|pin|scan|show|skip|test|treat|validate|view";
 const finiteTailVerbs =
   "is|are|was|were|be|been|being|has|have|had|does|do|did|will|would|can|could|shall|should|may|might|must|stays?|remains?|starts?|ends?|fails?|passes?|follows?|returns?|owns?|moves?|loses?|gains?|keeps?|uses?|covers?|certif(?:ies|y)|validates?|loads?|ships?|runs?|exists?";
 const subjectLeads =
   "this|that|these|those|it|they|we|you|he|she|who|which|another|each|every|some|all|both|one|two|three|the|a|an";
-const lowercaseClauseStartPattern = new RegExp(
-  `^(?:(?:${imperativeTailVerbs})\\b|(?!${subjectLeads}\\b)[a-z][\\w'’-]*\\s+(?:${finiteTailVerbs})\\b|(?:${subjectLeads})\\b(?:\\s+[a-z][\\w'’-]*){1,2}\\s+(?:${finiteTailVerbs})\\b)`,
-  "u"
+const clauseStartPattern = new RegExp(
+  `^(?:(?:${imperativeTailVerbs})\\b|(?!${subjectLeads}\\b)[a-z\\d][\\w'’-]*\\s+(?:${finiteTailVerbs})\\b|(?:this|that|these|those|it|they|we|you|he|she|who|which)\\s+(?:${finiteTailVerbs})\\b|(?:${subjectLeads})\\b(?:\\s+[a-z][\\w'’-]*){1,2}\\s+(?:${finiteTailVerbs})\\b)`,
+  "iu"
 );
 const imperativeContinuationPattern = new RegExp(
   `^(?:${imperativeTailVerbs}|preserve|do)\\b`,
   "iu"
 );
-const sentenceLikeStartPattern = /^[A-Z0-9]/u;
 const sentenceStartPattern = /^[A-Z0-9"'“([「『*]/u;
 const wordBeforePattern = /[\w"”’\])]/u;
 const wordAfterPattern = /[\w"'“([/]/u;
@@ -185,14 +184,6 @@ const continuation = (
 };
 
 /**
- * Recognizes single-letter initials only in a bounded personal-name context.
- */
-const nameInitial = (before: string, remainder: string): boolean =>
-  initialNameContextPattern.test(before.trimStart()) &&
-  surnameStartPattern.test(remainder) &&
-  !imperativeContinuationPattern.test(remainder);
-
-/**
  * Finds a terminator that ends one independent sentence and starts another.
  */
 const joinedSentence = (line: string): Finding | undefined => {
@@ -205,8 +196,14 @@ const joinedSentence = (line: string): Finding | undefined => {
     if (
       (next === undefined || whitespacePattern.test(next)) &&
       wordBeforePattern.test(line[index - 1] ?? "") &&
-      !abbreviationTailPattern.test(before) &&
-      !nameInitial(before, remainder) &&
+      (!abbreviationTailPattern.test(before) ||
+        (/\b(?:etc|Inc|Ltd|Co|Corp)$/u.test(before) &&
+          clauseStartPattern.test(remainder))) &&
+      !(
+        initialNameContextPattern.test(before.trimStart()) &&
+        surnameStartPattern.test(remainder) &&
+        !imperativeContinuationPattern.test(remainder)
+      ) &&
       remainder !== "" &&
       sentenceStartPattern.test(remainder)
     ) {
@@ -232,11 +229,12 @@ const joinedSemicolon = (line: string): Finding | undefined => {
       next !== undefined &&
       wordBeforePattern.test(previous) &&
       wordAfterPattern.test(next) &&
-      (sentenceLikeStartPattern.test(
-        /^(?<word>[\w'’-]+)/u.exec(tail)?.groups?.word ?? ""
-      ) ||
-        conjunctiveAdverbPattern.test(tail) ||
-        lowercaseClauseStartPattern.test(tail))
+      !(
+        /(?:^|[.!?]\s+)[^.!?]*:/u.test(before) &&
+        /^[^;]*,/u.test(tail) &&
+        /;\s*(?:and|or)\b[^;]*$/iu.test(tail)
+      ) &&
+      (conjunctiveAdverbPattern.test(tail) || clauseStartPattern.test(tail))
     ) {
       return {
         column: index + 1,

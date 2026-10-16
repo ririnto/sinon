@@ -75,7 +75,7 @@ Inspect each package root in a monorepo and install the profile at each selected
 
 The profile provides `oxlint.config.ts`, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as one native lint and format source.
 Copy `plugins/` next to `oxlint.config.ts` because its `jsPlugins` entries use `./plugins/*.ts` paths.
-Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `./rules/*.ts` paths.
+Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `rules/*.ts` paths.
 Omit the `*.test.ts` files from both copies.
 It provides `.editorconfig` only when the target has no existing editor configuration or when the user approves a bounded merge.
 The fragment is a regular source file, not an instruction to overwrite an existing editor configuration.
@@ -149,6 +149,8 @@ The profile and Sinon root enable this diagnostic rule without providing automat
 `docs/no-em-dash` reports em dashes in the same authored prose contexts.
 `docs/no-relative-skill-links` reports relative `SKILL.md` destinations in authored links and reference definitions.
 Ordinary reference links and absolute URLs remain valid.
+These three authored-prose rules share `sentence-per-line.ts` so their token, quotation, and document protections stay consistent.
+Sentence and punctuation checks use visible prose, while the link rule inspects destination tokens without treating them as prose.
 Both new rules preserve code, frontmatter, quotations, and generated or licensed documents and provide no automatic fixes.
 Sinon initially enables the new diagnostics only for Harness content, while the portable profile enables them for installed projects.
 Copy that directory alongside the config so the `customRules` paths resolve.
@@ -173,6 +175,10 @@ Extend the existing rule rather than adding a second parser, rule package, or pr
 
 The rule reports `.`, `!`, or `?` followed by an uppercase or numeric sentence start on the same line.
 It recognizes common abbreviations and semicolon joins using bounded English patterns.
+Organization suffixes such as `Inc.` and enumeration suffixes such as `etc.` can end a sentence when the following text starts a recognized independent clause or instruction.
+Capitalization alone does not establish an independent clause after a semicolon.
+Conjunctive adverbs must start the following clause rather than occur inside a later list item.
+Colon-introduced semicolon series preserve comma-containing items before a final `and` or `or` item.
 It also recognizes sentence endings inside quotations when independent prose follows the closing quotation mark.
 Adjacent lines within one paragraph are checked when the previous line ends with an alphanumeric character.
 A lowercase continuation indicates wrapped prose, while a recognized imperative indicates an instruction missing its terminator.
@@ -192,6 +198,7 @@ These protections affect only the prose rule and do not disable other Markdown c
 This check is conservative and does not parse natural-language grammar.
 It cannot recognize every abbreviation, language, independent clause, unmarked quotation, or generated file.
 Lowercase sentence starts, unfamiliar semicolon clauses, and capitalized wrapped noun phrases may escape detection.
+Ambiguous lists and abbreviation boundaries can still produce false positives or false negatives.
 Continuation checks can mistake deliberately arranged unpunctuated prose for wrapped sentences.
 Review each diagnostic manually and preserve meaning when separating sentences or restoring terminators.
 Passing this rule establishes only that its supported patterns were absent.

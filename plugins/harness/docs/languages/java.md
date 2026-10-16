@@ -11,6 +11,11 @@ metadata:
       version: JDK 25
       url:
         - https://docs.oracle.com/en/java/javase/25/language/java-language-changes.html
+    JetBrains import preferences:
+      url:
+        - https://www.jetbrains.com/help/idea/code-style-java.html
+        - https://raw.githubusercontent.com/JetBrains/intellij-community/master/java/java-frontback-impl/src/com/intellij/psi/codeStyle/JavaCodeStyleSettings.java
+        - https://raw.githubusercontent.com/JetBrains/intellij-community/master/plugins/editorconfig/backend/src/configmanagement/extended/EditorConfigIntellijNameUtil.java
 ---
 
 Use the target build's declared Java toolchain and release as the compatibility boundary.
@@ -31,6 +36,8 @@ Keep methods focused on one responsibility and keep boundary parsing separate fr
 Prefer explicit imports over fully qualified names when the imported type is unambiguous.
 Keep a fully qualified name when an import would collide with another type or declaration.
 Wildcard imports are permitted.
+The EditorConfig profile sets `ij_java_class_count_to_use_import_on_demand` and `ij_java_names_count_to_use_import_on_demand` to `1` so IDE import optimization can retain wildcard imports.
+These IDE preferences also allow optimization to create wildcard imports without changing lint policy.
 
 ## Names and bindings
 

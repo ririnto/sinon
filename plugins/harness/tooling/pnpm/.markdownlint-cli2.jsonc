@@ -23,9 +23,9 @@
     }
   },
   "customRules": [
-    "./rules/no-box-drawing.ts",
-    "./rules/sentence-per-line.ts",
-    "./rules/table-separators.ts"
+    "rules/no-box-drawing.ts",
+    "rules/sentence-per-line.ts",
+    "rules/table-separators.ts"
   ],
   "gitignore": true,
   "globs": ["**/*.md"],

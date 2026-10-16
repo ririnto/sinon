@@ -8,6 +8,10 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    EditorConfig:
+      url: https://editorconfig.org/
+    JetBrains EditorConfig:
+      url: https://www.jetbrains.com/help/idea/editorconfig.html
     pstack project safety:
       version: 0.15.25
       url:
@@ -96,6 +100,18 @@ A new commit hash or parent alone does not invalidate that evidence.
 Rerun affected checks after changes or failures, and broaden only for unresolved concerns or explicit requirements.
 Record each command, numeric exit code, and evidence scope.
 Never substitute a weaker check for a required gate or report an unrun gate as passed.
+
+## Editor Configuration
+
+Keep supported `continuation_indent_size` and `ij_continuation_indent_size` settings equal to the language's `indent_size`, including narrower section overrides.
+JetBrains uses `ij_continuation_indent_size` for this preference.
+The unprefixed `continuation_indent_size` is not an EditorConfig core property and does not establish support in another IDE.
+Validate any consumer that uses the unprefixed hint separately.
+Verify section glob matching with the supported consumer before changing valid selectors.
+Use supported IDE import preferences to permit star imports without weakening lint rules.
+Inspect the actual IDE property names instead of deriving them from a UI label.
+Preserve target-owned configuration and apply authorized bounded merges through the selected profile.
+Source profile updates do not automatically update existing target projects.
 
 ## Rule Rollout
 

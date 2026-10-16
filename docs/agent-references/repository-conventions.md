@@ -9,6 +9,10 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     Rethinking Skills and Prompts for GPT-6 Astra:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    EditorConfig:
+      url: https://editorconfig.org/
+    JetBrains EditorConfig:
+      url: https://www.jetbrains.com/help/idea/editorconfig.html
 ---
 
 # Repository Conventions
@@ -62,6 +66,12 @@ When the language uses delimiters, put the opening and closing delimiters on sep
 State a contract or reason instead of restating the identifier.
 
 ## Documentation and Configuration
+
+Keep supported `continuation_indent_size` and `ij_continuation_indent_size` settings equal to the language's `indent_size`, including narrower section overrides.
+Verify section glob matching with the supported consumer before changing valid selectors.
+Use supported IDE import preferences to permit star imports without weakening lint rules.
+Inspect the actual IDE property names instead of deriving them from a UI label.
+Preserve target-owned configuration and apply authorized bounded merges.
 
 Use English headings unless an existing document intentionally differs.
 Leave blank lines around headings, lists, and language-tagged fences.
