@@ -146,6 +146,34 @@ describe("pnpm profile configuration", () => {
     }
   });
 
+  test("Ultracite core environment keeps implied-eval diagnostics in both configs", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "sinon-implied-eval-"));
+    try {
+      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+      await writeFile(
+        path.join(directory, "sample.js"),
+        'setTimeout("alert(1)", 0);\n'
+      );
+      for (const configuration of [
+        path.resolve(profileDirectory, "../../../..", "oxlint.config.ts"),
+        path.join(profileDirectory, "oxlint.config.ts")
+      ]) {
+        const { diagnostics, status } = runUltracite(
+          directory,
+          "sample.js",
+          "check",
+          configuration
+        );
+        expect(status).toBe(1);
+        expect(diagnostics.map(({ code }) => code)).toContain(
+          "eslint(no-implied-eval)"
+        );
+      }
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }, 30_000);
+
   test("Markdownlint configuration resolves from an installed copy", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-md-"));
     try {

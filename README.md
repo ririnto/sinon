@@ -65,7 +65,8 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 - `.claude-plugin/marketplace/`: catalog generation and validation.
 - `plugins/<plugin>/tests/`: each plugin's validation suites.
 - `package.json`: repository check commands and shared development tools.
-- `plugins/harness/tooling/pnpm/rules/`: shared profile and repository Markdown lint rules.
+- `rules/`: root Markdownlint entry points that re-export the canonical implementations in `plugins/harness/tooling/pnpm/rules/`.
+- `plugins/harness/tooling/pnpm/rules/`: canonical Markdown lint rule implementations for the shared profile and repository.
 - `.github/`: dependency update configuration and contribution templates.
 - `plugins/`: plugins maintained in this repository.
 

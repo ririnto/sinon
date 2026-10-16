@@ -5,6 +5,7 @@ import core from "ultracite/oxlint/core";
  * Configure the pnpm profile's native lint checks.
  */
 export default defineConfig({
+  env: core.env,
   extends: [core],
   ignorePatterns: core.ignorePatterns,
   jsPlugins: ["./plugins/style-plugin.ts", "./plugins/tsdoc-plugin.ts"],
