@@ -319,6 +319,14 @@ describe("docs/sentence-per-line", () => {
       "The kit contains tools used the least; tools used the most.\n"
     ],
     [
+      "a partly linked degree word",
+      "The kit contains tools used the least; tools used the mo[st](https://example.com).\n"
+    ],
+    [
+      "a partly code-formatted degree word",
+      "The kit contains tools used the least; tools used the mo`st`.\n"
+    ],
+    [
       "a degree list from most to least",
       "The archive contains documents changed the most; files changed the least.\n"
     ],

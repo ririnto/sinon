@@ -23,7 +23,7 @@ const finiteTailVerbs =
     .map((stem) => `${stem}d`)
     .join(
       "|"
-    )})(?=\\s+the\\s+(?!(?:most|least|worst|[\\p{L}\\p{N}\\p{M}_'’-]*est)(?:[.!?;；]|$))[\\p{L}\\p{N}][\\p{L}\\p{N}\\p{M}_'’-]*(?:[.!?;；]|$))`;
+    )})(?=\\s+the\\s+(?!(?:most|least|worst|[\\p{L}\\p{N}\\p{M}'’-]*est)(?:[.!?;；]|$))[\\p{L}\\p{N}][\\p{L}\\p{N}\\p{M}'’-]*(?:[.!?;；]|$))`;
 const subjectLeads =
   "this|that|these|those|it|they|we|you|he|she|who|which|another|each|every|some|all|both|one|two|three|the|a|an";
 const clauseStartPattern = new RegExp(
