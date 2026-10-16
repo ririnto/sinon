@@ -40,8 +40,8 @@ metadata:
         - https://registry.npmjs.org/markdownlint-rule-max-one-sentence-per-line/0.0.2
         - https://raw.githubusercontent.com/aepfli/markdownlint-rule-max-one-sentence-per-line/main/README.md
     Ultracite:
-      version: 7.12.4
-      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%407.12.4/packages/cli/README.md
+      version: 8.0.1
+      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%408.0.1/packages/cli/README.md
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/exactOptionalPropertyTypes.html
@@ -157,7 +157,8 @@ Copy that directory alongside the config so the `customRules` paths resolve.
 The profile-owned `ignores` entry excludes `node_modules` even when a fresh target has no `.gitignore`.
 Retain the target's existing ignore configuration when merging.
 Do not copy the root-only custom rule paths from other repositories.
-The Sinon repository root loads its selected Markdown rules directly from `tooling/pnpm/rules/` inside this package.
+The Sinon repository root loads thin entry points from `rules/`.
+Those entry points re-export the canonical rules from `tooling/pnpm/rules/` inside this package.
 Add `markdownlint-cli2` as a development dependency and `check:markdownlint-cli2` plus `fix:markdownlint-cli2` script entries through the manifest merge above.
 The `check:markdownlint-cli2` task runs the plain `markdownlint-cli2` command.
 The `fix:markdownlint-cli2` task adds `--fix`.
@@ -213,7 +214,7 @@ It accepts explicit rejection handling, awaited calls, and returned promises.
 It provides suggestions upstream, but normal Ultracite fixes do not rewrite `void` into `await`.
 Keep that conversion under the [common async policy](../rules.md#code-rules-common-to-all-languages) because scheduling and cancellation require semantic review.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
-The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.87.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%407.12.4/packages/cli/src/commands/check.ts).
+The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.87.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.0.1/packages/cli/src/commands/check.ts).
 
 ## TypeScript Strictness Merge
 
@@ -266,8 +267,8 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `7.12.4`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
-Ultracite stays on the 7.x line because 8.x is a major upgrade that the profile has not evaluated against the custom plugin API.
+The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `8.0.1`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
+Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.
 The target owns final dependency versions through its manifest and lockfile.
 The fragment's catalog ranges are source-profile evidence, not mandatory target pins.
 Check npm before merging them.
