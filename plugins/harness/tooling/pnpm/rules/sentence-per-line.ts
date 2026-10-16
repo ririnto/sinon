@@ -2,7 +2,7 @@ import type { MicromarkToken, Rule, RuleParams } from "markdownlint";
 
 const terminatorPattern = /[.!?]/gu;
 const whitespacePattern = /\s/u;
-const semicolonPattern = /[;；;]/gu;
+const semicolonPattern = /(?<semicolon>[;；;])/gu;
 const abbreviationTailPattern =
   /(?:\b(?:e\.g|i\.e|etc|vs|cf|approx|Inc|Ltd|Co|Corp|Jr|Sr|Dr|Mr|Mrs|Ms|St|Fig|No|ed|al)|(?:[A-Z]\.)+[A-Z])$/u;
 const initialNameContextPattern =
@@ -143,7 +143,7 @@ const rebuildLine = (segments: readonly Segment[]): string => {
  */
 const protectText = (text: string): string =>
   text.replaceAll(protectedTextPattern, (match) => {
-    const ending = /[.!?]["'”’]$/u.exec(match)?.[0] ?? "";
+    const ending = /(?<ending>[.!?]["'”’])$/u.exec(match)?.groups?.ending ?? "";
     const masked = match.replaceAll(/[^\r\n]/gu, (character) =>
       " ".repeat(character.length)
     );
@@ -233,13 +233,17 @@ const joinedSemicolon = (line: string): Finding | undefined => {
       wordBeforePattern.test(previous) &&
       wordAfterPattern.test(next)
     ) {
-      const firstTailWord = /^[\w'’-]+/u.exec(tail)?.[0] ?? "";
+      const firstTailWord =
+        /^(?<word>[\w'’-]+)/u.exec(tail)?.groups?.word ?? "";
       const independent =
         sentenceLikeStartPattern.test(firstTailWord) ||
         conjunctiveAdverbPattern.test(tail) ||
         lowercaseClauseStartPattern.test(tail);
       if (independent) {
-        return { column: index + 1, length: match[0].length };
+        return {
+          column: index + 1,
+          length: match.groups?.semicolon.length ?? 0
+        };
       }
     }
   }

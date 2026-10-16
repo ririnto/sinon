@@ -100,7 +100,12 @@ resolve_candidate_jar_path() {
 # @param jar_path Path to a lombok-<version>.jar file.
 # @return Prints the version string, or nothing if the pattern does not match.
 version_from_lombok_path() {
-  basename "$1" | sed -n 's/^lombok-\([0-9][0-9A-Za-z._-]*\)\.jar$/\1/p'
+  basename "$1" | sed -n '
+    /^lombok-[0-9][0-9A-Za-z._-]*\.jar$/ {
+      s/^lombok-//
+      s/\.jar$//
+      p
+    }'
 }
 
 # Find a compatible Lombok jar path from one metadata file.

@@ -59,16 +59,17 @@ describe("pnpm profile configuration", () => {
     await Promise.all(
       files.map(async (file) => {
         const text = await readFile(file, "utf-8");
-        const frontmatter = /^---\n(?<source>[\s\S]*?)\n---\n/u.exec(text);
+        const frontmatter = /^(?<block>---\n(?<source>[\s\S]*?)\n---\n)/u.exec(
+          text
+        );
+        const block = frontmatter?.groups?.block;
         const source = frontmatter?.groups?.source;
-        if (frontmatter && source) {
+        if (block && source) {
           const document = parseDocument(source, { uniqueKeys: true });
           expect(document.errors, file).toEqual([]);
           expect(document.toJS().title, file).toBeTypeOf("string");
           expect(document.toJS().title.trim(), file).not.toBe("");
-          expect(/^# /mu.test(text.slice(frontmatter[0].length)), file).toBe(
-            false
-          );
+          expect(/^# /mu.test(text.slice(block.length)), file).toBe(false);
         } else {
           expect(/^# /mu.test(text), file).toBe(true);
         }

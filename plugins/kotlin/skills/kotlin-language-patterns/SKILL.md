@@ -19,6 +19,7 @@ metadata:
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/require-not-null.html
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/check-not-null.html
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/to-regex.html
+        - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.text/-match-group-collection/
     Kotlin scope functions:
       url:
         - https://kotlinlang.org/docs/_llms/scope-functions.txt
@@ -477,13 +478,15 @@ Combine `Regex` with string helpers to extract structured data:
 
 ```kotlin
 class ReferenceKeyParser {
-    private val referencePattern: Regex = """([A-Z]+)-(\d+)""".toRegex()
+    private val referencePattern: Regex = """(?<project>[A-Z]+)-(?<number>\d+)""".toRegex()
 
     fun parse(input: String): Pair<String, Int>? =
         referencePattern
             .matchEntire(input.substringBefore('?').trim())
-            ?.destructured
-            ?.let { (project, number) -> project to number.toInt() }
+            ?.let { match ->
+                requireNotNull(match.groups["project"]).value to
+                    requireNotNull(match.groups["number"]).value.toInt()
+            }
 }
 ```
 

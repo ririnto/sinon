@@ -114,6 +114,16 @@ Claim runtime behavior only for paths exercised by runtime checks.
 
 ## Code Rules Common To All Languages
 
+Use meaningful named regex groups and name-based access whenever extracting captures, including the full match.
+Do not use ordinal access such as `match[0]`, `match[1]`, capture destructuring, or numbered subgroup calls.
+Use named replacement references instead of positional capture references.
+Keep ordinary array indexing separate from regex capture access.
+Prefer an existing parser or literal operation when it expresses the extraction more clearly.
+For engines without named groups, use a clearer native alternative or report the unsupported requirement.
+Do not invent named-group support, add artificial wrappers, or add packages solely for this convention.
+Preserve optional groups, selected matches, flags, Unicode, offsets, iteration, replacements, negative cases, evaluation order, and cleanup.
+Exclude third-party, vendored, and generated code from this convention's migration scope.
+
 Document every externally exposed declaration in English using the language's multiline documentation syntax.
 Keep documentation at declaration level and state the contract or reason instead of restating the identifier.
 Keep function bodies free of blank lines.

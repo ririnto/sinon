@@ -31,6 +31,15 @@ For TypeScript source, use [TypeScript Conventions](typescript.md).
 Prefer an available AST, PSI, or parser.
 Use text or regex surgery only for lexical, small, or no-parser work, and name the edited node when you do.
 Preserve public declaration documentation and local comment conventions.
+Use meaningful named regex groups and name-based access whenever extracting captures, including the full match.
+Do not use ordinal access such as `match[0]`, `match[1]`, capture destructuring, or numbered subgroup calls.
+Use named replacement references instead of positional capture references.
+Keep ordinary array indexing separate from regex capture access.
+Prefer an existing parser or literal operation when it expresses the extraction more clearly.
+For engines without named groups, use a clearer native alternative or report the unsupported requirement.
+Do not invent named-group support, add artificial wrappers, or add packages solely for this convention.
+Preserve optional groups, selected matches, flags, Unicode, offsets, iteration, replacements, negative cases, evaluation order, and cleanup.
+Exclude third-party, vendored, and generated code from this convention's migration scope.
 Keep function bodies free of blank lines, and separate function or class declarations with one blank line.
 Inline single-use local variables when behavior and clarity stay unchanged.
 Preserve evaluation count and order, exception timing, mutable snapshots, capture, and overload or receiver resolution.
