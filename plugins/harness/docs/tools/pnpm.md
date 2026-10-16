@@ -176,6 +176,14 @@ Extend the existing rule rather than adding a second parser, rule package, or pr
 
 The rule reports `.`, `!`, or `?` followed by an uppercase or numeric sentence start on the same line.
 It recognizes common abbreviations and semicolon joins using bounded English patterns.
+New regular past forms come only from existing imperative verbs that end in `e`, with `d` added and `leave` and `write` excluded.
+The new branch recognizes one visible candidate word after `the` when it starts with a Unicode letter or number.
+The word may continue with Unicode letters, numbers, combining marks, apostrophes, or hyphens and must end before `.`, `!`, `?`, `;`, `；`, or the physical line ending.
+The branch excludes `most`, `least`, `worst`, and every candidate word ending in `est` as a conservative spelling filter for degree expressions.
+This filter does not prove that the remaining word is a direct object, and it misses genuine noun objects such as `request`, `test`, and `forest`.
+Objects containing any opaque span receive no new recognition because masking cannot establish their word count or spelling.
+Literal words containing underscores are also excluded from the additional forms.
+Existing finite and imperative patterns keep their previous treatment of opaque text and degree words.
 Organization suffixes such as `Inc.` and enumeration suffixes such as `etc.` can end a sentence when the following text starts a recognized independent clause or instruction.
 Capitalization alone does not establish an independent clause after a semicolon.
 Conjunctive adverbs must start the following clause rather than occur inside a later list item.
@@ -199,7 +207,7 @@ These protections affect only the prose rule and do not disable other Markdown c
 This check is conservative and does not parse natural-language grammar.
 It cannot recognize every abbreviation, language, independent clause, unmarked quotation, or generated file.
 Lowercase sentence starts, unfamiliar semicolon clauses, and capitalized wrapped noun phrases may escape detection.
-Ambiguous lists and abbreviation boundaries can still produce false positives or false negatives.
+Ambiguous lists, temporal expressions, abbreviation boundaries, and partly masked inline text can still produce false positives or false negatives.
 Continuation checks can mistake deliberately arranged unpunctuated prose for wrapped sentences.
 Review each diagnostic manually and preserve meaning when separating sentences or restoring terminators.
 Passing this rule establishes only that its supported patterns were absent.
