@@ -1,7 +1,6 @@
 ---
 name: spec-driven-development
 description: Run or resume an explicitly requested gated SPEC.md lifecycle through implementation and verification, not standalone spec authoring.
-model: haiku
 color: purple
 tools:
   - Read

@@ -1,7 +1,6 @@
 ---
 name: change-description-architect
 description: Draft an evidence-backed Git-contained change description or merge handoff without publishing.
-model: haiku
 color: cyan
 tools:
   - Read

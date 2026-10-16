@@ -2,7 +2,6 @@
 name: reactor-architect
 description: >-
   Resolve Reactor design decisions spanning Flux/Mono composition, schedulers, hot sources, or publisher testing.
-model: haiku
 color: green
 tools:
   - Read

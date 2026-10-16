@@ -1,7 +1,6 @@
 ---
 name: workspace-architect
 description: Resolve cross-cutting Git workspace decisions involving worktrees, preservation, history integration, or change handoff.
-model: haiku
 color: blue
 tools:
   - Read

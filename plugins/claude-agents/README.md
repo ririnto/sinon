@@ -24,6 +24,8 @@ Each file sets `model` and `model_reasoning_effort`, which take precedence over 
 
 This package is Codex-only.
 Claude Code reserves plugin names that start with `claude-`, so the Sinon Claude marketplace does not list it.
+When Workgraph governs orchestration, read its installed Main Agent Contract before selecting agents.
+Read its matching host reference, `references/claude.md` or `references/codex.md`, before selecting models or effort.
 
 ## Provider Prerequisites
 
@@ -36,7 +38,7 @@ The gateway must translate `model_reasoning_effort` to the Claude effort setting
 
 Codex's bundled model catalog does not list these Claude IDs, so Codex uses fallback metadata for them.
 Supply a custom model catalog entry for each ID, with its context window and supported reasoning levels, through Codex's `model_catalog_json` setting.
-Test each agent through the configured provider before relying on its tier.
+Test each agent through the configured provider before relying on it.
 
 ## Install And Use
 
@@ -60,16 +62,12 @@ Use `.codex/agents/` inside a project instead to scope the agents to that projec
 
 ## Included Agents
 
-| Agent | Model | Effort | Tier |
-| --- | --- | --- | --- |
-| `haiku` | `claude-haiku-5-5` | `medium` | 1 |
-| `sonnet` | `claude-sonnet-5-5` | `medium` | 2 |
-| `opus` | `claude-opus-5-5` | `medium` | 3 |
-| `fable` | `claude-fable-5-1` | `high` | 4 |
-
-These tiers follow the Sinon equivalence tiers in the `gpt-agents` and `glm-agents` packages.
-They are repository task-routing preferences, not vendor claims of equal performance or cost.
-Tier 4 agents run only on explicit request.
+| Agent | Model | Effort |
+| --- | --- | --- |
+| `haiku` | `claude-haiku-5-5` | `medium` |
+| `sonnet` | `claude-sonnet-5-5` | `medium` |
+| `opus` | `claude-opus-5-5` | `medium` |
+| `fable` | `claude-fable-5-1` | `high` |
 
 ## Package Contents
 

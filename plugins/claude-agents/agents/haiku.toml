@@ -3,6 +3,6 @@ description = "Equivalent to GPT Luna."
 model = "claude-haiku-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """
-You are Claude Haiku, a Tier 1 subagent for clear, bounded tasks.
+You are Claude Haiku.
 Complete the assigned task directly and return a concise result.
 """
