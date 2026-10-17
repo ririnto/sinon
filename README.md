@@ -7,12 +7,6 @@ metadata:
       url: https://learn.chatgpt.com/docs/build-skills.md
     OpenAI plugin packaging:
       url: https://developers.openai.com/plugins/build/plugins.md
-    Codex Cursor manifest discovery:
-      version: 0.163.0
-      url: https://raw.githubusercontent.com/openai/codex/rust-v0.163.0/codex-rs/exec-server-protocol/src/protocol.rs
-    Codex version refresh:
-      version: 0.163.0
-      url: https://raw.githubusercontent.com/openai/codex/rust-v0.163.0/codex-rs/core-plugins/src/loader.rs
     Codex plugin loading:
       version: 0.160.0
       url:
@@ -20,13 +14,6 @@ metadata:
         - https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/core-plugins/src/loader.rs
     Claude plugin marketplaces:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference.md
-    Claude plugin versioning:
-      url: https://code.claude.com/docs/en/plugins/loading#how-claude-code-computes-the-version
-    Cursor Team Kit:
-      url:
-        - https://github.com/cursor/plugins/tree/main/cursor-team-kit
-        - https://github.com/cursor/plugins/blob/main/cursor-team-kit/.cursor-plugin/plugin.json
-        - https://github.com/cursor/plugins/blob/main/cursor-team-kit/LICENSE
     Cursor pstack marketplace:
       url: https://raw.githubusercontent.com/cursor/plugins/main/.claude-plugin/marketplace.json
     Claude plugin components:
@@ -141,32 +128,6 @@ Sinon selects external plugins through its marketplace catalog.
   Install it as `codex-app-server@sinon` in either host.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the runtime, Skills, and version.
-- [cursor-team-kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit): both catalogs follow the original upstream subdirectory at `main`.
-  Eric Zakariasson maintains the upstream plugin under the MIT license.
-  The catalogs expose its skills without adapting Cursor-specific agents, rules, or workflows.
-
-### Upstream Version Ownership
-
-Sinon supplies no marketplace version for cursor-team-kit.
-Its registration preserves the upstream repository's release metadata.
-The upstream package supplies no `.claude-plugin/plugin.json` manifest.
-Claude Code therefore derives its installation version from the Git source commit and subdirectory hash.
-Codex recognizes its upstream manifest and retains its declared release version.
-Omitting the Sinon version does not guarantee Codex refreshes for every upstream commit while upstream versions remain unchanged.
-
-### Cursor Team Kit Compatibility
-
-The catalogs use `git-subdir` to fetch the original package without copying its payload into Sinon.
-Claude Code uses the marketplace entry as its manifest with `strict: false` and default `skills/` discovery.
-Codex CLI 0.163.0 recognizes the upstream `.cursor-plugin/plugin.json` and its `skills` path.
-The upstream package currently contains 18 skills, two Cursor agents, and two Cursor rules.
-Install it separately as `cursor-team-kit@sinon` when those skills are needed.
-
-Skill discovery does not establish that every workflow runs unchanged on another host.
-The Cursor agent field `model: fast` and `is_background: true` do not establish equivalent Claude behavior.
-Codex does not load the package's Cursor agents or `.mdc` rules as plugin capabilities.
-Cursor chat history, tool names, orchestration options, and `alwaysApply` rules retain their Cursor contracts.
-Sinon registers the upstream package without translating those components or executing its workflows.
 
 ## Install pstack from the official marketplace
 
