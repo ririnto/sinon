@@ -8,6 +8,8 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    Anthropic code review:
+      url: https://claude.dev/blog/solving-code-review-at-anthropic.md
     EditorConfig:
       url: https://editorconfig.org/
     JetBrains EditorConfig:
@@ -295,5 +297,15 @@ Add regression coverage when existing tests do not protect the failing behavior.
 Judge a change against the repository's own rules and the requirements actually stated, not against taste.
 Reject: accidental deletion, weakened validation commands, edits that mask a failing contract, scope expansion beyond the stated task, and invented values for required identifiers.
 Verify documentation matches code: a change that alters a documented boundary, workflow, or invariant updates that documentation in the same change.
+Check documented commands, paths, and loading instructions against their actual consumers.
+For configuration changes, verify effective values and routing at the consuming boundary.
+Distinguish defects introduced by the change from pre-existing defects, and state the concrete failure each finding causes.
+Group instances that share a root cause and check affected consumers for the same defect.
 Update a rule's consumers and validation when their contract or behavior changes, not merely to repeat the new wording.
 Use the report format required by the user or host.
+
+Within the authorized scope, correct confirmed recurring defects at their common source.
+Add prevention in the owning guidance or existing validation.
+Prefer existing enforcement over a new rule, and follow the rule rollout requirements before adding diagnostics or automatic fixes.
+Verify prevention against the confirmed failure and representative valid behavior.
+Do not encode unverified findings or optional cleanup preferences as mandatory checks.

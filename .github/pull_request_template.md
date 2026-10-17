@@ -9,6 +9,11 @@ Link the issue and add a closing reference only when its acceptance criteria are
 
 Describe the changed components and material exclusions.
 
+## Risk And Recovery
+
+Describe what could break, the affected consumers, and any security-sensitive boundaries.
+Explain how to revert the change or recover safely, including any state that a revert cannot restore.
+
 ## Verification
 
 List commands, outcomes, and the scope of reused passing evidence.
