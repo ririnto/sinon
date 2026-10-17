@@ -7,9 +7,6 @@ metadata:
       url: https://learn.chatgpt.com/docs/build-skills.md
     OpenAI plugin packaging:
       url: https://developers.openai.com/plugins/build/plugins.md
-    Codex Git subdirectory sources:
-      version: 0.162.1
-      url: https://raw.githubusercontent.com/openai/codex/rust-v0.162.1/codex-rs/core-plugins/src/marketplace.rs
     Codex Cursor manifest discovery:
       version: 0.163.0
       url: https://raw.githubusercontent.com/openai/codex/rust-v0.163.0/codex-rs/exec-server-protocol/src/protocol.rs
@@ -30,6 +27,8 @@ metadata:
         - https://github.com/cursor/plugins/tree/main/cursor-team-kit
         - https://github.com/cursor/plugins/blob/main/cursor-team-kit/.cursor-plugin/plugin.json
         - https://github.com/cursor/plugins/blob/main/cursor-team-kit/LICENSE
+    Cursor pstack marketplace:
+      url: https://raw.githubusercontent.com/cursor/plugins/main/.claude-plugin/marketplace.json
     Claude plugin components:
       url:
         - https://code.claude.com/docs/en/plugins/manifest-reference.md
@@ -145,17 +144,14 @@ Sinon selects external plugins through its marketplace catalog.
 - [cursor-team-kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit): both catalogs follow the original upstream subdirectory at `main`.
   Eric Zakariasson maintains the upstream plugin under the MIT license.
   The catalogs expose its skills without adapting Cursor-specific agents, rules, or workflows.
-- [pstack](https://github.com/cursor/plugins/tree/main/pstack): both catalogs follow the `pstack` subdirectory of `cursor/plugins` at `main`.
-  Lauren Tan maintains the upstream plugin under the MIT license.
-  Install it as `pstack@sinon` in Claude Code or Codex CLI 0.162.1 or later.
 
 ### Upstream Version Ownership
 
-Sinon supplies no marketplace version for pstack or cursor-team-kit.
-Both registrations preserve the upstream repositories' release metadata.
-Neither upstream package supplies a `.claude-plugin/plugin.json` manifest.
-Claude Code therefore derives their installation versions from the Git source commit and subdirectory hash.
-Codex recognizes their upstream manifests and retains their declared release versions.
+Sinon supplies no marketplace version for cursor-team-kit.
+Its registration preserves the upstream repository's release metadata.
+The upstream package supplies no `.claude-plugin/plugin.json` manifest.
+Claude Code therefore derives its installation version from the Git source commit and subdirectory hash.
+Codex recognizes its upstream manifest and retains its declared release version.
 Omitting the Sinon version does not guarantee Codex refreshes for every upstream commit while upstream versions remain unchanged.
 
 ### Cursor Team Kit Compatibility
@@ -172,26 +168,16 @@ Codex does not load the package's Cursor agents or `.mdc` rules as plugin capabi
 Cursor chat history, tool names, orchestration options, and `alwaysApply` rules retain their Cursor contracts.
 Sinon registers the upstream package without translating those components or executing its workflows.
 
-### pstack Compatibility
+## Install pstack from the official marketplace
 
-The catalogs use `git-subdir` to fetch pstack directly without copying its files into Sinon.
-Claude Code uses the marketplace entry as the manifest because pstack has no `.claude-plugin/plugin.json`.
-The entry sets `strict: false` and relies on default `skills/` and `agents/` discovery.
-Codex CLI 0.162.1 accepts the same source and reads pstack's portable root `plugin.json` and `skills/`.
+Install pstack through the official `cursor/plugins` marketplace in Claude Code:
 
-Claude Code 2.1.299 discovers 54 skills and both agents from upstream version 0.15.25 through `--plugin-dir`.
-Skill frontmatter uses `name`, `description`, `disable-model-invocation`, and `paths`, which Claude Code supports.
-The `icon` and `color` fields on `poteto-mode` do not configure Claude skills.
-The agent field `is_background` does not enable Claude background execution, whose field is `background`.
-Both agents omit tool restrictions and therefore inherit the host's available tools.
+```sh
+claude plugin marketplace add cursor/plugins
+claude plugin install pstack@cursor-plugins
+```
 
-Component discovery does not establish that every upstream workflow runs unchanged.
-Cursor `Task` options, `generalPurpose`, model slugs, and unscoped agent names need host-specific equivalents.
-The `poteto-agent` fallback searches `~/.cursor/plugins/` unless its parent supplies the skill's absolute path.
-The `setup-pstack` skill writes a Cursor rule under `~/.cursor/rules/`, which Claude Code and Codex do not apply.
-Some skills require Cursor's built-in `create-skill`, `cursor-team-kit` control skills, `deslop`, or other integrations.
-The nested `automations/` skills and Cursor automation definitions are outside default discovery.
-Sinon registers the upstream package without adapting these workflows or installing companion plugins.
+The upstream marketplace owns pstack packaging, compatibility, and updates.
 
 ## Registering This Marketplace in Claude Code
 

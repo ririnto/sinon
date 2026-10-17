@@ -177,20 +177,6 @@
     },
     {
       "category": "Development",
-      "name": "pstack",
-      "policy": {
-        "authentication": "ON_INSTALL",
-        "installation": "AVAILABLE"
-      },
-      "source": {
-        "ref": "main",
-        "path": "pstack",
-        "source": "git-subdir",
-        "url": "https://github.com/cursor/plugins.git"
-      }
-    },
-    {
-      "category": "Development",
       "name": "reactor",
       "policy": {
         "authentication": "ON_INSTALL",

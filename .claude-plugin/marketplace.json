@@ -263,25 +263,6 @@
     },
     {
       "author": {
-        "name": "Lauren Tan"
-      },
-      "category": "development",
-      "description": "if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence.",
-      "license": "MIT",
-      "name": "pstack",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/cursor/plugins.git",
-        "path": "pstack",
-        "ref": "main"
-      },
-      "strict": false,
-      "homepage": "https://github.com/cursor/plugins/tree/main/pstack",
-      "repository": "https://github.com/cursor/plugins",
-      "keywords": ["pstack", "workflow", "principles", "subagents", "unslop"]
-    },
-    {
-      "author": {
         "name": "ririnto"
       },
       "category": "development",
