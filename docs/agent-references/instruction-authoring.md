@@ -3,6 +3,12 @@ description: >-
   Design agent guidance by audience, authority, owner, host, model, and loading time.
 metadata:
   reference:
+    Claude prompting best practices:
+      url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices.md
+    ChatGPT best practices:
+      url: https://learn.chatgpt.com/guides/best-practices
+    OpenAI latest-model guidance:
+      url: https://developers.openai.com/api/docs/guides/latest-model.md
     GPT-6 instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     Codex skills:
@@ -14,6 +20,8 @@ metadata:
 # Instruction Authoring
 
 Use this reference when changing agent guidance, skill activation or content, host hooks, or model prompts.
+Apply these authoring rules to agent-facing instructions and instruction-management skills, not ordinary human-facing prose.
+The cited prompting guides do not authorize changes to models, SDKs, configuration, schedules, or installed assets.
 
 ## Design By Audience And Loading Time
 
@@ -54,11 +62,30 @@ Preserve spec-driven-development gate notices at skill activation and detailed g
 Use the general function-body rule in `repository-conventions.md` and keep TypeScript spacing exceptions in `typescript.md`.
 Keep citation-placement policy in the `Official References` section of `repository-conventions.md`.
 
+## Compose Actionable Instructions
+
+Use direct verbs and specify the required output's audience, format, and level of detail.
+Give numbered steps when action order matters.
+Separate instructions from source material, examples, and variable inputs with clear headings or descriptive delimiters.
+Add relevant examples when the required behavior or output would otherwise be ambiguous.
+Describe the required result instead of adding blanket tool demands or escalating emphasis.
+Keep rules that change a relevant decision or action.
+Inspect the instructions agents actually receive for missing, stale, or conflicting rules.
+
 ## Shared Principles And Local Limits
 
-State the requested outcome, authorized scope, completion condition, and stop condition that apply to the task.
-Name the sources to load when the task reaches their condition.
+State the requested outcome, relevant inputs and context, constraints, and authorized scope.
+Name the deliverable, observable completion criteria, and stop conditions before prescribing steps.
+Make approval boundaries explicit and continue work already authorized by the user.
+Ask focused questions when missing information could materially change the outcome or authority.
+Use available evidence for routine gaps within granted scope and report material assumptions.
+
+Name required supporting references, their loading conditions, and paths available to the consumer before the governed action.
+Read each selected reference before applying its instructions.
+Keep required instruction content bundled rather than relying on external attribution links at runtime.
+
 Choose proof for the acceptance criteria and changed behavior, and reuse passing evidence for unaffected behavior.
+Provide concrete check commands or observations so the agent can verify completion.
 Do not add tests that restate prose.
 Preserve authority, safety boundaries, explicit user requirements, and required source standards when simplifying guidance.
 Keep model selection, effort, review, and delegation policy with the workflow that owns those decisions.
