@@ -38,6 +38,7 @@ const sentenceStartPattern = /^[A-Z0-9"'“([「『*]/u;
 const wordBeforePattern = /[\w"”’\])]/u;
 const wordAfterPattern = /[\w"'“([/]/u;
 const closingQuotePattern = /^["'”’]+/u;
+const percentEscapesPattern = /%(?:[\da-fA-F]{2})|%(?![\da-fA-F]{2})/gu;
 const protectedTextPattern =
   /"(?:\\[\s\S]|[^"\\])*"|“(?:\\[\s\S]|[^”\\])*”|(?<!\w)'(?:\\[\s\S]|(?<=\w)'(?=\w)|[^'\\])*'(?!\w)|‘(?:\\[\s\S]|(?<=\w)’(?=\w)|[^’\\])*’/gu;
 const alertPattern =
@@ -387,13 +388,26 @@ export const noRelativeSkillLinks: Rule = {
           token.type === "definitionDestination"
         ) {
           const destination = token.text.replaceAll(/^<|>$/gu, "");
+          const comparable = destination.replaceAll(
+            percentEscapesPattern,
+            (escape) => {
+              if (escape.length === 3) {
+                try {
+                  return decodeURI(escape);
+                } catch {
+                  return escape;
+                }
+              }
+              return escape;
+            }
+          );
           const visible = protectedLines
             .get(token.startLine)
             ?.slice(token.startColumn - 1, token.endColumn - 1);
           if (
             (visible === undefined || visible.trim() !== "") &&
-            !/^(?:[a-z][a-z\d+.-]*:|\/|#)/iu.test(destination) &&
-            /(?:^|\/)SKILL\.md(?:[?#].*)?$/u.test(destination)
+            !/^(?:[a-z][a-z\d+.-]*:|\/|#)/iu.test(comparable) &&
+            /(?:^|\/)SKILL\.md(?:[?#].*)?$/u.test(comparable)
           ) {
             onError({
               lineNumber: token.startLine,
