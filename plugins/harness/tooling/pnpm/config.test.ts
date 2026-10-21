@@ -6,6 +6,7 @@ import {
   readdir,
   readFile,
   rm,
+  symlink,
   writeFile
 } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -16,6 +17,7 @@ import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 import { parseDocument } from "yaml";
 
+import { configureBaseline } from "../../scripts/configure.js";
 import { runUltracite } from "../../tests/ultracite-fixture.js";
 import oxfmtConfig from "./oxfmt.config.js";
 import oxlintConfig from "./oxlint.config.js";
@@ -118,6 +120,7 @@ describe("pnpm profile configuration", () => {
     expect(oxlintConfig.rules).toMatchObject({
       "style/no-blank-lines-in-functions": "deny",
       "style/no-inline-comments-in-functions": "deny",
+      "style/sibling-test-spacing": "deny",
       "tsdoc/require-export-tsdoc": "deny"
     });
   });
@@ -126,20 +129,40 @@ describe("pnpm profile configuration", () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
     try {
       await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+      await configureBaseline(directory, "node", "eligible");
+      await symlink(
+        path.resolve(profileDirectory, "../../../../node_modules"),
+        path.join(directory, "node_modules"),
+        "dir"
+      );
       await writeFile(
         path.join(directory, "sample.ts"),
-        "export function sample() {\n// explain\n\nreturn 1;\n}\n"
+        [
+          'import { describe, test } from "vitest";',
+          'describe("suite", () => {',
+          'test("first", () => {});',
+          'test("second", () => {});',
+          "});",
+          "",
+          "export function sample() {",
+          "// explain",
+          "",
+          "return 1;",
+          "}",
+          ""
+        ].join("\n")
       );
       const { diagnostics, status } = runUltracite(
         directory,
         "sample.ts",
         "check",
-        path.join(profileDirectory, "oxlint.config.ts")
+        path.join(directory, "oxlint.config.ts")
       );
       expect(status).toBe(1);
       const codes = diagnostics.map(({ code }) => code);
       expect(codes).toContain("style(no-blank-lines-in-functions)");
       expect(codes).toContain("style(no-inline-comments-in-functions)");
+      expect(codes).toContain("style(sibling-test-spacing)");
       expect(codes).toContain("tsdoc(require-export-tsdoc)");
     } finally {
       await rm(directory, { force: true, recursive: true });
