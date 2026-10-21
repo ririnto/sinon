@@ -183,15 +183,15 @@ The supplied script surface is:
 | `fix:markdownlint-cli2` | `markdownlint-cli2 --fix` |
 | `gradle:check` | `./gradlew check` |
 | `gradle:ktlintCheck` | `./gradlew ktlintCheck` |
-| `pre-commit` | `sh .husky/pre-commit` |
-| `pre-push` | `sh .husky/pre-push` |
+| `pre-commit` | `run-s check gradle:ktlintCheck` |
+| `pre-push` | `run-s check gradle:check` |
 | `prepare` | `husky` |
 
 The pre-commit gate requires a real target-owned `ktlintCheck` task.
 If that task is missing, report the integration gap and resolve the Kotlin integration before activating this exact script surface.
 Do not silently substitute `check` for `ktlintCheck`.
-The hook scripts finish Node-side checks successfully before invoking Gradle.
-Install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git and pnpm invoke the same configurations.
+The package scripts finish Node-side checks successfully before invoking Gradle.
+Install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git hooks delegate to the matching pnpm scripts.
 Keep the checked-in wrapper at the selected root and preserve its task graph.
 
 Install the canonical Markdownlint configuration and `rules/` from `tooling/pnpm/`, omitting `*.test.ts` files.

@@ -114,9 +114,10 @@ The `prepare` script runs `husky` to install its Git dispatchers.
 Copy `.husky/pre-commit` and `.husky/pre-push` from the selected profile's tooling directory to the selected Git root.
 Use `tooling/pnpm/.husky` for Node, frontend, and React, and `tooling/gradle/.husky` for Kotlin.
 Copy `.husky/.gitignore` from the pnpm tooling source for every profile.
-The pnpm `pre-commit` and `pre-push` scripts invoke those hook files through `sh`.
-Git and pnpm execute the same hook configurations without hooks calling pnpm.
-Each hook runs the target's `check` gate before the profile's selected native tasks.
+The Husky hook files invoke `pnpm run pre-commit` or `pnpm run pre-push`.
+The matching package scripts define the sequential `run-s` check configurations.
+Git and manual pnpm runs execute the same configurations.
+Each configuration runs the target's `check` gate before the profile's selected native tasks.
 Keep the generated `.husky/_/` dispatchers ignored.
 
 Inspect `core.hooksPath`, existing Git hooks, and any existing `prepare` command before installation.

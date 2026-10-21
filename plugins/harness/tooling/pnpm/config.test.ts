@@ -164,6 +164,94 @@ const markdownFiles = async (directory: string): Promise<string[]> => {
 };
 
 describe("pnpm profile configuration", () => {
+  test.each([
+    ["../../../../package.json", "run-s check", "run-s check"],
+    ["package.fragment.json", "run-s check", "run-s check"],
+    [
+      "../go/package.json",
+      "run-s check go:lint go:format go:nilaway",
+      "run-s check go:check"
+    ],
+    [
+      "../gradle/package.json",
+      "run-s check gradle:ktlintCheck",
+      "run-s check gradle:check"
+    ],
+    [
+      "../maven/package.json",
+      "run-s check maven:lint",
+      "run-s check maven:check"
+    ],
+    [
+      "../rust/package.json",
+      "run-s check rust:format rust:lint",
+      "run-s check rust:check"
+    ],
+    [
+      "../shell/package.json",
+      "run-s check shell:check",
+      "run-s check shell:check"
+    ],
+    ["../uv/package.json", "run-s check uv:check", "run-s check uv:check"]
+  ])(
+    "%s owns its hook sequences and receives hook delegation",
+    async (manifestFile, preCommit, prePush) => {
+      const { scripts } = JSON.parse(
+        await readFile(path.resolve(profileDirectory, manifestFile), "utf-8")
+      );
+      expect(scripts).toMatchObject({
+        check: "run-p check:*",
+        fix: "run-p fix:*",
+        "pre-commit": preCommit,
+        "pre-push": prePush,
+        prepare: "husky"
+      });
+      const directory = await mkdtemp(
+        path.join(tmpdir(), "sinon-hook-direction-")
+      );
+      try {
+        await mkdir(path.join(directory, ".bin"));
+        await writeFile(
+          path.join(directory, ".bin/pnpm"),
+          '#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\nprintf \'%s\\n\' "$@" > "$HARNESS_FIXTURE_TRACE"\nexit "$HARNESS_FIXTURE_EXIT"\n',
+          { mode: 0o755 }
+        );
+        await Promise.all(
+          ["pre-commit", "pre-push"].flatMap((hook) =>
+            [0, 7].map(async (status) => {
+              const trace = path.join(directory, `${hook}-${status}`);
+              const result = spawnSync(
+                "sh",
+                [
+                  path.resolve(
+                    profileDirectory,
+                    path.dirname(manifestFile),
+                    ".husky",
+                    hook
+                  )
+                ],
+                {
+                  cwd: directory,
+                  encoding: "utf-8",
+                  env: {
+                    ...process.env,
+                    HARNESS_FIXTURE_EXIT: String(status),
+                    HARNESS_FIXTURE_TRACE: trace,
+                    PATH: `${path.join(directory, ".bin")}${path.delimiter}${process.env.PATH}`
+                  }
+                }
+              );
+              expect(result.status, result.stdout + result.stderr).toBe(status);
+              expect(await readFile(trace, "utf-8")).toBe(`run\n${hook}\n`);
+            })
+          )
+        );
+      } finally {
+        await rm(directory, { force: true, recursive: true });
+      }
+    }
+  );
+
   test.each(
     [
       {
