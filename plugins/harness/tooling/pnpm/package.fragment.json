@@ -2,13 +2,18 @@
   "scripts": {
     "check": "run-p check:*",
     "check:markdownlint-cli2": "markdownlint-cli2",
-    "check:ultracite": "ultracite check --type-aware",
+    "check:ultracite": "run-p --continue-on-error ultracite:check:**",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "fix:ultracite": "ultracite fix --type-aware",
+    "fix:ultracite": "run-s --continue-on-error ultracite:fix:base ultracite:check:style:*",
     "pre-commit": "run-s check",
     "pre-push": "run-s check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ultracite:check:base": "ultracite check --type-aware",
+    "ultracite:check:style:no-blank-lines-in-functions": "ultracite check --type-aware --config oxlint.style-no-blank-lines-in-functions.config.ts",
+    "ultracite:check:style:no-inline-comments-in-functions": "ultracite check --type-aware --config oxlint.style-no-inline-comments-in-functions.config.ts",
+    "ultracite:check:style:sibling-test-spacing": "ultracite check --type-aware --config oxlint.style-sibling-test-spacing.config.ts",
+    "ultracite:fix:base": "ultracite fix --type-aware"
   },
   "devDependencies": {
     "@oxc-project/types": "catalog:",

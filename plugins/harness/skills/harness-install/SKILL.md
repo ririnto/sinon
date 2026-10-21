@@ -96,6 +96,9 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when the Node-side baseline is selected |
 | `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/pnpm/.husky/<name>` for `pre-commit`, `pre-push`, and `.gitignore` when the Node-side script surface is selected |
 | `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
+| `<target-root>/oxlint.style-no-blank-lines-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-blank-lines-in-functions.config.ts` when pnpm is selected |
+| `<target-root>/oxlint.style-no-inline-comments-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-inline-comments-in-functions.config.ts` when pnpm is selected |
+| `<target-root>/oxlint.style-sibling-test-spacing.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-sibling-test-spacing.config.ts` when pnpm is selected |
 | `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
 | `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |

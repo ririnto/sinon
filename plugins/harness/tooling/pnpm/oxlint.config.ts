@@ -8,7 +8,7 @@ export default defineConfig({
   env: core.env,
   extends: [core],
   ignorePatterns: core.ignorePatterns,
-  jsPlugins: ["./plugins/style-plugin.ts", "./plugins/tsdoc-plugin.ts"],
+  jsPlugins: ["./plugins/tsdoc-plugin.ts"],
   overrides: [
     {
       files: ["**/*.{js,jsx,mjs,cjs}"],
@@ -23,9 +23,6 @@ export default defineConfig({
     }
   ],
   rules: {
-    "style/no-blank-lines-in-functions": "deny",
-    "style/no-inline-comments-in-functions": "deny",
-    "style/sibling-test-spacing": "deny",
     "tsdoc/require-export-tsdoc": "deny",
     "typescript/consistent-type-imports": [
       "error",

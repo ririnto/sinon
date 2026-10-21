@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
-import tsdoc from "./tsdoc-plugin.js";
+import tsdoc from "../plugins/tsdoc-plugin.js";
 
 type Rule = (typeof tsdoc.rules)["require-export-tsdoc"];
 type RuleContext = Parameters<Rule["create"]>[0];
@@ -28,7 +28,9 @@ const writeConfig = (directory: string): Promise<void> =>
   writeFile(
     path.join(directory, ".oxlintrc.json"),
     JSON.stringify({
-      jsPlugins: [fileURLToPath(new URL("tsdoc-plugin.ts", import.meta.url))],
+      jsPlugins: [
+        fileURLToPath(new URL("../plugins/tsdoc-plugin.ts", import.meta.url))
+      ],
       rules: { "tsdoc/require-export-tsdoc": "error" }
     })
   );
