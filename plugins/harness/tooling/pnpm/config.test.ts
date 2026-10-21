@@ -46,6 +46,82 @@ const markdownFiles = async (directory: string): Promise<string[]> => {
 };
 
 describe("pnpm profile configuration", () => {
+  test.each(
+    [
+      {
+        commands: [
+          "node --import tsx .claude-plugin/marketplace/generate.ts --check",
+          "vitest run .claude-plugin/marketplace/generate.test.ts"
+        ],
+        gate: "check:marketplace"
+      },
+      {
+        commands: [
+          "ultracite check",
+          "ultracite check .claude-plugin/marketplace"
+        ],
+        gate: "check:ultracite"
+      }
+    ].flatMap((entry) => [-1, 0, 1].map((failure) => ({ ...entry, failure })))
+  )(
+    "$gate preserves tool order with failure $failure",
+    async ({ commands, failure, gate }) => {
+      const { scripts }: { scripts: Record<string, string> } = JSON.parse(
+        await readFile(
+          path.resolve(profileDirectory, "../../../../package.json"),
+          "utf-8"
+        )
+      );
+      const [runner, ...tasks] = scripts[gate].split(" ");
+      expect(runner).toBe("run-s");
+      expect(tasks.map((task) => scripts[task])).toEqual(commands);
+      const directory = await mkdtemp(
+        path.join(tmpdir(), "sinon-script-order-")
+      );
+      try {
+        await symlink(
+          path.resolve(profileDirectory, "../../../../node_modules"),
+          path.join(directory, "node_modules"),
+          "dir"
+        );
+        await writeFile(
+          path.join(directory, "record.cjs"),
+          [
+            "require('node:fs').appendFileSync('calls', process.argv[2] + '\\n');",
+            "process.exit(process.argv[3] === 'fail' ? 1 : 0);"
+          ].join("\n")
+        );
+        await writeFile(
+          path.join(directory, "package.json"),
+          JSON.stringify({
+            scripts: {
+              check: scripts.check,
+              [gate]: scripts[gate],
+              ...Object.fromEntries(
+                tasks.map((task, index) => [
+                  task,
+                  `node record.cjs ${task}${index === failure ? " fail" : ""}`
+                ])
+              )
+            }
+          })
+        );
+        const result = spawnSync("pnpm", ["run", "check"], {
+          cwd: directory,
+          encoding: "utf-8"
+        });
+        expect(result.status, result.stdout + result.stderr).toBe(
+          failure < 0 ? 0 : 1
+        );
+        expect(await readFile(path.join(directory, "calls"), "utf-8")).toBe(
+          `${tasks.slice(0, failure < 0 ? tasks.length : failure + 1).join("\n")}\n`
+        );
+      } finally {
+        await rm(directory, { force: true, recursive: true });
+      }
+    }
+  );
+
   test("Harness guidance parses and follows the frontmatter title policy", async () => {
     const harnessRoot = path.resolve(profileDirectory, "../..");
     const [documents, skills] = await Promise.all([
