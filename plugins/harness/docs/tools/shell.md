@@ -18,7 +18,7 @@ Native configuration and manifest sources live under `tooling/shell/`.
 
 Select the `shell` profile for a repository root that tracks `*.sh` files.
 The native file list comes from Git itself.
-The shared pnpm manifest composes the commands below with Markdown checks and Husky hooks.
+The profile's Husky hooks compose the commands below after the shared Markdown checks.
 The profile introduces no shell test harness.
 
 ## Toolchain
@@ -44,7 +44,7 @@ When the target already owns an `.editorconfig`, keep its shell section and reso
 ## Validation Commands
 
 Use the [project baseline](baseline.md) for the root pnpm manifest, catalog, Markdownlint configuration and real Husky hooks.
-`tooling/shell/package.json` runs the shared check before ShellCheck and shfmt on both commit and push.
+The hooks in `tooling/shell/.husky/` run the shared check before ShellCheck and shfmt on both commit and push.
 
 Run at the repository root, over git-tracked scripts only:
 

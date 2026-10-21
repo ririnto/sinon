@@ -103,7 +103,7 @@ Merge the `allow-builds.fragment.yaml` entry for esbuild only when the selected 
 Preserve existing build approval policy and review conflicts instead of approving every dependency's scripts.
 Do not add direct `oxlint` or `oxfmt` script entries.
 Route lint and format execution only through Ultracite.
-Add `npm-run-all2` only when the merged scripts use `run-p`.
+Add `npm-run-all2` only when the merged scripts use `run-p` or `run-s`.
 Add `@oxc-project/types` only when the target keeps TypeScript custom plugins and the target's Oxc version requires its declarations.
 Use the [Git hook integration](#git-hook-integration) for the script surface.
 
@@ -111,10 +111,12 @@ Use the [Git hook integration](#git-hook-integration) for the script surface.
 
 Add the compatible Husky catalog entry and development dependency when installing this script surface.
 The `prepare` script runs `husky` to install its Git dispatchers.
-Copy `.husky/pre-commit`, `.husky/pre-push`, and `.husky/.gitignore` from the pnpm tooling source to the selected Git root.
-The hooks invoke `pnpm run pre-commit` and `pnpm run pre-push` respectively.
-Both pnpm hook scripts run the target's `check` gate.
-The Gradle profile adds its selected native Gradle task after that gate.
+Copy `.husky/pre-commit` and `.husky/pre-push` from the selected profile's tooling directory to the selected Git root.
+Use `tooling/pnpm/.husky` for Node, frontend, and React, and `tooling/gradle/.husky` for Kotlin.
+Copy `.husky/.gitignore` from the pnpm tooling source for every profile.
+The pnpm `pre-commit` and `pre-push` scripts invoke those hook files through `sh`.
+Git and pnpm execute the same hook configurations without hooks calling pnpm.
+Each hook runs the target's `check` gate before the profile's selected native tasks.
 Keep the generated `.husky/_/` dispatchers ignored.
 
 Inspect `core.hooksPath`, existing Git hooks, and any existing `prepare` command before installation.

@@ -6,8 +6,8 @@
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "gradle:check": "./gradlew check",
     "gradle:ktlintCheck": "./gradlew ktlintCheck",
-    "pre-commit": "run-s check gradle:ktlintCheck",
-    "pre-push": "run-s check gradle:check",
+    "pre-commit": "sh .husky/pre-commit",
+    "pre-push": "sh .husky/pre-push",
     "prepare": "husky"
   },
   "devDependencies": {

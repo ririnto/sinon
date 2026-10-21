@@ -2,7 +2,8 @@ shellcheck:
   stage: validate
   image: debian:13-slim
   before_script:
-    - apt-get update && apt-get install -y git shellcheck shfmt
+    - apt-get update
+    - apt-get install -y git shellcheck shfmt
   script:
     - git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --
     - git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --

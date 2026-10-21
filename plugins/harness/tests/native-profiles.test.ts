@@ -67,16 +67,27 @@ describe("remaining native profile Git gates", () => {
   test.each(
     nativeProfiles.flatMap((profile) =>
       ["pre-commit", "pre-push"].flatMap((hook) =>
-        ["valid", "markdown", "native"].map((state) => ({
-          ...profile,
-          hook,
-          state
-        }))
+        ["valid", "markdown", "native"].flatMap((state) =>
+          ["git", "pnpm"].map((entrypoint) => ({
+            ...profile,
+            entrypoint,
+            hook,
+            state
+          }))
+        )
       )
     )
   )(
-    "$profile $hook propagates $state outcomes",
-    async ({ profile, hook, state, executables, commitCalls, pushExtra }) => {
+    "$profile $entrypoint $hook propagates $state outcomes",
+    async ({
+      profile,
+      entrypoint,
+      hook,
+      state,
+      executables,
+      commitCalls,
+      pushExtra
+    }) => {
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-native-gate-")
       );
@@ -140,10 +151,14 @@ describe("remaining native profile Git gates", () => {
         state === "markdown" ? "# First\n\n# Second\n" : "# Changed\n"
       );
       expect(git("add", "README.md").status).toBe(0);
-      const result =
+      const gitArguments =
         hook === "pre-commit"
-          ? git("commit", "-m", "Changed fixture")
-          : git("push", "origin", "main");
+          ? ["commit", "-m", "Changed fixture"]
+          : ["push", "origin", "main"];
+      const result =
+        entrypoint === "pnpm"
+          ? spawnSync("pnpm", ["run", hook], options)
+          : git(...gitArguments);
       expect(
         result.status,
         result.stdout.toString() + result.stderr.toString()

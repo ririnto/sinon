@@ -54,7 +54,9 @@ For an existing configured root or a polyglot root, use the profile's bounded me
 | `frontend` | HTML with Vite Storybook | pnpm plus `tooling/frontend/package.fragment.json` |
 | `react` | React with Vite Storybook | pnpm plus `tooling/react/package.fragment.json` |
 
-Every selected root receives a private pnpm manifest, workspace catalog, compact-table Markdownlint CLI2 configuration with sorted object keys, custom Markdown rules, and shared Husky hook sources.
+Every selected root receives a private pnpm manifest, workspace catalog, compact-table Markdownlint CLI2 configuration with sorted object keys, and custom Markdown rules.
+Its canonical manifest selects the adjacent profile-owned Husky hook sources.
+The pnpm script entrypoints and Git invoke those same configurations.
 Gradle and Kotlin roots create `gradle/libs.versions.toml` only when missing.
 Use that catalog as the root's single native version source when integrating its build.
 Keep each independent Gradle root's catalog separate.
@@ -78,7 +80,8 @@ Other frontend frameworks use [frontend guidance](frontend.md) and a compatible 
 
 Run `pnpm install` and `pnpm run prepare` after reviewing the generated files.
 Verify `core.hooksPath` and actual Git commit and push operations through the shared [Husky integration](pnpm.md#git-hook-integration).
-Run the root `pnpm run check` and the selected native gate, then prove a disposable violation blocks the matching hook.
+Run the root `pnpm run check` and the selected native gate.
+Verify both pnpm hook entrypoints and prove a disposable violation blocks the matching Git operation.
 Repeat configuration and confirm no new files or changed bytes.
 Verify each independently deliverable unit before integrating its successor.
 Check the actual target artifacts and native outcomes rather than inferring success from copied files or script names.

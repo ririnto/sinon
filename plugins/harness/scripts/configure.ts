@@ -235,7 +235,12 @@ export const configureBaseline = async (
     await readSource("pnpm/.markdownlint-cli2.jsonc")
   );
   await addDirectory(sources, "pnpm/rules", "rules");
-  await addDirectory(sources, "pnpm/.husky", ".husky");
+  await addDirectory(
+    sources,
+    path.join(path.dirname(nativeProfiles[profile]), ".husky"),
+    ".husky"
+  );
+  sources.set(".husky/.gitignore", await readSource("pnpm/.husky/.gitignore"));
   if (profile === "node" || profile === "frontend" || profile === "react") {
     sources.set("oxlint.config.ts", await readSource("pnpm/oxlint.config.ts"));
     sources.set(
