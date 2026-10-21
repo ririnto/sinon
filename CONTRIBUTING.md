@@ -6,7 +6,7 @@ Keep new requirements in separate issues and link related work.
 
 ## Scope And Instructions
 
-Read [AGENTS.md](AGENTS.md) and the guidance for the component you change.
+Follow repository guidance supplied to the working context and consult component documentation as needed.
 Check open issues and pull requests for overlapping work before editing shared files.
 Keep one writer per shared resource and preserve unrelated changes.
 
