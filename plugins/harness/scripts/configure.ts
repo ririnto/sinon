@@ -238,6 +238,22 @@ export const configureBaseline = async (
   await addDirectory(sources, "pnpm/.husky", ".husky");
   if (profile === "node" || profile === "frontend" || profile === "react") {
     sources.set("oxlint.config.ts", await readSource("pnpm/oxlint.config.ts"));
+    sources.set(
+      "oxlint.style-no-blank-lines-in-functions.config.ts",
+      await readSource(
+        "pnpm/oxlint.style-no-blank-lines-in-functions.config.ts"
+      )
+    );
+    sources.set(
+      "oxlint.style-no-inline-comments-in-functions.config.ts",
+      await readSource(
+        "pnpm/oxlint.style-no-inline-comments-in-functions.config.ts"
+      )
+    );
+    sources.set(
+      "oxlint.style-sibling-test-spacing.config.ts",
+      await readSource("pnpm/oxlint.style-sibling-test-spacing.config.ts")
+    );
     sources.set("oxfmt.config.ts", await readSource("pnpm/oxfmt.config.ts"));
     await addDirectory(sources, "pnpm/plugins", "plugins");
   }

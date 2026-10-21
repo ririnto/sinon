@@ -58,7 +58,7 @@ Every selected root receives a private pnpm manifest, workspace catalog, compact
 Gradle and Kotlin roots create `gradle/libs.versions.toml` only when missing.
 Use that catalog as the root's single native version source when integrating its build.
 Keep each independent Gradle root's catalog separate.
-Node and frontend roots also receive the canonical Ultracite Oxc configuration and plugins.
+Node, frontend, and React roots receive the canonical base Oxc configuration, three independent style configurations, Oxfmt configuration, and flat plugin modules.
 The runtime fragment pins the supported Node 24 LTS line and pnpm baseline.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
 

@@ -166,12 +166,43 @@ describe("fresh-root baseline", () => {
         );
       }
       if (profile === "node" || profile === "frontend" || profile === "react") {
-        expect(manifest.scripts["check:ultracite"]).toBe(
-          "ultracite check --type-aware"
+        expect(manifest.scripts).toMatchObject({
+          "check:ultracite": "run-p --continue-on-error ultracite:check:**",
+          "fix:ultracite":
+            "run-s --continue-on-error ultracite:fix:base ultracite:check:style:*",
+          "ultracite:check:base": "ultracite check --type-aware",
+          "ultracite:check:style:no-blank-lines-in-functions":
+            "ultracite check --type-aware --config oxlint.style-no-blank-lines-in-functions.config.ts",
+          "ultracite:check:style:no-inline-comments-in-functions":
+            "ultracite check --type-aware --config oxlint.style-no-inline-comments-in-functions.config.ts",
+          "ultracite:check:style:sibling-test-spacing":
+            "ultracite check --type-aware --config oxlint.style-sibling-test-spacing.config.ts",
+          "ultracite:fix:base": "ultracite fix --type-aware"
+        });
+        expect(
+          Object.keys(manifest.scripts).filter((script) =>
+            script.startsWith("check:")
+          )
+        ).toEqual(
+          profile === "node"
+            ? ["check:markdownlint-cli2", "check:ultracite"]
+            : [
+                "check:design",
+                "check:markdownlint-cli2",
+                "check:storybook",
+                "check:ultracite"
+              ]
         );
-        expect(manifest.scripts["fix:ultracite"]).toBe(
-          "ultracite fix --type-aware"
-        );
+        expect(
+          Object.keys(manifest.scripts).filter((script) =>
+            script.startsWith("fix:")
+          )
+        ).toEqual(["fix:markdownlint-cli2", "fix:ultracite"]);
+        expect(
+          Object.keys(manifest.scripts).filter((script) =>
+            script.startsWith("ultracite:fix:")
+          )
+        ).toEqual(["ultracite:fix:base"]);
         expect(
           Object.values(manifest.scripts).filter((command) =>
             /^(?:oxlint|oxfmt)\b/u.test(String(command))
@@ -188,6 +219,31 @@ describe("fresh-root baseline", () => {
             "utf-8"
           )
         );
+        const configurationFiles = [
+          "oxlint.config.ts",
+          "oxlint.style-no-blank-lines-in-functions.config.ts",
+          "oxlint.style-no-inline-comments-in-functions.config.ts",
+          "oxlint.style-sibling-test-spacing.config.ts"
+        ];
+        await Promise.all(
+          configurationFiles.map(async (file) => {
+            const [materialized, source] = await Promise.all([
+              readFile(path.join(directory, file), "utf-8"),
+              readFile(
+                path.join(repositoryRoot, "plugins/harness/tooling/pnpm", file),
+                "utf-8"
+              )
+            ]);
+            expect(materialized).toBe(source);
+          })
+        );
+        const pluginFiles = await readdir(path.join(directory, "plugins"));
+        expect(pluginFiles.toSorted()).toEqual([
+          "no-blank-lines-in-functions.ts",
+          "no-inline-comments-in-functions.ts",
+          "sibling-test-spacing.ts",
+          "tsdoc-plugin.ts"
+        ]);
       }
       if (profile === "frontend" || profile === "react") {
         expect(manifest.scripts["check:storybook"]).toBe(
