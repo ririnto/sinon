@@ -53,7 +53,7 @@ description: >-
 Write idiomatic Kotlin by choosing the smallest language construct or stdlib path that keeps meaning obvious.
 
 Minimum Kotlin version: 2.1 -- examples use `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`.
-The referenced Kotlin 2.4.20 release is an example baseline.
+Treat Kotlin 2.4.20 as an example baseline, not a compiler upgrade requirement.
 For a compiler upgrade, check the latest stable Kotlin release and confirm library compatibility before updating the project catalog.
 Exclude EAP builds from the stable-release comparison.
 Newer stdlib surfaces are version-gated and noted where they appear: `kotlin.io.encoding` is stable since Kotlin 2.2, `kotlin.time.Instant` is stable since Kotlin 2.3, and `kotlin.uuid` is stable since Kotlin 2.4.
