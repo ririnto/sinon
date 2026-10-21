@@ -14,6 +14,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { lint } from "markdownlint/sync";
+import core from "ultracite/oxlint/core";
 import { describe, expect, test } from "vitest";
 import { parseDocument } from "yaml";
 
@@ -21,6 +22,12 @@ import { configureBaseline } from "../../scripts/configure.js";
 import { runUltracite } from "../../tests/ultracite-fixture.js";
 import oxfmtConfig from "./oxfmt.config.js";
 import oxlintConfig from "./oxlint.config.js";
+import noBlankLinesConfig from "./oxlint.style-no-blank-lines-in-functions.config.js";
+import noInlineCommentsConfig from "./oxlint.style-no-inline-comments-in-functions.config.js";
+import siblingSpacingConfig from "./oxlint.style-sibling-test-spacing.config.js";
+import * as noBlankLinesPlugin from "./plugins/no-blank-lines-in-functions.js";
+import * as noInlineCommentsPlugin from "./plugins/no-inline-comments-in-functions.js";
+import * as siblingSpacingPlugin from "./plugins/sibling-test-spacing.js";
 
 const profileDirectory = import.meta.dirname;
 const resolvePackage = createRequire(import.meta.url).resolve;
@@ -32,6 +39,117 @@ const markdownlintBin = path.join(
   path.dirname(resolvePackage("markdownlint-cli2")),
   "markdownlint-cli2-bin.mjs"
 );
+const stylePasses = [
+  {
+    configuration: noBlankLinesConfig,
+    configurationFile: "oxlint.style-no-blank-lines-in-functions.config.ts",
+    fixture: [
+      "export const sample = () => {",
+      "",
+      "  return 1;",
+      "};",
+      "sample();"
+    ].join("\n"),
+    pluginFile: "no-blank-lines-in-functions.ts",
+    pluginModule: noBlankLinesPlugin,
+    ruleCode: "style(no-blank-lines-in-functions)",
+    ruleId: "style/no-blank-lines-in-functions",
+    ruleKey: "no-blank-lines-in-functions"
+  },
+  {
+    configuration: noInlineCommentsConfig,
+    configurationFile: "oxlint.style-no-inline-comments-in-functions.config.ts",
+    fixture: [
+      "export const sample = () => {",
+      "  // explain",
+      "  return 1;",
+      "};",
+      "sample();"
+    ].join("\n"),
+    pluginFile: "no-inline-comments-in-functions.ts",
+    pluginModule: noInlineCommentsPlugin,
+    ruleCode: "style(no-inline-comments-in-functions)",
+    ruleId: "style/no-inline-comments-in-functions",
+    ruleKey: "no-inline-comments-in-functions"
+  },
+  {
+    configuration: siblingSpacingConfig,
+    configurationFile: "oxlint.style-sibling-test-spacing.config.ts",
+    fixture: [
+      'import { describe, test } from "vitest";',
+      'describe("suite", () => {',
+      '  test("first", () => {});',
+      '  test("second", () => {});',
+      "});"
+    ].join("\n"),
+    pluginFile: "sibling-test-spacing.ts",
+    pluginModule: siblingSpacingPlugin,
+    ruleCode: "style(sibling-test-spacing)",
+    ruleId: "style/sibling-test-spacing",
+    ruleKey: "sibling-test-spacing"
+  }
+] as const;
+const nodeModulesDirectory = path.resolve(
+  profileDirectory,
+  "../../../../node_modules"
+);
+const packageStyleFixture = [
+  'import { describe, expect, test } from "vitest";',
+  "",
+  'describe("suite", () => {',
+  '  test("first", () => {',
+  "    expect(1).toBe(1);",
+  "  });",
+  '  test("second", () => {',
+  "    expect(2).toBe(2);",
+  "  });",
+  "});",
+  "",
+  "function withBlankLine() {",
+  "  const value = 1;",
+  "",
+  "  return value;",
+  "}",
+  "",
+  "function withComment() {",
+  "  // Explain the return value",
+  "  return withBlankLine();",
+  "}",
+  "",
+  "withComment();"
+].join("\n");
+
+const preparePackageRoot = async (directory: string): Promise<void> => {
+  await configureBaseline(directory, "node", "eligible");
+  await symlink(
+    nodeModulesDirectory,
+    path.join(directory, "node_modules"),
+    "dir"
+  );
+  await writeFile(
+    path.join(directory, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        module: "esnext",
+        moduleResolution: "bundler",
+        noEmit: true,
+        skipLibCheck: true,
+        strict: true,
+        target: "es2022"
+      },
+      include: ["**/*.ts", "**/*.tsx"]
+    })
+  );
+};
+
+const runPackageScript = (directory: string, script: string) =>
+  spawnSync("pnpm", ["run", script], {
+    cwd: directory,
+    env: {
+      ...process.env,
+      PATH: `${path.join(nodeModulesDirectory, ".bin")}${path.delimiter}${process.env.PATH}`
+    }
+  });
 
 const markdownFiles = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -188,20 +306,77 @@ describe("pnpm profile configuration", () => {
     expect(oxfmtConfig.trailingComma).toBe("none");
   });
 
-  test("oxlint configuration enables the profile plugin rules", () => {
-    expect(oxlintConfig.jsPlugins).toEqual([
-      "./plugins/style-plugin.ts",
-      "./plugins/tsdoc-plugin.ts"
-    ]);
-    expect(oxlintConfig.rules).toMatchObject({
-      "style/no-blank-lines-in-functions": "deny",
-      "style/no-inline-comments-in-functions": "deny",
-      "style/sibling-test-spacing": "deny",
-      "tsdoc/require-export-tsdoc": "deny"
-    });
+  test("oxlint configurations isolate each style plugin pass", () => {
+    expect(oxlintConfig.jsPlugins).toEqual(["./plugins/tsdoc-plugin.ts"]);
+    expect(
+      Object.keys(oxlintConfig.rules).filter((rule) =>
+        rule.startsWith("style/")
+      )
+    ).toEqual([]);
+    expect(oxlintConfig.rules["tsdoc/require-export-tsdoc"]).toBe("deny");
+    for (const stylePass of stylePasses) {
+      expect(stylePass.configuration.extends).toEqual([core]);
+      expect(stylePass.configuration.env).toEqual(core.env);
+      expect(stylePass.configuration.ignorePatterns).toEqual(
+        core.ignorePatterns
+      );
+      expect(stylePass.configuration.jsPlugins).toEqual([
+        `./plugins/${stylePass.pluginFile}`
+      ]);
+      expect(stylePass.configuration.rules).toEqual({
+        [stylePass.ruleId]: "deny"
+      });
+      expect(Object.keys(stylePass.pluginModule)).toEqual(["default"]);
+      expect(stylePass.pluginModule.default.meta).toEqual({ name: "style" });
+      expect(Object.keys(stylePass.pluginModule.default.rules)).toEqual([
+        stylePass.ruleKey
+      ]);
+    }
   });
 
-  test("Ultracite loads the profile configuration and its plugins", async () => {
+  test("plugin implementation files keep local imports and aggregates out", async () => {
+    const pluginsDirectory = path.join(profileDirectory, "plugins");
+    const entries = await readdir(pluginsDirectory, { withFileTypes: true });
+    expect(entries.every((entry) => entry.isFile())).toBe(true);
+    const files = entries
+      .map(({ name }) => name)
+      .filter((name) => name.endsWith(".ts"))
+      .toSorted();
+    expect(files).toEqual([
+      "no-blank-lines-in-functions.ts",
+      "no-inline-comments-in-functions.ts",
+      "sibling-test-spacing.ts",
+      "tsdoc-plugin.ts"
+    ]);
+    const localSpecifier = /^(?:\.{1,2}\/|\/|file:|#|@\/)/u;
+    const staticImports =
+      /^\s*(?:import|export)\s+(?:type\s+)?(?:[^;]*?\s+from\s+)?(?<quote>["'])(?<specifier>.*?)\k<quote>/gmu;
+    const dynamicImports =
+      /\bimport\(\s*(?<quote>["'])(?<specifier>.*?)\k<quote>\s*\)/gu;
+    const requiredImports =
+      /\brequire\(\s*(?<quote>["'])(?<specifier>.*?)\k<quote>\s*\)/gu;
+    await Promise.all(
+      files.map(async (filename) => {
+        const source = await readFile(
+          path.join(pluginsDirectory, filename),
+          "utf-8"
+        );
+        const imports = [
+          ...source.matchAll(staticImports),
+          ...source.matchAll(dynamicImports),
+          ...source.matchAll(requiredImports)
+        ].flatMap(({ groups }) =>
+          groups?.specifier === undefined ? [] : [groups.specifier]
+        );
+        expect(
+          imports.filter((specifier) => localSpecifier.test(specifier)),
+          filename
+        ).toEqual([]);
+      })
+    );
+  });
+
+  test("Ultracite loads the base configuration without style rules", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
     try {
       await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
@@ -213,20 +388,7 @@ describe("pnpm profile configuration", () => {
       );
       await writeFile(
         path.join(directory, "sample.ts"),
-        [
-          'import { describe, test } from "vitest";',
-          'describe("suite", () => {',
-          'test("first", () => {});',
-          'test("second", () => {});',
-          "});",
-          "",
-          "export function sample() {",
-          "// explain",
-          "",
-          "return 1;",
-          "}",
-          ""
-        ].join("\n")
+        "export const undocumented = 1;\n"
       );
       const { diagnostics, status } = runUltracite(
         directory,
@@ -235,15 +397,145 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "oxlint.config.ts")
       );
       expect(status).toBe(1);
-      const codes = diagnostics.map(({ code }) => code);
-      expect(codes).toContain("style(no-blank-lines-in-functions)");
-      expect(codes).toContain("style(no-inline-comments-in-functions)");
-      expect(codes).toContain("style(sibling-test-spacing)");
-      expect(codes).toContain("tsdoc(require-export-tsdoc)");
+      expect(diagnostics.map(({ code }) => code)).toContain(
+        "tsdoc(require-export-tsdoc)"
+      );
+      expect(
+        diagnostics.filter(({ code }) => code?.startsWith("style("))
+      ).toEqual([]);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
   });
+
+  test.each(stylePasses)(
+    "Ultracite loads copied $configurationFile with peer plugins absent",
+    async (stylePass) => {
+      const directory = await mkdtemp(
+        path.join(tmpdir(), "sinon-style-profile-lint-")
+      );
+      try {
+        await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+        await configureBaseline(directory, "node", "eligible");
+        await symlink(
+          path.resolve(profileDirectory, "../../../../node_modules"),
+          path.join(directory, "node_modules"),
+          "dir"
+        );
+        await Promise.all(
+          stylePasses
+            .filter(({ pluginFile }) => pluginFile !== stylePass.pluginFile)
+            .map(({ pluginFile }) =>
+              rm(path.join(directory, "plugins", pluginFile))
+            )
+        );
+        const pluginFiles = await readdir(path.join(directory, "plugins"));
+        expect(pluginFiles.toSorted()).toEqual(
+          [stylePass.pluginFile, "tsdoc-plugin.ts"].toSorted()
+        );
+        await writeFile(path.join(directory, "sample.ts"), stylePass.fixture);
+        const { diagnostics, status } = runUltracite(
+          directory,
+          "sample.ts",
+          "check",
+          path.join(directory, stylePass.configurationFile)
+        );
+        expect(status).toBe(1);
+        expect(
+          diagnostics
+            .filter(({ code }) => code?.startsWith("style("))
+            .map(({ code }) => code)
+        ).toEqual([stylePass.ruleCode]);
+      } finally {
+        await rm(directory, { force: true, recursive: true });
+      }
+    },
+    30_000
+  );
+
+  test("materialized scripts discover nested style violations and ignore generated files", async () => {
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "sinon-script-discovery-")
+    );
+    try {
+      await preparePackageRoot(directory);
+      await mkdir(path.join(directory, "src/nested"), { recursive: true });
+      await mkdir(path.join(directory, "dist"));
+      await writeFile(
+        path.join(directory, "src/nested/style-fixture.ts"),
+        packageStyleFixture
+      );
+      await writeFile(
+        path.join(directory, "dist/ignored.ts"),
+        [
+          "export const ignored = () => {",
+          "  // ignored",
+          "",
+          "  return 1;",
+          "};"
+        ].join("\n")
+      );
+      const result = runPackageScript(directory, "check:ultracite");
+      const output = result.stderr.toString() + result.stdout.toString();
+      expect(result.status, output).toBe(1);
+      expect(output).toContain("src/nested/style-fixture.ts");
+      expect(output).toContain("Remove blank lines from function bodies.");
+      expect(output).toContain(
+        "Use declaration documentation instead of explanatory comments."
+      );
+      expect(output).toContain(
+        "Separate sibling tests and lifecycle registrations with one blank line."
+      );
+      expect(output).not.toContain("dist/ignored.ts");
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }, 90_000);
+
+  test("materialized fix script formats once before read-only style checks", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "sinon-script-fix-"));
+    try {
+      await preparePackageRoot(directory);
+      await mkdir(path.join(directory, "src/nested"), { recursive: true });
+      const fixture = path.join(directory, "src/nested/style-fixture.ts");
+      await writeFile(
+        fixture,
+        [
+          packageStyleFixture,
+          "function formatterTarget(){return  1}",
+          "formatterTarget();"
+        ].join("\n")
+      );
+      const result = runPackageScript(directory, "fix:ultracite");
+      const output = result.stderr.toString() + result.stdout.toString();
+      expect(result.status, output).toBe(1);
+      const formatterInvocations =
+        output.match(/ultracite fix --type-aware/gu) ?? [];
+      expect(formatterInvocations).toHaveLength(1);
+      const formatterPosition = output.indexOf("ultracite fix --type-aware");
+      const diagnosticPositions = [
+        "Remove blank lines from function bodies.",
+        "Use declaration documentation instead of explanatory comments.",
+        "Separate sibling tests and lifecycle registrations with one blank line."
+      ].map((message) => output.indexOf(message));
+      expect(formatterPosition).toBeGreaterThanOrEqual(0);
+      expect(
+        diagnosticPositions.every((position) => position > formatterPosition),
+        output
+      ).toBe(true);
+      const fixed = await readFile(fixture, "utf-8");
+      expect(fixed).toContain("function formatterTarget() {");
+      expect(fixed).toContain("  return 1;");
+      expect(fixed).not.toContain("function formatterTarget(){");
+      expect(fixed).toContain(
+        "function withBlankLine() {\n  const value = 1;\n\n  return value;"
+      );
+      expect(fixed).toContain("  // Explain the return value");
+      expect(fixed).toContain('  });\n  test("second"');
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }, 90_000);
 
   test("Ultracite core environment keeps implied-eval diagnostics in both configs", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-implied-eval-"));

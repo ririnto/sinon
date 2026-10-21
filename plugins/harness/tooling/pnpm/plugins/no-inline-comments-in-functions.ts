@@ -1,7 +1,39 @@
-import type { Node } from "@oxc-project/types";
+import type {
+  ArrowFunctionExpression,
+  Function as OxcFunction,
+  Node
+} from "@oxc-project/types";
 
-import { isFunctionNode } from "./style-support.ts";
-import type { Comment, RuleContext } from "./style-support.ts";
+interface Comment {
+  readonly start: number;
+  readonly end: number;
+  readonly type: string;
+  readonly value: string;
+}
+
+interface RuleContext {
+  readonly sourceCode: {
+    readonly getAllComments: () => readonly Comment[];
+    readonly getCommentsBefore: (node: Node) => readonly Comment[];
+    readonly getCommentsInside: (node: Node) => readonly Comment[];
+    readonly text: string;
+  };
+  readonly report: (diagnostic: {
+    readonly messageId: string;
+    readonly node: Node;
+  }) => void;
+}
+
+type FunctionNode =
+  | (OxcFunction & {
+      readonly type: "FunctionDeclaration" | "FunctionExpression";
+    })
+  | ArrowFunctionExpression;
+
+const isFunctionNode = (node: Node): node is FunctionNode =>
+  node.type === "FunctionDeclaration" ||
+  node.type === "FunctionExpression" ||
+  node.type === "ArrowFunctionExpression";
 
 /**
  * Recognized tool directive comments that must stay inline with the code they control.
@@ -9,10 +41,7 @@ import type { Comment, RuleContext } from "./style-support.ts";
 const toolDirectivePattern =
   /^\s*(?:@ts-(?:check|expect-error|ignore|nocheck)|(?:eslint|oxlint)-(?:disable(?:-line|-next-line)?|enable)|(?:oxfmt|prettier)-ignore|(?:c8|istanbul|v8) ignore)(?![\w-])/u;
 
-/**
- * Report unpreserved comments outside documentation, directives, legal notices, and shebangs.
- */
-export const noInlineCommentsRule = {
+const noInlineCommentsRule = {
   create(context: RuleContext) {
     const documentation = new Set<number>();
     const reportedOffsets = new Set<number>();
@@ -79,3 +108,13 @@ export const noInlineCommentsRule = {
     type: "problem"
   } as const
 };
+
+const plugin = {
+  meta: { name: "style" },
+  rules: { "no-inline-comments-in-functions": noInlineCommentsRule }
+};
+
+/**
+ * Provide the native Oxlint plugin for inline-comment checks.
+ */
+export default plugin;

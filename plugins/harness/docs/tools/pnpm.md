@@ -73,8 +73,11 @@ Inspect each package root in a monorepo and install the profile at each selected
 
 ## Managed Sources
 
-The profile provides `oxlint.config.ts`, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as one native lint and format source.
-Copy `plugins/` next to `oxlint.config.ts` because its `jsPlugins` entries use `./plugins/*.ts` paths.
+The profile provides `oxlint.config.ts`, three independent style configs, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
+The style configs are `oxlint.style-no-blank-lines-in-functions.config.ts`, `oxlint.style-no-inline-comments-in-functions.config.ts`, and `oxlint.style-sibling-test-spacing.config.ts`.
+The base configuration owns core, TSDoc, and non-style rules.
+Each style configuration registers one plugin and one canonical `style/<rule>` identifier.
+Copy `plugins/` next to the Oxlint configs because their `jsPlugins` entries use `./plugins/*.ts` paths.
 Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `rules/*.ts` paths.
 Omit the `*.test.ts` files from both copies.
 It provides `.editorconfig` only when the target has no existing editor configuration or when the user approves a bounded merge.
@@ -123,15 +126,17 @@ After merging, run `pnpm install` and `pnpm run prepare` at the selected root.
 Verify actual Git commit and push invocations in a disposable repository, including a failing check that blocks each operation.
 Manual script execution alone does not prove hook installation.
 
-The source configuration extends the target-installed Ultracite Oxc presets.
-The style plugin checks physical blank lines inside executable function bodies and allows documentation only at recognized declarations.
-It diagnoses other comments without deleting them and preserves license markers.
-Sibling tests and lifecycle hooks receive one blank line only when an unshadowed named import from Vitest, Jest globals, or Bun proves the registration boundary.
+The base and style configurations extend the target-installed Ultracite Oxc core preset.
+The base configuration owns TSDoc and non-style checks.
+Each style configuration preserves `core.env` and `core.ignorePatterns`, registers one plugin named `style`, and enables only its original canonical rule.
+The blank-line pass checks physical blank lines inside executable function bodies.
+The inline-comment pass diagnoses explanatory comments and preserves declaration documentation, required directives, and license markers.
+The sibling-spacing pass requires one blank line only when an unshadowed named import from Vitest, Jest globals, or Bun proves a registration boundary.
 Direct `describe` callbacks and program-level registrations are recognized, including named import aliases, static `only`, `skip`, `concurrent`, and `sequential` modifiers, and direct `each` factories.
 Global names, namespace calls, unknown factories, shadowed bindings, ordinary callbacks, and gaps containing comments remain outside the registration-spacing diagnostic.
 Required directives between registrations stay intact because moving them can change their target.
 The built-in test-padding rule supplies padding around test calls but does not express this exact sibling lifecycle and proven-binding contract, so the AST-aware diagnostic handles it without an automatic fix.
-It exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
+The inline-comment pass exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
 The TSDoc plugin enforces the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
 Read those requirements when configuring TypeScript documentation checks.
 Protected, private, and `#private` members and constructors are exempt.
@@ -241,10 +246,15 @@ Skip the fragment for a JavaScript-only target.
 
 Run `pnpm install` after a dependency change.
 Run `pnpm run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs `ultracite check`, which reports findings without writing source changes.
+The `check:ultracite` task runs the base check and three rule-specific checks through `run-p --continue-on-error ultracite:check:**`.
+The recursive pattern includes every style pass.
+All passes report findings before the combined command fails if any pass fails.
+Each Ultracite check reports findings without writing source changes.
+The nested `ultracite:` scripts keep the top-level `run-p check:*` from discovering style passes twice.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `pnpm run fix` within the authorized source-edit scope.
-The `fix:ultracite` task runs the Ultracite fixer.
+The `fix:ultracite` task runs exactly one formatter-writing base fix, then the three read-only style passes through `run-s --continue-on-error`.
+The command preserves a failing exit status while collecting diagnostics from every pass.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
 Run `pnpm run test` only when the target owns that native test command.
 The source profile uses `vitest run` for non-watching tests.
