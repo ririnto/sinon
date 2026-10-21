@@ -727,7 +727,13 @@ describe("authored Markdown diagnostics", () => {
     ["../other/SKILL%2emd", 19],
     ["../other/%53%4b%49%4c%4c%2e%6d%64", 33],
     ["../other/SKILL%2emd?view=1#intro", 32],
-    ["<../other/SKILL%2emd>", 21]
+    ["<../other/SKILL%2emd>", 21],
+    ["../other/SKILL.md?view=%0Afoo", 29],
+    ["../other/SKILL.md?view=%0Dfoo", 29],
+    ["../other/SKILL.md#%0Aintro", 26],
+    ["../other/SKILL%2Emd?%0Aview=1", 29],
+    ["h%74tps:/other/SKILL.md", 23],
+    ["h%74tp:target/SKILL.md", 22]
   ] as const)(
     "reports encoded skill destination %s at its source range",
     (target, length) => {
@@ -739,19 +745,29 @@ describe("authored Markdown diagnostics", () => {
     }
   );
 
-  test("reports an encoded reference definition at its source range", () => {
-    const input = "Use [skill][s].\n\n[s]: ../other/%53KILL.md\n";
-    expect(violations(noRelativeSkillLinks, input)).toEqual({
-      fixed: input,
-      found: [{ detail: null, lineNumber: 3, range: [6, 19] }]
-    });
-  });
+  test.each([
+    ["../other/%53KILL.md", 19],
+    ["../other/SKILL%2emd?view=%0Afoo", 31]
+  ] as const)(
+    "reports encoded reference destination %s at its source range",
+    (target, length) => {
+      const input = `Use [skill][s].\n\n[s]: ${target}\n`;
+      expect(violations(noRelativeSkillLinks, input)).toEqual({
+        fixed: input,
+        found: [{ detail: null, lineNumber: 3, range: [6, length] }]
+      });
+    }
+  );
 
   test.each([
     "Use [skill](https://example.org/SKILL%2emd).\n",
     "Use [skill](/other/SKILL%2emd).\n",
     "Use [skill](//example.org/SKILL%2emd).\n",
     "Use [guide](../guide%2emd).\n",
+    "Use [guide](../other/page?next=../SKILL%2Emd).\n",
+    "Use [guide](../other/page#../SKILL%2Emd).\n",
+    "Use [guide](../other/page?next=../SKILL.md).\n",
+    "Use [guide](../other/page#../SKILL.md).\n",
     "Use [skill](../other/SKILL%ZZ.md).\n",
     "Use [skill](../other/%2553KILL.md).\n",
     "Use [skill](../other%2fSKILL.md).\n",

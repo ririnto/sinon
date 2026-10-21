@@ -149,10 +149,12 @@ The profile and Sinon root enable this diagnostic rule without providing automat
 `docs/no-em-dash` reports em dashes in the same authored prose contexts.
 `docs/no-relative-skill-links` reports relative `SKILL.md` destinations in authored links and reference definitions.
 Ordinary reference links and absolute URLs remain valid.
-The link rule compares destinations after one bounded percent-escape normalization and never rewrites links or reported ranges.
-Each well-formed percent escape is decoded once with `decodeURI` semantics for comparison, following RFC 3986 Section 6.2.2.2.
-Path delimiters such as `%2F`, `%3A`, `%3F`, and `%23` stay encoded, and undecodable escapes stay literal.
-Malformed escapes, HTML character references, and backslash escapes remain outside the normalization.
+The link rule classifies external targets from the raw destination and removes query or fragment data before comparing paths.
+It normalizes only ASCII unreserved percent escapes once, following [RFC 3986 Section 6.2.2.2](https://www.rfc-editor.org/rfc/rfc3986.html#section-6.2.2.2).
+Reserved delimiters such as `%2F`, `%3A`, `%3F`, and `%23` stay encoded.
+Control bytes, non-ASCII bytes, and malformed escapes stay literal.
+HTML character references, backslash escapes, and recursive percent decoding remain outside the normalization.
+The rule never rewrites links or reported source ranges.
 These three authored-prose rules share `sentence-per-line.ts` so their token, quotation, and document protections stay consistent.
 Sentence and punctuation checks use visible prose, while the link rule inspects destination tokens without treating them as prose.
 Both new rules preserve code, frontmatter, quotations, and generated or licensed documents and provide no automatic fixes.
