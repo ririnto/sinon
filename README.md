@@ -93,7 +93,7 @@ Run `pnpm run check` for the repository checks.
 The root package commands invoke validation suites owned by their catalog or plugin components.
 Use Node.js 24 for development dependencies.
 Store shared npm dependency versions in `pnpm-workspace.yaml` catalogs and reference them with `catalog:`.
-Use [repository instructions](AGENTS.md) for task-specific checks and package validation.
+Follow repository guidance for task-specific checks and package validation.
 Run `pnpm run test:promtool` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
 That component verifies and runs the official release executable without a separate Go build graph.
 
