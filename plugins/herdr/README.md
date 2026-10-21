@@ -2,6 +2,8 @@
 
 Sinon packages the upstream Herdr skill for Codex and Claude Code with native plugin metadata.
 
+The skill is based on the upstream `skills/herdr/SKILL.md` file, with prose reflowed to meet Sinon authoring conventions.
+
 Its entry condition requires `HERDR_ENV=1`, and the upstream skill retains its lifecycle and approval safeguards.
 
 This package follows upstream release `v0.9.5` and includes the upstream Apache-2.0 license.
