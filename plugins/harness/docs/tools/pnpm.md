@@ -157,8 +157,8 @@ HTML character references, backslash escapes, and recursive percent decoding rem
 The rule never rewrites links or reported source ranges.
 These three authored-prose rules share `sentence-per-line.ts` so their token, quotation, and document protections stay consistent.
 Sentence and punctuation checks use visible prose, while the link rule inspects destination tokens without treating them as prose.
-Both rules preserve code, frontmatter, quotations, and generated or licensed documents and provide no automatic fixes.
-The Sinon repository enables these diagnostics only for Harness content, while the portable profile enables them for installed projects.
+The `docs/no-em-dash` and `docs/no-relative-skill-links` rules preserve code, frontmatter, quotations, and generated or licensed documents without automatic fixes.
+The Sinon repository enables these two rules only for Harness content, while the portable profile enables them for installed projects.
 Copy that directory alongside the config so the `customRules` paths resolve.
 The profile-owned `ignores` entry excludes `node_modules` even when a fresh target has no `.gitignore`.
 Retain the target's existing ignore configuration when merging.
