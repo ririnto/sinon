@@ -722,6 +722,75 @@ describe("docs/sentence-per-line", () => {
 
 describe("authored Markdown diagnostics", () => {
   test.each([
+    ["../other/%53KILL.md", 19],
+    ["../other/SKILL%2Emd", 19],
+    ["../other/SKILL%2emd", 19],
+    ["../other/%53%4b%49%4c%4c%2e%6d%64", 33],
+    ["../other/SKILL%2emd?view=1#intro", 32],
+    ["<../other/SKILL%2emd>", 21],
+    ["../other/SKILL.md?view=%0Afoo", 29],
+    ["../other/SKILL.md?view=%0Dfoo", 29],
+    ["../other/SKILL.md#%0Aintro", 26],
+    ["../other/SKILL%2Emd?%0Aview=1", 29],
+    ["h%74tps:/other/SKILL.md", 23],
+    ["h%74tp:target/SKILL.md", 22]
+  ] as const)(
+    "reports encoded skill destination %s at its source range",
+    (target, length) => {
+      const input = `Use [skill](${target}).\n`;
+      expect(violations(noRelativeSkillLinks, input)).toEqual({
+        fixed: input,
+        found: [{ detail: null, lineNumber: 1, range: [13, length] }]
+      });
+    }
+  );
+
+  test.each([
+    ["../other/%53KILL.md", 19],
+    ["../other/SKILL%2emd?view=%0Afoo", 31]
+  ] as const)(
+    "reports encoded reference destination %s at its source range",
+    (target, length) => {
+      const input = `Use [skill][s].\n\n[s]: ${target}\n`;
+      expect(violations(noRelativeSkillLinks, input)).toEqual({
+        fixed: input,
+        found: [{ detail: null, lineNumber: 3, range: [6, length] }]
+      });
+    }
+  );
+
+  test.each([
+    "Use [skill](https://example.org/SKILL%2emd).\n",
+    "Use [skill](/other/SKILL%2emd).\n",
+    "Use [skill](//example.org/SKILL%2emd).\n",
+    "Use [guide](../guide%2emd).\n",
+    "Use [guide](../other/page?next=../SKILL%2Emd).\n",
+    "Use [guide](../other/page#../SKILL%2Emd).\n",
+    "Use [guide](../other/page?next=../SKILL.md).\n",
+    "Use [guide](../other/page#../SKILL.md).\n",
+    "Use [skill](../other/SKILL%ZZ.md).\n",
+    "Use [skill](../other/%2553KILL.md).\n",
+    "Use [skill](../other%2fSKILL.md).\n",
+    "Use [skill](../other/SKILL.md%3Fview=1).\n",
+    "`[skill](../other/SKILL%2emd)`\n",
+    '"[skill](../other/SKILL%2emd)"\n',
+    "```md\n[skill](../other/SKILL%2emd)\n```\n"
+  ])("preserves encoded non-target or protected syntax %s", (input) => {
+    expect(violations(noRelativeSkillLinks, input)).toEqual({
+      fixed: input,
+      found: []
+    });
+  });
+
+  test("keeps literal skill detection after a malformed prefix escape", () => {
+    const input = "Use [skill](../%ZZ/SKILL.md).\n";
+    expect(violations(noRelativeSkillLinks, input)).toEqual({
+      fixed: input,
+      found: [{ detail: null, lineNumber: 1, range: [13, 15] }]
+    });
+  });
+
+  test.each([
     [noEmDash, "Keep prose \u2014 clear.\n", 1],
     [
       noEmDash,

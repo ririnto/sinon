@@ -387,13 +387,21 @@ export const noRelativeSkillLinks: Rule = {
           token.type === "definitionDestination"
         ) {
           const destination = token.text.replaceAll(/^<|>$/gu, "");
+          const comparable = destination
+            .replace(/[?#][\s\S]*$/u, "")
+            .replaceAll(/%[\da-fA-F]{2}/gu, (escape) => {
+              const decoded = String.fromCodePoint(
+                Number.parseInt(escape.slice(1), 16)
+              );
+              return /^[\w.~-]$/u.test(decoded) ? decoded : escape;
+            });
           const visible = protectedLines
             .get(token.startLine)
             ?.slice(token.startColumn - 1, token.endColumn - 1);
           if (
             (visible === undefined || visible.trim() !== "") &&
             !/^(?:[a-z][a-z\d+.-]*:|\/|#)/iu.test(destination) &&
-            /(?:^|\/)SKILL\.md(?:[?#].*)?$/u.test(destination)
+            /(?:^|\/)SKILL\.md$/u.test(comparable)
           ) {
             onError({
               lineNumber: token.startLine,
