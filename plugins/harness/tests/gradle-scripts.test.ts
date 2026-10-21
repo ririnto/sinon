@@ -96,8 +96,8 @@ describe("Gradle Node-side script integration", () => {
       "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
       "gradle:check": "./gradlew check",
       "gradle:ktlintCheck": "./gradlew ktlintCheck",
-      "pre-commit": "sh .husky/pre-commit",
-      "pre-push": "sh .husky/pre-push",
+      "pre-commit": "run-s check gradle:ktlintCheck",
+      "pre-push": "run-s check gradle:check",
       prepare: "husky"
     });
     expect(manifest.devDependencies).toEqual({

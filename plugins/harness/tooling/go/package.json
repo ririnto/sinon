@@ -9,8 +9,8 @@
     "go:lint": "golangci-lint run",
     "go:nilaway": "nilaway -include-pkgs=\"$(go list -m)\" ./...",
     "go:test": "go test -race -shuffle=on -count=1 ./...",
-    "pre-commit": "sh .husky/pre-commit",
-    "pre-push": "sh .husky/pre-push",
+    "pre-commit": "run-s check go:lint go:format go:nilaway",
+    "pre-push": "run-s check go:check",
     "prepare": "husky"
   },
   "devDependencies": {

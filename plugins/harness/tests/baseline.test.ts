@@ -82,8 +82,8 @@ describe("fresh-root baseline", () => {
         "check:markdownlint-cli2": "markdownlint-cli2",
         fix: "run-p fix:*",
         "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-        "pre-commit": "sh .husky/pre-commit",
-        "pre-push": "sh .husky/pre-push",
+        "pre-commit": expect.stringMatching(/^run-s check(?: |$)/u),
+        "pre-push": expect.stringMatching(/^run-s check(?: |$)/u),
         prepare: "husky"
       });
       const workspace = parseDocument(
@@ -144,8 +144,9 @@ describe("fresh-root baseline", () => {
             path.join(directory, ".husky", hook),
             "utf-8"
           );
-          expect(source).toContain("\nrun-s check");
-          expect(source).not.toContain("pnpm");
+          expect(source).toBe(
+            `#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\npnpm run ${hook}\n`
+          );
         })
       );
       if (profile === "gradle" || profile === "kotlin") {
