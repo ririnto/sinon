@@ -30,10 +30,9 @@ Golangci-lint and NilAway are project-local tools installed into a build-local d
 
 - Go: use the version declared by the target's `go.mod` `go` directive.
   Install a matching toolchain when missing.
-- golangci-lint: v2.14.0 (pinned at authoring time from upstream releases).
+- golangci-lint: v2.14.0.
 - NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
 - Task: not required.
-  Direct native commands provide the checks from the historical Taskfile.
   This profile adds no Task dependency.
 
 The Go module proxy and upstream release tags determine the latest stable golangci-lint version at installation time.

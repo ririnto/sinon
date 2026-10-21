@@ -92,19 +92,14 @@ Prefer a body H1 unless the document relies on frontmatter for its title.
 For Harness guidance and documents with a frontmatter title, keep the title only in frontmatter.
 Do not add frontmatter only to replace a body H1.
 
-Write one prose sentence per source line, including nested-list continuation lines.
-Separate paragraphs with blank lines.
-Do not pack multiple sentences into one line with semicolons.
+Follow the [documentation rules](../../CONTRIBUTING.md#documentation), including sentence-per-line formatting for nested-list continuation lines.
 Indent nested-list continuation lines to align under their item text.
-Keep fenced code blocks, YAML frontmatter, tables, and link syntax intact, and never split a sentence inside code, URLs, or version strings.
+Keep fenced code blocks, YAML frontmatter, tables, and link syntax intact.
+Never split a sentence inside code, URLs, or version strings.
 Relative references that load instruction or implementation content must stay inside the same publishable plugin.
 Use real `#` heading syntax for structural headings.
 Do not use bold text on its own line as a pseudo-heading.
 A natural prose lead-in to a code block does not need to become a heading.
-
-## Instruction And Skill Authoring
-
-Use [instruction authoring](instruction-authoring.md) when changing agent guidance, skills, host hooks, or model prompts.
 
 ## Dependency Selection
 

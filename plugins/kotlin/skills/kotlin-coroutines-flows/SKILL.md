@@ -31,8 +31,7 @@ Design Kotlin coroutine and Flow code with honest async semantics, explicit owne
 Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs (Flow stable since 1.3, `callbackFlow` since 1.5, and `limitedParallelism` stable since 1.9).
 Use the project's managed `kotlinx-coroutines` version when it supports the APIs shown here.
 For a new dependency or required upgrade, check Maven Central for the latest stable release compatible with the project's Kotlin version before updating its catalog.
-The referenced 1.11.0 source describes these examples.
-Do not use its version as a standing install target.
+Do not use example versions as standing install targets.
 Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
 
 ## Operating Rules

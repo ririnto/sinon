@@ -136,7 +136,7 @@ The TSDoc plugin enforces the [TypeScript declaration documentation requirements
 Read those requirements when configuring TypeScript documentation checks.
 Protected, private, and `#private` members and constructors are exempt.
 It reports missing documentation separately from invalid delimiter placement.
-The JavaScript override keeps the historical JSDoc parameter and return checks while allowing return descriptions.
+The JavaScript override retains the JSDoc parameter and return checks while allowing return descriptions.
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
@@ -157,8 +157,8 @@ HTML character references, backslash escapes, and recursive percent decoding rem
 The rule never rewrites links or reported source ranges.
 These three authored-prose rules share `sentence-per-line.ts` so their token, quotation, and document protections stay consistent.
 Sentence and punctuation checks use visible prose, while the link rule inspects destination tokens without treating them as prose.
-Both new rules preserve code, frontmatter, quotations, and generated or licensed documents and provide no automatic fixes.
-Sinon initially enables the new diagnostics only for Harness content, while the portable profile enables them for installed projects.
+The `docs/no-em-dash` and `docs/no-relative-skill-links` rules preserve code, frontmatter, quotations, and generated or licensed documents without automatic fixes.
+The Sinon repository enables these two rules only for Harness content, while the portable profile enables them for installed projects.
 Copy that directory alongside the config so the `customRules` paths resolve.
 The profile-owned `ignores` entry excludes `node_modules` even when a fresh target has no `.gitignore`.
 Retain the target's existing ignore configuration when merging.
@@ -175,21 +175,18 @@ Both resolve configuration and globs from the config file.
 
 Sentence-per-line formatting is a local authoring policy, not a Markdown syntax requirement.
 Markdownlint's built-in rules do not enforce sentence boundaries.
-Its custom rule API recommends Micromark tokens, which the existing profile rule already uses.
-The evaluated `markdownlint-rule-max-one-sentence-per-line` package permits sentences spanning lines and provides automatic rewrites.
-Those behaviors do not satisfy this profile's continuation and preservation requirements.
 Extend the existing rule rather than adding a second parser, rule package, or prose rewrite path.
 
 The rule reports `.`, `!`, or `?` followed by an uppercase or numeric sentence start on the same line.
 It recognizes common abbreviations and semicolon joins using bounded English patterns.
-New regular past forms come only from existing imperative verbs that end in `e`, with `d` added and `leave` and `write` excluded.
-The new branch recognizes one visible candidate word after `the` when it starts with a Unicode letter or number.
+Derive regular past forms from recognized imperative verbs ending in `e` by adding `d`, excluding `leave` and `write`.
+The past-form branch recognizes one visible candidate word after `the` when it starts with a Unicode letter or number.
 The word may continue with Unicode letters, numbers, combining marks, apostrophes, or hyphens and must end before `.`, `!`, `?`, `;`, `；`, or the physical line ending.
 The branch excludes `most`, `least`, `worst`, and every candidate word ending in `est` as a conservative spelling filter for degree expressions.
 This filter does not prove that the remaining word is a direct object, and it misses genuine noun objects such as `request`, `test`, and `forest`.
-Objects containing any opaque span receive no new recognition because masking cannot establish their word count or spelling.
-Literal words containing underscores are also excluded from the additional forms.
-Existing finite and imperative patterns keep their previous treatment of opaque text and degree words.
+Objects containing any opaque span receive no recognition in this branch because masking cannot establish their word count or spelling.
+Literal words containing underscores are also excluded from these forms.
+The other finite and imperative patterns do not use these object-word filters.
 Organization suffixes such as `Inc.` and enumeration suffixes such as `etc.` can end a sentence when the following text starts a recognized independent clause or instruction.
 Capitalization alone does not establish an independent clause after a semicolon.
 Conjunctive adverbs must start the following clause rather than occur inside a later list item.

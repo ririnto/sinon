@@ -19,9 +19,8 @@ metadata:
 
 # Instruction Authoring
 
-Use this reference when changing agent guidance, skill activation or content, host hooks, or model prompts.
 Apply these authoring rules to agent-facing instructions and instruction-management skills, not ordinary human-facing prose.
-The cited prompting guides do not authorize changes to models, SDKs, configuration, schedules, or installed assets.
+Change models, SDKs, configuration, schedules, or installed assets only when the task authorizes those changes.
 
 ## Design By Audience And Loading Time
 
@@ -39,9 +38,7 @@ Identify its canonical owner and keep it available before the governed action.
 ## Keep Rules With Their Owners
 
 Put repository-wide authoring policy at the root and component-specific authoring rules with their component.
-Use official OpenAI guidance for Codex behavior and shared instruction-design patterns where they apply.
-Use matching vendor documentation for host-specific, language-specific, runtime, and model-specific behavior.
-Label repository preferences as local rules when official sources describe product behavior.
+Use matching vendor documentation for language-specific and runtime-specific behavior.
 Keep external host configuration and installer path rewrites with their respective owners.
 
 ## Decide What To Consolidate

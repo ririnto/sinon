@@ -93,8 +93,7 @@ For optional nullable processing, prefer `?.let` with a named non-null parameter
 Use the captured parameter instead of rereading the nullable property.
 Do not replace required validation or failure behavior with silently skipped processing.
 Keep terminal returns when they express the function's result.
-Minimize mid-block `if` branches with `return`, `break`, or `continue`.
-Invert the condition or move a loop exit into the loop condition when behavior and evaluation order remain unchanged.
+Move a loop exit into the loop condition when behavior and evaluation order remain unchanged.
 Put braces around every `if` and `else` branch, including expression branches, guard returns, and one-line branches.
 Write function and constructor argument lists without a trailing comma.
 Keep short calls on one line when they fit the configured line limit.
@@ -215,7 +214,6 @@ Use `when (subject)` for a complete branch chain that compares the same subject 
 Keep arbitrary boolean conditions, reversed equality operands, and negated comparisons when they do not map to the same `when (subject)` behavior.
 The `harness:terminal-branch-when` rule reports same-subject chains that end with `else` and use a stable function parameter.
 Follow the [common early-exit policy](../rules.md#code-rules-common-to-all-languages).
-These preferences have no lint diagnostic or automatic rewrite because control-flow changes can affect cleanup, cancellation, and return semantics.
 
 ## Member Properties And Tests
 
