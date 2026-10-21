@@ -31,6 +31,7 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 
 ## Package Inventory
 
+- `.claude-plugin/icon.png` is the Harness plugin listing icon.
 - `.codex-plugin/plugin.json`: Codex plugin manifest for the packaged skills.
 - `skills/implement/SKILL.md`: implementation procedure.
 - `skills/review/SKILL.md`: review procedure.
