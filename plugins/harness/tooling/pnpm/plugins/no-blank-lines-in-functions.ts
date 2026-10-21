@@ -52,9 +52,6 @@ type FunctionNode =
     })
   | ArrowFunctionExpression;
 
-/**
- * Narrow parser nodes to the function forms inspected by this rule.
- */
 const isFunctionNode = (node: Node): node is FunctionNode =>
   node.type === "FunctionDeclaration" ||
   node.type === "FunctionExpression" ||
