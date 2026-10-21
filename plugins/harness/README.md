@@ -42,11 +42,11 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 - `ci/`: optional GitHub Actions and GitLab CI catalogs for the seven supported profiles.
 - `tooling/`: native configuration fragments, the standalone Kotlin ruleset module, and profile-local rule plugins.
 - `tooling/gradle/package.json`: bounded pnpm manifest merge guidance for Markdown checks, Gradle aliases, and hook scripts.
-- `tooling/pnpm/.husky/`: shared Git hooks invoking the target's pnpm pre-commit and pre-push scripts.
+- `tooling/pnpm/.husky/`: Node hook configurations invoked by Git and the target's pnpm script entrypoints.
 - `scripts/configure.ts`: conflict-aware fresh-root baseline materialization for verified eligible projects.
 - `docs/tools/baseline.md`: standing eligibility, native profile selection, and installation proof.
 - `docs/tools/frontend.md`: frontend and React design, lint, Radix, and Storybook integration.
-- `tooling/{gradle,maven,go,rust,uv,shell}/package.json`: native hook commands composed after the shared Node-side gate.
+- `tooling/{gradle,maven,go,rust,uv,shell}/`: native tool scripts and hook configurations that check Markdown before native tools.
 - `tooling/frontend/` and `tooling/react/`: bounded frontend manifests, catalogs, and Storybook renderer sources.
 
 ## Ownership And Safety

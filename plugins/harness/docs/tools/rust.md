@@ -55,7 +55,7 @@ This restriction lint is allowed by default, so setting its threshold alone does
 ## Validation Commands
 
 Use the [project baseline](baseline.md) for the root pnpm manifest, catalog, Markdownlint configuration and real Husky hooks.
-`tooling/rust/package.json` runs the shared check before Cargo formatting and strict Clippy on commit.
+The hooks in `tooling/rust/.husky/` run the shared check before Cargo formatting and strict Clippy on commit.
 On push it also runs the workspace test gate.
 Preserve the target's toolchain and native configuration through this profile's bounded merges.
 

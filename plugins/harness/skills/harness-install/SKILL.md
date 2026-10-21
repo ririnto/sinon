@@ -94,7 +94,8 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
 | `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when the Node-side baseline is selected |
 | `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when the Node-side baseline is selected |
-| `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/pnpm/.husky/<name>` for `pre-commit`, `pre-push`, and `.gitignore` when the Node-side script surface is selected |
+| `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/<profile>/.husky/<name>` for `pre-commit` and `pre-push` when the Node-side script surface is selected |
+| `<target-git-root>/.husky/.gitignore` | `<plugin-root>/tooling/pnpm/.husky/.gitignore` for every selected profile |
 | `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
 | `<target-root>/oxlint.style-no-blank-lines-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-blank-lines-in-functions.config.ts` when pnpm is selected |
 | `<target-root>/oxlint.style-no-inline-comments-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-inline-comments-in-functions.config.ts` when pnpm is selected |
@@ -103,6 +104,7 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
 | `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |
 
+Use the `pnpm` hook source for Node, frontend, and React, and `gradle` for Kotlin.
 Read the two skills, common rules, and selected language and tool references before composing their target files.
 Preserve canonical content except for these location changes and an explicitly filtered reference index:
 
@@ -149,7 +151,8 @@ For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs
 For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
 The pnpm profile owns the canonical Markdownlint configuration and rules, including config-based `node_modules` exclusion.
 Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
-For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md) and reuse the shared Markdown and Husky sources.
+For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md).
+Reuse the shared Markdown sources and select each profile's own Husky configurations.
 This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.

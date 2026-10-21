@@ -82,6 +82,8 @@ describe("fresh-root baseline", () => {
         "check:markdownlint-cli2": "markdownlint-cli2",
         fix: "run-p fix:*",
         "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
+        "pre-commit": "sh .husky/pre-commit",
+        "pre-push": "sh .husky/pre-push",
         prepare: "husky"
       });
       const workspace = parseDocument(
@@ -133,13 +135,17 @@ describe("fresh-root baseline", () => {
         "sentence-per-line.ts",
         "table-separators.ts"
       ]);
+      expect(
+        await readFile(path.join(directory, ".husky/.gitignore"), "utf-8")
+      ).toBe("_/\n");
       await Promise.all(
         ["pre-commit", "pre-push"].map(async (hook) => {
           const source = await readFile(
             path.join(directory, ".husky", hook),
             "utf-8"
           );
-          expect(source.split("\n").at(-2)).toBe(`pnpm run ${hook}`);
+          expect(source).toContain("\nrun-s check");
+          expect(source).not.toContain("pnpm");
         })
       );
       if (profile === "gradle" || profile === "kotlin") {
@@ -406,91 +412,127 @@ describe("fresh-root baseline", () => {
     ).toBeGreaterThan(0);
   });
 
-  test("Node Git hooks run the actual Ultracite gate and reject a source violation", async () => {
-    const directory = await targetDirectory();
-    const options = {
-      cwd: directory,
-      env: {
-        ...fixtureEnvironment(),
-        PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
-      }
-    };
-    const git = (...args: string[]) =>
-      spawnSync(
-        "git",
-        [
-          "-c",
-          "user.name=Node Fixture",
-          "-c",
-          "user.email=fixture@example.invalid",
-          ...args
-        ],
-        options
+  test.each(["git", "pnpm"])(
+    "Node %s hooks run the actual Ultracite gate and reject a source violation",
+    async (entrypoint) => {
+      const directory = await targetDirectory();
+      const options = {
+        cwd: directory,
+        env: {
+          ...fixtureEnvironment(),
+          PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
+        }
+      };
+      const git = (...args: string[]) =>
+        spawnSync(
+          "git",
+          [
+            "-c",
+            "user.name=Node Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            ...args
+          ],
+          options
+        );
+      expect(git("init", "--initial-branch=main").status).toBe(0);
+      await writeFile(
+        path.join(directory, "README.md"),
+        "# Target\n\nReady.\n"
       );
-    expect(git("init", "--initial-branch=main").status).toBe(0);
-    await writeFile(path.join(directory, "README.md"), "# Target\n\nReady.\n");
-    expect(git("add", ".").status).toBe(0);
-    expect(git("commit", "-m", "Initial fixture").status).toBe(0);
-    const remote = path.join(directory, "remote.git");
-    expect(git("init", "--bare", remote).status).toBe(0);
-    expect(git("remote", "add", "origin", remote).status).toBe(0);
-    await configureBaseline(directory, "node", "eligible");
-    await symlink(
-      path.join(repositoryRoot, "node_modules"),
-      path.join(directory, "node_modules"),
-      "dir"
-    );
-    expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
-    expect(git("add", ".").status).toBe(0);
-    const commit = git("commit", "-m", "Configure Node baseline");
-    expect(
-      commit.status,
-      commit.stderr.toString() + commit.stdout.toString()
-    ).toBe(0);
-    expect(git("push", "origin", "main").status).toBe(0);
-    await writeFile(
-      path.join(directory, "bad.ts"),
-      "export const undocumented = true;\n"
-    );
-    expect(git("add", "bad.ts").status).toBe(0);
-    expect(git("commit", "-m", "Invalid source").status).toBe(1);
-    expect(git("push", "origin", "main").status).toBe(1);
-    expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
-      "Configure Node baseline"
-    );
-  }, 30_000);
+      expect(git("add", ".").status).toBe(0);
+      expect(git("commit", "-m", "Initial fixture").status).toBe(0);
+      const remote = path.join(directory, "remote.git");
+      expect(git("init", "--bare", remote).status).toBe(0);
+      expect(git("remote", "add", "origin", remote).status).toBe(0);
+      await configureBaseline(directory, "node", "eligible");
+      await symlink(
+        path.join(repositoryRoot, "node_modules"),
+        path.join(directory, "node_modules"),
+        "dir"
+      );
+      expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
+      expect(git("add", ".").status).toBe(0);
+      const commit =
+        entrypoint === "pnpm"
+          ? spawnSync("pnpm", ["run", "pre-commit"], options)
+          : git("commit", "-m", "Configure Node baseline");
+      expect(
+        commit.status,
+        commit.stderr.toString() + commit.stdout.toString()
+      ).toBe(0);
+      expect(
+        (entrypoint === "pnpm"
+          ? spawnSync("pnpm", ["run", "pre-push"], options)
+          : git("push", "origin", "main")
+        ).status
+      ).toBe(0);
+      await writeFile(
+        path.join(directory, "bad.ts"),
+        "export const undocumented = true;\n"
+      );
+      expect(git("add", "bad.ts").status).toBe(0);
+      expect(
+        (entrypoint === "pnpm"
+          ? spawnSync("pnpm", ["run", "pre-commit"], options)
+          : git("commit", "-m", "Invalid source")
+        ).status
+      ).toBe(1);
+      expect(
+        (entrypoint === "pnpm"
+          ? spawnSync("pnpm", ["run", "pre-push"], options)
+          : git("push", "origin", "main")
+        ).status
+      ).toBe(1);
+      expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
+        entrypoint === "pnpm" ? "Initial fixture" : "Configure Node baseline"
+      );
+    },
+    30_000
+  );
 });
 
-describe("Maven and Go Git gates", () => {
-  test.each([
-    {
-      calls: "mvnw spotless:check checkstyle:check\n",
-      hook: "pre-commit",
-      profile: "maven",
-      valid: true
-    },
-    { calls: "mvnw verify\n", hook: "pre-push", profile: "maven", valid: true },
-    {
-      calls:
-        "golangci-lint run\ngolangci-lint fmt --diff\ngo list -m\nnilaway -include-pkgs=example.invalid/module ./...\n",
-      hook: "pre-commit",
-      profile: "go",
-      valid: true
-    },
-    {
-      calls:
-        "golangci-lint run\ngolangci-lint fmt --diff\ngo list -m\nnilaway -include-pkgs=example.invalid/module ./...\ngo test -race -shuffle=on -count=1 ./...\n",
-      hook: "pre-push",
-      profile: "go",
-      valid: true
-    },
-    { calls: "", hook: "pre-commit", profile: "maven", valid: false },
-    { calls: "", hook: "pre-push", profile: "maven", valid: false },
-    { calls: "", hook: "pre-commit", profile: "go", valid: false },
-    { calls: "", hook: "pre-push", profile: "go", valid: false }
-  ] as const)(
-    "$profile Git $hook honors the shared gate (valid=$valid)",
-    async ({ profile, hook, valid, calls }) => {
+describe("Maven and Go hook entrypoints", () => {
+  test.each(
+    (
+      [
+        {
+          calls: "mvnw spotless:check checkstyle:check\n",
+          hook: "pre-commit",
+          profile: "maven",
+          valid: true
+        },
+        {
+          calls: "mvnw verify\n",
+          hook: "pre-push",
+          profile: "maven",
+          valid: true
+        },
+        {
+          calls:
+            "golangci-lint run\ngolangci-lint fmt --diff\ngo list -m\nnilaway -include-pkgs=example.invalid/module ./...\n",
+          hook: "pre-commit",
+          profile: "go",
+          valid: true
+        },
+        {
+          calls:
+            "golangci-lint run\ngolangci-lint fmt --diff\ngo list -m\nnilaway -include-pkgs=example.invalid/module ./...\ngo test -race -shuffle=on -count=1 ./...\n",
+          hook: "pre-push",
+          profile: "go",
+          valid: true
+        },
+        { calls: "", hook: "pre-commit", profile: "maven", valid: false },
+        { calls: "", hook: "pre-push", profile: "maven", valid: false },
+        { calls: "", hook: "pre-commit", profile: "go", valid: false },
+        { calls: "", hook: "pre-push", profile: "go", valid: false }
+      ] as const
+    ).flatMap((entry) =>
+      ["git", "pnpm"].map((entrypoint) => ({ ...entry, entrypoint }))
+    )
+  )(
+    "$profile $entrypoint $hook honors the shared gate (valid=$valid)",
+    async ({ profile, entrypoint, hook, valid, calls }) => {
       const directory = await targetDirectory();
       const options = {
         cwd: directory,
@@ -540,10 +582,14 @@ describe("Maven and Go Git gates", () => {
         valid ? "# Target\n\nChanged.\n" : "# First\n\n# Second\n"
       );
       expect(git("add", "README.md").status).toBe(0);
-      const result =
+      const gitArguments =
         hook === "pre-commit"
-          ? git("commit", "-m", "Changed fixture")
-          : git("push", "origin", "main");
+          ? ["commit", "-m", "Changed fixture"]
+          : ["push", "origin", "main"];
+      const result =
+        entrypoint === "pnpm"
+          ? spawnSync("pnpm", ["run", hook], options)
+          : git(...gitArguments);
       expect(result.status).toBe(valid ? 0 : 1);
       if (valid) {
         expect(

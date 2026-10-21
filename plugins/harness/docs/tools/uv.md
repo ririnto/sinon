@@ -82,7 +82,7 @@ Its 120-column line length matches the Python EditorConfig section.
 ## Validation Commands
 
 Use the [project baseline](baseline.md) for the root pnpm manifest, catalog, Markdownlint configuration and real Husky hooks.
-`tooling/uv/package.json` runs the shared check before Ruff lint and format checks on both commit and push.
+The hooks in `tooling/uv/.husky/` run the shared check before Ruff lint and format checks on both commit and push.
 Retain the target's own Python test owner when composing an additional push gate.
 
 Run inside the project root after `uv sync`:

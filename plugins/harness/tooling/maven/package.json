@@ -6,8 +6,8 @@
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "maven:check": "./mvnw verify",
     "maven:lint": "./mvnw spotless:check checkstyle:check",
-    "pre-commit": "run-s check maven:lint",
-    "pre-push": "run-s check maven:check",
+    "pre-commit": "sh .husky/pre-commit",
+    "pre-push": "sh .husky/pre-push",
     "prepare": "husky"
   },
   "devDependencies": {
