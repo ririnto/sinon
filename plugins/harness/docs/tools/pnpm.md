@@ -254,12 +254,13 @@ Oxlint loads these rules inside Ultracite without a separate ESLint invocation o
 
 `react-effects/no-direct-use-effect` reports calls proven to originate from React's runtime export.
 The self-contained `plugins/no-direct-use-effect.ts` has the same identity and behavior in the standalone Sinon distribution and this profile.
-Supported forms include named, default, namespace, string-named, and aliased imports with static property access and optional calls.
+Supported imports include named, default, namespace, string-named, and aliased forms.
+Property access supports identifier properties and computed string-literal keys, including optional calls.
 The resolver also follows const aliases, useEffect destructuring, and supported unshadowed CommonJS require forms.
 Type-only imports, unrelated hooks, local shadowing, Preact imports, and unresolved globals supply no runtime React origin proof.
 File extensions and unrelated React imports do not establish the called binding's origin.
 
-Mutable aliases, dynamic imports, cross-module re-exports, runtime-computed properties, and call/apply indirection remain outside this source-local analysis.
+Mutable aliases, dynamic imports, cross-module re-exports, template-literal keys, runtime-computed properties, and call/apply indirection remain outside this source-local analysis.
 Auto-imported globals need target-specific import evidence rather than filename heuristics.
 The rule reports diagnostics without fixes because replacing effects can change lifecycle timing and cleanup.
 The [mapping](lint-rule-mapping.md#oxlint-policies) records upstream fixture results and compiler coverage limits.
