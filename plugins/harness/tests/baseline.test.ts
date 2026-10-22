@@ -75,6 +75,9 @@ describe("fresh-root baseline", () => {
         await readFile(path.join(directory, "package.json"), "utf-8")
       );
       expect(manifest.private).toBe(true);
+      expect(manifest.devDependencies["markdownlint-rule-search-replace"]).toBe(
+        "catalog:"
+      );
       expect(manifest.packageManager).toBe("pnpm@12.10.1");
       expect(manifest.engines.node).toBe(">=24.15.0 <25");
       expect(manifest.scripts).toMatchObject({
@@ -131,7 +134,6 @@ describe("fresh-root baseline", () => {
       }
       const rules = await readdir(path.join(directory, "rules"));
       expect(rules.toSorted()).toEqual([
-        "no-box-drawing.ts",
         "sentence-per-line.ts",
         "table-separators.ts"
       ]);
@@ -176,8 +178,10 @@ describe("fresh-root baseline", () => {
         expect(manifest.scripts).toMatchObject({
           "check:ultracite": "run-p --continue-on-error ultracite:check:**",
           "fix:ultracite":
-            "run-s --continue-on-error ultracite:fix:base ultracite:check:style:*",
+            "run-s --continue-on-error ultracite:fix:base ultracite:check:style:* ultracite:check:react-effects",
           "ultracite:check:base": "ultracite check --type-aware",
+          "ultracite:check:react-effects":
+            "ultracite check --type-aware --config oxlint.react-effects.config.ts",
           "ultracite:check:style:no-blank-lines-in-functions":
             "ultracite check --type-aware --config oxlint.style-no-blank-lines-in-functions.config.ts",
           "ultracite:check:style:no-inline-comments-in-functions":
@@ -228,6 +232,7 @@ describe("fresh-root baseline", () => {
         );
         const configurationFiles = [
           "oxlint.config.ts",
+          "oxlint.react-effects.config.ts",
           "oxlint.style-no-blank-lines-in-functions.config.ts",
           "oxlint.style-no-inline-comments-in-functions.config.ts",
           "oxlint.style-sibling-test-spacing.config.ts"
@@ -247,6 +252,7 @@ describe("fresh-root baseline", () => {
         const pluginFiles = await readdir(path.join(directory, "plugins"));
         expect(pluginFiles.toSorted()).toEqual([
           "no-blank-lines-in-functions.ts",
+          "no-direct-use-effect.ts",
           "no-inline-comments-in-functions.ts",
           "sibling-test-spacing.ts",
           "tsdoc-plugin.ts"

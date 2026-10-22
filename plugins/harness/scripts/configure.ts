@@ -259,6 +259,10 @@ export const configureBaseline = async (
       "oxlint.style-sibling-test-spacing.config.ts",
       await readSource("pnpm/oxlint.style-sibling-test-spacing.config.ts")
     );
+    sources.set(
+      "oxlint.react-effects.config.ts",
+      await readSource("pnpm/oxlint.react-effects.config.ts")
+    );
     sources.set("oxfmt.config.ts", await readSource("pnpm/oxfmt.config.ts"));
     await addDirectory(sources, "pnpm/plugins", "plugins");
   }

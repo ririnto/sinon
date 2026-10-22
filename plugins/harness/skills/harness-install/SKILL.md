@@ -100,6 +100,7 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-root>/oxlint.style-no-blank-lines-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-blank-lines-in-functions.config.ts` when pnpm is selected |
 | `<target-root>/oxlint.style-no-inline-comments-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-inline-comments-in-functions.config.ts` when pnpm is selected |
 | `<target-root>/oxlint.style-sibling-test-spacing.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-sibling-test-spacing.config.ts` when pnpm is selected |
+| `<target-root>/oxlint.react-effects.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.react-effects.config.ts` when pnpm is selected |
 | `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
 | `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |

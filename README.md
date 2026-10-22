@@ -83,6 +83,15 @@ Common plugin assets include:
 Use each plugin's `README.md` for its runtime surfaces and scope.
 Portable skills follow OpenAI's task-focused authoring guidance, while Claude marketplace entries retain Claude's component contract.
 
+## Standalone Oxlint Policy
+
+`plugins/no-direct-use-effect.ts` is a self-contained Oxlint module, not an agent marketplace package.
+Copy it beside `oxlint.react-effects.config.ts`, preserving the config's `./plugins/` path.
+Invoke it with `pnpm exec ultracite check --config oxlint.react-effects.config.ts` using compatible target dependencies.
+The configuration combines `react-effects/no-direct-use-effect` with aliased React Hooks and native Oxlint diagnostics.
+The [Harness pnpm profile](plugins/harness/docs/tools/pnpm.md#react-effect-policy) provides the same module and installation wiring.
+The [upstream mapping](plugins/harness/docs/tools/lint-rule-mapping.md) records retained semantics, replacements, and consumer migration limits.
+
 ## Development
 
 Use the [contribution guide](CONTRIBUTING.md) for issues, pull requests, writing rules, and commit evidence.

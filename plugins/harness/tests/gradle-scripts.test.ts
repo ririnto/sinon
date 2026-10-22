@@ -104,6 +104,7 @@ describe("Gradle Node-side script integration", () => {
       husky: "catalog:",
       markdownlint: "catalog:",
       "markdownlint-cli2": "catalog:",
+      "markdownlint-rule-search-replace": "catalog:",
       "npm-run-all2": "catalog:"
     });
     expect(Object.keys(manifest).toSorted()).toEqual([

@@ -34,6 +34,17 @@ metadata:
       url:
         - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.41.1/doc/Rules.md
         - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.41.1/doc/CustomRules.md
+    Search-replace rule:
+      version: 1.2.0
+      url: https://raw.githubusercontent.com/OnkarRuikar/markdownlint-rule-search-replace/main/README.md
+    React lint rules:
+      version: 7.1.1
+      url:
+        - https://react.dev/reference/eslint-plugin-react-hooks
+        - https://react.dev/reference/eslint-plugin-react-hooks/lints/set-state-in-render
+        - https://react.dev/reference/eslint-plugin-react-hooks/lints/set-state-in-effect
+    Oxlint React Compiler rules:
+      url: https://oxc.rs/docs/guide/usage/linter/rules/react/set-state-in-render.html
     Maximum one sentence rule:
       version: 0.0.2
       url:
@@ -73,7 +84,7 @@ Inspect each package root in a monorepo and install the profile at each selected
 
 ## Managed Sources
 
-The profile provides `oxlint.config.ts`, three independent style configs, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
+The profile provides `oxlint.config.ts`, three independent style configs, `oxlint.react-effects.config.ts`, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
 The style configs are `oxlint.style-no-blank-lines-in-functions.config.ts`, `oxlint.style-no-inline-comments-in-functions.config.ts`, and `oxlint.style-sibling-test-spacing.config.ts`.
 The base configuration owns core, TSDoc, and non-style rules.
 Each style configuration registers one plugin and one canonical `style/<rule>` identifier.
@@ -149,7 +160,10 @@ The custom plugin API is alpha and must be checked against the target Oxlint ver
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
 The profile ships its custom Markdownlint rules under `rules/`.
-`docs/no-box-drawing` rejects Unicode box drawing characters.
+Configured `search-replace` from `markdownlint-rule-search-replace` replaces the retired `docs/no-box-drawing` implementation.
+It reports the first U+2500 through U+257F character per line, including code, with its UTF-16 source column.
+The profile supplies no replacement text or automatic fix.
+Keep its dependency and catalog entry when merging the shared Markdown configuration.
 `docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and ignores fenced code and ordinary data rows.
 `docs/sentence-per-line` reports clear packed sentences and incorrect continuation boundaries in paragraphs, list items, and authored GitHub alerts.
 Its [detection limits](#markdown-sentence-boundaries) preserve literal quotations and syntax that cannot safely follow prose formatting.
@@ -223,6 +237,39 @@ Continuation checks can mistake deliberately arranged unpunctuated prose for wra
 Review each diagnostic manually and preserve meaning when separating sentences or restoring terminators.
 Passing this rule establishes only that its supported patterns were absent.
 
+## React Effect Policy
+
+`oxlint.react-effects.config.ts` owns the custom direct-effect policy and maintained upstream React checks.
+The [rule mapping](lint-rule-mapping.md) records exact IDs, upstream comparisons, and consumer migration boundaries.
+Projects using React directly or through framework dependencies consume this same configuration through Ultracite.
+The shared Node profile also installs it because source-proven matching leaves unrelated code outside the custom diagnostic.
+Keep the existing base and style configurations intact.
+
+The configuration registers `eslint-plugin-react-hooks` with the supported `jsPlugins` object alias.
+Its `name` is `react-hooks-js`, and its `specifier` is `eslint-plugin-react-hooks`.
+The configuration and mapping table own the adopted upstream rule inventory.
+Declare `eslint-plugin-react-hooks` through the supplied dependency and catalog fragments.
+Keep compatible Oxlint, Ultracite, and Oxc type dependencies from the shared profile.
+Oxlint loads these rules inside Ultracite without a separate ESLint invocation or wrapper.
+
+`react-effects/no-direct-use-effect` reports calls proven to originate from React's runtime export.
+The self-contained `plugins/no-direct-use-effect.ts` has the same identity and behavior in the standalone Sinon distribution and this profile.
+Supported imports include named, default, namespace, string-named, and aliased forms.
+Property access supports identifier properties and computed string-literal keys, including optional calls.
+The resolver also follows const aliases, useEffect destructuring, and supported unshadowed CommonJS require forms.
+Type-only imports, unrelated hooks, local shadowing, Preact imports, and unresolved globals supply no runtime React origin proof.
+File extensions and unrelated React imports do not establish the called binding's origin.
+
+Mutable aliases, dynamic imports, cross-module re-exports, template-literal keys, runtime-computed properties, and call/apply indirection remain outside this source-local analysis.
+Auto-imported globals need target-specific import evidence rather than filename heuristics.
+The rule reports diagnostics without fixes because replacing effects can change lifecycle timing and cleanup.
+The [mapping](lint-rule-mapping.md#oxlint-policies) records upstream fixture results and compiler coverage limits.
+The custom call diagnostic covers a separate requirement from the upstream checks.
+
+`ultracite:check:react-effects` runs the separate configuration with type awareness.
+The shared check and fix commands discover it without additional formatter-writing passes.
+Verify both positive and negative target fixtures before claiming consumer adoption.
+
 ## Type-Aware Promise Checks
 
 Install the profile's compatible `oxlint-tsgolint` development dependency alongside Ultracite.
@@ -249,14 +296,14 @@ Skip the fragment for a JavaScript-only target.
 
 Run `pnpm install` after a dependency change.
 Run `pnpm run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs the base check and three rule-specific checks through `run-p --continue-on-error ultracite:check:**`.
-The recursive pattern includes every style pass.
+The `check:ultracite` task runs the base, three style passes, and React policy through `run-p --continue-on-error ultracite:check:**`.
+The recursive pattern includes the separate React and style configurations.
 All passes report findings before the combined command fails if any pass fails.
 Each Ultracite check reports findings without writing source changes.
 The nested `ultracite:` scripts keep the top-level `run-p check:*` from discovering style passes twice.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `pnpm run fix` within the authorized source-edit scope.
-The `fix:ultracite` task runs exactly one formatter-writing base fix, then the three read-only style passes through `run-s --continue-on-error`.
+The `fix:ultracite` task runs one formatter-writing base fix, then read-only style and React checks through `run-s --continue-on-error`.
 The command preserves a failing exit status while collecting diagnostics from every pass.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
 Run `pnpm run test` only when the target owns that native test command.
