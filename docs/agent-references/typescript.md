@@ -58,11 +58,6 @@ Keep validation, loop-exit, cleanup, and other genuine early exits.
 Prefer recursion only when the actual call bound is stack-safe and the recursive form is clearer than an iterative form.
 Do not replace an unbounded or unknown-depth loop with recursion.
 
-## Punctuation
-
-Use no trailing comma in TypeScript.
-The repository formatter configuration enforces removal (`trailingComma: "none"`).
-
 ## Type-Safe Inlining
 
 Preserve the binding's TypeScript type.
