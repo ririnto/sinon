@@ -432,6 +432,7 @@ describe("pnpm profile configuration", () => {
       .toSorted();
     expect(files).toEqual([
       "no-blank-lines-in-functions.ts",
+      "no-direct-use-effect.ts",
       "no-inline-comments-in-functions.ts",
       "sibling-test-spacing.ts",
       "tsdoc-plugin.ts"
@@ -517,6 +518,7 @@ describe("pnpm profile configuration", () => {
               rm(path.join(directory, "plugins", pluginFile))
             )
         );
+        await rm(path.join(directory, "plugins/no-direct-use-effect.ts"));
         const pluginFiles = await readdir(path.join(directory, "plugins"));
         expect(pluginFiles.toSorted()).toEqual(
           [stylePass.pluginFile, "tsdoc-plugin.ts"].toSorted()
@@ -668,9 +670,13 @@ describe("pnpm profile configuration", () => {
           recursive: true
         }
       );
+      await symlink(
+        nodeModulesDirectory,
+        path.join(directory, "node_modules"),
+        "dir"
+      );
       const installedRules = await readdir(path.join(directory, "rules"));
       expect(installedRules.toSorted()).toEqual([
-        "no-box-drawing.ts",
         "sentence-per-line.ts",
         "table-separators.ts"
       ]);
@@ -698,7 +704,7 @@ describe("pnpm profile configuration", () => {
       expect(result.status).toBe(1);
       expect(output).toContain("docs/sentence-per-line");
       expect(output).toContain("docs/table-separators");
-      expect(output).toContain("docs/no-box-drawing");
+      expect(output).toContain("search-replace");
     } finally {
       await rm(directory, { force: true, recursive: true });
     }

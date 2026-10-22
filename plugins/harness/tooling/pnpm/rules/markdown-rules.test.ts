@@ -4,7 +4,6 @@ import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 
 import rootSentenceRules from "../../../../../rules/sentence-per-line.js";
-import boxDrawing from "./no-box-drawing.js";
 import {
   sentencePerLine,
   noEmDash,
@@ -39,30 +38,6 @@ const violations = (
     }))
   };
 };
-
-describe("docs/no-box-drawing", () => {
-  const detail = "Use ASCII tree markers such as +-- and | instead.";
-  test("accepts ASCII tree markers", () => {
-    expect(
-      violations(boxDrawing, "Plain text with +-- and | markers.\n").found
-    ).toEqual([]);
-  });
-
-  test("reports the first box drawing character with its column", () => {
-    expect(
-      violations(boxDrawing, "Plain box: ─── and │ text.\n").found
-    ).toEqual([{ detail, lineNumber: 1, range: [12, 1] }]);
-  });
-
-  test("reports one violation per line, including fenced code", () => {
-    expect(
-      violations(boxDrawing, "```text\n├── a\n└── b\n```\n").found
-    ).toEqual([
-      { detail, lineNumber: 2, range: [1, 1] },
-      { detail, lineNumber: 3, range: [1, 1] }
-    ]);
-  });
-});
 
 const separatorDetail = (cell: number): string =>
   `Separator cell ${cell} must use exactly ---.`;

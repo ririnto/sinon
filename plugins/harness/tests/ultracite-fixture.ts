@@ -19,7 +19,7 @@ export const runUltracite = (
   configuration?: string,
   extraArguments: readonly string[] = []
 ): {
-  diagnostics: { code?: string; message: string }[];
+  diagnostics: { code?: string; filename?: string; message: string }[];
   status: number | null;
 } => {
   const result = spawnSync(

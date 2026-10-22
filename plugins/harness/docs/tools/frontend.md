@@ -49,6 +49,7 @@ Preserve framework boundaries and avoid speculative memoization or unrelated arc
 Use Ultracite as the only direct lint and format entry point for Oxc.
 Its canonical `oxfmt.config.ts` excludes `**/*.md` and sets `trailingComma` to `none`.
 Markdown remains owned by Markdownlint CLI2.
+Apply the [React effect policy](pnpm.md#react-effect-policy) when the project uses React directly or through a framework dependency.
 `check:design` runs `designmd lint DESIGN.md` for the design.md format and token checks.
 Passing that check does not establish a complete visual identity or usable interface.
 Read the Ultracite and Storybook `llms-full.txt` references before adapting their integration.
