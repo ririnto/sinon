@@ -41,6 +41,7 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
+    "pnpm": "catalog:",
     "tar": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
@@ -54,5 +55,5 @@
   "engines": {
     "node": ">=24.15.0 <25"
   },
-  "packageManager": "pnpm@12.10.1"
+  "packageManager": "pnpm@12.15.0"
 }

@@ -3,6 +3,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  pnpm: true
 
 catalog:
   "@google/design.md": ^0.4.0
@@ -19,6 +20,7 @@ catalog:
   oxfmt: ^0.74.0
   oxlint: ^1.89.0
   oxlint-tsgolint: ^7.0.2004
+  pnpm: ^12.15.0
   tar: ^7.5.22
   tsx: ^4.23.15
   typescript: ^7.0.2
