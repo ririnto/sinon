@@ -13,6 +13,9 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
+/**
+ * Verifies the shared literal helpers by reporting their results for every property in a snippet.
+ */
 class LiteralTypeInferenceTest :
     FunSpec({
         test("infers the type of each literal initializer") {

@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the explicit function return type rule.
+ */
 class ExplicitFunctionReturnTypeTest :
     FunSpec({
         test("autocorrects bare literals") {

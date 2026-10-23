@@ -33,6 +33,11 @@ import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
+/**
+ * Requires an explicit name for every lambda parameter that would otherwise use implicit `it`.
+ *
+ * Autocorrection is limited to lambdas whose first body token has a stable brace layout.
+ */
 class ImplicitLambdaIt :
     Rule(
         ruleId = RuleId("harness:implicit-lambda-it"),
@@ -78,11 +83,12 @@ class ImplicitLambdaIt :
                             !lambdaExpression.hasEnclosingLambda() &&
                             !ambiguousNestedItReference
                     ).ifAutocorrectAllowed {
-                        parameterName?.takeIf {
-                            !lambdaExpression.hasEnclosingLambda() && !ambiguousNestedItReference
-                        }?.let { name ->
-                            replaceImplicitParameter(lambdaExpression, implicitItReferences, name)
-                        }
+                        parameterName
+                            ?.takeIf {
+                                !lambdaExpression.hasEnclosingLambda() && !ambiguousNestedItReference
+                            }?.let { name ->
+                                replaceImplicitParameter(lambdaExpression, implicitItReferences, name)
+                            }
                     }
                 }
             }

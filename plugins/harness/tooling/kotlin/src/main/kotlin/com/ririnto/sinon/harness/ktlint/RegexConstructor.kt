@@ -14,6 +14,13 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
+/**
+ * Flags `Regex(...)` constructor calls, including fully qualified `kotlin.text.Regex(...)`.
+ *
+ * Prefer `String.toRegex()` for single-argument literal patterns.
+ * Bare `Regex(...)` calls are skipped when the file imports or declares a conflicting name.
+ * Fully qualified `kotlin.text.Regex(...)` is always flagged because qualification resolves the target.
+ */
 class RegexConstructor :
     Rule(
         ruleId = RuleId("harness:no-regex-constructor"),

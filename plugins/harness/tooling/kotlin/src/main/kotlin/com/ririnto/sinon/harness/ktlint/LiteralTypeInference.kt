@@ -8,7 +8,13 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
+/**
+ * Shared PSI helpers for analyzing literal and string-template expressions across ktlint rules.
+ */
 internal object LiteralTypeInference {
+    /**
+     * Infers the Kotlin type name a literal expression would resolve to, or null when the expression is not a recognized literal.
+     */
     fun KtExpression.inferLiteralType(): String? =
         when (this) {
             is KtStringTemplateExpression -> {
@@ -71,10 +77,16 @@ internal object LiteralTypeInference {
             }
         }
 
+    /**
+     * Returns true when the template is a multiline raw string literal (`"""..."""` spanning newlines).
+     */
     fun KtStringTemplateExpression.isMultilineRawString(): Boolean =
         node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
             text.contains('\n')
 
+    /**
+     * Returns true when the declaration contains a multiline raw string literal.
+     */
     fun KtDeclaration.containsMultilineRawString(): Boolean =
         collectDescendantsOfType<KtStringTemplateExpression>().any { template -> template.isMultilineRawString() }
 }

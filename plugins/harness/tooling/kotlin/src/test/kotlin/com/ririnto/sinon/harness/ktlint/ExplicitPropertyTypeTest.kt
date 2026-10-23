@@ -6,6 +6,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+/**
+ * Verifies the explicit property type rule.
+ */
 class ExplicitPropertyTypeTest :
     FunSpec({
         test("autocorrects literal member properties") {

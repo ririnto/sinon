@@ -21,6 +21,9 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
+/**
+ * Flags leading underscores in Kotlin declarations, including parameters.
+ */
 class LeadingUnderscore :
     Rule(
         ruleId = RuleId("harness:leading-underscore"),
