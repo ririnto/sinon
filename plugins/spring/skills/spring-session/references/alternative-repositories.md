@@ -57,10 +57,12 @@ class InMemorySessionRepository implements SessionRepository<Session>, FindByInd
         sessions.remove(id);
     }
     /**
-     * Maps sessions stored under the principal-name index attribute to their ids.
+     * Maps sessions with the given index name and value to their ids.
      */
-    public Map<String, Session> findByPrincipalName(String principalName) {
-        return sessions.values().stream().filter(s -> principalName.equals(s.getAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME))).collect(Collectors.toMap(Session::getId, Function.identity()));
+    public Map<String, Session> findByIndexNameAndIndexValue(String indexName, String indexValue) {
+        return sessions.values().stream()
+            .filter(session -> indexValue.equals(session.getAttribute(indexName)))
+            .collect(Collectors.toMap(Session::getId, Function.identity()));
     }
     void setDefaultMaxInactiveInterval(Duration interval) {
         this.defaultMaxInactiveInterval = interval;

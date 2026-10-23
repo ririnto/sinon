@@ -42,17 +42,30 @@ Replace the default `OAuth2TokenGenerator` only when the default generator chain
 
 ```java
 @Bean
-OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator(JWKSource<SecurityContext> jwkSource) {
+OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator(
+        JWKSource<SecurityContext> jwkSource,
+        ObjectProvider<OAuth2TokenCustomizer<JwtEncodingContext>> jwtCustomizers,
+        ObjectProvider<OAuth2TokenCustomizer<OAuth2TokenClaimsContext>> accessTokenCustomizers) {
     JwtGenerator jwtGenerator = new JwtGenerator(new NimbusJwtEncoder(jwkSource));
-    return new DelegatingOAuth2TokenGenerator(jwtGenerator);
+    jwtCustomizers.ifUnique(jwtGenerator::setJwtCustomizer);
+    OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
+    accessTokenCustomizers.ifUnique(accessTokenGenerator::setAccessTokenCustomizer);
+    return new DelegatingOAuth2TokenGenerator(
+        jwtGenerator,
+        accessTokenGenerator,
+        new OAuth2RefreshTokenGenerator());
 }
 ```
 
-The default generator chain handles access tokens, refresh tokens, and ID tokens based on `TokenSettings`.
+When replacing the default chain, keep each token family the application issues.
+The JWT and opaque access-token customizers are optional, and each customizer type supports one bean.
+Combine multiple behaviors of one type into that bean.
+The refresh-token generator retains the framework's public-client exclusion for authorization-code clients authenticated with `ClientAuthenticationMethod.NONE`.
 
 ## JWT customizer hook
 
-Use one `OAuth2TokenCustomizer<JwtEncodingContext>` bean to modify JWT headers or claims before signing:
+Use one `OAuth2TokenCustomizer<JwtEncodingContext>` bean to modify JWT headers or claims before signing.
+The replacement generator above connects this bean to `JwtGenerator`:
 
 ```java
 @Bean
@@ -61,6 +74,10 @@ OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
         JwtClaimsSet.Builder claims = context.getClaims();
         if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
             claims.claim("tenant", context.getRegisteredClient().getClientId());
+            OAuth2Authorization authorization = context.getAuthorization();
+            if (authorization != null) {
+                claims.claim("amr", authorization.getAttributes().get("amr"));
+            }
         }
         if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
             claims.claim("tenant", context.getRegisteredClient().getClientId());
@@ -69,12 +86,10 @@ OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
 }
 ```
 
-Define this bean once.
-Spring Authorization Server wires it into the JWT generation path automatically.
-
 ## Opaque-token claim customizer
 
 Use `OAuth2TokenCustomizer<OAuth2TokenClaimsContext>` when the access-token format is opaque and the claim set must still be customized.
+The replacement generator above connects this bean to `OAuth2AccessTokenGenerator`.
 
 ```java
 @Bean
@@ -101,24 +116,6 @@ TokenSettings.builder()
 ```
 
 This setting issues a new refresh token on each exchange instead of reusing the existing one.
-
-## Claims from authorization state
-
-Read authorization attributes or principal data inside the token-customizer context when claims must depend on the authorization state:
-
-```java
-@Bean
-OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
-    return context -> {
-        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-            OAuth2Authorization authorization = context.getAuthorization();
-            if (authorization != null) {
-                context.getClaims().claim("amr", authorization.getAttributes().get("amr"));
-            }
-        }
-    };
-}
-```
 
 ## Per-client token settings
 

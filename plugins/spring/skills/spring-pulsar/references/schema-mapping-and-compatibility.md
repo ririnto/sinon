@@ -20,9 +20,9 @@ void handle(ShipmentEvent event) {
 ```java
 Schema<ShipmentEvent> schema = Schema.JSON(ShipmentEvent.class);
 
-pulsarTemplate.newMessage(schema)
+pulsarTemplate.newMessage(event)
     .withTopic("shipments")
-    .withValue(event)
+    .withSchema(schema)
     .send();
 ```
 

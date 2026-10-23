@@ -12,15 +12,15 @@ Keep the application path contract explicit about whether it targets KV v1 or KV
 ## Versioned access shape
 
 ```java
-VersionedKeyValueOperations operations = vault.opsForVersionedKeyValue("secret");
+VaultVersionedKeyValueOperations operations = vault.opsForVersionedKeyValue("secret");
 Versioned<Map<String, Object>> version = operations.get("app/prod/database", Versioned.Version.from(3));
 ```
 
 ## CAS write shape
 
 ```java
-VersionedKeyValueOperations operations = vault.opsForVersionedKeyValue("secret");
-operations.put("app/prod/database", Map.of("username", "app"), Versioned.Version.from(7));
+VaultVersionedKeyValueOperations operations = vault.opsForVersionedKeyValue("secret");
+operations.put("app/prod/database", Versioned.create(Map.of("username", "app"), Versioned.Version.from(7)));
 ```
 
 ## Decision points

@@ -529,8 +529,8 @@ Use `JdbcClient` (from Spring Framework 6.1+) for a fluent alternative that supp
 ```java
 List<Item> items = jdbcClient.sql("SELECT id, name, quantity FROM items")
     .withFetchSize(500)
-    .query()
-    .list((rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")));
+    .query((rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")))
+    .list();
 ```
 
 Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.

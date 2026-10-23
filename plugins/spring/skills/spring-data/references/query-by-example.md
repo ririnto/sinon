@@ -7,7 +7,7 @@ Open this reference when the blocker is Query by Example matcher behavior, probe
 Use QBE when the caller already has a probe object and the query shape is mostly equality or matcher-driven filtering rather than a stable named repository contract.
 
 ```java
-interface CustomerRepository extends ListCrudRepository<Customer, Long>, QueryByExampleExecutor<Customer> {
+interface CustomerRepository extends ListCrudRepository<Customer, Long>, ListQueryByExampleExecutor<Customer> {
 }
 ```
 

@@ -45,7 +45,7 @@ For mTLS, bind the channel to an SSL bundle that contains the client certificate
 spring:
   grpc:
     client:
-      channels:
+      channel:
         secure-greeter:
           ssl:
             bundle: grpc-client

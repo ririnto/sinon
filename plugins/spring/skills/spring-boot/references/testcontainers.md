@@ -8,12 +8,12 @@ Include `spring-boot-testcontainers` as a test dependency when using `@ServiceCo
 ```xml
 <dependency>
     <groupId>org.testcontainers</groupId>
-    <artifactId>junit-jupiter</artifactId>
+    <artifactId>testcontainers-junit-jupiter</artifactId>
     <scope>test</scope>
 </dependency>
 <dependency>
     <groupId>org.testcontainers</groupId>
-    <artifactId>postgresql</artifactId>
+    <artifactId>testcontainers-postgresql</artifactId>
     <scope>test</scope>
 </dependency>
 <dependency>
@@ -25,8 +25,8 @@ Include `spring-boot-testcontainers` as a test dependency when using `@ServiceCo
 
 ```kotlin
 dependencies {
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
 }
 ```
@@ -43,7 +43,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 class CatalogRepositoryTests {
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17");
 }
 ```
 

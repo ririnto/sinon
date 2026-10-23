@@ -21,6 +21,8 @@ services:
     image: pgvector/pgvector:pg16
     ports:
       - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: app
 ```
 
 ## Decision points

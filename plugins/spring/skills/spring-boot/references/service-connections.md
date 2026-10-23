@@ -12,7 +12,7 @@ Open this reference when Boot should derive test service connection properties a
 </dependency>
 <dependency>
     <groupId>org.testcontainers</groupId>
-    <artifactId>postgresql</artifactId>
+    <artifactId>testcontainers-postgresql</artifactId>
     <scope>test</scope>
 </dependency>
 ```
@@ -20,7 +20,7 @@ Open this reference when Boot should derive test service connection properties a
 ```kotlin
 dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
 }
 ```
 

@@ -37,10 +37,10 @@ Keep one client transport style per module unless multiple external providers fo
 
 ```java
 @Bean
-HttpComponentsMessageSender messageSender() {
-    HttpComponentsMessageSender sender = new HttpComponentsMessageSender();
-    sender.setConnectionTimeout(5_000);
-    sender.setReadTimeout(5_000);
+HttpComponents5MessageSender messageSender() {
+    HttpComponents5MessageSender sender = new HttpComponents5MessageSender();
+    sender.setConnectionTimeout(Duration.ofSeconds(5));
+    sender.setReadTimeout(Duration.ofSeconds(5));
     return sender;
 }
 ```
@@ -54,7 +54,7 @@ HttpComponentsMessageSender messageSender() {
 
 ```java
 @Bean
-WebServiceTemplate webServiceTemplate(Jaxb2Marshaller marshaller, SaajSoapMessageFactory messageFactory, HttpComponentsMessageSender messageSender) {
+WebServiceTemplate webServiceTemplate(Jaxb2Marshaller marshaller, SaajSoapMessageFactory messageFactory, HttpComponents5MessageSender messageSender) {
     WebServiceTemplate template = new WebServiceTemplate(marshaller);
     template.setMessageFactory(messageFactory);
     template.setMessageSender(messageSender);

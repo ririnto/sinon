@@ -343,13 +343,15 @@ void reprocess(List<Long> invoiceIds) {
 ### Security test
 
 ```java
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 @WebMvcTest(AdminController.class)
 @Import(SecurityConfig.class)
 class AdminControllerTests {
     @Autowired
     MockMvc mvc;
 
-    @MockBean
+    @MockitoBean
     JwtDecoder jwtDecoder;
 
     @Test

@@ -69,7 +69,7 @@ Solution: set `immediateScaleDown(true)` on the container or factory.
 Each consumer checks after every message whether it is in excess and stops itself when processing completes, rather than waiting for idle-trigger or stop-interval timeouts.
 
 ```java
-factory.getContainerProperties().setImmediateScaleDown(true);
+factory.setImmediateScaleDown(true);
 ```
 
 This option bypasses `consecutiveIdleTrigger` and `stopConsumerMinInterval` for scale-down decisions.
