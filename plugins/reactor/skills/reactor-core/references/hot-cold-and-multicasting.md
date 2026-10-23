@@ -15,7 +15,7 @@ If the real work is choosing concrete `publish()`, `replay()`, `autoConnect(...)
 | Need | Use | Notes |
 | --- | --- | --- |
 | re-run the source per subscriber | cold source | ordinary Reactor default |
-| share one live subscription | `share()` or `publish().refCount(...)` | subscribers join an active source |
+| share one active subscription | `share()` or `publish().refCount(...)` | overlapping subscribers share work; a later subscription can reconnect after completion |
 | delay connection until enough subscribers arrive | `autoConnect(n)` | useful for coordinated consumers |
 | replay earlier signals to late subscribers | `replay(...)` | trades memory for history |
 
@@ -52,13 +52,13 @@ sub2: 1
 sub2: 2
 ```
 
-## Hot source with `share()`: single execution, multiple subscribers
+## Finite source with `share()`: behavior depends on overlap
 
 ```java
 import reactor.core.publisher.Flux;
 final class HotShareExample {
     Flux<Integer> hotSource() {
-        return Flux.create(sink -> {
+        return Flux.<Integer>create(sink -> {
             System.out.println("source created once");
             sink.next(1);
             sink.next(2);
@@ -73,8 +73,12 @@ final class HotShareExample {
 }
 ```
 
-The `share()` operator converts the cold source into a hot one.
-The second subscriber joins the already-active source and may miss earlier signals if they were emitted before the second subscription arrived.
+`share()` shares one active subscription among overlapping subscribers.
+This example subscribes to a synchronous finite source twice in sequence.
+The first subscription receives `onComplete()` before the second starts, so `share()` reconnects and the source runs twice.
+With overlapping subscribers, `share()` uses one source connection.
+A subscriber that arrives after emission begins can miss earlier signals.
+Use `publish().autoConnect(2)` when two consumers must subscribe before the source starts.
 
 Output:
 
@@ -82,7 +86,9 @@ Output:
 source created once
 sub1: 1
 sub1: 2
-sub2:   (may see nothing if source completed before sub2 arrived)
+source created once
+sub2: 1
+sub2: 2
 ```
 
 ## `autoConnect(n)`: delay until N subscribers

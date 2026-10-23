@@ -211,6 +211,7 @@ class PostVerificationExample {
     void checksExecutionTime() {
         StepVerifier.create(Flux.just("a", "b"))
             .expectNext("a", "b")
+            .expectComplete()
             .verifyThenAssertThat()
             .tookLessThan(Duration.ofSeconds(1));
     }

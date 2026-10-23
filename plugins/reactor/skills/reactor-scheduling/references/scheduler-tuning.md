@@ -18,15 +18,15 @@ final class ReplaceSharedSchedulers {
         Schedulers.setFactory(new Schedulers.Factory() {
             @Override
             public Scheduler newParallel(int parallelism, ThreadFactory threadFactory) {
-                return Schedulers.Factory.DEFAULT.newParallel(parallelism, threadFactory);
+                return Schedulers.Factory.super.newParallel(parallelism, threadFactory);
             }
             @Override
             public Scheduler newSingle(ThreadFactory threadFactory) {
-                return Schedulers.Factory.DEFAULT.newSingle(threadFactory);
+                return Schedulers.Factory.super.newSingle(threadFactory);
             }
             @Override
             public Scheduler newBoundedElastic(int threadCap, int queuedTaskCap, ThreadFactory threadFactory, int ttlSeconds) {
-                return Schedulers.Factory.DEFAULT.newBoundedElastic(threadCap, queuedTaskCap, threadFactory, ttlSeconds);
+                return Schedulers.Factory.super.newBoundedElastic(threadCap, queuedTaskCap, threadFactory, ttlSeconds);
             }
         });
     }

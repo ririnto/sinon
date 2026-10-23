@@ -16,7 +16,7 @@ This reference covers the concrete patterns after that conceptual decision is ma
 | --- | --- | --- |
 | explicit start after subscribers are ready | `publish()` + `connect()` | manual connection point |
 | start automatically after N subscribers | `autoConnect(n)` | subscriber rendezvous |
-| stay connected while at least N subscribers remain | `refCount(n)` | automatic connect/disconnect |
+| connect after the Nth subscriber; disconnect at zero or termination | `refCount(n)` | automatic connection and upstream cancellation |
 | replay previous values to late subscribers | `replay(...)` | shared history for late subscribers |
 
 ## Manual `connect()`
@@ -60,7 +60,8 @@ The first subscriber alone does not trigger the source.
 
 ## `refCount(n)`: automatic connect and disconnect
 
-`refCount(n)` connects when the Nth subscriber arrives and disconnects (cancels the upstream) when subscriber count drops below N.
+`refCount(n)` connects when the Nth subscriber arrives.
+Once connected, it cancels upstream when all subscribers cancel; upstream termination also ends the connection.
 This is the primary reason to choose `refCount` over `autoConnect`.
 
 ```java
@@ -80,7 +81,7 @@ final class RefCountExample {
 
 With threshold of 1, the source starts immediately on the first subscription.
 When `disposable1` disposes, the source stays alive because `disposable2` keeps the count at 1.
-When `disposable2` also disposes, the count drops below 1 and the upstream cancels.
+When `disposable2` also disposes, the count reaches zero and the upstream cancels.
 
 ## `replay(...)`: late subscribers see history
 

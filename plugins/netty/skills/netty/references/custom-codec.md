@@ -92,9 +92,10 @@ final class TimeDecoder extends ReplayingDecoder<Void> {
 > Use it for readability on simple protocols.
 > Switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
 
-## Stateful decoder with `handlerAdded` / `handlerRemoved`
+## Stateful decoder with `handlerAdded` / `handlerRemoved0`
 
-Stateful handlers that allocate buffers or external resources must initialize them in `handlerAdded` and clean up in `handlerRemoved`:
+`ByteToMessageDecoder` subclasses that allocate their own buffers or external resources can initialize them in `handlerAdded` and release them in the protected `handlerRemoved0` hook.
+The final `handlerRemoved` method calls this hook during removal and completes decoder cleanup.
 
 ```java
 final class CumulativeDecoder extends ByteToMessageDecoder {
@@ -106,7 +107,7 @@ final class CumulativeDecoder extends ByteToMessageDecoder {
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
+    protected void handlerRemoved0(ChannelHandlerContext ctx) {
         buf.release();
         buf = null;
     }

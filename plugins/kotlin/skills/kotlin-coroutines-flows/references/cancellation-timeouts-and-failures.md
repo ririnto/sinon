@@ -134,7 +134,7 @@ Bridging a callback-based API at the suspend function level (distinct from `call
 ```kotlin
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 suspend fun fetchUserData(userId: String): UserData =
     suspendCancellableCoroutine { continuation ->
