@@ -35,6 +35,18 @@ const fixture = async () => {
   return { bin, directory, environment, project };
 };
 
+const readJavaProbe = (output: Buffer) =>
+  Object.fromEntries(
+    output
+      .toString()
+      .trimEnd()
+      .split("\n")
+      .map((line) => {
+        const separator = line.indexOf("=");
+        return [line.slice(0, separator), line.slice(separator + 1)];
+      })
+  );
+
 describe("Java shell script behavior", () => {
   test.each([
     ["pom.xml", "<artifactId>lombok</artifactId>", 0],
@@ -126,8 +138,7 @@ describe("Java shell script behavior", () => {
       path.join(project, ".classpath"),
       'path="lombok-1.18.40.jar"'
     );
-    environment.JDK_JAVA_OPTIONS =
-      "-Xmx1g -javaagent:old-lombok.jar -Dkeep=yes";
+    environment.JDK_JAVA_OPTIONS = `-Xmx1g  -javaagent:old-lombok.jar -Dmessage='hello world' -Dlabel="alpha  beta"  -Dkeep=yes`;
     if (mode === "disabled") {
       environment.JAVA_ASSISTANT_LOMBOK_ENABLED = "false";
       environment.JAVA_ASSISTANT_LOMBOK_JAR = override;
@@ -169,7 +180,7 @@ describe("Java shell script behavior", () => {
     }
     expect(output.options).toBe(
       selected
-        ? `-javaagent:${selected} -Xmx1g -Dkeep=yes`
+        ? `-javaagent:${selected} -Xmx1g   -Dmessage='hello world' -Dlabel="alpha  beta"  -Dkeep=yes`
         : environment.JDK_JAVA_OPTIONS
     );
     const warnings: string[] = [];
@@ -194,6 +205,151 @@ describe("Java shell script behavior", () => {
       warnings.length > 0 ? `${warnings.join("\n")}\n` : ""
     );
   });
+
+  test.each([
+    "lombok's-agent.jar",
+    'lombok"-agent.jar',
+    `lombok'"-agent.jar`,
+    "lombok\\-agent.jar"
+  ])(
+    "loads a Lombok agent from %s with JVM options preserved",
+    async (agentFilename) => {
+      const { bin, directory, environment, project } = await fixture();
+      const classes = path.join(directory, "classes");
+      await mkdir(classes);
+      environment.PATH = `${bin}:${process.env.PATH ?? environment.PATH}`;
+
+      const sources = {
+        "OldLombokAgent.java": `public final class OldLombokAgent {
+  public static void premain(String args) {
+    System.setProperty("old.agent.loaded", "true");
+  }
+}
+`,
+        "OtherAgent.java": `public final class OtherAgent {
+  public static void premain(String args) {
+    System.setProperty("other.agent.loaded", "true");
+  }
+}
+`,
+        "Probe.java": `import java.lang.management.ManagementFactory;
+
+public final class Probe {
+  public static void main(String[] args) {
+    System.out.println("message=" + System.getProperty("message"));
+    System.out.println("label=" + System.getProperty("label"));
+    System.out.println("keep=" + System.getProperty("keep"));
+    System.out.println("selected=" + System.getProperty("selected.agent.loaded"));
+    System.out.println("old=" + System.getProperty("old.agent.loaded"));
+    System.out.println("other=" + System.getProperty("other.agent.loaded"));
+    System.out.println("forwarded=" + String.join("|", args));
+    System.out.println("inputArguments=" + ManagementFactory.getRuntimeMXBean().getInputArguments());
+  }
+}
+`,
+        "SelectedAgent.java": `public final class SelectedAgent {
+  public static void premain(String args) {
+    System.setProperty("selected.agent.loaded", "true");
+  }
+}
+`
+      };
+      const sourcePaths = await Promise.all(
+        Object.entries(sources).map(async ([filename, source]) => {
+          const sourcePath = path.join(directory, filename);
+          await writeFile(sourcePath, source);
+          return sourcePath;
+        })
+      );
+      const compilation = spawnSync("javac", ["-d", classes, ...sourcePaths], {
+        cwd: directory,
+        env: environment
+      });
+      expect(compilation.status, compilation.stderr.toString()).toBe(0);
+
+      const selected = path.join(directory, agentFilename);
+      const old = path.join(directory, "old-lombok-agent.jar");
+      const other = path.join(directory, "other-agent.jar");
+      const agents = [
+        [selected, "SelectedAgent"],
+        [old, "OldLombokAgent"],
+        [other, "OtherAgent"]
+      ];
+      await Promise.all(
+        agents.map(([, mainClass]) =>
+          writeFile(
+            path.join(directory, `${mainClass}.mf`),
+            `Manifest-Version: 1.0\nPremain-Class: ${mainClass}\n\n`
+          )
+        )
+      );
+      for (const [jar, mainClass] of agents) {
+        const manifest = path.join(directory, `${mainClass}.mf`);
+        const packaging = spawnSync(
+          "jar",
+          ["cfm", jar, manifest, "-C", classes, `${mainClass}.class`],
+          { cwd: directory, env: environment }
+        );
+        expect(packaging.status, packaging.stderr.toString()).toBe(0);
+      }
+
+      const options = `-Dmessage='hello world'  -Dlabel="alpha  beta" -Dkeep=present -javaagent:${old} -javaagent:${other}`;
+      const args = ["--data", "value with spaces"];
+      const direct = spawnSync(
+        "java",
+        [`-javaagent:${selected}`, "-cp", classes, "Probe", ...args],
+        {
+          cwd: project,
+          env: {
+            ...environment,
+            JDK_JAVA_OPTIONS: options
+          }
+        }
+      );
+      expect(direct.status, direct.stderr.toString()).toBe(0);
+
+      await writeFile(
+        path.join(bin, "jdtls"),
+        `#!${process.execPath}
+const { spawnSync } = require("node:child_process");
+const result = spawnSync("java", ["-cp", ${JSON.stringify(classes)}, "Probe", ...process.argv.slice(2)]);
+process.stdout.write(result.stdout ?? "");
+process.stderr.write(result.stderr ?? "");
+process.exitCode = result.status ?? 1;
+`,
+        { mode: 0o755 }
+      );
+      environment.JAVA_ASSISTANT_LOMBOK_JAR = selected;
+      environment.JDK_JAVA_OPTIONS = options;
+      const wrapped = spawnSync(
+        "sh",
+        [path.join(scripts, "jdtls-wrapper.sh"), ...args],
+        { cwd: project, env: environment }
+      );
+      expect(wrapped.status, wrapped.stderr.toString()).toBe(0);
+
+      const directProperties = readJavaProbe(direct.stdout);
+      const wrappedProperties = readJavaProbe(wrapped.stdout);
+      expect(wrappedProperties.message).toBe(directProperties.message);
+      expect(wrappedProperties.message).toBe("hello world");
+      expect(wrappedProperties.label).toBe(directProperties.label);
+      expect(wrappedProperties.label).toBe("alpha  beta");
+      expect(wrappedProperties.keep).toBe(directProperties.keep);
+      expect(wrappedProperties.keep).toBe("present");
+      expect(wrappedProperties.selected).toBe("true");
+      expect(wrappedProperties.old).toBe("null");
+      expect(wrappedProperties.other).toBe("true");
+      expect(wrappedProperties.forwarded).toBe("--data|value with spaces");
+      expect(wrappedProperties.forwarded).toBe(directProperties.forwarded);
+      expect(wrappedProperties.inputArguments).toContain(
+        `-javaagent:${selected}`
+      );
+      expect(wrappedProperties.inputArguments).not.toContain(
+        `-javaagent:${old}`
+      );
+      expect(wrappedProperties.inputArguments).toContain(`-javaagent:${other}`);
+    }
+  );
 
   test("missing launcher returns its existing status", async () => {
     const { bin, environment, project } = await fixture();

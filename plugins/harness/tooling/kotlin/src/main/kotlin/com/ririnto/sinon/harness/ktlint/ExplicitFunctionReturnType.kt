@@ -186,7 +186,7 @@ class ExplicitFunctionReturnType :
             }
 
             qualifier === null -> {
-                true
+                !KotlinLexicalScope.isDeclared("Unit", referenceExpression)
             }
 
             else -> {

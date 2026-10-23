@@ -87,7 +87,7 @@ const noInlineCommentsRule = {
     };
     return {
       "ArrowFunctionExpression:exit": inspectFunction,
-      "FunctionDeclaration, VariableDeclaration, ClassDeclaration, MethodDefinition, PropertyDefinition, TSInterfaceDeclaration, TSTypeAliasDeclaration, TSEnumDeclaration, TSDeclareFunction, TSMethodSignature, TSPropertySignature, ExportNamedDeclaration, ExportDefaultDeclaration":
+      "FunctionDeclaration, VariableDeclaration, ClassDeclaration, MethodDefinition, PropertyDefinition, Property, TSInterfaceDeclaration, TSTypeAliasDeclaration, TSEnumDeclaration, TSDeclareFunction, TSMethodSignature, TSPropertySignature, ExportNamedDeclaration, ExportDefaultDeclaration":
         declaration,
       "FunctionDeclaration:exit": inspectFunction,
       "FunctionExpression:exit": inspectFunction,

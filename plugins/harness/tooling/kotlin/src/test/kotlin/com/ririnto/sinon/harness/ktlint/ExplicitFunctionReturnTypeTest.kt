@@ -17,15 +17,15 @@ class ExplicitFunctionReturnTypeTest :
                 fun greeting() = "hi"
                 """.trimIndent() to
                     """
-                    fun greeting(): String = "hi"
+                    fun greeting(): kotlin.String = "hi"
                     """.trimIndent(),
-                "fun flag() = true" to "fun flag(): Boolean = true",
-                "fun first() = 'a'" to "fun first(): Char = 'a'",
-                "fun count() = 42" to "fun count(): Int = 42",
-                "fun overflow() = 3000000000" to "fun overflow(): Long = 3000000000",
-                "fun bigCount() = 42L" to "fun bigCount(): Long = 42L",
-                "fun ratio() = 3.14" to "fun ratio(): Double = 3.14",
-                "fun precise() = 3.14f" to "fun precise(): Float = 3.14f"
+                "fun flag() = true" to "fun flag(): kotlin.Boolean = true",
+                "fun first() = 'a'" to "fun first(): kotlin.Char = 'a'",
+                "fun count() = 42" to "fun count(): kotlin.Int = 42",
+                "fun overflow() = 3000000000" to "fun overflow(): kotlin.Long = 3000000000",
+                "fun bigCount() = 42L" to "fun bigCount(): kotlin.Long = 42L",
+                "fun ratio() = 3.14" to "fun ratio(): kotlin.Double = 3.14",
+                "fun precise() = 3.14f" to "fun precise(): kotlin.Float = 3.14f"
             ).forEach { (sourceLine, expectedLine) ->
                 val source = "$sourceLine\n"
                 val name = sourceLine.substringAfter("fun ").substringBefore("(")
@@ -228,7 +228,7 @@ class ExplicitFunctionReturnTypeTest :
                     )
                 formattedCode shouldBe
                     """
-                    fun greet(prefix: String = "hi"): String = "hello"
+                    fun greet(prefix: String = "hi"): kotlin.String = "hello"
                     """.trimIndent() + "\n"
             }
         }
@@ -255,7 +255,7 @@ class ExplicitFunctionReturnTypeTest :
                 formattedCode shouldBe
                     """
                     @Ann(enabled = true)
-                    fun greet(): String = "hello"
+                    fun greet(): kotlin.String = "hello"
                     """.trimIndent() + "\n"
             }
         }
@@ -273,6 +273,91 @@ class ExplicitFunctionReturnTypeTest :
                     )
                 formattedCode shouldBe "fun noop() {}\n"
             }
+        }
+
+        test("uses built in return types when declarations shadow their simple names") {
+            val source =
+                """
+                class String
+                class Int
+                fun text() = "text"
+                fun count() = 42
+                """.trimIndent() + "\n"
+            val expected =
+                """
+                class String
+                class Int
+                fun text(): kotlin.String = "text"
+                fun count(): kotlin.Int = 42
+                """.trimIndent() + "\n"
+            val firstPass = KtLintRuleTestEngine.execute(ruleProvider, source)
+            assertSoftly(firstPass) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            3,
+                            source.indexOf("text") - source.lastIndexOf('\n', source.indexOf("text")),
+                            "harness:explicit-function-return-type",
+                            canBeAutoCorrected = true
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            4,
+                            source.indexOf("count") - source.lastIndexOf('\n', source.indexOf("count")),
+                            "harness:explicit-function-return-type",
+                            canBeAutoCorrected = true
+                        )
+                    )
+            }
+            val secondPass = KtLintRuleTestEngine.execute(ruleProvider, firstPass.formattedCode).formattedCode
+            secondPass shouldBe expected
+            KtLintRuleTestEngine.execute(ruleProvider, secondPass).formattedCode shouldBe expected
+        }
+
+        test("keeps a generic Unit type parameter as the return contract") {
+            val source =
+                """
+                fun interface Supplier<Unit> { fun get(): Unit }
+                fun <Unit> identity(value: Unit): Unit = value
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                formattedCode shouldBe source
+            }
+        }
+
+        test("removes genuine Unit annotations without changing side effect bodies") {
+            val source =
+                """
+                fun noop(): kotlin.Unit {}
+                class Counter(var value: Int = 0)
+                fun increment(counter: Counter): Unit { counter.value++ }
+                """.trimIndent() + "\n"
+            val expected =
+                """
+                fun noop() {}
+                class Counter(var value: Int = 0)
+                fun increment(counter: Counter) { counter.value++ }
+                """.trimIndent() + "\n"
+            val result = KtLintRuleTestEngine.execute(ruleProvider, source)
+            assertSoftly(result) {
+                diagnostics shouldContainExactlyInAnyOrder
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(
+                            1,
+                            source.indexOf("kotlin.Unit") + 1,
+                            "harness:explicit-function-return-type",
+                            canBeAutoCorrected = true
+                        ),
+                        KtLintRuleTestEngine.Diagnostic(
+                            3,
+                            source.indexOf(": Unit") + 2 - source.lastIndexOf('\n', source.indexOf(": Unit")),
+                            "harness:explicit-function-return-type",
+                            canBeAutoCorrected = true
+                        )
+                    )
+                formattedCode shouldBe expected
+            }
+            KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode).formattedCode shouldBe expected
         }
     }) {
     companion object {

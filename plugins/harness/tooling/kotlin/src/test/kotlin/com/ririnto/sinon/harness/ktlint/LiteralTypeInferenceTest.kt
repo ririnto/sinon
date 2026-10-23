@@ -41,21 +41,21 @@ class LiteralTypeInferenceTest :
                 with(LiteralTypeInference) { property.initializer?.inferLiteralType() }.toString()
             } shouldContainExactly
                 listOf(
-                    "text=String",
-                    "flag=Boolean",
-                    "letter=Char",
-                    "int=Int",
-                    "grouped=Int",
-                    "hex=Int",
-                    "binary=Int",
-                    "overflow=Long",
-                    "hexOverflow=Long",
-                    "long=Long",
-                    "lowerLong=Long",
-                    "double=Double",
-                    "float=Float",
-                    "upperFloat=Float",
-                    "exponent=Double"
+                    "text=kotlin.String",
+                    "flag=kotlin.Boolean",
+                    "letter=kotlin.Char",
+                    "int=kotlin.Int",
+                    "grouped=kotlin.Int",
+                    "hex=kotlin.Int",
+                    "binary=kotlin.Int",
+                    "overflow=kotlin.Long",
+                    "hexOverflow=kotlin.Long",
+                    "long=kotlin.Long",
+                    "lowerLong=kotlin.Long",
+                    "double=kotlin.Double",
+                    "float=kotlin.Float",
+                    "upperFloat=kotlin.Float",
+                    "exponent=kotlin.Double"
                 )
         }
 

@@ -82,21 +82,55 @@ resolve_project_lombok_jar() {
 # Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
 #
 strip_existing_lombok_agents() {
+  remaining_options=${JDK_JAVA_OPTIONS:-}
   cleaned_options=""
-  for current_arg in ${JDK_JAVA_OPTIONS:-}; do
-    case "${current_arg}" in
-    -javaagent:*lombok*.jar)
-      :
-      ;;
-    *)
-      if [ -n "${cleaned_options}" ]; then
-        cleaned_options="${cleaned_options} ${current_arg}"
+  current_raw=""
+  current_arg=""
+  quote=""
+  while [ -n "${remaining_options}" ]; do
+    current_char=${remaining_options%"${remaining_options#?}"}
+    remaining_options=${remaining_options#?}
+    if [ -n "${quote}" ]; then
+      current_raw="${current_raw}${current_char}"
+      if [ "${current_char}" = "${quote}" ]; then
+        quote=""
       else
-        cleaned_options="${current_arg}"
+        current_arg="${current_arg}${current_char}"
       fi
-      ;;
-    esac
+    else
+      case "${current_char}" in
+      "'" | '"')
+        current_raw="${current_raw}${current_char}"
+        quote=${current_char}
+        ;;
+      [[:space:]])
+        case "${current_arg}" in
+        -javaagent:*lombok*.jar)
+          :
+          ;;
+        *)
+          cleaned_options="${cleaned_options}${current_raw}"
+          ;;
+        esac
+        current_raw=""
+        current_arg=""
+        cleaned_options="${cleaned_options}${current_char}"
+        ;;
+      *)
+        current_raw="${current_raw}${current_char}"
+        current_arg="${current_arg}${current_char}"
+        ;;
+      esac
+    fi
   done
+  case "${current_arg}" in
+  -javaagent:*lombok*.jar)
+    :
+    ;;
+  *)
+    cleaned_options="${cleaned_options}${current_raw}"
+    ;;
+  esac
   JDK_JAVA_OPTIONS=${cleaned_options}
 }
 
@@ -150,7 +184,23 @@ maybe_enable_lombok_agent() {
         warn_optional_lombok_support "java: Selected Lombok source (${selected_source}) was not found at ${selected_jar}. Starting jdtls without Lombok support."
       else
         strip_existing_lombok_agents
-        selected_agent="-javaagent:${selected_jar}"
+        selected_agent="-javaagent:"
+        remaining_jar=${selected_jar}
+        while [ -n "${remaining_jar}" ]; do
+          current_char=${remaining_jar%"${remaining_jar#?}"}
+          remaining_jar=${remaining_jar#?}
+          case "${current_char}" in
+          "'")
+            selected_agent="${selected_agent}\"'\""
+            ;;
+          '"')
+            selected_agent="${selected_agent}'\"'"
+            ;;
+          *)
+            selected_agent="${selected_agent}${current_char}"
+            ;;
+          esac
+        done
         export JDK_JAVA_OPTIONS="${selected_agent} ${JDK_JAVA_OPTIONS:-}"
         warn_optional_lombok_support "java: Enabled Lombok support from ${selected_source} source (${selected_jar})."
       fi

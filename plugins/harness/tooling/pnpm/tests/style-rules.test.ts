@@ -372,6 +372,38 @@ const commentFixtures = [
     ].join("\n")
   },
   {
+    expected: 0,
+    filename: "documented-object-method.ts",
+    source: [
+      "/**",
+      " * Provide a service status query.",
+      " */",
+      "export const service = {",
+      "  /**",
+      "   * Return the current service status.",
+      "   */",
+      "  status() {",
+      '    return "ready";',
+      "  }",
+      "};"
+    ].join("\n")
+  },
+  {
+    expected: 0,
+    filename: "documented-object-function-property.ts",
+    source: [
+      "/**",
+      " * Provide a callback status query.",
+      " */",
+      "export const callbackService = {",
+      "  /**",
+      "   * Return the current callback status.",
+      "   */",
+      '  status: () => "ready"',
+      "};"
+    ].join("\n")
+  },
+  {
     expected: 2,
     filename: "comments.tsx",
     source: [

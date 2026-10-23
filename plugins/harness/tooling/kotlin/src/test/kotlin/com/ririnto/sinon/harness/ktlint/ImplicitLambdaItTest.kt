@@ -73,7 +73,7 @@ class ImplicitLambdaItTest :
                 )
         }
 
-        test("preserves nested implicit shadowing") {
+        test("leaves nested implicit ownership manual") {
             val source =
                 """
                 fun nested(values: List<List<Int>>) = values.map { it.map { it + 1 } }
@@ -85,19 +85,16 @@ class ImplicitLambdaItTest :
                             1,
                             source.indexOf("it", source.indexOf('{')) + 1,
                             "harness:implicit-lambda-it",
-                            true
+                            false
                         ),
                         KtLintRuleTestEngine.Diagnostic(
                             1,
                             source.lastIndexOf("it") + 1,
                             "harness:implicit-lambda-it",
-                            true
+                            false
                         )
                     )
-                formattedCode shouldBe
-                    """
-                    fun nested(values: List<List<Int>>) = values.map { valueValue -> valueValue.map { value -> value + 1 } }
-                    """.trimIndent() + "\n"
+                formattedCode shouldBe source
             }
         }
 
@@ -299,6 +296,49 @@ class ImplicitLambdaItTest :
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 diagnostics shouldContainExactlyInAnyOrder emptyList()
                 formattedCode shouldBe source
+            }
+        }
+
+        test("keeps lambda ownership cases binding safe") {
+            listOf(
+                Triple(
+                    "fun bump(xs: List<Int>) = xs.map { run { it + 1 } }\n",
+                    "fun bump(xs: List<Int>) = xs.map { run { it + 1 } }\n",
+                    listOf(false)
+                ),
+                Triple(
+                    "fun bump(xs: List<Int>) = xs.map { item -> run { item + 1 } }\n",
+                    "fun bump(xs: List<Int>) = xs.map { item -> run { item + 1 } }\n",
+                    emptyList<Boolean>()
+                ),
+                Triple(
+                    "fun bump(xs: List<Int>) = xs.map { run { -> it + 1 } }\n",
+                    "fun bump(xs: List<Int>) = xs.map { value -> run { -> value + 1 } }\n",
+                    listOf(true)
+                ),
+                Triple(
+                    "fun bump(xs: List<Int>) = xs.map { it.let { it + 1 } }\n",
+                    "fun bump(xs: List<Int>) = xs.map { it.let { it + 1 } }\n",
+                    listOf(false, false)
+                ),
+                Triple(
+                    "fun sum(xs: List<Int>) = xs.map { it.let { inner -> it + inner } }\n",
+                    "fun sum(xs: List<Int>) = xs.map { value -> value.let { inner -> value + inner } }\n",
+                    listOf(true)
+                ),
+                Triple(
+                    "fun bump(xs: List<Int>) = xs.map { it -> run { it + 1 } }\n",
+                    "fun bump(xs: List<Int>) = xs.map { it -> run { it + 1 } }\n",
+                    listOf(false)
+                )
+            ).forEach { (source, expected, expectedAutocorrectability) ->
+                val result = KtLintRuleTestEngine.execute(ruleProvider, source)
+                result.formattedCode shouldBe expected
+                val actualAutocorrectability = result.diagnostics.map { diagnostic -> diagnostic.canBeAutoCorrected }
+                if (actualAutocorrectability != expectedAutocorrectability) {
+                    error("unexpected diagnostics for `$source`: $actualAutocorrectability")
+                }
+                KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode).formattedCode shouldBe result.formattedCode
             }
         }
     }) {

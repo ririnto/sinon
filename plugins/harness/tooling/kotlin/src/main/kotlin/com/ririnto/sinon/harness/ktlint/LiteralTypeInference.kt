@@ -18,17 +18,17 @@ internal object LiteralTypeInference {
     fun KtExpression.inferLiteralType(): String? =
         when (this) {
             is KtStringTemplateExpression -> {
-                String::class.simpleName
+                "kotlin.String"
             }
 
             is KtConstantExpression -> {
                 when (node.elementType) {
                     ElementType.BOOLEAN_CONSTANT -> {
-                        Boolean::class.simpleName
+                        "kotlin.Boolean"
                     }
 
                     ElementType.CHARACTER_CONSTANT -> {
-                        Char::class.simpleName
+                        "kotlin.Char"
                     }
 
                     ElementType.INTEGER_CONSTANT -> {
@@ -39,7 +39,7 @@ internal object LiteralTypeInference {
                             }
 
                             suffix.any { character -> character in "lL" } -> {
-                                Long::class.simpleName
+                                "kotlin.Long"
                             }
 
                             else -> {
@@ -51,8 +51,8 @@ internal object LiteralTypeInference {
                                         else -> cleaned to 10
                                     }
                                 when {
-                                    digits.toIntOrNull(radix) !== null -> Int::class.simpleName
-                                    digits.toLongOrNull(radix) !== null -> Long::class.simpleName
+                                    digits.toIntOrNull(radix) !== null -> "kotlin.Int"
+                                    digits.toLongOrNull(radix) !== null -> "kotlin.Long"
                                     else -> null
                                 }
                             }
@@ -61,8 +61,8 @@ internal object LiteralTypeInference {
 
                     ElementType.FLOAT_CONSTANT -> {
                         when {
-                            text.endsWith('f', ignoreCase = true) -> Float::class.simpleName
-                            else -> Double::class.simpleName
+                            text.endsWith('f', ignoreCase = true) -> "kotlin.Float"
+                            else -> "kotlin.Double"
                         }
                     }
 
