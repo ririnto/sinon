@@ -42,7 +42,7 @@ The schema also supports per-test-group `external_labels` and `external_url`, wh
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `rule_files` | list of strings | yes | -- | Paths to the rule files under test (relative to the test file). |
-| `evaluation_interval` | duration | no | `1m` | Base evaluation interval for the test engine. |
+| `evaluation_interval` | duration | no | `1m` | Global cadence for rule evaluations in each test case. |
 | `group_eval_order` | list of strings | no | -- | Explicit group evaluation order when groups have dependencies. |
 | `tests` | list | yes | -- | List of test cases. |
 | `fuzzy_compare` | bool | no | `false` | Use approximate float comparison instead of exact equality. |
@@ -54,7 +54,7 @@ Each entry in `tests:` supports these fields:
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `name` | string | no | auto-generated | Human-readable name for this test case. Used with `--run` filter. |
-| `interval` | duration | no | top-level `evaluation_interval` | Evaluation interval for this specific test case. |
+| `interval` | duration | no | top-level `evaluation_interval` | Spacing between input samples for this test case. It does not change the rule evaluation cadence. |
 | `start_timestamp` | timestamp | no | epoch zero (`1970-01-01T00:00:00Z`) | Wall-clock start time for this test case. |
 | `input_series` | list | no | `[]` | Synthetic time series injected into the test engine. |
 | `alert_rule_test` | list | no | `[]` | Assertions about alert state at specific eval times. |

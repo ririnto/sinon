@@ -123,13 +123,14 @@ Alertmanager evaluates the route tree as follows:
 
 1. An alert arrives at the root route.
 2. The root route always matches (it has no matchers).
-3. For each child route in order:
-   - If the child has `active_time_intervals` and the current time falls outside every referenced interval, skip this child.
-   - Evaluate the child's matchers against the alert's labels.
-   - If the child matches and has `continue: true`, record this child as a match and continue evaluating subsequent siblings.
-   - If the child matches and does not have `continue: true`, route the alert to this child's receiver and stop evaluating siblings.
-4. After all children are checked, if no child matched, use the root route's own receiver.
-5. If multiple children matched via `continue`, each matching child receives the alert independently.
+3. For each child route in order, evaluate its matchers against the alert's labels. `active_time_intervals` do not affect this match.
+4. Record each matching child.
+   Continue to later siblings only when the matched child has `continue: true`.
+   The default is `false`.
+5. After route matching, suppress notifications for matched routes whose `active_time_intervals` do not include the current time.
+   Suppression does not resume sibling traversal or fall back to the root receiver.
+6. Use the root receiver only when no child route matched.
+7. If multiple children matched through `continue`, each route can send a notification when its schedule allows.
 
 Key consequence: `continue: true` allows an alert to fan out to multiple receivers.
 Without it, the first matching child wins and traversal stops.
@@ -137,7 +138,9 @@ Without it, the first matching child wins and traversal stops.
 
 ### Complete Route Example
 
-This route tree sends critical node and instance pages to a fast pager, allows team API alerts to continue into a nested critical route, isolates staging warnings during off-hours, and sends one warning route only during business hours.
+The first branches handle critical pages, continuing API-team routes, and deliberate staging suppression.
+The final two warning routes select exactly one of their receivers through complementary business-hour schedules.
+API-team warnings can also notify the earlier continuing team route.
 
 ```yaml
 route:
@@ -173,10 +176,34 @@ route:
         - offhours
 
     - receiver: business-hours-only
+      continue: true
       active_time_intervals:
         - business-hours
       matchers:
         - severity="warning"
+
+    - receiver: after-hours
+      mute_time_intervals:
+        - business-hours
+      matchers:
+        - severity="warning"
+
+time_intervals:
+  - name: business-hours
+    time_intervals:
+      - location: Europe/Berlin
+        weekdays:
+          - monday:friday
+        times:
+          - start_time: "09:00"
+            end_time: "17:00"
+  - name: offhours
+    time_intervals:
+      - weekdays:
+          - monday:friday
+        times:
+          - start_time: "00:00"
+            end_time: "08:00"
 ```
 
 ## Global Configuration

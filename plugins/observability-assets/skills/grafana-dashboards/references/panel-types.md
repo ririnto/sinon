@@ -44,7 +44,49 @@ Full options schema for the most commonly used panel type.
 ```json
 {
   "type": "timeseries",
-  "fieldConfig": { "defaults": {}, "overrides": [] },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "drawStyle": "line",
+        "lineWidth": 1,
+        "fillOpacity": 10,
+        "pointSize": 5,
+        "spanNulls": false,
+        "showPoints": "never",
+        "stacking": {
+          "mode": "none",
+          "group": "A"
+        },
+        "axisPlacement": "auto",
+        "axisColorMode": "text",
+        "axisLabel": "",
+        "axisCenteredZero": false,
+        "axisSoftMin": null,
+        "axisSoftMax": null,
+        "scaleDistribution": {
+          "type": "linear",
+          "log": 2,
+          "linearThreshold": null
+        },
+        "thresholdsStyle": {
+          "mode": "off"
+        },
+        "gradientMode": "none",
+        "barAlignment": 0,
+        "lineInterpolation": "smooth",
+        "lineStyle": {
+          "fill": "solid",
+          "dash": []
+        },
+        "hideFrom": {
+          "tooltip": false,
+          "legend": false,
+          "viz": false
+        }
+      }
+    },
+    "overrides": []
+  },
   "options": {
     "legend": {
       "displayMode": "list",
@@ -57,43 +99,7 @@ Full options schema for the most commonly used panel type.
       "sort": "desc",
       "anchor": "auto"
     },
-    "drawStyle": "line",
-    "lineWidth": 1,
-    "fillOpacity": 10,
-    "pointSize": 5,
-    "spanNulls": false,
-    "showPoints": "never",
-    "stacking": {
-      "mode": "none",
-      "group": "A"
-    },
-    "axisPlacement": "auto",
-    "axisColorMode": "text",
-    "axisLabel": "",
-    "axisCenteredZero": false,
-    "axisSoftMin": null,
-    "axisSoftMax": null,
-    "scaleDistribution": {
-      "type": "linear",
-      "log": 2,
-      "linearThreshold": null
-    },
-    "thresholdsStyle": {
-      "mode": "off"
-    },
-    "gradientMode": "none",
     "reverseYAxis": false,
-    "barAlignment": 0,
-    "lineInterpolation": "smooth",
-    "lineStyle": {
-      "fill": "solid",
-      "dash": []
-    },
-    "hideFrom": {
-      "tooltip": false,
-      "legend": false,
-      "viz": false
-    },
     "mappingType": 1,
     "rangeMaps": [],
     "nullPointMode": "connected"
@@ -102,13 +108,13 @@ Full options schema for the most commonly used panel type.
 
 ```
 
-Key `options.drawStyle` values: `"line"`, `"bars"`, `"points"`.
+Key `fieldConfig.defaults.custom.drawStyle` values: `"line"`, `"bars"`, `"points"`.
 Key `options.legend.displayMode`: `"list"`, `"table"`, `"hidden"`.
 Key `options.legend.calcs`: `"mean"`, `"count"`, `"total"`, `"min"`, `"max"`, `"range"`, `"first"`, `"delta"`, `"step"`, `"diff"`, `"allValues"`, `"allNullValues"`.
 Key `options.tooltip.mode`: `"single"`, `"multi"`, `"none"`.
-Key `options.stacking.mode`: `"none"`, `"normal"`, `"percent"`.
-Key `options.gradientMode`: `"none"`, `"hue"`, `"opacity"`, `"scheme"`.
-Key `options.showPoints`: `"never"`, `"auto"`, `"always"`.
+Key `fieldConfig.defaults.custom.stacking.mode`: `"none"`, `"normal"`, `"percent"`.
+Key `fieldConfig.defaults.custom.gradientMode`: `"none"`, `"hue"`, `"opacity"`, `"scheme"`.
+Key `fieldConfig.defaults.custom.showPoints`: `"never"`, `"auto"`, `"always"`.
 
 ## Stat (`stat`)
 

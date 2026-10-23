@@ -13,7 +13,10 @@ Time intervals define named schedule windows.
 Routes reference them by name in two ways:
 
 - `mute_time_intervals:` -- the route sends NO notifications during matching intervals
-- `active_time_intervals:` -- the route ONLY matches alerts during matching intervals (outside these windows, the route behaves as if it does not exist)
+- `active_time_intervals:` -- the route sends notifications only during matching intervals
+
+Alertmanager matches routes by labels before it applies active-time suppression.
+An inactive matching route still affects sibling traversal, and suppression does not trigger sibling or root fallback.
 
 Both fields accept a list of named interval references.
 Multiple intervals are ORed together: if ANY listed interval matches the current time, the condition activates.
@@ -298,7 +301,7 @@ When the interval ends, pending notifications fire immediately if their grouping
 
 ### Active Time Intervals
 
-The route only exists (matches alerts) during the referenced intervals:
+The route matches alerts by labels, then sends notifications only during the referenced intervals:
 
 ```yaml
 route:
@@ -310,8 +313,11 @@ route:
 
 ```
 
-Outside `business-hours`, this route does not match at all.
-Alerts that would have matched fall through to the next matching route or the root route default receiver.
+Outside `business-hours`, the route can still match the alert's labels, but Alertmanager suppresses its notification after route traversal.
+It does not retry later siblings or the root receiver.
+
+For exclusive business-hour and after-hours routing, let the business-hours route continue and mute its sibling during the complementary business-hours interval.
+The complete route example in the [Alertmanager skill](../SKILL.md#complete-route-example) shows this pattern.
 
 ## Review Focus
 

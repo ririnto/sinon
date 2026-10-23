@@ -482,18 +482,26 @@ Ranges are inclusive on both ends.
 
 ```json
 {
-  "type": "range",
-  "options": [
-    { "from": 0, "to": 199, "result": { "text": "Healthy", "color": "green" } },
-    { "from": 200, "to": 499, "result": { "text": "Degraded", "color": "yellow" } },
-    { "from": 500, "to": 999999, "result": { "text": "Down", "color": "red" } }
+  "mappings": [
+    {
+      "type": "range",
+      "options": { "from": 0, "to": 199, "result": { "text": "Healthy", "color": "green" } }
+    },
+    {
+      "type": "range",
+      "options": { "from": 200, "to": 499, "result": { "text": "Degraded", "color": "yellow" } }
+    },
+    {
+      "type": "range",
+      "options": { "from": 500, "to": 999999, "result": { "text": "Down", "color": "red" } }
+    }
   ]
 }
 
 ```
 
-Ranges must not overlap.
-Order does not matter for range evaluation -- Grafana finds the matching range by checking which range contains the value.
+Each range entry has one inclusive `from` and `to` value and one `result`.
+Avoid overlapping ranges unless you intend the first matching entry to take precedence.
 
 ### Type 3: Regex Mapping
 
@@ -501,20 +509,34 @@ Pattern-based matching against string values.
 
 ```json
 {
-  "type": "regex",
-  "options": [
-    { "pattern": "^2..$", "result": { "text": "Success", "color": "green" } },
-    { "pattern": "^3..$", "result": { "text": "Redirect", "color": "blue" } },
-    { "pattern": "^4..$", "result": { "text": "Client Error", "color": "yellow" } },
-    { "pattern": "^5..$", "result": { "text": "Server Error", "color": "red" } },
-    { "pattern": ".*", "result": { "text": "Unknown", "color": "gray" } }
+  "mappings": [
+    {
+      "type": "regex",
+      "options": { "pattern": "^2..$", "result": { "text": "Success", "color": "green" } }
+    },
+    {
+      "type": "regex",
+      "options": { "pattern": "^3..$", "result": { "text": "Redirect", "color": "blue" } }
+    },
+    {
+      "type": "regex",
+      "options": { "pattern": "^4..$", "result": { "text": "Client Error", "color": "yellow" } }
+    },
+    {
+      "type": "regex",
+      "options": { "pattern": "^5..$", "result": { "text": "Server Error", "color": "red" } }
+    },
+    {
+      "type": "regex",
+      "options": { "pattern": ".*", "result": { "text": "Unknown", "color": "gray" } }
+    }
   ]
 }
 
 ```
 
-Patterns are evaluated in array order.
-Use `.*` as a catch-all fallback at the end of the list.
+Each regex entry has one `pattern` and one `result`.
+Grafana checks mapping entries in array order, so put a catch-all such as `.*` last.
 
 ### Type 4: Special Mapping
 
@@ -522,14 +544,13 @@ Handle sentinel values that have no regular representation: null, NaN, boolean s
 
 ```json
 {
-  "type": "special",
-  "options": {
-    "null": { "text": "No Data", "color": "gray" },
-    "NaN": { "text": "Invalid", "color": "purple" },
-    "true": { "text": "Yes", "color": "green" },
-    "false": { "text": "No", "color": "red" },
-    "": { "text": "(empty)", "color": "light-gray" }
-  }
+  "mappings": [
+    { "type": "special", "options": { "match": "null", "result": { "text": "No Data", "color": "gray" } } },
+    { "type": "special", "options": { "match": "nan", "result": { "text": "Invalid", "color": "purple" } } },
+    { "type": "special", "options": { "match": "true", "result": { "text": "Yes", "color": "green" } } },
+    { "type": "special", "options": { "match": "false", "result": { "text": "No", "color": "red" } } },
+    { "type": "special", "options": { "match": "empty", "result": { "text": "(empty)", "color": "light-gray" } } }
+  ]
 }
 
 ```
@@ -546,10 +567,11 @@ Real-world pattern combining multiple mapping types:
   "mappings": [
     {
       "type": "special",
-      "options": {
-        "null": { "text": "--", "color": "gray" },
-        "NaN": { "text": "N/A", "color": "gray" }
-      }
+      "options": { "match": "null", "result": { "text": "--", "color": "gray" } }
+    },
+    {
+      "type": "special",
+      "options": { "match": "nan", "result": { "text": "N/A", "color": "gray" } }
     },
     {
       "type": "value",
@@ -560,16 +582,15 @@ Real-world pattern combining multiple mapping types:
     },
     {
       "type": "regex",
-      "options": [
-        { "pattern": "partial", "result": { "text": "DEGRADED", "color": "yellow" } }
-      ]
+      "options": { "pattern": "partial", "result": { "text": "DEGRADED", "color": "yellow" } }
     }
   ]
 }
 
 ```
 
-Evaluation order: special checks first (null/NaN), then exact value match, then regex pattern match.
+Grafana evaluates entries in array order and uses the first match.
+Put special, exact-value, and regex mappings in the order that gives the desired precedence.
 
 ## Data Links -- Complete Reference
 
