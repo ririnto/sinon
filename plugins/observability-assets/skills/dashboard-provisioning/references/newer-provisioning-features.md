@@ -56,8 +56,10 @@ Grafana v12+ dashboard APIs and observability-as-code workflows use the `dashboa
 That shape uses `metadata` and `spec`.
 This is separate from Kubernetes CRDs managed by Grafana Operator or Crossplane.
 
-Within `spec`, `folder` controls Grafana placement.
-The remaining fields are the raw dashboard definition rather than an API import wrapper.
+For the explicit `dashboard.grafana.app/v1` dashboard API resource, `metadata.annotations["grafana.app/folder"]` selects an existing folder by UID.
+Git Sync and local-path provisioning derive folder placement from the repository path.
+Classic file providers use provider-level `folder` or `folderUid` settings.
+The fields within `spec` are the raw dashboard definition rather than an API import wrapper.
 
 Complete resource example:
 
@@ -67,10 +69,11 @@ kind: Dashboard
 metadata:
   name: api-overview
   namespace: monitoring
+  annotations:
+    grafana.app/folder: operations
   labels:
     team: platform
 spec:
-  folder: Operations
   title: API Overview
   uid: k8s-api-overview
   timezone: browser
@@ -101,7 +104,7 @@ Key differences from raw or classic dashboard files:
 | Source file shape | Raw dashboard JSON or Grafana classic wrapper | Fields go directly into `.spec` |
 | ID management | Remove `id` or set it to `null` before committing shared source | Keep portable identity in metadata. |
 | | | Use supported spec fields when Grafana accepts them. |
-| Folder assignment | Provider-level `folder` or `folderUid` | `.spec.folder` or `.spec.folderUid` on the resource |
+| Folder assignment | Provider-level `folder` or `folderUid` | Git Sync and local-path provisioning use repository paths. The dashboard API uses `metadata.annotations["grafana.app/folder"]`. |
 | Update detection | Filesystem poll or watch | Filesystem poll or watch |
 | HTTP API response envelope | Separate concern; do not store API response wrappers on disk | Not applicable |
 

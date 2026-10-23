@@ -22,26 +22,77 @@ tests:
 
 | Control | Type | Default | Effect |
 | --- | --- | --- | --- |
-| `evaluation_interval` | duration | `1m` | Base interval between evaluation cycles. Alert assertions observe the latest scheduled evaluation at or before `eval_time`. |
+| `evaluation_interval` | duration | `1m` | Global cadence for rule evaluations. Alert assertions observe the latest scheduled evaluation at or before `eval_time`. |
 | `fuzzy_compare` | bool | `false` | When true, effectively ignores differences in the last bit of the mantissa for sample value assertions. |
 | `start_timestamp` | timestamp (per-test) | epoch zero | Wall-clock start time. Affects functions that depend on absolute time, such as `time()`, `month()`, `hour()`. |
 
 ### Per-Test Case Controls
 
 ```yaml
+evaluation_interval: 1m
+
 tests:
   - name: my-test
     interval: 30s
+    input_series:
+      - series: spacing_probe
+        values: "0 1 2"
     start_timestamp: 2026-06-15T12:00:00Z
 ```
 
-The per-test `interval` overrides the top-level `evaluation_interval` for that test only.
+The per-test `interval` sets the spacing between `input_series` samples.
+It does not override the global `evaluation_interval` schedule.
 
 Use these controls when:
 
 - Test time must start from a deliberate timestamp.
 - Floating-point comparisons are close enough that strict equality is noisy.
-- You need a finer or coarser evaluation granularity than the global default.
+- You need input samples at a finer or coarser spacing than the evaluation schedule.
+
+### Unequal sample and evaluation intervals
+
+Create `cadence.rules.yaml` with an always-true alert that has `for: 30s`:
+
+```yaml
+groups:
+  - name: cadence
+    rules:
+      - alert: CadenceProbe
+        expr: vector(1)
+        for: 30s
+```
+
+This test samples `spacing_probe` every 30 seconds while evaluating rules every minute.
+At `30s`, the PromQL assertion sees the second sample, but the alert assertion sees the rule state from `0s`.
+
+```yaml
+rule_files:
+  - cadence.rules.yaml
+evaluation_interval: 1m
+
+tests:
+  - name: thirty-second-samples-minute-evaluations
+    interval: 30s
+    input_series:
+      - series: spacing_probe
+        values: "0 1 2"
+    promql_expr_test:
+      - expr: spacing_probe
+        eval_time: 30s
+        exp_samples:
+          - labels: spacing_probe
+            value: 1
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: CadenceProbe
+        exp_alerts: []
+      - eval_time: 1m
+        alertname: CadenceProbe
+        exp_alerts:
+          - {}
+```
+
+With this rule, the alert remains pending at its initial evaluation at `0s` and fires at the next scheduled evaluation at `1m`.
 
 ### Group Evaluation Order
 
@@ -92,9 +143,11 @@ Use when: you need to iterate on one test group without running the whole suite.
 Alert assertions observe state from the most recent scheduled evaluation at or before the requested `eval_time`.
 PromQL expression assertions evaluate at the exact requested time, even when it falls between scheduled rule evaluations.
 
-### Scheduled rule evaluations (interval: 1m)
+### Scheduled rule evaluations (`evaluation_interval: 1m`)
 
 ```yaml
+evaluation_interval: 1m
+
 tests:
   - interval: 1m
     alert_rule_test:
@@ -109,6 +162,8 @@ Each value lands on a scheduled evaluation: the initial evaluation, after 5 eval
 ### Off-boundary alert assertions
 
 ```yaml
+evaluation_interval: 1m
+
 tests:
   - interval: 1m
     alert_rule_test:
