@@ -138,7 +138,9 @@ Without it, the first matching child wins and traversal stops.
 
 ### Complete Route Example
 
-This route tree sends critical node and instance pages to a fast pager, allows team API alerts to continue into a nested critical route, isolates staging warnings during off-hours, and sends warnings to exactly one receiver according to complementary business-hour schedules.
+The first branches handle critical pages, continuing API-team routes, and deliberate staging suppression.
+The final two warning routes select exactly one of their receivers through complementary business-hour schedules.
+API-team warnings can also notify the earlier continuing team route.
 
 ```yaml
 route:
@@ -195,6 +197,13 @@ time_intervals:
         times:
           - start_time: "09:00"
             end_time: "17:00"
+  - name: offhours
+    time_intervals:
+      - weekdays:
+          - monday:friday
+        times:
+          - start_time: "00:00"
+            end_time: "08:00"
 ```
 
 ## Global Configuration
