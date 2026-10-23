@@ -107,11 +107,11 @@ java -XX:+UnlockCommercialFeatures -XX:+FlightRecorder ...
 JDK 8 uses legacy GC logging flags, not unified logging:
 
 ```sh
-java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCTenuringDistribution -Xloggc:/path/to/private-diagnostics/gc.log ...
+java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/path/to/private-diagnostics/gc.log ...
 ```
 
 - `-XX:+PrintGCDateStamps` adds ISO datestamps to each line
-- `-XX:+PrintGCTenuringDistribution` shows survivor age distribution for generational tuning
+- `-XX:+PrintTenuringDistribution` shows survivor age distribution for generational tuning
 - There is no `-Xlog` support on JDK 8.
   All GC logging must use the legacy flags above.
 

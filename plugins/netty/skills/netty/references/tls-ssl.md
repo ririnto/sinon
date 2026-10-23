@@ -68,8 +68,23 @@ Use `SslProvider.OPENSSL` with `netty-tcnative` for higher throughput on Linux.
 
 > [!NOTE]
 >
-> `netty-tcnative-boringssl-static` bundles BoringSSL statically - no external OpenSSL installation is required.
-> Use the non-`static` variant (`netty-tcnative-boringssl`) when the system OpenSSL library must be used instead.
+> `netty-tcnative-boringssl-static` bundles BoringSSL statically.
+> No external OpenSSL installation is required.
+> For system OpenSSL, use the dynamically linked `io.netty:netty-tcnative` artifact with the matching platform classifier.
+
+The system-OpenSSL artifact uses the project's managed `${netty.tcnative.version}` and a target platform classifier:
+
+```xml
+<dependency>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-tcnative</artifactId>
+    <version>${netty.tcnative.version}</version>
+    <classifier>linux-x86_64</classifier>
+</dependency>
+```
+
+Its published POM marks the native library as dynamically linked and provides the OpenSSL and APR metadata.
+Install compatible OpenSSL and APR native libraries, and ensure the runtime loader can find them.
 
 ## Guidance
 

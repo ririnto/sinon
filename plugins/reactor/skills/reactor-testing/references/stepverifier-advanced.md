@@ -89,6 +89,7 @@ class PostVerificationAssertionsTest {
     void verifiesDroppedElements() {
         StepVerifier.create(Flux.just(1, 2, 3).filter(value -> value < 3))
             .expectNext(1, 2)
+            .expectComplete()
             .verifyThenAssertThat()
             .hasNotDroppedElements();
     }
