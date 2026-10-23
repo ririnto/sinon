@@ -7,7 +7,7 @@
     "check:codegraph": "vitest run plugins/codegraph/tests",
     "check:java": "vitest run plugins/java/tests",
     "check:lint-rules": "vitest run rules plugins/harness/tooling/pnpm plugins/harness/tests --maxWorkers=1",
-    "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\"",
     "check:marketplace": "run-s marketplace:check marketplace:test",
     "check:promtool-release": "vitest run plugins/observability-assets/tests/promtool/release.test.ts",
     "check:react-effects": "ultracite check --config oxlint.react-effects.config.ts",

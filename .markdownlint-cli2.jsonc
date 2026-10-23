@@ -41,6 +41,5 @@
     "rules/sentence-per-line.ts",
     "rules/table-separators.ts"
   ],
-  "gitignore": true,
-  "globs": ["**/*.md"]
+  "gitignore": true
 }

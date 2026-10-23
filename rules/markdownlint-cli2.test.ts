@@ -65,7 +65,7 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
       path.join(directory, "included.md"),
       "# Included\n\nOne sentence.\n"
     );
-    const ignored = runMarkdownlint(directory);
+    const ignored = runMarkdownlint(directory, "**/*.md");
     expect(ignored.status).toBe(0);
     expect(ignored.output).toContain("Linting: 1 file");
     await Promise.all([
