@@ -16,9 +16,17 @@ export const generateMermaid = (specRoot: string): string => {
   const lines = ["flowchart TD"];
   const ids = new Map<string, string>();
   const entries = new Map<string, LoadEntry>();
+  const usedIds = new Set<string>();
   for (const filePath of specFiles) {
     const rel = path.relative(specRoot, filePath).split(path.sep).join("/");
-    const id = rel.replaceAll(/[^A-Za-z0-9_]/gu, "_");
+    const baseId = rel.replaceAll(/[^A-Za-z0-9_]/gu, "_");
+    let id = baseId;
+    let suffix = 2;
+    while (usedIds.has(id)) {
+      id = `${baseId}_${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(id);
     const result = loadFrontmatterEntry(filePath);
     const entry = result.kind === "entry" ? result.entry : undefined;
     if (entry) {

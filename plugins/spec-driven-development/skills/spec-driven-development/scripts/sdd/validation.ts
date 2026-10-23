@@ -72,10 +72,11 @@ const validateSpecFields = (
 ): readonly string[] => {
   const errors: string[] = [];
   if (kind === "spec") {
-    if (typeof data.status === "string" && !SPEC_STATUSES.has(data.status)) {
-      errors.push(
-        `FAIL [${filePath}]: status is not an allowed value: ${data.status}`
-      );
+    if (
+      "status" in data &&
+      (typeof data.status !== "string" || !SPEC_STATUSES.has(data.status))
+    ) {
+      errors.push(`FAIL [${filePath}]: status is not an allowed value`);
     }
     if (Array.isArray(data.call)) {
       for (const item of data.call) {
