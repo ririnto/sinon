@@ -33,11 +33,6 @@ import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-/**
- * Requires an explicit name for every lambda parameter that would otherwise use implicit `it`.
- *
- * Autocorrection is limited to lambdas whose first body token has a stable brace layout.
- */
 class ImplicitLambdaIt :
     Rule(
         ruleId = RuleId("harness:implicit-lambda-it"),
@@ -63,14 +58,29 @@ class ImplicitLambdaIt :
                         ?.filter { reference -> reference.getReferencedName() == "it" }
                         ?.filter { reference -> reference.resolvesTo(lambdaExpression) }
                         .orEmpty()
-                implicitItReferences.firstOrNull()?.let { reference ->
+                val ambiguousNestedItReference = lambdaExpression.hasAmbiguousNestedItReference()
+                val reference =
+                    if (lambdaExpression.hasEnclosingLambda()) {
+                        lambdaExpression.bodyExpression
+                            ?.collectDescendantsOfType<KtNameReferenceExpression>()
+                            ?.firstOrNull { candidate ->
+                                candidate.getReferencedName() == "it" && candidate.resolvesWithin(lambdaExpression)
+                            }
+                    } else {
+                        implicitItReferences.firstOrNull()
+                    }
+                reference?.let { reference ->
                     val parameterName = findParameterName(lambdaExpression)
                     emit(
                         reference.textOffset,
                         "use an explicit name for the implicit `it` lambda parameter",
-                        parameterName !== null
+                        parameterName !== null &&
+                            !lambdaExpression.hasEnclosingLambda() &&
+                            !ambiguousNestedItReference
                     ).ifAutocorrectAllowed {
-                        parameterName?.let { name ->
+                        parameterName?.takeIf {
+                            !lambdaExpression.hasEnclosingLambda() && !ambiguousNestedItReference
+                        }?.let { name ->
                             replaceImplicitParameter(lambdaExpression, implicitItReferences, name)
                         }
                     }
@@ -106,12 +116,38 @@ class ImplicitLambdaIt :
 
         private fun KtNameReferenceExpression.resolvesTo(lambdaExpression: KtLambdaExpression): Boolean {
             val ancestors = generateSequence(parent, PsiElement::getParent).toList()
+            return !lambdaExpression.hasEnclosingLambda() &&
+                resolvesWithin(lambdaExpression) &&
+                ancestors
+                    .takeWhile { ancestor -> ancestor !== lambdaExpression }
+                    .filterIsInstance<KtLambdaExpression>()
+                    .none { ancestor -> !ancestor.functionLiteral.hasParameterSpecification() }
+        }
+
+        private fun KtNameReferenceExpression.resolvesWithin(lambdaExpression: KtLambdaExpression): Boolean {
+            val ancestors = generateSequence(parent, PsiElement::getParent).toList()
             return isUnqualifiedValueReference() &&
                 lambdaExpression in ancestors &&
                 ancestors
                     .takeWhile { ancestor -> ancestor !== lambdaExpression }
                     .none { ancestor -> ancestor.shadowsImplicitIt(this) }
         }
+
+        private fun KtLambdaExpression.hasEnclosingLambda(): Boolean =
+            generateSequence(parent, PsiElement::getParent).any { ancestor -> ancestor is KtLambdaExpression }
+
+        private fun KtLambdaExpression.hasAmbiguousNestedItReference(): Boolean =
+            bodyExpression
+                ?.collectDescendantsOfType<KtNameReferenceExpression>()
+                ?.any { reference ->
+                    reference.getReferencedName() == "it" &&
+                        generateSequence(reference.parent, PsiElement::getParent)
+                            .takeWhile { ancestor -> ancestor !== this }
+                            .filterIsInstance<KtLambdaExpression>()
+                            .firstOrNull { ancestor ->
+                                !ancestor.functionLiteral.hasParameterSpecification() && reference.resolvesWithin(ancestor)
+                            } !== null
+                } == true
 
         private fun KtNameReferenceExpression.isUnqualifiedValueReference(): Boolean {
             val selector = (parent as? KtCallExpression)?.takeIf { call -> call.calleeExpression === this } ?: this

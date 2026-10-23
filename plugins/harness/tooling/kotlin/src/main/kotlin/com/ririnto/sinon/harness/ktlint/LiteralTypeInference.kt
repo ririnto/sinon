@@ -8,27 +8,21 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-/**
- * Shared PSI helpers for analyzing literal and string-template expressions across ktlint rules.
- */
 internal object LiteralTypeInference {
-    /**
-     * Infers the Kotlin type name a literal expression would resolve to, or null when the expression is not a recognized literal.
-     */
     fun KtExpression.inferLiteralType(): String? =
         when (this) {
             is KtStringTemplateExpression -> {
-                String::class.simpleName
+                "kotlin.String"
             }
 
             is KtConstantExpression -> {
                 when (node.elementType) {
                     ElementType.BOOLEAN_CONSTANT -> {
-                        Boolean::class.simpleName
+                        "kotlin.Boolean"
                     }
 
                     ElementType.CHARACTER_CONSTANT -> {
-                        Char::class.simpleName
+                        "kotlin.Char"
                     }
 
                     ElementType.INTEGER_CONSTANT -> {
@@ -39,7 +33,7 @@ internal object LiteralTypeInference {
                             }
 
                             suffix.any { character -> character in "lL" } -> {
-                                Long::class.simpleName
+                                "kotlin.Long"
                             }
 
                             else -> {
@@ -51,8 +45,8 @@ internal object LiteralTypeInference {
                                         else -> cleaned to 10
                                     }
                                 when {
-                                    digits.toIntOrNull(radix) !== null -> Int::class.simpleName
-                                    digits.toLongOrNull(radix) !== null -> Long::class.simpleName
+                                    digits.toIntOrNull(radix) !== null -> "kotlin.Int"
+                                    digits.toLongOrNull(radix) !== null -> "kotlin.Long"
                                     else -> null
                                 }
                             }
@@ -61,8 +55,8 @@ internal object LiteralTypeInference {
 
                     ElementType.FLOAT_CONSTANT -> {
                         when {
-                            text.endsWith('f', ignoreCase = true) -> Float::class.simpleName
-                            else -> Double::class.simpleName
+                            text.endsWith('f', ignoreCase = true) -> "kotlin.Float"
+                            else -> "kotlin.Double"
                         }
                     }
 
@@ -77,16 +71,10 @@ internal object LiteralTypeInference {
             }
         }
 
-    /**
-     * Returns true when the template is a multiline raw string literal (`"""..."""` spanning newlines).
-     */
     fun KtStringTemplateExpression.isMultilineRawString(): Boolean =
         node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
             text.contains('\n')
 
-    /**
-     * Returns true when the declaration contains a multiline raw string literal.
-     */
     fun KtDeclaration.containsMultilineRawString(): Boolean =
         collectDescendantsOfType<KtStringTemplateExpression>().any { template -> template.isMultilineRawString() }
 }

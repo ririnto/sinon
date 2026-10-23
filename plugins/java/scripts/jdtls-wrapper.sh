@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-# -*- coding: utf-8 -*-
 set -e
 
 script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
@@ -23,9 +22,6 @@ is_safe_path_token() {
   esac
 }
 
-# Check whether Lombok support is enabled from environment.
-#
-# @return 0 if enabled, 1 if explicitly disabled.
 is_lombok_support_enabled() {
   case "${lombok_support_enabled}" in
   0 | false | FALSE | False | off | OFF | Off | no | NO | No)
@@ -37,9 +33,6 @@ is_lombok_support_enabled() {
   esac
 }
 
-# Check whether project-local Lombok jar discovery is enabled.
-#
-# @return 0 if enabled, 1 unless explicitly enabled.
 is_project_lombok_jar_enabled() {
   case "${lombok_project_jar_enabled}" in
   1 | true | TRUE | True | on | ON | On | yes | YES | Yes)
@@ -51,10 +44,6 @@ is_project_lombok_jar_enabled() {
   esac
 }
 
-# Walk up from PWD to find the project root directory.
-#     Looks for build-system marker files (pom.xml, build.gradle, etc.).
-#
-# @return Prints the project root path and returns 0, or returns 1 if not found.
 find_project_root() {
   search_dir="${PWD}"
   root_status=1
@@ -69,41 +58,64 @@ find_project_root() {
   return "${root_status}"
 }
 
-# Resolve the project Lombok jar path using has-lombok.sh.
-#
-# @param project_root Project root directory to scan.
-# @return Prints the resolved jar path, or nothing if not found.
 resolve_project_lombok_jar() {
   project_lombok_jar=$("${script_dir}/has-lombok.sh" --resolve-project-jar "$1") || true
   printf '%s\n' "${project_lombok_jar}"
 }
 
-#
-# Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
-#
 strip_existing_lombok_agents() {
+  remaining_options=${JDK_JAVA_OPTIONS:-}
   cleaned_options=""
-  for current_arg in ${JDK_JAVA_OPTIONS:-}; do
-    case "${current_arg}" in
-    -javaagent:*lombok*.jar)
-      :
-      ;;
-    *)
-      if [ -n "${cleaned_options}" ]; then
-        cleaned_options="${cleaned_options} ${current_arg}"
+  current_raw=""
+  current_arg=""
+  quote=""
+  while [ -n "${remaining_options}" ]; do
+    current_char=${remaining_options%"${remaining_options#?}"}
+    remaining_options=${remaining_options#?}
+    if [ -n "${quote}" ]; then
+      current_raw="${current_raw}${current_char}"
+      if [ "${current_char}" = "${quote}" ]; then
+        quote=""
       else
-        cleaned_options="${current_arg}"
+        current_arg="${current_arg}${current_char}"
       fi
-      ;;
-    esac
+    else
+      case "${current_char}" in
+      "'" | '"')
+        current_raw="${current_raw}${current_char}"
+        quote=${current_char}
+        ;;
+      [[:space:]])
+        case "${current_arg}" in
+        -javaagent:*lombok*.jar)
+          :
+          ;;
+        *)
+          cleaned_options="${cleaned_options}${current_raw}"
+          ;;
+        esac
+        current_raw=""
+        current_arg=""
+        cleaned_options="${cleaned_options}${current_char}"
+        ;;
+      *)
+        current_raw="${current_raw}${current_char}"
+        current_arg="${current_arg}${current_char}"
+        ;;
+      esac
+    fi
   done
+  case "${current_arg}" in
+  -javaagent:*lombok*.jar)
+    :
+    ;;
+  *)
+    cleaned_options="${cleaned_options}${current_raw}"
+    ;;
+  esac
   JDK_JAVA_OPTIONS=${cleaned_options}
 }
 
-# Select the Lombok jar from override or project resolution.
-#
-# @param project_root Project root directory for project-level resolution.
-# @return Prints "source|jarpath" on success, or returns 1 if no jar selected.
 select_lombok_jar() {
   project_root="$1"
   selection_status=1
@@ -127,9 +139,6 @@ select_lombok_jar() {
   return "${selection_status}"
 }
 
-# Print a warning message to stderr about Lombok support.
-#
-# @param message Warning text to print.
 warn_optional_lombok_support() {
   printf '%s\n' "$1" >&2
 }
@@ -150,7 +159,7 @@ maybe_enable_lombok_agent() {
         warn_optional_lombok_support "java: Selected Lombok source (${selected_source}) was not found at ${selected_jar}. Starting jdtls without Lombok support."
       else
         strip_existing_lombok_agents
-        selected_agent="-javaagent:${selected_jar}"
+        selected_agent="\"-javaagent:${selected_jar}\""
         export JDK_JAVA_OPTIONS="${selected_agent} ${JDK_JAVA_OPTIONS:-}"
         warn_optional_lombok_support "java: Enabled Lombok support from ${selected_source} source (${selected_jar})."
       fi

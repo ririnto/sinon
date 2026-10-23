@@ -74,6 +74,39 @@ const makeContext = (
 };
 
 describe("pnpm TSDoc rule", () => {
+  test.each([false, true])(
+    "Ultracite checks public methods on a directly exported class expression (documented=%s)",
+    async (documented) => {
+      const directory = await mkdtemp(
+        path.join(tmpdir(), "sinon-tsdoc-exported-class-")
+      );
+      const doc = "/**\n * Provide the service.\n */\n";
+      const memberDoc = documented
+        ? "  /**\n   * Read the service.\n   */\n"
+        : "";
+      const filename = "service.ts";
+      try {
+        await writeConfig(directory);
+        await writeFile(
+          path.join(directory, filename),
+          `${doc}export const Service = class {\n${memberDoc}  read() {\n    return this;\n  }\n};\n`
+        );
+        if (documented) {
+          expect(runUltracite(directory, filename, "fix").status).toBe(0);
+        }
+        const result = runUltracite(directory, filename);
+        expect(result.status).toBe(documented ? 0 : 1);
+        expect(result.diagnostics.map(({ message }) => message)).toEqual(
+          documented
+            ? []
+            : ['Missing TSDoc for exported public API method "read".']
+        );
+      } finally {
+        await rm(directory, { force: true, recursive: true });
+      }
+    }
+  );
+
   test("reports an exported TypeScript function without TSDoc", () => {
     const { context, reports } = makeContext();
     tsdoc.rules["require-export-tsdoc"]

@@ -14,15 +14,13 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
-/**
- * Flags leading underscores in Kotlin declarations, including parameters.
- */
 class LeadingUnderscore :
     Rule(
         ruleId = RuleId("harness:leading-underscore"),
@@ -46,12 +44,11 @@ class LeadingUnderscore :
                     name.isForbidden() &&
                     !declaration.isOverrideOrInterfaceDeclaration()
                 ) {
-                    emit(
-                        declaration.textOffset,
-                        "remove the leading underscore from declaration `$name`",
+                    val canBeAutoCorrected =
                         (declaration as? KtParameter)?.let { parameter ->
                             PsiTreeUtil.getParentOfType(parameter, KtNamedFunction::class.java)?.let { function ->
-                                parameter.canAutocorrectWithoutSibling(function) &&
+                                function.valueParameters.none { functionParameter -> functionParameter === parameter } &&
+                                    parameter.canAutocorrectWithoutSibling(function) &&
                                     function.valueParameters.none { sibling ->
                                         sibling != parameter &&
                                             sibling.name.orEmpty().isForbidden() &&
@@ -59,8 +56,14 @@ class LeadingUnderscore :
                                     }
                             }
                         } ?: false
+                    emit(
+                        declaration.textOffset,
+                        "remove the leading underscore from declaration `$name`",
+                        canBeAutoCorrected
                     ).ifAutocorrectAllowed {
-                        declaration.nameIdentifier?.node?.replaceTextWith("_")
+                        if (canBeAutoCorrected) {
+                            declaration.nameIdentifier?.node?.replaceTextWith("_")
+                        }
                     }
                 }
             }
@@ -82,29 +85,31 @@ class LeadingUnderscore :
                 (PsiTreeUtil.getParentOfType(this, KtClassOrObject::class.java) as? KtClass)
                     ?.isInterface() == true
 
-        private fun KtParameter.canAutocorrectWithoutSibling(function: KtNamedFunction): Boolean =
-            name?.let { name ->
-                val modifiers = function.modifierList
+        private fun KtParameter.canAutocorrectWithoutSibling(function: KtNamedFunction): Boolean {
+            val lambdaExpression = PsiTreeUtil.getParentOfType(this, KtLambdaExpression::class.java) ?: return false
+            val name = name ?: return false
+            val modifiers = function.modifierList
+            return lambdaExpression.valueParameters.any { lambdaParameter -> lambdaParameter === this } &&
                 annotationEntries.isEmpty() &&
-                    !hasValOrVar() &&
-                    modifiers?.hasModifier(KtTokens.PRIVATE_KEYWORD) == true &&
-                    !modifiers.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
-                    !modifiers.hasModifier(KtTokens.OPEN_KEYWORD) &&
-                    !modifiers.hasModifier(KtTokens.EXTERNAL_KEYWORD) &&
-                    !modifiers.hasModifier(KtTokens.EXPECT_KEYWORD) &&
-                    PsiTreeUtil
-                        .findChildrenOfType(function, KtNameReferenceExpression::class.java)
-                        .none { reference -> reference.getReferencedName() == name } &&
-                    PsiTreeUtil
-                        .findChildrenOfType(containingFile, KtCallExpression::class.java)
-                        .none { call ->
-                            (call.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == function.name &&
-                                call.valueArguments.any { argument -> argument.getArgumentName()?.asName?.asString() == name }
-                        } &&
-                    PsiTreeUtil
-                        .findChildrenOfType(function, KtNameReferenceExpression::class.java)
-                        .none { reference -> reference.getReferencedName() == this.name }
-            } == true
+                !hasValOrVar() &&
+                modifiers?.hasModifier(KtTokens.PRIVATE_KEYWORD) == true &&
+                !modifiers.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
+                !modifiers.hasModifier(KtTokens.OPEN_KEYWORD) &&
+                !modifiers.hasModifier(KtTokens.EXTERNAL_KEYWORD) &&
+                !modifiers.hasModifier(KtTokens.EXPECT_KEYWORD) &&
+                PsiTreeUtil
+                    .findChildrenOfType(lambdaExpression, KtNameReferenceExpression::class.java)
+                    .none { reference -> reference.getReferencedName() == name } &&
+                PsiTreeUtil
+                    .findChildrenOfType(containingFile, KtCallExpression::class.java)
+                    .none { call ->
+                        (call.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == function.name &&
+                            call.valueArguments.any { argument -> argument.getArgumentName()?.asName?.asString() == name }
+                    } &&
+                PsiTreeUtil
+                    .findChildrenOfType(function, KtNameReferenceExpression::class.java)
+                    .none { reference -> reference.getReferencedName() == this.name }
+        }
 
         private fun String.isForbidden(): Boolean = startsWith("_") && this != "_"
     }

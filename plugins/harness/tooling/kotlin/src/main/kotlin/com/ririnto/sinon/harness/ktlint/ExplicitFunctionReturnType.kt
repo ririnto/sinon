@@ -22,14 +22,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
 
-/**
- * Flags named functions with missing or redundant return type declarations.
- *
- * Expression-bodied functions must declare their return type so the signature stays stable when the body changes, unless the body evaluates to `Unit`.
- * Explicit `: Unit` annotations are redundant and flagged for removal, except on an expression body that is not a `Unit` literal, where the annotation is load-bearing.
- *
- * `Unit` return types are intentionally omitted.
- */
 class ExplicitFunctionReturnType :
     Rule(
         ruleId = RuleId("harness:explicit-function-return-type"),
@@ -186,7 +178,7 @@ class ExplicitFunctionReturnType :
             }
 
             qualifier === null -> {
-                true
+                !KotlinLexicalScope.isDeclared("Unit", referenceExpression)
             }
 
             else -> {
