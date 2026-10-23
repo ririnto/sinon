@@ -91,6 +91,6 @@ It intentionally does not cover:
 - Code review judgement on the merits of the change.
   - The change description sets up the review context.
   - Reviewers and other plugins evaluate it.
-- Language- or framework-specific build, test, or release tooling (see language plugins such as `java`, `kotlin`, or framework plugins such as `spring`, `reactor`).
+- Build, test, and release tooling specific to languages or frameworks.
 - Custom CI/CD pipeline templates beyond minimal command snippets used in repository guidance.
 - Hooks, MCP servers, or repository-level automation outside the workspace workflow itself.

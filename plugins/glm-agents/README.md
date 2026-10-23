@@ -35,8 +35,7 @@ Claude Code loads the agents from the plugin's default `agents/` directory.
 Each agent's `effort` value requests its reasoning effort through the configured gateway.
 Codex lists the plugin through its native manifest but loads no components from it.
 Codex plugin manifests declare skills, MCP servers, apps, and hooks, but not custom agents, so the package ships no Codex agent definitions.
-When Workgraph governs orchestration, read its installed Main Agent Contract before selecting agents.
-Read its matching host reference, `references/claude.md` or `references/codex.md`, before selecting models or effort.
+Select an agent only after confirming the configured Claude Code gateway supports its model and requested effort.
 
 ## Gateway Prerequisites
 

@@ -14,12 +14,6 @@ metadata:
       url: https://editorconfig.org/
     JetBrains EditorConfig:
       url: https://www.jetbrains.com/help/idea/editorconfig.html
-    pstack project safety:
-      version: 0.15.25
-      url:
-        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/correct/SKILL.md
-        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-make-operations-idempotent/SKILL.md
-        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md
     WCAG:
       version: "2.2"
       url:
@@ -39,9 +33,6 @@ Explicit user instructions override repository defaults and skill guidance withi
 Treat conflicting shipped guidance as a defect, not permission to bypass a higher-priority rule.
 If a rule blocks progress, name its file and quote the relevant text.
 
-Read the instruction files selected by the active host for the affected paths, including their declared includes.
-Do not assume a universal root filename.
-If none exists, use the relevant README and contribution guidance.
 Load supporting references for the task's language, profile, or changed boundary rather than reading every document.
 
 ## Supported LTS Policy

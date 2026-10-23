@@ -15,5 +15,6 @@ For an update, review the upstream skill and license, carry over its content wit
 ## Package Contents
 
 - `.codex-plugin/plugin.json`: Codex plugin identity.
-- `skills/herdr/SKILL.md`: upstream Herdr skill.
+- `skills/herdr/SKILL.md`: upstream Herdr CLI and lifecycle guidance.
+- `skills/lane-supervision/SKILL.md`: procedure for supervising assigned existing lanes.
 - `LICENSE`: upstream Apache-2.0 license.
