@@ -204,13 +204,13 @@ spring:
 
 ```java
 @Bean
-RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-    RabbitTemplate template = new RabbitTemplate(connectionFactory);
-    template.setConfirmCallback((correlationData, ack, cause) -> {
-    });
-    template.setReturnsCallback(returned -> {
-    });
-    return template;
+RabbitTemplateCustomizer rabbitTemplateCustomizer() {
+    return template -> {
+        template.setConfirmCallback((correlationData, ack, cause) -> {
+        });
+        template.setReturnsCallback(returned -> {
+        });
+    };
 }
 ```
 

@@ -3,10 +3,10 @@
 Open this reference when the task needs partitioned topics or key-based routing decisions.
 
 ```java
-pulsarTemplate.newMessage(Schema.JSON(ShipmentEvent.class))
+pulsarTemplate.newMessage(event)
     .withTopic("persistent://public/default/shipments")
+    .withSchema(Schema.JSON(ShipmentEvent.class))
     .withMessageCustomizer(message -> message.key(event.shipmentId()))
-    .withValue(event)
     .send();
 ```
 

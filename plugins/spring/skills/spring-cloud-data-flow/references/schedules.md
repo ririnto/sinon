@@ -27,7 +27,7 @@ Confirm the selected platform with `task platform-list` before scheduling:
 ## Schedule lifecycle
 
 ```text
-dataflow:>task schedule create --name nightly-import --definitionName import-customers --expression "0 0 2 * * ?" --platform kubernetes
+dataflow:>task schedule create --name nightly-import --definitionName import-customers --expression "0 2 * * *" --platform kubernetes
 dataflow:>task schedule list
 dataflow:>task schedule destroy --name nightly-import --platform kubernetes
 ```
@@ -39,7 +39,7 @@ Treat schedule creation, inspection, and destruction as part of the operational 
 Keep task arguments and schedule properties aligned:
 
 ```text
-dataflow:>task schedule create --name nightly-import --definitionName import-customers --arguments "--input=file:/data/customers.csv" --expression "0 0 2 * * ?" --platform kubernetes
+dataflow:>task schedule create --name nightly-import --definitionName import-customers --arguments "--input=file:/data/customers.csv" --expression "0 2 * * *" --platform kubernetes
 ```
 
 If the task contract changes, update both the task definition and the schedule payload intentionally.

@@ -44,6 +44,7 @@ services:
       - "5432"
     environment:
       POSTGRES_DB: app
+      POSTGRES_PASSWORD: app
 ```
 
 Boot connects through the mapped host port that Docker Compose publishes for the service.

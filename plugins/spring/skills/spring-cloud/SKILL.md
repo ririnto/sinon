@@ -271,7 +271,7 @@ Requires `spring-cloud-starter-circuitbreaker-resilience4j`.
 
 ```java
 @Bean
-Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
+Customizer<Resilience4JCircuitBreakerFactory> defaultCustomizer() {
     return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id).circuitBreakerConfig(CircuitBreakerConfig.ofDefaults()).build());
 }
 ```

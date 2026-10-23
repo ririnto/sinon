@@ -59,7 +59,7 @@ Keep an existing parent, BOM, or version-catalog pin unless the task authorizes 
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-test</artifactId>
+        <artifactId>spring-boot-starter-webmvc-test</artifactId>
         <scope>test</scope>
     </dependency>
 </dependencies>

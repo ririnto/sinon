@@ -3,11 +3,13 @@
 Open this reference when tombstone records are required.
 
 ```java
-pulsarTemplate.newMessage(Schema.AUTO_PRODUCE_BYTES())
-    .withTopic("shipments")
-    .withKey(shipmentId)
-    .withValue(null)
-    .send();
+void sendTombstone(PulsarTemplate<byte[]> pulsarTemplate, String shipmentId) {
+    pulsarTemplate.newMessage(null)
+        .withTopic("shipments")
+        .withSchema(Schema.AUTO_PRODUCE_BYTES())
+        .withMessageCustomizer(message -> message.key(shipmentId))
+        .send();
+}
 ```
 
 - Treat tombstones as a compacted-topic concern.

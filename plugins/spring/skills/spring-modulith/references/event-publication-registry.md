@@ -130,20 +130,28 @@ Not recommended in multi-instance deployments because other instances may still 
 
 ## EPR opt-out for @TransactionalEventListener
 
-By default, the event publication registry tracks events published via `@TransactionalEventListener`.
-Opt out when a listener should bypass the registry:
+By default, the event publication registry tracks listeners meta-annotated with `@TransactionalEventListener`.
+Set `spring.modulith.events.registry-trigger-annotation` to select the annotation that identifies tracked listeners:
+
+```properties
+spring.modulith.events.registry-trigger-annotation=org.springframework.modulith.events.ApplicationModuleListener
+```
+
+This setting changes listener selection across the application.
+With `@ApplicationModuleListener` selected, a plain `@TransactionalEventListener` still receives the event but its publication is not recorded.
 
 ```java
 @Component
 class NonTrackedListener {
-    @TransactionalEventListener
-    @ApplicationModuleListener(publishEvent = false)
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     void on(OrderCompleted event) {
     }
 }
 ```
 
-Use `publishEvent = false` on `@ApplicationModuleListener` to prevent the registry from recording the event publication.
+These annotations retain `@ApplicationModuleListener`'s asynchronous execution and new transaction after commit.
 
 ## Neo4j identifier hashing
 

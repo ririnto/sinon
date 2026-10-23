@@ -159,7 +159,7 @@ For synchronous-style usage, block on the result:
 boolean accepted = stateMachine
     .sendEvent(Mono.just(MessageBuilder.withPayload(Events.PAY).build()))
     .map(StateMachineEventResult::getResultType)
-    .allMatch(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
+    .all(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
     .blockOptional()
     .orElse(false);
 ```
@@ -367,7 +367,7 @@ class OrderStateMachineTests {
         boolean accepted = stateMachine
             .sendEvent(Mono.just(MessageBuilder.withPayload(Events.PAY).build()))
             .map(StateMachineEventResult::getResultType)
-            .allMatch(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
+            .all(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
             .blockOptional()
             .orElse(false);
         assertAll(() -> assertTrue(accepted), () -> assertEquals(States.PAID, stateMachine.getState().getId()));

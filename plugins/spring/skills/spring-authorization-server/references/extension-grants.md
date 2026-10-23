@@ -70,6 +70,7 @@ public final class CustomCodeGrantAuthenticationProvider implements Authenticati
         CustomCodeGrantAuthenticationToken customGrantAuthentication = (CustomCodeGrantAuthenticationToken) authentication;
         OAuth2ClientAuthenticationToken clientPrincipal = getAuthenticatedClientElseThrowInvalidClient(customGrantAuthentication);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
+        Set<String> authorizedScopes = customGrantAuthentication.getAuthorizedScopes();
         OAuth2TokenContext tokenContext = DefaultOAuth2TokenContext.builder()
             .registeredClient(registeredClient)
             .principal(clientPrincipal)
@@ -77,15 +78,26 @@ public final class CustomCodeGrantAuthenticationProvider implements Authenticati
             .authorizationGrantType(new AuthorizationGrantType("urn:ietf:params:oauth:grant-type:custom_code"))
             .authorizationGrant(customGrantAuthentication)
             .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+            .authorizedScopes(authorizedScopes)
             .build();
         OAuth2Token generatedAccessToken = tokenGenerator.generate(tokenContext);
+        if (!(generatedAccessToken instanceof Jwt jwt)) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR));
+        }
+        OAuth2AccessToken accessToken = new OAuth2AccessToken(
+            OAuth2AccessToken.TokenType.BEARER,
+            jwt.getTokenValue(),
+            jwt.getIssuedAt(),
+            jwt.getExpiresAt(),
+            authorizedScopes);
         OAuth2Authorization authorization = OAuth2Authorization.withRegisteredClient(registeredClient)
             .principalName(clientPrincipal.getName())
             .authorizationGrantType(new AuthorizationGrantType("urn:ietf:params:oauth:grant-type:custom_code"))
-            .token((OAuth2AccessToken) generatedAccessToken)
+            .authorizedScopes(authorizedScopes)
+            .token(accessToken, metadata -> metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, jwt.getClaims()))
             .build();
         authorizations.save(authorization);
-        return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, (OAuth2AccessToken) generatedAccessToken);
+        return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken);
     }
 
     /**
@@ -97,6 +109,11 @@ public final class CustomCodeGrantAuthenticationProvider implements Authenticati
     }
 }
 ```
+
+For a self-contained access-token context, pass the validated grant scopes into the token context.
+`JwtGenerator` uses them when creating the JWT.
+Adapt its `Jwt` to the bearer `OAuth2AccessToken` used by the authorization and response, and save the JWT claims as token metadata.
+The returned token value remains the encoded JWT.
 
 ## Decision rules
 

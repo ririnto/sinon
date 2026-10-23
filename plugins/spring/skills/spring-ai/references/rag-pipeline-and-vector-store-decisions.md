@@ -149,7 +149,7 @@ for (Document doc : docs) {
 }
 StringBuilder context = new StringBuilder();
 for (Document doc : unique.values()) {
-    context.append("## " + doc.getMetadata().get("source") + "\n" + doc.getContent() + "\n\n");
+    context.append("## " + doc.getMetadata().get("source") + "\n" + doc.getText() + "\n\n");
 }
 ```
 

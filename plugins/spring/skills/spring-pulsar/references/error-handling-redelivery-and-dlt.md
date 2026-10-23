@@ -45,7 +45,7 @@ For batch listeners, the container retries the entire batch starting from the fa
 ## Acknowledgment timeout redelivery
 
 ```java
-@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Shared, ackTimeoutMillis = 60_000)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Shared, properties = {"ackTimeoutMillis=60000"})
 void handle(ShipmentEvent event) {
     service.handle(event);
 }

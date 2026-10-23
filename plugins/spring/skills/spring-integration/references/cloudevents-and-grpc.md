@@ -17,12 +17,12 @@ Converts Spring Integration `Message<byte[]>` into a CloudEvents-compliant messa
 Supports CloudEvents specification v1.0.
 
 ```java
-import org.springframework.integration.cloudevents.out.ToCloudEventTransformer;
+import org.springframework.integration.cloudevents.transformer.ToCloudEventTransformer;
 import org.springframework.integration.cloudevents.dsl.CloudEvents;
 
 @Bean
 IntegrationFlow cloudEventTransformFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
         .from("inputChannel")
         .transform(CloudEvents.toCloudEventTransformer().get())
         .channel("outputChannel")
@@ -50,12 +50,12 @@ Without an `EventFormat`, attributes and extensions are added to message headers
 Converts CloudEvents (both `CloudEvent` objects and serialized byte arrays) into Spring Integration messages.
 
 ```java
-import org.springframework.integration.cloudevents.in.FromCloudEventTransformer;
+import org.springframework.integration.cloudevents.transformer.FromCloudEventTransformer;
 import org.springframework.integration.cloudevents.dsl.CloudEvents;
 
 @Bean
 IntegrationFlow fromCloudEventFlow() {
-    return IntegrationFlows
+    return IntegrationFlow
         .from("cloudEventInputChannel")
         .transform(CloudEvents.fromCloudEventTransformer())
         .channel("messageOutputChannel")

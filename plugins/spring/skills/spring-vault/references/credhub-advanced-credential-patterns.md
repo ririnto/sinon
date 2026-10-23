@@ -36,9 +36,17 @@ Otherwise, keep the username in configuration and read only the secret value fro
 ## Certificate generation blocker
 
 Use generated certificates only when CredHub is the system of record for certificate issuance and renewal.
+Provide at least one subject field and one signing parameter.
+The CA credential below must already exist in CredHub.
 
 ```java
-credHub.credentials().generateCertificate(new SimpleCredentialName("/app/prod/client-cert"));
+credHub.credentials().generate(CertificateParametersRequest.builder()
+    .name(new SimpleCredentialName("/app/prod/client-cert"))
+    .parameters(CertificateParameters.builder()
+        .commonName("client.example.com")
+        .certificateAuthorityCredential(new SimpleCredentialName("/app/prod/ca"))
+        .build())
+    .build());
 ```
 
 ```java

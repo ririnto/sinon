@@ -231,8 +231,7 @@ class SecretService {
     }
 
     Map<String, Object> readDatabaseSecret() {
-        Versioned<Map<String, Object>> version = keyValue.get("app/prod/database");
-        return version.getRequiredData();
+        return keyValue.get("app/prod/database").getRequiredData();
     }
 }
 ```

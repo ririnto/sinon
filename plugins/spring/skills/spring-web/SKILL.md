@@ -269,8 +269,8 @@ Mono<Order> loadOrder(WebClient client, long orderId) {
     return client.get()
         .uri("/orders/{id}", orderId)
         .retrieve()
-        .onStatus(HttpStatusCode::is4xxClientError, response -> response.bodyToMono(String.class).map(ApiException::new))
-        .onStatus(HttpStatusCode::is5xxServerError, response -> response.bodyToMono(String.class).map(UpstreamServiceException::new))
+        .onStatus(HttpStatusCode::is4xxClientError, response -> response.bodyToMono(String.class).defaultIfEmpty("").map(ApiException::new))
+        .onStatus(HttpStatusCode::is5xxServerError, response -> response.bodyToMono(String.class).defaultIfEmpty("").map(UpstreamServiceException::new))
         .bodyToMono(Order.class);
 }
 ```
