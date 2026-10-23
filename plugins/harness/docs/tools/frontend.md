@@ -9,10 +9,6 @@ metadata:
     Storybook:
       version: 10.6.2
       url: https://storybook.js.org/llms-full.txt
-    Vercel interface guidance:
-      url: https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/AGENTS.md
-    Vercel React practices:
-      url: https://raw.githubusercontent.com/vercel-labs/agent-skills/main/skills/react-best-practices/AGENTS.md
     Radix Themes:
       url: https://www.radix-ui.com/themes/docs/overview/getting-started
     Radix Colors:
@@ -32,7 +28,7 @@ Keep the upstream reference originals read-only.
 Create a project-owned `DESIGN.md` using the design.md format and the actual product's design tokens and rationale.
 Replace the generated starter before accepting product design work.
 Do not copy an example visual identity or invent product requirements.
-Use the Vercel interface guidance for applicable semantics, keyboard and focus behavior, responsive layout, reduced motion, and measured rendering performance.
+Check semantics, keyboard and focus behavior, responsive layout, reduced motion, and measured rendering performance for the selected interface.
 Keep the [shared accessibility rules](../rules.md#frontend-and-accessible-interfaces) as the acceptance floor when an upstream preference differs.
 For non-React projects, apply only the relevant interface and JavaScript guidance.
 Do not introduce React or Radix React dependencies to satisfy this profile in another framework.
@@ -41,7 +37,7 @@ React projects use Radix Themes, Colors, Icons, and Primitives as their primary 
 The React fragment supplies `@radix-ui/themes`, `@radix-ui/colors`, `@radix-ui/react-icons`, and the `radix-ui` Primitives package through the workspace catalog.
 Import the Themes stylesheet once at the application entry and wrap the relevant application surface in its `Theme` provider.
 Use Primitives where Themes does not cover the required interaction, retaining accessible names and focus behavior.
-Read only the applicable Vercel React practices for data dependencies, bundle boundaries, rendering, and measured performance.
+For React, check data dependencies, bundle boundaries, rendering, and measured performance for the changed flow.
 Preserve framework boundaries and avoid speculative memoization or unrelated architecture changes.
 
 ## Lint And Component Proof

@@ -159,25 +159,6 @@ The table covers all 26 registered custom IDs.
 Static source comparisons establish these differences without claiming newly executed Kotlin builds or upstream fixture runs.
 Keep existing Kotlin consumer implementations until their owner verifies a behavior-preserving migration.
 
-## Consumer Changes
-
-For Workgraph, retain the three current Oxlint IDs and their configuration severities.
-No reviewed upstream rule fully replaces its blank-line, inline-comment, or exported-documentation contract.
-Do not replace its combined style implementation with one partial upstream rule or silently adopt additional Sinon semantics.
-A separately authorized module split must preserve its current predicates and independent registration requirements.
-
-Replace Workgraph's `docs/no-box-drawing` key and `./rules/no-box-drawing.ts` entry with the configured upstream package.
-Add the catalog dependency, update its lockfile through pnpm, and remove the superseded local source.
-Retain `docs/sentence-per-line`, `docs/table-separators`, and upstream `relative-links` with their current configuration.
-Workgraph's sentence and style implementations differ from Sinon, so matching IDs alone do not justify copying newer implementations.
-Its current configuration does not enable Sinon's em-dash, relative-skill-link, or sibling-spacing rules.
-The Workgraph repository owner performs and verifies those edits in a separate delivery.
-
-Other inspected consumers contain local Markdown rule copies or Kotlin buildSrc rulesets.
-Keep their source unchanged until their owner verifies semantics and installation at the selected target.
-Two inspected table-delimiter variants reject alignment colons, so the canonical colon-accepting implementation is not a blind replacement.
-These consumer handoffs describe required changes rather than asserting completed deployment.
-
 ## Excluded Portfolio Candidates
 
 New Go and Kotlin diagnostics cannot use Oxlint's JavaScript and TypeScript AST or its supported JavaScript-plugin API.

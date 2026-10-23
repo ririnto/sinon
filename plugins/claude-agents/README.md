@@ -21,11 +21,10 @@ Codex reads custom agents from `~/.codex/agents/` for personal agents or `.codex
 Codex plugin manifests declare skills, MCP servers, apps, and hooks, but not custom agents, so installing the plugin does not load these agents.
 Copy the definitions into an agent directory to enable them.
 Each file sets `model` and `model_reasoning_effort`, which take precedence over the session defaults.
+Select an agent only after confirming the configured Codex provider supports its model, reasoning effort, and catalog metadata.
 
 This package is Codex-only.
 Claude Code reserves plugin names that start with `claude-`, so the Sinon Claude marketplace does not list it.
-When Workgraph governs orchestration, read its installed Main Agent Contract before selecting agents.
-Read its matching host reference, `references/claude.md` or `references/codex.md`, before selecting models or effort.
 
 ## Provider Prerequisites
 

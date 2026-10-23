@@ -7,11 +7,6 @@ metadata:
     Husky:
       version: 9.1.7
       url: https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
-    pstack verification:
-      url:
-        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-prove-it-works/SKILL.md
-        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-sequence-verifiable-units/SKILL.md
-        - https://raw.githubusercontent.com/cursor/plugins/main/pstack/skills/principle-make-operations-idempotent/SKILL.md
 ---
 
 This document owns the standing fresh-project baseline, not a repository campaign.
