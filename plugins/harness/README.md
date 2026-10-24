@@ -43,12 +43,22 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 - `tooling/`: native configuration fragments, the standalone Kotlin ruleset module, and profile-local rule plugins.
 - `tooling/gradle/package.json`: bounded pnpm manifest merge guidance for Markdown checks, Gradle aliases, and hook scripts.
 - `tooling/pnpm/.husky/`: Node hooks that delegate to the target's pnpm script entrypoints.
+- `tooling/pnpm/rules/no-sensitive-content.mjs`: canonical, opt-in sensitive-content Markdownlint diagnostics exposed through Sinon's private root package.
 - `scripts/configure.ts`: conflict-aware fresh-root baseline materialization for verified eligible projects.
 - `docs/tools/baseline.md`: standing eligibility, native profile selection, and installation proof.
 - `docs/tools/frontend.md`: frontend and React design, lint, Radix, and Storybook integration.
 - `docs/tools/lint-rule-mapping.md`: upstream rule decisions and consumer migration boundaries.
 - `tooling/{gradle,maven,go,rust,uv,shell}/`: native tool scripts and hook configurations that check Markdown before native tools.
 - `tooling/frontend/` and `tooling/react/`: bounded frontend manifests, catalogs, and Storybook renderer sources.
+
+## Sensitive-Content Export
+
+Markdownlint CLI2 consumers can load `sinon/rules/no-sensitive-content` from a Sinon Git dependency.
+The [pnpm interface guide](docs/tools/pnpm.md#sensitive-content-export) documents installation, explicit build approval, configuration, and heuristic limits.
+The native ESM rule requires no build or runtime dependency and provides diagnostics without fixes or sensitive values.
+It preserves the `sensitive-content` identifier and `security` tag.
+This export is opt-in and does not enable a repository-wide policy or establish complete secret detection.
+The root package remains private, and its `0.0.0` version supports packaging rather than an npm registry release.
 
 ## Ownership And Safety
 
