@@ -193,6 +193,74 @@ The `fix:markdownlint-cli2` task adds `--fix`.
 The selected target runtime must support loading the profile's TypeScript custom rules natively.
 Both resolve configuration and globs from the config file.
 
+### Sensitive-Content Export
+
+Use `sinon/rules/no-sensitive-content` for the opt-in, diagnostic-only Markdownlint rule.
+The existing private Sinon root package exports the canonical `tooling/pnpm/rules/no-sensitive-content.mjs` implementation.
+It loads as native ESM without a TypeScript loader, build step, or runtime dependency.
+The root's `0.0.0` version enables packaging and does not identify an npm registry release.
+Install from a named Sinon branch containing this export, preserving the target's package manager and dependency policy.
+
+```sh
+pnpm add --save-dev "sinon@git+https://github.com/ririnto/sinon.git#main"
+```
+
+Git dependencies retain the root's existing `prepare: husky` lifecycle and install its development dependencies during preparation.
+pnpm can reject preparation with `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` until the consumer explicitly approves that dependency.
+Review the resolved candidate and approve only its exact package key through the consumer's native `allowBuilds` policy.
+Use the candidate-specific key reported by pnpm rather than granting wildcard or global trust.
+Preserve existing approvals and all other security checks.
+The downstream owner retains this approval decision.
+Normal Git dependency installation was verified with pnpm `11.28.2` and `12.15.0` on Node.js `24.22.1`.
+The source package retains its declared Node.js engine range and pnpm version for preparation.
+
+Merge these entries into the consumer's existing `.markdownlint-cli2.jsonc`, preserving its other rules, globs, and ignores.
+
+```json
+{
+  "config": {
+    "sensitive-content": true
+  },
+  "customRules": ["sinon/rules/no-sensitive-content"]
+}
+```
+
+Keep the consumer's existing Markdownlint CLI2 dependency and check command.
+Run `pnpm exec markdownlint-cli2` through its normal configuration.
+Package subpath loading and CLI2 diagnostics were verified with Markdownlint CLI2 `0.24.0` and Markdownlint `0.42.0`.
+Keep an existing consumer implementation until the exported rule passes its complete applicable current Markdown corpus and security controls.
+Remove the superseded local implementation and loader entry together during the consumer's authorized migration.
+The portable profile and Sinon root do not enable this rule automatically.
+
+The rule keeps the `sensitive-content` identifier, `security` tag, and `parser: none` contract.
+It checks Markdownlint-provided lines, including prose, inline code, indented code, and fenced code.
+Markdownlint preprocesses frontmatter and HTML comments before invoking the rule, so their content is outside this coverage.
+Each affected line receives one generic diagnostic without a value, context excerpt, range, or fix.
+Applying Markdownlint fixes leaves the input unchanged for this rule.
+
+Credential patterns cover Telegram tokens, GitHub tokens, AWS access keys, Google API keys, Slack tokens, bearer credentials, and `sk-` keys.
+The first matching credential assignment on each line is checked for a value of at least 20 supported characters.
+Assignment names include token, API key, secret, password, private key, and access key forms.
+Values containing recognized example, sample, replacement, placeholder, changeme, or your-token markers are treated as assignment placeholders.
+Those markers do not exempt independent token, path, or hash matches on the same line.
+Home-path patterns cover Unix and Windows user directories, preserving the exact macOS Shared and Guest directory exceptions.
+Relative paths and portable home-variable examples remain valid.
+Hash patterns cover hexadecimal Git URL identifiers, labelled Git or file hashes, and bare 40- or 64-character hexadecimal identifiers.
+
+These are bounded lexical heuristics, not validation of credential validity, filesystem identity, or secret completeness.
+Short, encoded, unfamiliar, or differently delimited values can escape detection.
+A placeholder assignment before another assignment on the same line can mask the later assignment.
+Public hashes, incidental hexadecimal identifiers, and placeholder-like real values can be misclassified.
+Review diagnostics and validate every target corpus before adoption without weakening existing security checks.
+Passing establishes only that the supported patterns were absent from the supplied lines.
+
+| Pillar | Interface Contract |
+| --- | --- |
+| Stability | Maintained controls preserve security diagnostics, native loader behavior, and failures for unavailable exports. |
+| Consistency | Consumers share one rule identity, one diagnostic per affected line, and their existing CLI2 command. |
+| Maintainability | One canonical implementation and one explicit package subpath replace consumer-owned copies after verified migration. |
+| Performance | Bounded in-process line scanning uses fixed patterns without subprocess scanners or a measured-speed claim. |
+
 ### Markdown Sentence Boundaries
 
 Sentence-per-line formatting is a local authoring policy, not a Markdown syntax requirement.

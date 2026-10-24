@@ -677,6 +677,7 @@ describe("pnpm profile configuration", () => {
       );
       const installedRules = await readdir(path.join(directory, "rules"));
       expect(installedRules.toSorted()).toEqual([
+        "no-sensitive-content.mjs",
         "sentence-per-line.ts",
         "table-separators.ts"
       ]);

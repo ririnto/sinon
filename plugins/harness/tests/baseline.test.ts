@@ -134,9 +134,14 @@ describe("fresh-root baseline", () => {
       }
       const rules = await readdir(path.join(directory, "rules"));
       expect(rules.toSorted()).toEqual([
+        "no-sensitive-content.mjs",
         "sentence-per-line.ts",
         "table-separators.ts"
       ]);
+      expect(configuration.config["sensitive-content"]).toBeUndefined();
+      expect(configuration.customRules).not.toContain(
+        "rules/no-sensitive-content.mjs"
+      );
       expect(
         await readFile(path.join(directory, ".husky/.gitignore"), "utf-8")
       ).toBe("_/\n");

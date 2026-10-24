@@ -1,7 +1,11 @@
 {
   "name": "sinon",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./rules/no-sensitive-content": "./plugins/harness/tooling/pnpm/rules/no-sensitive-content.mjs"
+  },
   "scripts": {
     "check": "run-p check:*",
     "check:codegraph": "vitest run plugins/codegraph/tests",
