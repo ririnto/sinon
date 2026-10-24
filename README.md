@@ -303,5 +303,6 @@ The `claude-agents`, `glm-agents`, and `gpt-agents` packages also include a loca
 The following plugins use their local canonical Apache-2.0 license:
 
 - [harness](./plugins/harness/LICENSE)
+- [herdr](./plugins/herdr/LICENSE)
 - [spec-driven-development](./plugins/spec-driven-development/LICENSE)
 - [workspace-workflow](./plugins/workspace-workflow/LICENSE)
