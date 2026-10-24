@@ -33,6 +33,7 @@ HttpClient.create()
         .then()
         .thenMany(inbound.receive().asString().doOnNext(System.out::println))
         .then())
+    .then()
     .block();
 ```
 
@@ -49,6 +50,7 @@ HttpClient.create()
             ? outbound.sendClose(1000, "bye").then()
             : outbound.sendString(Mono.just(text)).then()
     ).then())
+    .then()
     .block();
 ```
 

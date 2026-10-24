@@ -41,6 +41,7 @@ String body = HttpClient.create()
     .get()
     .uri("https://localhost:8443/hello")
     .responseContent()
+    .aggregate()
     .asString()
     .block();
 ```
