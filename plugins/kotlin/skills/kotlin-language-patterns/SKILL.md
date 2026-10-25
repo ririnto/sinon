@@ -24,6 +24,8 @@ metadata:
       url:
         - https://kotlinlang.org/docs/_llms/scope-functions.txt
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/take-if.html
+    Kotlin collection builders:
+      url: https://kotlinlang.org/docs/constructing-collections.html
     Kotlin JVM path extensions:
       url: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.io.path/
     Kotlin Path composition:
@@ -91,6 +93,8 @@ For new dependencies or required upgrades, check Maven Central for the latest st
   Keep the original order and short-circuit behavior.
   Keep `takeUnless` and `filterNot` predicates intact.
   Do not split mixed positive and negative predicates when the Boolean logic changes.
+- SHOULD prefer `takeUnless { condition }` to `takeIf { !condition }` only when Boolean behavior is identical.
+  Preserve evaluation order and count, short-circuiting, effects, and exception timing.
 - SHOULD use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged.
   Keep a lambda when a reference changes evaluation or meaning.
 - MUST declare an explicit type for every class, object, and companion object property, including private properties.
@@ -106,6 +110,10 @@ For new dependencies or required upgrades, check Maven Central for the latest st
   - Private helpers and local callbacks stay undocumented unless the contract is surprising.
 - SHOULD prefer `tailrec` over a loop when the recursive call is in real tail position and semantics and readability hold.
 - SHOULD keep collection pipelines eager by default and move to `Sequence` only when laziness materially helps.
+- SHOULD use simple `map`, `filter`, `associate`, and `groupBy` steps before less familiar pipeline operations when they express the same transformation clearly.
+- SHOULD split long collection chains into named local values when business meaning is hard to see.
+- MUST confine mutable collection accumulation to `buildList`, `buildSet`, and `buildMap` scopes.
+  Keep mutations inside their builder lambdas and do not let their mutable receivers escape.
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.
@@ -129,13 +137,15 @@ Use the reference table below for the modeling, collection, or platform boundary
 
 ## References
 
-Read the references that match the current decision.
+Read this skill before opening a reference.
+Open a reference when its table row matches an unresolved decision.
+References add focused examples and detail to these rules.
 
 | Open when... | Read... |
 | --- | --- |
 | choosing among `value class`, `data class`, regular `class`, `object`, enum, and sealed modeling still feels ambiguous | `./references/language-modeling.md` |
 | cleaning up a null-heavy path or tangled scope-function chain is the real blocker | `./references/null-safety-and-scope-functions.md` |
-| deciding whether laziness is worth the cost or restructuring a pipeline around `Sequence` is the blocker | `./references/collections-and-sequences.md` |
+| choosing a collection builder, deciding whether a compound rejection predicate can be split without changing behavior, or deciding whether laziness materially helps | `./references/collections-and-sequences.md` |
 | implementing a JVM filesystem boundary needs exact `Path`, resource, or large-file handling code | `./references/path-filesystem.md` |
 | modeling a timestamp, date-only concept, or civil time needs exact conversion guidance | `./references/datetime-modeling.md` |
 | implementing Kotlin serialization needs exact `Json`, default-value, or contextual-serializer guidance | `./references/serialization-patterns.md` |
