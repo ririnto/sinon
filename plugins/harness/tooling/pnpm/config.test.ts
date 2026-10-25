@@ -142,14 +142,22 @@ const preparePackageRoot = async (directory: string): Promise<void> => {
   );
 };
 
-const runPackageScript = (directory: string, script: string) =>
-  spawnSync("pnpm", ["run", script], {
+/**
+ * Runs a package script in a materialized fixture as a directly invoked pnpm.
+ * Drops Corepack markers so the fixture's packageManager pin governs the run instead of the caller's Corepack dispatch.
+ */
+const runPackageScript = (directory: string, script: string) => {
+  const environment = Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !name.startsWith("COREPACK"))
+  );
+  return spawnSync("pnpm", ["run", script], {
     cwd: directory,
     env: {
-      ...process.env,
-      PATH: `${path.join(nodeModulesDirectory, ".bin")}${path.delimiter}${process.env.PATH}`
+      ...environment,
+      PATH: `${path.join(nodeModulesDirectory, ".bin")}${path.delimiter}${environment.PATH}`
     }
   });
+};
 
 const markdownFiles = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
