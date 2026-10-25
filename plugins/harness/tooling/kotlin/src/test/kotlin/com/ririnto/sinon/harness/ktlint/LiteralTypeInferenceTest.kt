@@ -158,8 +158,7 @@ class LiteralTypeInferenceTest :
         private fun describe(
             source: String,
             describeProperty: (KtProperty) -> String
-        ): KtLintRuleTestEngine.Result =
-            KtLintRuleTestEngine.execute(RuleProvider { PropertyProbe(describeProperty) }, source)
+        ): KtLintRuleTestEngine.Result = KtLintRuleTestEngine.execute(RuleProvider { PropertyProbe(describeProperty) }, source)
     }
 
     private class PropertyProbe(
