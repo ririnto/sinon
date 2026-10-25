@@ -58,7 +58,7 @@ Keep `spring-data` itself focused on repository abstractions shared across those
 If the project already imports the Spring Data BOM for this release train, omit child Spring Data versions from dependency examples and keep the BOM import as the single version anchor.
 
 Spring Data Commons 4.1.1 is the documented stable example baseline.
-Version 4.2.0-M1 is a preview milestone, not a stable release.
+Version 4.2.0-M2 is a preview milestone, not a stable release.
 
 ## First safe configuration
 
