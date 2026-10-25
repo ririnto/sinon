@@ -19,7 +19,7 @@
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "run-s ultracite:check ultracite:check:marketplace",
     "fix": "run-p fix:*",
-    "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
+    "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
     "fix:ultracite": "ultracite fix",
     "marketplace:check": "node --import tsx .claude-plugin/marketplace/generate.ts --check",
     "marketplace:generate": "node --import tsx .claude-plugin/marketplace/generate.ts",
