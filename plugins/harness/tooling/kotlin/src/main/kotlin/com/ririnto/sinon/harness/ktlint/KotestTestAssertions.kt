@@ -135,6 +135,12 @@ class KotestTestAssertions :
                 ?.takeIf { path -> path in ASSERTION_FUNCTIONS.map { name -> "kotlin.$name" } }
                 ?.substringAfterLast('.')
         }
+        if (file.importDirectives.any { directive ->
+                directive.isAllUnder && directive.importedFqName?.asString() !in setOf("kotlin", "kotlin.test")
+            }
+        ) {
+            return null
+        }
         return callName.takeIf { name -> name in ASSERTION_FUNCTIONS }
     }
 

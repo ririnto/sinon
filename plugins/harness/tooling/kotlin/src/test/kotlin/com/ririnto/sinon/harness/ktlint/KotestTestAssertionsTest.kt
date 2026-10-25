@@ -413,16 +413,31 @@ class KotestTestAssertionsTest :
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
+                    import example.*
+                    import kotlin.assert as assertBoolean
+                    import kotlin.check as checkBoolean
+                    import kotlin.checkNotNull as checkValue
                     import kotlin.require as assertCondition
+                    import kotlin.requireNotNull as requireValue
 
-                    fun verify(condition: Boolean) {
+                    fun verify(value: String?, condition: Boolean) {
+                        assertBoolean(condition)
+                        checkBoolean(condition)
+                        checkValue(value)
                         assertCondition(condition)
+                        requireValue(value)
                     }
                     """.trimIndent() + "\n",
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            result.diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(9, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(10, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(11, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(12, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(13, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                )
         }
 
         test("flags safe calls asserted by direct and wildcard Kotest should matchers") {
@@ -454,6 +469,112 @@ class KotestTestAssertionsTest :
                     sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
                 )
             result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+        }
+
+        test("leaves standard-library assertion names unresolved with a custom wildcard import") {
+            listOf(
+                "import example.*",
+                "import kotlin.*\nimport example.*",
+                "import kotlin.test.*\nimport example.*"
+            ).forEach { imports ->
+                val source =
+                    """
+                    fun verify(value: String?, condition: Boolean) {
+                        assert(condition)
+                        check(condition)
+                        require(condition)
+                        checkNotNull(value)
+                        requireNotNull(value)
+                    }
+                    """.trimIndent() + "\n"
+                val result =
+                    KtLintRuleTestEngine.execute(
+                        ruleProvider,
+                        "$imports\n$source",
+                        sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    )
+                result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+                result.formattedCode shouldBe "$imports\n$source"
+            }
+        }
+
+        test("flags standard-library assertions with a Kotlin test wildcard import") {
+            val source =
+                """
+                import kotlin.test.*
+
+                fun verify(value: String?, condition: Boolean) {
+                    assert(condition)
+                    check(condition)
+                    require(condition)
+                    checkNotNull(value)
+                    requireNotNull(value)
+                }
+                """.trimIndent() + "\n"
+            val result =
+                KtLintRuleTestEngine.execute(
+                    ruleProvider,
+                    source,
+                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                )
+            result.diagnostics shouldContainExactlyInAnyOrder
+                listOf(
+                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(6, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(7, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(8, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                )
+            result.formattedCode shouldBe source
+        }
+
+        test("flags explicit and qualified standard-library assertions despite a custom wildcard import") {
+            listOf(
+                """
+                import example.*
+                import kotlin.assert
+                import kotlin.check
+                import kotlin.checkNotNull
+                import kotlin.require
+                import kotlin.requireNotNull
+
+                fun verify(value: String?, condition: Boolean) {
+                    assert(condition)
+                    check(condition)
+                    require(condition)
+                    checkNotNull(value)
+                    requireNotNull(value)
+                }
+                """.trimIndent() + "\n",
+                """
+                import example.*
+
+                fun verify(value: String?, condition: Boolean) {
+                    kotlin.assert(condition)
+                    kotlin.check(condition)
+                    kotlin.require(condition)
+                    kotlin.checkNotNull(value)
+                    kotlin.requireNotNull(value)
+                }
+                """.trimIndent() + "\n"
+            ).forEach { source ->
+                val result =
+                    KtLintRuleTestEngine.execute(
+                        ruleProvider,
+                        source,
+                        sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    )
+                result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
+                    listOf(
+                        "use Kotest `shouldBeTrue()` on the asserted condition",
+                        "use Kotest `shouldBeTrue()` on the asserted condition",
+                        "use Kotest `shouldBeTrue()` on the asserted condition",
+                        "use Kotest `shouldNotBeNull()` for null assertions",
+                        "use Kotest `shouldNotBeNull()` for null assertions"
+                    )
+                result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
+                result.formattedCode shouldBe source
+            }
         }
 
         test("flags standard-library assertions with a Kotlin wildcard import") {
