@@ -218,7 +218,6 @@ describe("Java shell script behavior", () => {
       const classes = path.join(directory, "classes");
       await mkdir(classes);
       environment.PATH = `${bin}:${process.env.PATH ?? environment.PATH}`;
-
       const sources = {
         "OldLombokAgent.java": `public final class OldLombokAgent {
   public static void premain(String args) {
@@ -266,7 +265,6 @@ public final class Probe {
         env: environment
       });
       expect(compilation.status, compilation.stderr.toString()).toBe(0);
-
       const selected = path.join(directory, agentFilename);
       const old = path.join(directory, "old-lombok-agent.jar");
       const other = path.join(directory, "other-agent.jar");
@@ -292,7 +290,6 @@ public final class Probe {
         );
         expect(packaging.status, packaging.stderr.toString()).toBe(0);
       }
-
       const options = `-Dmessage='hello world'  -Dlabel="alpha  beta" -Dkeep=present -javaagent:${old} -javaagent:${other}`;
       const args = ["--data", "value with spaces"];
       const direct = spawnSync(
@@ -307,7 +304,6 @@ public final class Probe {
         }
       );
       expect(direct.status, direct.stderr.toString()).toBe(0);
-
       await writeFile(
         path.join(bin, "jdtls"),
         `#!${process.execPath}
@@ -327,7 +323,6 @@ process.exitCode = result.status ?? 1;
         { cwd: project, env: environment }
       );
       expect(wrapped.status, wrapped.stderr.toString()).toBe(0);
-
       const directProperties = readJavaProbe(direct.stdout);
       const wrappedProperties = readJavaProbe(wrapped.stdout);
       expect(wrappedProperties.message).toBe(directProperties.message);
