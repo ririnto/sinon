@@ -1,10 +1,12 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import java.nio.file.Path
+import kotlin.io.path.Path
 
 /**
  * Verifies test assertion diagnostics and their source-set boundary.
@@ -12,7 +14,7 @@ import java.nio.file.Path
 class KotestTestAssertionsTest :
     FunSpec({
         test("flags null and Boolean precondition assertions in test sources") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -23,28 +25,33 @@ class KotestTestAssertionsTest :
                         check(condition)
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(3, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
-                )
-            result.formattedCode shouldBe
-                """
-                fun verify(value: String?, condition: Boolean) {
-                    requireNotNull(value)
-                    checkNotNull(value)
-                    require(condition)
-                    check(condition)
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(3, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                        )
+                    )
                 }
-                """.trimIndent() + "\n"
+                formattedCode shouldBe
+                    """
+                    fun verify(value: String?, condition: Boolean) {
+                        requireNotNull(value)
+                        checkNotNull(value)
+                        require(condition)
+                        check(condition)
+                    }
+                    """.trimIndent() + "\n"
+            }
         }
 
         test("flags Kotlin assert calls including qualified and aliased calls") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -56,18 +63,23 @@ class KotestTestAssertionsTest :
                         kotlin.assert(condition)
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(6, 12, "harness:kotest-test-assertions", canBeAutoCorrected = false)
-                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(6, 12, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("ignores inaccessible outer declarations when resolving standard assertions") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -81,14 +93,18 @@ class KotestTestAssertionsTest :
                         }
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
         }
 
         test("leaves package-qualified assertions shadowed by inherited kotlin properties") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -105,13 +121,17 @@ class KotestTestAssertionsTest :
                         fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
         }
 
         test("ignores inaccessible outer kotlin declarations in qualified receivers") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -130,14 +150,18 @@ class KotestTestAssertionsTest :
                         }
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
         }
 
         test("respects inherited standard assertion names and private visibility") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -155,14 +179,19 @@ class KotestTestAssertionsTest :
                         }
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(11, 9, "harness:kotest-test-assertions", canBeAutoCorrected = false))
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(11, 9, "harness:kotest-test-assertions", canBeAutoCorrected = false))
+                    )
+                }
+            }
         }
 
         test("flags kotlin.test Boolean assertions through imports, aliases, and package qualifiers") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -182,100 +211,136 @@ class KotestTestAssertionsTest :
                         kotlin.test.assertTrue(condition)
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
-                listOf(
-                    "use Kotest `shouldBeFalse()` on the asserted condition",
-                    "use Kotest `shouldBeTrue()` on the asserted condition",
-                    "use Kotest `shouldBeTrue()` on the asserted condition",
-                    "use Kotest `shouldBeFalse()` on the asserted condition",
-                    "use Kotest `shouldBeTrue()` on the asserted condition"
-                )
-            result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                        listOf(
+                            "use Kotest `shouldBeFalse()` on the asserted condition",
+                            "use Kotest `shouldBeTrue()` on the asserted condition",
+                            "use Kotest `shouldBeTrue()` on the asserted condition",
+                            "use Kotest `shouldBeFalse()` on the asserted condition",
+                            "use Kotest `shouldBeTrue()` on the asserted condition"
+                        )
+                    none(KtLintRuleTestEngine.Diagnostic::canBeAutoCorrected).shouldBeTrue()
+                }
+            }
         }
 
         test("flags kotlin.test assertNotNull through imports, aliases, and package qualifiers") {
-            val imported =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.assertNotNull\nfun verify(value: String?) { assertNotNull(value); kotlin.test.assertNotNull(value) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            imported.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
-                listOf(
-                    "use Kotest `shouldNotBeNull()` for null assertions",
-                    "use Kotest `shouldNotBeNull()` for null assertions"
-                )
-            imported.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
-            val aliased =
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                        listOf(
+                            "use Kotest `shouldNotBeNull()` for null assertions",
+                            "use Kotest `shouldNotBeNull()` for null assertions"
+                        )
+                    none(KtLintRuleTestEngine.Diagnostic::canBeAutoCorrected).shouldBeTrue()
+                }
+            }
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.assertNotNull as verifyNotNull\nfun verify(value: String?) { verifyNotNull(value) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            aliased.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
-                listOf("use Kotest `shouldNotBeNull()` for null assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                        listOf("use Kotest `shouldNotBeNull()` for null assertions")
+                }
+            }
         }
 
         test("flags kotlin.test assertNotNull through a wildcard import") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.*\nfun verify(value: String?) { assertNotNull(value) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
-            val ambiguous =
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.*\nimport example.*\nfun verify(value: String?) { assertNotNull(value) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            ambiguous.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
         }
 
         test("leaves shadowed and production assertNotNull calls unchanged") {
-            val shadowed =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.assertNotNull\nfun verify(value: String?) {\n    fun assertNotNull(value: String?) = Unit\n    assertNotNull(value)\n}\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            shadowed.diagnostics shouldContainExactlyInAnyOrder emptyList()
-            val production =
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.assertNotNull\nfun verify(value: String?) { assertNotNull(value) }\n",
-                    sourcePath = Path.of("src/main/kotlin/Sample.kt")
+                    sourcePath = Path("src/main/kotlin/Sample.kt")
                 )
-            production.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
         }
 
         test("flags kotlin.test Boolean assertions imported by wildcard") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.*\nfun verify(condition: Boolean) { assertTrue(condition) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
         }
 
         test("leaves wildcard assertion names ambiguous with another package wildcard") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.test.*\nimport example.*\nfun verify() { assertTrue(\"ready\") }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
         }
 
         test("flags imported assertions inside nested classes without outer instance access") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -300,17 +365,21 @@ class KotestTestAssertionsTest :
                         }
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
-                listOf(
-                    "use Kotest `shouldBeTrue()` on the asserted condition",
-                    "use Kotest `shouldBeTrue()` on the asserted condition"
-                )
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                        listOf(
+                            "use Kotest `shouldBeTrue()` on the asserted condition",
+                            "use Kotest `shouldBeTrue()` on the asserted condition"
+                        )
+                }
+            }
         }
 
         test("accounts for inherited members when resolving Kotlin test assertions") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -367,17 +436,22 @@ class KotestTestAssertionsTest :
                         fun verify(condition: Boolean) { kotlin.test.assertTrue(condition) }
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(13, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(21, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false)
-                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(13, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(21, 38, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("flags safe calls whose values are asserted by Kotest matchers") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -396,20 +470,25 @@ class KotestTestAssertionsTest :
                         value?.length
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/testFixtures/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/testFixtures/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(7, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(8, 6, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(9, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(10, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(11, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
-                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(7, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(8, 6, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(9, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(10, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(11, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("flags aliases of standard-library assertion functions") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
@@ -428,16 +507,21 @@ class KotestTestAssertionsTest :
                         requireValue(value)
                     }
                     """.trimIndent() + "\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(9, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(10, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(11, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(12, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(13, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
-                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(9, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(10, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(11, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(12, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(13, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("flags safe calls asserted by direct and wildcard Kotest should matchers") {
@@ -445,30 +529,38 @@ class KotestTestAssertionsTest :
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import io.kotest.matchers.collections.shouldHaveSize\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
             val wildcardResult =
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import io.kotest.matchers.collections.*\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            val ruleIds =
-                listOf(result, wildcardResult)
-                    .flatMap { matcherResult -> matcherResult.diagnostics }
-                    .map { diagnostic -> diagnostic.ruleId }
-            ruleIds shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
+            assertSoftly(result) {
+                assertSoftly(diagnostics) directDiagnostics@{
+                    assertSoftly(wildcardResult) {
+                        assertSoftly(diagnostics) {
+                            (this@directDiagnostics + this).map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                                listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
+                        }
+                    }
+                }
+            }
         }
 
         test("prefers an explicit non-Kotest matcher import over a Kotest wildcard") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import io.kotest.matchers.collections.*\nimport example.shouldHaveSize\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
         }
 
         test("leaves standard-library assertion names unresolved with a custom wildcard import") {
@@ -487,14 +579,18 @@ class KotestTestAssertionsTest :
                         requireNotNull(value)
                     }
                     """.trimIndent() + "\n"
-                val result =
+                assertSoftly(
                     KtLintRuleTestEngine.execute(
                         ruleProvider,
                         "$imports\n$source",
-                        sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                        sourcePath = Path("src/test/kotlin/SampleTest.kt")
                     )
-                result.diagnostics shouldContainExactlyInAnyOrder emptyList()
-                result.formattedCode shouldBe "$imports\n$source"
+                ) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
+                    formattedCode shouldBe "$imports\n$source"
+                }
             }
         }
 
@@ -511,21 +607,26 @@ class KotestTestAssertionsTest :
                     requireNotNull(value)
                 }
                 """.trimIndent() + "\n"
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     source,
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(6, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(7, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(8, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
-                )
-            result.formattedCode shouldBe source
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(4, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(5, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(6, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(7, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(8, 5, "harness:kotest-test-assertions", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+                formattedCode shouldBe source
+            }
         }
 
         test("flags explicit and qualified standard-library assertions despite a custom wildcard import") {
@@ -558,45 +659,57 @@ class KotestTestAssertionsTest :
                 }
                 """.trimIndent() + "\n"
             ).forEach { source ->
-                val result =
+                assertSoftly(
                     KtLintRuleTestEngine.execute(
                         ruleProvider,
                         source,
-                        sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                        sourcePath = Path("src/test/kotlin/SampleTest.kt")
                     )
-                result.diagnostics.map { diagnostic -> diagnostic.detail } shouldContainExactlyInAnyOrder
-                    listOf(
-                        "use Kotest `shouldBeTrue()` on the asserted condition",
-                        "use Kotest `shouldBeTrue()` on the asserted condition",
-                        "use Kotest `shouldBeTrue()` on the asserted condition",
-                        "use Kotest `shouldNotBeNull()` for null assertions",
-                        "use Kotest `shouldNotBeNull()` for null assertions"
-                    )
-                result.diagnostics.all { diagnostic -> !diagnostic.canBeAutoCorrected } shouldBe true
-                result.formattedCode shouldBe source
+                ) {
+                    assertSoftly(diagnostics) {
+                        map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactlyInAnyOrder
+                            listOf(
+                                "use Kotest `shouldBeTrue()` on the asserted condition",
+                                "use Kotest `shouldBeTrue()` on the asserted condition",
+                                "use Kotest `shouldBeTrue()` on the asserted condition",
+                                "use Kotest `shouldNotBeNull()` for null assertions",
+                                "use Kotest `shouldNotBeNull()` for null assertions"
+                            )
+                        none(KtLintRuleTestEngine.Diagnostic::canBeAutoCorrected).shouldBeTrue()
+                    }
+                    formattedCode shouldBe source
+                }
             }
         }
 
         test("flags standard-library assertions with a Kotlin wildcard import") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.*\nfun verify(value: String?, condition: Boolean) {\n    requireNotNull(value)\n    kotlin.require(condition)\n}\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
+                }
+            }
         }
 
         test("recognizes the Kotlin package when an imported name is aliased away") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "package example\n\nimport example.other.kotlin as guards\n\nobject other { object kotlin { fun require(condition: Boolean) = Unit } }\nfun sample(condition: Boolean) { kotlin.require(condition) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
         }
 
         test("ignores imported names shadowed by parameters and local matcher declarations") {
@@ -613,35 +726,47 @@ class KotestTestAssertionsTest :
                     """.trimIndent() + "\n"
                 )
             sources.forEach { source ->
-                val result =
+                assertSoftly(
                     KtLintRuleTestEngine.execute(
                         ruleProvider,
                         source,
-                        sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                        sourcePath = Path("src/test/kotlin/SampleTest.kt")
                     )
-                result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+                ) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
+                }
             }
         }
 
         test("flags assertions in the androidTest source set") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "fun verify(condition: Boolean) = check(condition)\n",
-                    sourcePath = Path.of("src/androidTest/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/androidTest/kotlin/SampleTest.kt")
                 )
-            result.diagnostics.map { diagnostic -> diagnostic.ruleId } shouldContainExactlyInAnyOrder
-                listOf("harness:kotest-test-assertions")
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
         }
 
         test("does not treat safe-qualified selectors as standard-library calls") {
-            val result =
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import kotlin.check\nfun sample(validator: Any?, condition: Boolean) { validator?.check(condition) }\n",
-                    sourcePath = Path.of("src/test/kotlin/SampleTest.kt")
+                    sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            result.diagnostics shouldContainExactlyInAnyOrder emptyList()
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
+            }
         }
 
         test("leaves production code and non-asserting test safe calls unchanged") {
@@ -683,8 +808,11 @@ class KotestTestAssertionsTest :
                     "src/main/kotlin/SampleTest.kt" to "fun sample(condition: Boolean) = assert(condition)\n"
                 )
             sources.forEach { (path, source) ->
-                KtLintRuleTestEngine.execute(ruleProvider, source, sourcePath = Path.of(path)).diagnostics shouldContainExactlyInAnyOrder
-                    emptyList()
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, sourcePath = Path(path))) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
+                }
             }
         }
     }) {

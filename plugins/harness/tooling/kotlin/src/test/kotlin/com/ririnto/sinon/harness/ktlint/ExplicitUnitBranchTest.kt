@@ -12,8 +12,8 @@ import io.kotest.matchers.shouldBe
 class ExplicitUnitBranchTest :
     FunSpec({
         test("flags only explicit unit results in mixed when branches") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun sample(value: Int) {
@@ -32,15 +32,21 @@ class ExplicitUnitBranchTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(3, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(7, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(8, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(9, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(13, 17, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(3, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(5, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(7, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(8, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(9, 14, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(13, 17, "harness:explicit-unit-branch", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("ignores non explicit unit branch results") {
@@ -62,61 +68,81 @@ class ExplicitUnitBranchTest :
                     }
                     """.trimIndent() + "\n"
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
                     formattedCode shouldBe source
                 }
             }
         }
 
         test("flags unit result in if without else") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun sample(condition: Boolean) {
                         if (condition) Unit
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(2, 20, "harness:explicit-unit-branch", canBeAutoCorrected = false))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(2, 20, "harness:explicit-unit-branch", canBeAutoCorrected = false))
+                    )
+                }
+            }
         }
 
         test("flags both branches in simple if else") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun sample(condition: Boolean) {
                         if (condition) Unit else Unit
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 20, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(2, 30, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 20, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(2, 30, "harness:explicit-unit-branch", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("flags each unit result once in else if chain") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun sample(first: Boolean, second: Boolean) {
                         if (first) Unit else if (second) Unit else Unit
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 16, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(2, 38, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(2, 48, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 16, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(2, 38, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(2, 48, "harness:explicit-unit-branch", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("traverses nested control flow without flagging outer branches") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun sample(value: Int, condition: Boolean) {
@@ -130,11 +156,17 @@ class ExplicitUnitBranchTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(3, 29, "harness:explicit-unit-branch", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 18, "harness:explicit-unit-branch", canBeAutoCorrected = false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(3, 29, "harness:explicit-unit-branch", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(5, 18, "harness:explicit-unit-branch", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
     }) {
     companion object {

@@ -23,11 +23,14 @@ class ControlFlowBracesTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(2, 16, "harness:control-flow-braces"),
-                        KtLintRuleTestEngine.Diagnostic(3, 10, "harness:control-flow-braces")
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 16, "harness:control-flow-braces"),
+                            KtLintRuleTestEngine.Diagnostic(3, 10, "harness:control-flow-braces")
+                        )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun choose(ready: Boolean) {
@@ -55,12 +58,15 @@ class ControlFlowBracesTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(2, 25, "harness:control-flow-braces"),
-                        KtLintRuleTestEngine.Diagnostic(3, 19, "harness:control-flow-braces"),
-                        KtLintRuleTestEngine.Diagnostic(4, 8, "harness:control-flow-braces")
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 25, "harness:control-flow-braces"),
+                            KtLintRuleTestEngine.Diagnostic(3, 19, "harness:control-flow-braces"),
+                            KtLintRuleTestEngine.Diagnostic(4, 8, "harness:control-flow-braces")
+                        )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun visit(items: List<Int>, ready: Boolean) {
@@ -86,16 +92,18 @@ class ControlFlowBracesTest :
                     "val value = if (ready) {\n    1\n} else {\n    2\n}\n"
             ).forEach { (source, expected) ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics.map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
-                        List(2) { "harness:control-flow-braces" }
+                    assertSoftly(diagnostics) {
+                        map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                            List(2) { "harness:control-flow-braces" }
+                    }
                     formattedCode shouldBe expected
                 }
             }
         }
 
         test("leaves multiline raw string bodies unchanged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun print(ready: Boolean) {
@@ -104,8 +112,14 @@ class ControlFlowBracesTest :
                     ${"\"\"\""})
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(2, 16, "harness:control-flow-braces", canBeAutoCorrected = false))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(2, 16, "harness:control-flow-braces", canBeAutoCorrected = false))
+                    )
+                }
+            }
         }
     }) {
     companion object {

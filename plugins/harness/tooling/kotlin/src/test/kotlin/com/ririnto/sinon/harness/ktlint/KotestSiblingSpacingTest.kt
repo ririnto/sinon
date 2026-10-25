@@ -27,7 +27,9 @@ class KotestSiblingSpacingTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(spacing(4, 27))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(spacing(4, 27)))
+                }
                 formattedCode shouldBe
                     """
                     import io.kotest.core.spec.style.StringSpec
@@ -68,7 +70,9 @@ class KotestSiblingSpacingTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(spacing(5, 31), spacing(7, 40))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(spacing(5, 31), spacing(7, 40)))
+                }
                 formattedCode shouldBe
                     """
                     import io.kotest.core.spec.style.FunSpec as ImportedFunSpec
@@ -110,7 +114,9 @@ class KotestSiblingSpacingTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(spacing(4, 21))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(spacing(4, 21)))
+                }
                 formattedCode shouldBe
                     """
                     import io.kotest.core.spec.style.FunSpec
@@ -138,7 +144,9 @@ class KotestSiblingSpacingTest :
                 })
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -246,7 +254,9 @@ class KotestSiblingSpacingTest :
                 """.trimIndent() + "\n"
             ).forEach { source ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
                     formattedCode shouldBe source
                 }
             }

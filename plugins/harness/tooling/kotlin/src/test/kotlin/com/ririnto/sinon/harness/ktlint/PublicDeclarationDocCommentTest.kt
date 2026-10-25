@@ -28,7 +28,9 @@ class PublicDeclarationDocCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -47,14 +49,16 @@ class PublicDeclarationDocCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("is enabled by default for effective public declarations") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     class Service {
@@ -62,11 +66,17 @@ class PublicDeclarationDocCommentTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(1, 7, "harness:public-declaration-doc-comment", false),
-                    KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(1, 7, "harness:public-declaration-doc-comment", false),
+                            KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
+                        )
+                    )
+                }
+            }
         }
 
         test("can be opted out through the native rule execution property") {
@@ -81,25 +91,33 @@ class PublicDeclarationDocCommentTest :
                         )
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("requires documentation on public interfaces") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     interface Repository {
                         fun find(): String
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(1, 11, "harness:public-declaration-doc-comment", false),
-                    KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(1, 11, "harness:public-declaration-doc-comment", false),
+                            KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
+                        )
+                    )
+                }
+            }
         }
 
         test("accepts documentation and inherited override contracts") {
@@ -132,7 +150,9 @@ class PublicDeclarationDocCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -152,14 +172,16 @@ class PublicDeclarationDocCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("requires documentation on public primary constructor properties") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     /**
@@ -173,12 +195,18 @@ class PublicDeclarationDocCommentTest :
                         plain: String
                     )
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false),
-                    KtLintRuleTestEngine.Diagnostic(6, 9, "harness:public-declaration-doc-comment", false),
-                    KtLintRuleTestEngine.Diagnostic(7, 19, "harness:public-declaration-doc-comment", false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false),
+                            KtLintRuleTestEngine.Diagnostic(6, 9, "harness:public-declaration-doc-comment", false),
+                            KtLintRuleTestEngine.Diagnostic(7, 19, "harness:public-declaration-doc-comment", false)
+                        )
+                    )
+                }
+            }
         }
 
         test("accepts property tags on the class and documentation on the parameter") {
@@ -198,14 +226,16 @@ class PublicDeclarationDocCommentTest :
                 )
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("treats a private constructor as public for its properties") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     /**
@@ -215,8 +245,14 @@ class PublicDeclarationDocCommentTest :
                         val id: Int
                     )
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false))
+                    )
+                }
+            }
         }
 
         test("ignores declarations hidden by internal or private enclosures") {
@@ -234,7 +270,9 @@ class PublicDeclarationDocCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }

@@ -24,7 +24,9 @@ class FunctionBodyBlankLinesTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(decorativeBlankLine(2, 12))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(decorativeBlankLine(2, 12)))
+                }
                 formattedCode shouldBe
                     """
                     fun work() {
@@ -51,7 +53,9 @@ class FunctionBodyBlankLinesTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(decorativeBlankLine(2, 12), decorativeBlankLine(4, 23))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(decorativeBlankLine(2, 12), decorativeBlankLine(4, 23)))
+                }
                 formattedCode shouldBe
                     """
                     fun work(pair: Pair<Int, Int>) {
@@ -105,7 +109,9 @@ class FunctionBodyBlankLinesTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(3, 10, 16, 23, 28)
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(3, 10, 16, 23, 28)
+                }
                 formattedCode shouldBe
                     """
                     class Sample {
@@ -162,7 +168,9 @@ class FunctionBodyBlankLinesTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -181,7 +189,9 @@ class FunctionBodyBlankLinesTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -202,7 +212,9 @@ class FunctionBodyBlankLinesTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(decorativeBlankLine(8, 12))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(decorativeBlankLine(8, 12)))
+                }
                 formattedCode shouldBe
                     """
                     class Sample {
@@ -246,7 +258,9 @@ class FunctionBodyBlankLinesTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(5, 12)
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(5, 12)
+                }
                 formattedCode shouldBe
                     """
                     import io.kotest.core.spec.style.FunSpec
@@ -290,7 +304,9 @@ class FunctionBodyBlankLinesTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }

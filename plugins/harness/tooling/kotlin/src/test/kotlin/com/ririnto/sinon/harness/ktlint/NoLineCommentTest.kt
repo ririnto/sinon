@@ -14,7 +14,9 @@ class NoLineCommentTest :
         test("required license and suppression directives are preserved") {
             val source = "fun work() {\n/* @license MIT */\n// noinspection UnusedVariable\nval value = 1\n}\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -29,8 +31,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(comment(2, 5), comment(3, 5), comment(4, 5))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5), comment(3, 5), comment(4, 5)))
+                }
                 formattedCode shouldBe source
             }
         }
@@ -45,7 +48,9 @@ class NoLineCommentTest :
                 fun work() {}
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -58,50 +63,67 @@ class NoLineCommentTest :
                 fun work() {}
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("standalone line comment in a function body is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun foo() {
                         // comment
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+                }
+            }
         }
 
         test("trailing line comment in a function body is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun foo() {
                         val x = 1 // comment
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 15))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 15)))
+                }
+            }
         }
 
         test("block comment in a function body is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun foo() {
                         /* block */
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+                }
+            }
         }
 
         test("mixed comments in a function body are all flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun foo() {
@@ -110,12 +132,17 @@ class NoLineCommentTest :
                         /* three */ val y = 2
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5), comment(3, 15), comment(4, 5))
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5), comment(3, 15), comment(4, 5)))
+                }
+            }
         }
 
         test("comments in lambdas accessors initializers and constructors are flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     val action: () -> Unit = {
@@ -148,8 +175,12 @@ class NoLineCommentTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics
-                .map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(2, 8, 14, 19, 26)
+                )
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::line) shouldContainExactlyInAnyOrder listOf(2, 8, 14, 19, 26)
+                }
+            }
         }
 
         test("file declaration member parameter property and region comments are reported") {
@@ -177,20 +208,23 @@ class NoLineCommentTest :
                 // file footer
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        comment(2, 1),
-                        comment(5, 1),
-                        comment(6, 1),
-                        comment(7, 1),
-                        comment(9, 5),
-                        comment(10, 24),
-                        comment(12, 5),
-                        comment(13, 5),
-                        comment(15, 9),
-                        comment(19, 1),
-                        comment(20, 1)
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            comment(2, 1),
+                            comment(5, 1),
+                            comment(6, 1),
+                            comment(7, 1),
+                            comment(9, 5),
+                            comment(10, 24),
+                            comment(12, 5),
+                            comment(13, 5),
+                            comment(15, 9),
+                            comment(19, 1),
+                            comment(20, 1)
+                        )
                     )
+                }
                 formattedCode shouldBe source
             }
         }
@@ -210,7 +244,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -226,7 +262,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -243,7 +281,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(comment(3, 5), comment(5, 5))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(3, 5), comment(5, 5)))
+                }
                 formattedCode shouldBe source
             }
         }
@@ -258,7 +298,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder listOf(comment(2, 5))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+                }
                 formattedCode shouldBe source
             }
         }
@@ -271,7 +313,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -291,7 +335,9 @@ class NoLineCommentTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -303,7 +349,9 @@ class NoLineCommentTest :
                     // comment
                 }
                 """.trimIndent() + "\n"
-            KtLintRuleTestEngine.execute(ruleProvider, source).formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                formattedCode shouldBe source
+            }
         }
     }) {
     companion object {

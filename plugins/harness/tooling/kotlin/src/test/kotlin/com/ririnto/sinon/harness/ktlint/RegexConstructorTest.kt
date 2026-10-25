@@ -20,15 +20,18 @@ class RegexConstructorTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            15,
-                            "harness:no-regex-constructor",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                15,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     val pattern = Regex("a+")
@@ -45,15 +48,18 @@ class RegexConstructorTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            15,
-                            "harness:no-regex-constructor",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                15,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     val matched = Regex("a+").matches("aaa")
@@ -70,15 +76,18 @@ class RegexConstructorTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            21,
-                            "harness:no-regex-constructor",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                21,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     val result = listOf(Regex("a+"))
@@ -87,8 +96,8 @@ class RegexConstructorTest :
         }
 
         test("leaves unsafe constructor shapes unchanged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun build(pattern: String, option: RegexOption): Regex {
@@ -98,33 +107,39 @@ class RegexConstructorTest :
                         return Regex(makePattern())
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        17,
-                        "harness:no-regex-constructor",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        18,
-                        "harness:no-regex-constructor",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        17,
-                        "harness:no-regex-constructor",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        12,
-                        "harness:no-regex-constructor",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                17,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                18,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                17,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                12,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("qualified receiver regex is safe") {
@@ -134,7 +149,9 @@ class RegexConstructorTest :
                 fun build(factory: Factory) = factory.Regex("a+")
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -148,15 +165,18 @@ class RegexConstructorTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            27,
-                            "harness:no-regex-constructor",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                27,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     val pattern = kotlin.text.Regex("a+")
@@ -175,15 +195,18 @@ class RegexConstructorTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            28,
-                            "harness:no-regex-constructor",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                28,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     import com.example.Regex
@@ -230,18 +253,23 @@ class RegexConstructorTest :
             val line = source.take(constructorOffset).count { character -> character == '\n' } + 1
             val column = constructorOffset - source.lastIndexOf('\n', constructorOffset - 1)
             assertSoftly(result) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            line,
-                            column,
-                            "harness:no-regex-constructor",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                line,
+                                column,
+                                "harness:no-regex-constructor",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe source
             }
-            KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode).formattedCode shouldBe source
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode)) {
+                formattedCode shouldBe source
+            }
         }
     }
 }

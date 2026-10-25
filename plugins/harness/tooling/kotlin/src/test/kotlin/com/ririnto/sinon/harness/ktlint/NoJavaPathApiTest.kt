@@ -23,14 +23,16 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("equivalent files helpers are flagged across imports and qualifications") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Files as NioFiles
@@ -43,32 +45,38 @@ class NoJavaPathApiTest :
                         return java.nio.file.Files.readString(path)
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        5,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        5,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        8,
-                        12,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                5,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                5,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                8,
+                                12,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("package aliases are recognized for files calls") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file as nio
@@ -76,40 +84,52 @@ class NoJavaPathApiTest :
 
                     fun exists(path: Path): Boolean = nio.Files.exists(path)
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        35,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                35,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("wildcard package imports are recognized for files calls") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.*
 
                     fun exists(path: Path): Boolean = Files.exists(path)
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        35,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                35,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("java path type and file helper chain are recognized with type aliases") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path as NioPath
@@ -118,20 +138,26 @@ class NoJavaPathApiTest :
                         fun isDirectory(): Boolean = this.path.toFile().isDirectory()
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        34,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                34,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("path names are resolved within their lexical scopes") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path
@@ -145,32 +171,38 @@ class NoJavaPathApiTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        5,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        5,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        5,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                5,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                5,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                5,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("qualified and wildcard static imports are recognized") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Files.*
@@ -178,21 +210,27 @@ class NoJavaPathApiTest :
 
                     fun check(path: Path): Boolean = exists(path) || isSymbolicLink(path)
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        34,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        50,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                34,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                50,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("java specific files methods remain allowed") {
@@ -211,7 +249,9 @@ class NoJavaPathApiTest :
                 fun open(path: Path): InputStream = Files.newInputStream(path)
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -228,14 +268,16 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("path returning chains stay narrow and uri resolve remains allowed") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.net.URI
@@ -247,15 +289,21 @@ class NoJavaPathApiTest :
                         return base.toRealPath().resolve("child")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        30,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                30,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("infers path aliases and method results across local initializers") {
@@ -272,9 +320,11 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(7, 8)
-                diagnostics.map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldBe
-                    List(2) { "harness:no-java-path-api" }
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(7, 8)
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldBe
+                        List(2) { "harness:no-java-path-api" }
+                }
                 formattedCode shouldBe source
             }
         }
@@ -291,7 +341,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics.map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(6)
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::line) shouldBe listOf(6)
+                }
                 formattedCode shouldBe source
             }
         }
@@ -314,14 +366,16 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("java path resolve overloads are flagged on typed path receivers") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path as NioPath
@@ -331,21 +385,27 @@ class NoJavaPathApiTest :
                         return base.resolve(child)
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        10,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        17,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                17,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("resolve on unrelated receivers and other java path operations remain allowed") {
@@ -364,34 +424,42 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("resolve after known path returning method is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path
 
                     fun child(base: Path): Path = base.normalize().resolve("child")
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        3,
-                        48,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                48,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("flags child resolve calls from supported Path factories and aliases") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.net.URI
@@ -412,57 +480,63 @@ class NoJavaPathApiTest :
                         NioPaths.get(uri).resolve("x")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        9,
-                        23,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        10,
-                        19,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        11,
-                        32,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        12,
-                        23,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        13,
-                        19,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        14,
-                        21,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        15,
-                        21,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        16,
-                        23,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                9,
+                                23,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                10,
+                                19,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                11,
+                                32,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                12,
+                                23,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                13,
+                                19,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                14,
+                                21,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                15,
+                                21,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                16,
+                                23,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("ignores resolve overloads on Path with unrelated parameters") {
@@ -473,7 +547,9 @@ class NoJavaPathApiTest :
                 fun f(base: Path, enabled: Boolean) = base.resolve("x", enabled).resolve("y")
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -488,14 +564,16 @@ class NoJavaPathApiTest :
                 fun f(base: Path) = base.getName("x").resolve("y")
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("flags resolve for aliased Path types and factories") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path as NioPath
@@ -505,15 +583,21 @@ class NoJavaPathApiTest :
                         base.resolve("child")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        10,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("reports resolve calls on Path-returning chains") {
@@ -532,51 +616,54 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            5,
-                            10,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            5,
-                            23,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            6,
-                            10,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            6,
-                            25,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            7,
-                            48,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            8,
-                            21,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            9,
-                            24,
-                            "harness:no-java-path-api",
-                            canBeAutoCorrected = false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                23,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                25,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                48,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                8,
+                                21,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                9,
+                                24,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe source
             }
         }
@@ -591,7 +678,9 @@ class NoJavaPathApiTest :
                 fun f(base: Path) = base.resolveSibling("a", "b").resolve("c")
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -606,14 +695,16 @@ class NoJavaPathApiTest :
                 fun second(base: Path) = base.resolve("x") { "y" }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("infers Path types through direct Java factory aliases") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path
@@ -627,32 +718,38 @@ class NoJavaPathApiTest :
                     fun second() = staticImport.resolve("child")
                     fun third() = pathsImport.resolve("child")
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        8,
-                        22,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        9,
-                        29,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        10,
-                        27,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                8,
+                                22,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                9,
+                                29,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                10,
+                                27,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("infers Path types through an aliased Kotlin Path factory") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import kotlin.io.path.Path as makePath
@@ -660,15 +757,21 @@ class NoJavaPathApiTest :
                     val base = makePath(".")
                     fun child() = base.resolve("child")
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        20,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                20,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("ignores custom-argument File helper extensions") {
@@ -696,14 +799,16 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("restores a typed Path binding after a same-named loop destructuring") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path
@@ -715,20 +820,26 @@ class NoJavaPathApiTest :
                         path.resolve("child")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        10,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("keeps Path bindings visible in the loop range and after the loop") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path
@@ -743,26 +854,32 @@ class NoJavaPathApiTest :
                         path.resolve("after")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        44,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        10,
-                        10,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                44,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                10,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("scopes ordinary loop parameters to the body only") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import java.nio.file.Path
@@ -776,21 +893,27 @@ class NoJavaPathApiTest :
                         path.resolve("after")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        33,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        9,
-                        10,
-                        "harness:no-java-path-api",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                33,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                9,
+                                10,
+                                "harness:no-java-path-api",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("imported Files class is not matched when a parameter shadows it") {
@@ -807,7 +930,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -824,7 +949,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -841,7 +968,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -861,7 +990,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -880,7 +1011,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -903,7 +1036,9 @@ class NoJavaPathApiTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe
                     """
                     class JavaNamespace(val nio: NioNamespace)
@@ -938,7 +1073,9 @@ class NoJavaPathApiTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }

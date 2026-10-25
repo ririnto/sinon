@@ -23,15 +23,18 @@ class NestedDataClassLastTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            2,
-                            16,
-                            "harness:nested-data-class-last",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     class Container {
@@ -52,7 +55,9 @@ class NestedDataClassLastTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -71,11 +76,14 @@ class NestedDataClassLastTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(2, 16, "harness:nested-data-class-last"),
-                        KtLintRuleTestEngine.Diagnostic(4, 16, "harness:nested-data-class-last")
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 16, "harness:nested-data-class-last"),
+                            KtLintRuleTestEngine.Diagnostic(4, 16, "harness:nested-data-class-last")
+                        )
                     )
+                }
                 formattedCode shouldBe
                     """
                     class Container {
@@ -106,15 +114,18 @@ class NestedDataClassLastTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            5,
-                            16,
-                            "harness:nested-data-class-last",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     class Container {
@@ -142,15 +153,18 @@ class NestedDataClassLastTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            16,
-                            "harness:nested-data-class-last",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     class Container {
@@ -177,15 +191,18 @@ class NestedDataClassLastTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            2,
-                            16,
-                            "harness:nested-data-class-last",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     class Container {
@@ -210,14 +227,16 @@ class NestedDataClassLastTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("checks multiple enclosing classes") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     class First {
@@ -229,21 +248,27 @@ class NestedDataClassLastTest :
                         fun lookup(): Entry = Entry(0)
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        16,
-                        "harness:nested-data-class-last",
-                        canBeAutoCorrected = true
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        16,
-                        "harness:nested-data-class-last",
-                        canBeAutoCorrected = true
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("checks nested class inside companion object") {
@@ -260,15 +285,18 @@ class NestedDataClassLastTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            20,
-                            "harness:nested-data-class-last",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                20,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     class Container {
@@ -291,14 +319,16 @@ class NestedDataClassLastTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("leaves raw string data class lint only") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     class Container {
@@ -308,15 +338,21 @@ class NestedDataClassLastTest :
                         fun load(): Item = Item()
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        16,
-                        "harness:nested-data-class-last",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                16,
+                                "harness:nested-data-class-last",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
     }) {
     companion object {

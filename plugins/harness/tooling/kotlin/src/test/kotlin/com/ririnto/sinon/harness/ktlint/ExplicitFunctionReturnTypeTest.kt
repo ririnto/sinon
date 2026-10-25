@@ -30,15 +30,18 @@ class ExplicitFunctionReturnTypeTest :
                 val source = "$sourceLine\n"
                 val name = sourceLine.substringAfter("fun ").substringBefore("(")
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder
-                        listOf(
-                            KtLintRuleTestEngine.Diagnostic(
-                                1,
-                                source.indexOf(name) + 1,
-                                "harness:explicit-function-return-type",
-                                canBeAutoCorrected = true
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    source.indexOf(name) + 1,
+                                    "harness:explicit-function-return-type",
+                                    canBeAutoCorrected = true
+                                )
                             )
                         )
+                    }
                     formattedCode shouldBe "$expectedLine\n"
                 }
             }
@@ -46,52 +49,73 @@ class ExplicitFunctionReturnTypeTest :
 
         test("leaves unsafe shapes lint only") {
             assertSoftly {
-                KtLintRuleTestEngine.execute(ruleProvider, "fun compute() = calculate()\n").diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            5,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = false
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun compute() = calculate()\n")) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    5,
+                                    "harness:explicit-function-return-type",
+                                    canBeAutoCorrected = false
+                                )
+                            )
                         )
-                    )
-                KtLintRuleTestEngine.execute(ruleProvider, "fun neg() = -1\n").diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            5,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = false
+                    }
+                }
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun neg() = -1\n")) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    5,
+                                    "harness:explicit-function-return-type",
+                                    canBeAutoCorrected = false
+                                )
+                            )
                         )
-                    )
-                KtLintRuleTestEngine.execute(ruleProvider, "fun composed() = if (b) 1 else 2\n").diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            5,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = false
+                    }
+                }
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun composed() = if (b) 1 else 2\n")) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    5,
+                                    "harness:explicit-function-return-type",
+                                    canBeAutoCorrected = false
+                                )
+                            )
                         )
-                    )
+                    }
+                }
             }
         }
 
         test("leaves override functions lint only") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     override fun name() = "x"
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        14,
-                        "harness:explicit-function-return-type",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                14,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("ignores already typed and block functions") {
@@ -101,86 +125,109 @@ class ExplicitFunctionReturnTypeTest :
                 fun block() { val x = 1 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("ignores explicit unit expression body") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun noop() = Unit\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun noop() = Unit\n"
             }
         }
 
         test("ignores explicit kotlin unit expression body") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun noop() = kotlin.Unit\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun noop() = kotlin.Unit\n"
             }
         }
 
         test("strips explicit unit return type from expression body") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun noop(): Unit = Unit\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            13,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                13,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "fun noop() = Unit\n"
             }
         }
 
         test("strips explicit kotlin unit return type") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun noop(): kotlin.Unit {}\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            13,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                13,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "fun noop() {}\n"
             }
         }
 
         test("ignores qualified non kotlin unit return type") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun noop(): other.kotlin.Unit {}\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun noop(): other.kotlin.Unit {}\n"
             }
         }
 
         test("accepts load bearing unit return type on expression bodied call") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun clear(): Unit = delegate.clear()\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun clear(): Unit = delegate.clear()\n"
             }
         }
 
         test("accepts load bearing kotlin unit return type on expression bodied call") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun clear(): kotlin.Unit = delegate.clear()\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun clear(): kotlin.Unit = delegate.clear()\n"
             }
         }
 
         test("still requires explicit type on untyped expression bodied unit call") {
-            KtLintRuleTestEngine.execute(ruleProvider, "fun clear() = delegate.clear()\n").diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        5,
-                        "harness:explicit-function-return-type",
-                        canBeAutoCorrected = false
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun clear() = delegate.clear()\n")) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                5,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = false
+                            )
+                        )
                     )
-                )
+                }
+            }
         }
 
         test("strips explicit unit return type from block body") {
@@ -192,15 +239,18 @@ class ExplicitFunctionReturnTypeTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            13,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                13,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun noop() { println("hi") }
@@ -217,15 +267,18 @@ class ExplicitFunctionReturnTypeTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            5,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                5,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun greet(prefix: String = "hi"): kotlin.String = "hello"
@@ -243,15 +296,18 @@ class ExplicitFunctionReturnTypeTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            2,
-                            5,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                5,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     @Ann(enabled = true)
@@ -262,15 +318,18 @@ class ExplicitFunctionReturnTypeTest :
 
         test("strips unit return type preserving whitespace before colon") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun noop() : Unit {}\n")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            14,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                14,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "fun noop() {}\n"
             }
         }
@@ -292,25 +351,32 @@ class ExplicitFunctionReturnTypeTest :
                 """.trimIndent() + "\n"
             val firstPass = KtLintRuleTestEngine.execute(ruleProvider, source)
             assertSoftly(firstPass) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            source.indexOf("text") - source.lastIndexOf('\n', source.indexOf("text")),
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            4,
-                            source.indexOf("count") - source.lastIndexOf('\n', source.indexOf("count")),
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                source.indexOf("text") - source.lastIndexOf('\n', source.indexOf("text")),
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                source.indexOf("count") - source.lastIndexOf('\n', source.indexOf("count")),
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
             }
-            val secondPass = KtLintRuleTestEngine.execute(ruleProvider, firstPass.formattedCode).formattedCode
-            secondPass shouldBe expected
-            KtLintRuleTestEngine.execute(ruleProvider, secondPass).formattedCode shouldBe expected
+            val secondPass = KtLintRuleTestEngine.execute(ruleProvider, firstPass.formattedCode)
+            assertSoftly(secondPass) {
+                formattedCode shouldBe expected
+            }
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, secondPass.formattedCode)) {
+                formattedCode shouldBe expected
+            }
         }
 
         test("keeps a generic Unit type parameter as the return contract") {
@@ -320,7 +386,9 @@ class ExplicitFunctionReturnTypeTest :
                 fun <Unit> identity(value: Unit): Unit = value
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -340,24 +408,29 @@ class ExplicitFunctionReturnTypeTest :
                 """.trimIndent() + "\n"
             val result = KtLintRuleTestEngine.execute(ruleProvider, source)
             assertSoftly(result) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            source.indexOf("kotlin.Unit") + 1,
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            source.indexOf(": Unit") + 2 - source.lastIndexOf('\n', source.indexOf(": Unit")),
-                            "harness:explicit-function-return-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.indexOf("kotlin.Unit") + 1,
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                source.indexOf(": Unit") + 2 - source.lastIndexOf('\n', source.indexOf(": Unit")),
+                                "harness:explicit-function-return-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe expected
             }
-            KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode).formattedCode shouldBe expected
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode)) {
+                formattedCode shouldBe expected
+            }
         }
     }) {
     companion object {

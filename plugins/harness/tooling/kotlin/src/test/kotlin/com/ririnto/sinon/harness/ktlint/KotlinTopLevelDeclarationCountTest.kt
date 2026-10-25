@@ -21,7 +21,9 @@ class KotlinTopLevelDeclarationCountTest :
                 "typealias Sample = String"
             ).forEach { declarationSource ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "$declarationSource\n")) {
-                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
                     formattedCode shouldBe "$declarationSource\n"
                 }
             }
@@ -45,15 +47,20 @@ class KotlinTopLevelDeclarationCountTest :
                 }
                 """.trimIndent() + "\n"
             ).forEach { source ->
-                KtLintRuleTestEngine.execute(ruleProvider, source).diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:kotlin-top-level-declaration-count",
-                            canBeAutoCorrected = false
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    1,
+                                    "harness:kotlin-top-level-declaration-count",
+                                    canBeAutoCorrected = false
+                                )
+                            )
                         )
-                    )
+                    }
+                }
             }
         }
 
@@ -71,7 +78,9 @@ class KotlinTopLevelDeclarationCountTest :
                 private fun helper(): Int = limit
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -83,15 +92,20 @@ class KotlinTopLevelDeclarationCountTest :
                 "class First\nval helper = 42\n",
                 "class First\ninternal fun helper() = 42\n"
             ).forEach { source ->
-                KtLintRuleTestEngine.execute(ruleProvider, source).diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:kotlin-top-level-declaration-count",
-                            canBeAutoCorrected = false
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    1,
+                                    "harness:kotlin-top-level-declaration-count",
+                                    canBeAutoCorrected = false
+                                )
+                            )
                         )
-                    )
+                    }
+                }
             }
         }
 
@@ -102,7 +116,9 @@ class KotlinTopLevelDeclarationCountTest :
                 "class Sample\n\nfun main() {\n}\n"
             ).forEach { source ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
                     formattedCode shouldBe source
                 }
             }
@@ -115,7 +131,9 @@ class KotlinTopLevelDeclarationCountTest :
                 "package sample\n\nimport java.util.UUID\n"
             ).forEach { source ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
                     formattedCode shouldBe source
                 }
             }
@@ -128,7 +146,9 @@ class KotlinTopLevelDeclarationCountTest :
                 val second = 2
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }

@@ -22,15 +22,18 @@ class UncheckedCastSuppressionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:unchecked-cast-suppression",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "fun sample(): Int = 42\n"
             }
         }
@@ -45,15 +48,18 @@ class UncheckedCastSuppressionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:unchecked-cast-suppression",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "val sample: Int = 42\n"
             }
         }
@@ -71,15 +77,18 @@ class UncheckedCastSuppressionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:unchecked-cast-suppression",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     package com.example
@@ -100,15 +109,18 @@ class UncheckedCastSuppressionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            2,
-                            1,
-                            "harness:unchecked-cast-suppression",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     @Deprecated("old")
@@ -119,41 +131,53 @@ class UncheckedCastSuppressionTest :
         }
 
         test("live suppress on function with as cast remains uncorrected") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     @Suppress("UNCHECKED_CAST")
                     fun sample(value: Any): String = value as String
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        1,
-                        "harness:unchecked-cast-suppression",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("multi arg suppress with forbidden token remains uncorrected even when stale") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     @Suppress("UNCHECKED_CAST", "DEPRECATION")
                     fun sample(): Int = 42
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        1,
-                        "harness:unchecked-cast-suppression",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("allowed token filter suppresses detection") {
@@ -167,7 +191,9 @@ class UncheckedCastSuppressionTest :
                     editorConfigOverride = EditorConfigOverride.from(UncheckedCastSuppression.ALLOWED_SUPPRESSIONS to "UNCHECKED_CAST")
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe
                     """
                     @Suppress("UNCHECKED_CAST")
@@ -187,15 +213,18 @@ class UncheckedCastSuppressionTest :
                     editorConfigOverride = EditorConfigOverride.from(UncheckedCastSuppression.FORBIDDEN_SUPPRESSIONS to "USELESS_CAST")
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:unchecked-cast-suppression",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "fun sample(): Int = 42\n"
             }
         }
@@ -210,7 +239,9 @@ class UncheckedCastSuppressionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe
                     """
                     @Deprecated("use newSample instead")
@@ -229,15 +260,18 @@ class UncheckedCastSuppressionTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            1,
-                            "harness:unchecked-cast-suppression",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                1,
+                                "harness:unchecked-cast-suppression",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "fun sample(): Int = 42\n"
             }
         }

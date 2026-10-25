@@ -4,6 +4,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 
 /**
@@ -17,15 +18,18 @@ class ImplicitLambdaItTest :
                 fun render(items: List<String>) = items.joinToString { "\\n${'$'}it" }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            source.indexOf("it", source.indexOf('{')) + 1,
-                            "harness:implicit-lambda-it",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.indexOf("it", source.indexOf('{')) + 1,
+                                "harness:implicit-lambda-it",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun render(items: List<String>) = items.joinToString { value -> "\\n${'$'}value" }
@@ -39,15 +43,18 @@ class ImplicitLambdaItTest :
                 fun nested(values: List<String>) = values.map { it.let { item -> it + item } }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            source.indexOf("it", source.indexOf('{')) + 1,
-                            "harness:implicit-lambda-it",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.indexOf("it", source.indexOf('{')) + 1,
+                                "harness:implicit-lambda-it",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun nested(values: List<String>) = values.map { value -> value.let { item -> value + item } }
@@ -62,15 +69,20 @@ class ImplicitLambdaItTest :
                     it.flatMap { inner -> inner + it.size }
                 }
                 """.trimIndent() + "\n"
-            KtLintRuleTestEngine.execute(ruleProvider, source).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        source.indexOf("it", source.indexOf('{')) - source.indexOf('\n'),
-                        "harness:implicit-lambda-it",
-                        canBeAutoCorrected = true
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                source.indexOf("it", source.indexOf('{')) - source.indexOf('\n'),
+                                "harness:implicit-lambda-it",
+                                canBeAutoCorrected = true
+                            )
+                        )
                     )
-                )
+                }
+            }
         }
 
         test("leaves nested implicit ownership manual") {
@@ -79,21 +91,24 @@ class ImplicitLambdaItTest :
                 fun nested(values: List<List<Int>>) = values.map { it.map { it + 1 } }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            source.indexOf("it", source.indexOf('{')) + 1,
-                            "harness:implicit-lambda-it",
-                            false
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            source.lastIndexOf("it") + 1,
-                            "harness:implicit-lambda-it",
-                            false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.indexOf("it", source.indexOf('{')) + 1,
+                                "harness:implicit-lambda-it",
+                                false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.lastIndexOf("it") + 1,
+                                "harness:implicit-lambda-it",
+                                false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe source
             }
         }
@@ -106,15 +121,18 @@ class ImplicitLambdaItTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            2,
-                            source.indexOf("it", source.indexOf('{')) - source.indexOf('\n'),
-                            "harness:implicit-lambda-it",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                source.indexOf("it", source.indexOf('{')) - source.indexOf('\n'),
+                                "harness:implicit-lambda-it",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun render(items: List<String>) = items.joinToString {
@@ -131,15 +149,18 @@ class ImplicitLambdaItTest :
                 fun render(items: List<String>) = items.joinToString { ${"\"\"\""}${'$'}it${"\"\"\""} }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            source.indexOf("it", source.indexOf('{')) + 1,
-                            "harness:implicit-lambda-it",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.indexOf("it", source.indexOf('{')) + 1,
+                                "harness:implicit-lambda-it",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe
                     """
                     fun render(items: List<String>) = items.joinToString { value -> ${"\"\"\""}${'$'}value${"\"\"\""} }
@@ -152,15 +173,20 @@ class ImplicitLambdaItTest :
                 """
                 fun render(items: List<String>, value: String) = items.joinToString { value + it }
                 """.trimIndent() + "\n"
-            KtLintRuleTestEngine.execute(ruleProvider, source).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        source.lastIndexOf("it") + 1,
-                        "harness:implicit-lambda-it",
-                        canBeAutoCorrected = true
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                source.lastIndexOf("it") + 1,
+                                "harness:implicit-lambda-it",
+                                canBeAutoCorrected = true
+                            )
+                        )
                     )
-                )
+                }
+            }
         }
 
         test("preserves member names while renaming the implicit receiver") {
@@ -170,7 +196,9 @@ class ImplicitLambdaItTest :
                     "fun render(items: List<Item>) = items.map { it.it + it?.it + holder.it }\n"
                 )
             ) {
-                diagnostics.size shouldBe 1
+                assertSoftly(diagnostics) {
+                    shouldHaveSize(1)
+                }
                 formattedCode shouldBe
                     "fun render(items: List<Item>) = items.map { value -> value.it + value?.it + holder.it }\n"
             }
@@ -179,7 +207,9 @@ class ImplicitLambdaItTest :
         test("does not introduce lambda parameters for qualified members") {
             val source = "fun render() = run { holder.it + holder?.it + holder.it() + holder::it }\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -191,7 +221,9 @@ class ImplicitLambdaItTest :
                     "fun render(items: List<Int>) = items.map { val it = it + 1; it * 2 }\n"
                 )
             ) {
-                diagnostics.size shouldBe 1
+                assertSoftly(diagnostics) {
+                    shouldHaveSize(1)
+                }
                 formattedCode shouldBe
                     "fun render(items: List<Int>) = items.map { value -> val it = value + 1; it * 2 }\n"
             }
@@ -211,7 +243,9 @@ class ImplicitLambdaItTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics.size shouldBe 1
+                assertSoftly(diagnostics) {
+                    shouldHaveSize(1)
+                }
                 formattedCode shouldBe
                     """
                     fun render(items: List<Int>) = items.map {
@@ -237,7 +271,9 @@ class ImplicitLambdaItTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics.size shouldBe 1
+                assertSoftly(diagnostics) {
+                    shouldHaveSize(1)
+                }
                 formattedCode shouldBe
                     """
                     fun render(items: List<Int>) = items.map {
@@ -259,7 +295,9 @@ class ImplicitLambdaItTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics.size shouldBe 2
+                assertSoftly(diagnostics) {
+                    shouldHaveSize(2)
+                }
                 formattedCode shouldBe
                     """
                     fun render(items: List<Int>) = items.map { value -> fun it(): Int { return 1 }; consume(value); it() }
@@ -283,7 +321,9 @@ class ImplicitLambdaItTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -294,7 +334,9 @@ class ImplicitLambdaItTest :
                 fun render(items: List<String>) = items.joinToString { value -> value }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -333,12 +375,18 @@ class ImplicitLambdaItTest :
                 )
             ).forEach { (source, expected, expectedAutocorrectability) ->
                 val result = KtLintRuleTestEngine.execute(ruleProvider, source)
-                result.formattedCode shouldBe expected
-                val actualAutocorrectability = result.diagnostics.map { diagnostic -> diagnostic.canBeAutoCorrected }
-                if (actualAutocorrectability != expectedAutocorrectability) {
-                    error("unexpected diagnostics for `$source`: $actualAutocorrectability")
+                assertSoftly(result) {
+                    formattedCode shouldBe expected
+                    assertSoftly(diagnostics) {
+                        val actualAutocorrectability = map(KtLintRuleTestEngine.Diagnostic::canBeAutoCorrected)
+                        if (actualAutocorrectability != expectedAutocorrectability) {
+                            error("unexpected diagnostics for `$source`: $actualAutocorrectability")
+                        }
+                    }
                 }
-                KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode).formattedCode shouldBe result.formattedCode
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, result.formattedCode)) {
+                    formattedCode shouldBe result.formattedCode
+                }
             }
         }
     }) {
