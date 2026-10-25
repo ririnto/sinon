@@ -635,6 +635,31 @@ describe("pnpm profile configuration", () => {
     }
   }, 90_000);
 
+  test("materialized scripts ignore inherited Corepack markers", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "sinon-corepack-"));
+    const corepackRoot = process.env.COREPACK_ROOT;
+    process.env.COREPACK_ROOT = "/nonexistent-corepack-root";
+    try {
+      await preparePackageRoot(directory);
+      await writeFile(
+        path.join(directory, "README.md"),
+        "# Target\n\nReady.\n"
+      );
+      const result = runPackageScript(directory, "check:markdownlint-cli2");
+      expect(
+        result.status,
+        result.stderr.toString() + result.stdout.toString()
+      ).toBe(0);
+    } finally {
+      if (corepackRoot === undefined) {
+        delete process.env.COREPACK_ROOT;
+      } else {
+        process.env.COREPACK_ROOT = corepackRoot;
+      }
+      await rm(directory, { force: true, recursive: true });
+    }
+  }, 90_000);
+
   test("Ultracite core environment keeps implied-eval diagnostics in both configs", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-implied-eval-"));
     try {

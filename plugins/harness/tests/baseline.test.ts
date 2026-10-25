@@ -508,6 +508,41 @@ describe("fresh-root baseline", () => {
     },
     30_000
   );
+
+  test("materialized scripts ignore inherited Corepack markers", async () => {
+    const directory = await targetDirectory();
+    const corepackRoot = process.env.COREPACK_ROOT;
+    process.env.COREPACK_ROOT = "/nonexistent-corepack-root";
+    try {
+      await configureBaseline(directory, "node", "eligible");
+      await symlink(
+        path.join(repositoryRoot, "node_modules"),
+        path.join(directory, "node_modules"),
+        "dir"
+      );
+      await writeFile(
+        path.join(directory, "README.md"),
+        "# Target\n\nReady.\n"
+      );
+      const result = spawnSync("pnpm", ["run", "check:markdownlint-cli2"], {
+        cwd: directory,
+        env: {
+          ...fixtureEnvironment(),
+          PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
+        }
+      });
+      expect(
+        result.status,
+        result.stderr.toString() + result.stdout.toString()
+      ).toBe(0);
+    } finally {
+      if (corepackRoot === undefined) {
+        delete process.env.COREPACK_ROOT;
+      } else {
+        process.env.COREPACK_ROOT = corepackRoot;
+      }
+    }
+  }, 30_000);
 });
 
 describe("Maven and Go hook entrypoints", () => {
