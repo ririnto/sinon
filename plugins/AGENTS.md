@@ -3,6 +3,12 @@
 Each publishable package lives directly under `plugins/<plugin>/` and keeps its README, manifest, runtime files, scripts, tests, and assets inside that root.
 The package root is the containment boundary for declared paths and packaged content.
 
+Herdr is an upstream-owned, temporary marketplace-exposure shim, not a Sinon-maintained plugin.
+Limit shims to pure marketplace exposure, required identity and licensing metadata, and verbatim upstream-content synchronization.
+Do not add local extensions, reflow upstream prose, or put Sinon portfolio policy inside a shim.
+Remove a shim when its upstream project publishes its own Claude marketplace listing.
+Local content-authoring conventions apply to Sinon-maintained plugins, not upstream content synchronized into shims.
+
 ## Package Contract
 
 Keep the marketplace manifest aligned with package roots.
