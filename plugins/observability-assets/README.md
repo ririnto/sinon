@@ -55,6 +55,7 @@ It may load observability skills but does not delegate to other agents.
 - Provider YAML, dashboard-as-code folder structure, and file-wins drift handling belong in `dashboard-provisioning`.
 
 Start with the operational question and select the skill for the affected asset.
+Read the selected skill's `SKILL.md` before accessing its supporting references.
 Load supporting references only for the details the task needs.
 Cross-skill work does not require running every workflow above.
 
