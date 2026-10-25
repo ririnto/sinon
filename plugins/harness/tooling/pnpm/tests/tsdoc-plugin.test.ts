@@ -296,9 +296,17 @@ test("Ultracite requires TSDoc on every exported form and public member", async 
   }
 }, 30_000);
 
-test.each(["ts", "tsx", "mts", "cts"])(
-  "Ultracite checks indirectly exported class members in .%s",
-  async (extension) => {
+test.each(
+  ["ts", "tsx", "mts", "cts"].flatMap((extension) =>
+    [
+      "class Service",
+      "const Service = class",
+      "const _Other = class { run() {} }, Service = class Implementation"
+    ].map((declaration) => ({ declaration, extension }))
+  )
+)(
+  "Ultracite checks indirectly exported $declaration members in .$extension",
+  async ({ declaration, extension }) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-tsdoc-indirect-")
     );
@@ -314,7 +322,7 @@ test.each(["ts", "tsx", "mts", "cts"])(
         [false, true].map((documented) => ({
           documented,
           filename: `source-${index}-${documented}.${extension}`,
-          source: `class Service {\n${documented ? doc : ""}run() {}\n}\n${doc}${statement}\n`
+          source: `${declaration} {\n${documented ? doc : ""}run() { return this.#internal(); }\nprivate hidden() {}\nprotected inherited() {}\n#internal() {}\n};\nconst _Helper = class { run() {} };\n${doc}${statement}\n`
         }))
       );
       await Promise.all(
