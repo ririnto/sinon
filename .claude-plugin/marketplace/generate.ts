@@ -226,12 +226,18 @@ const isWithin = (rootPath: string, targetPath: string): boolean => {
   );
 };
 
-const readManifest = async (
-  manifestPath: string,
+const readNativeManifest = async (
+  pluginPath: string,
   label: string
 ): Promise<Record<string, unknown>> => {
   let manifest: unknown;
   try {
+    const manifestPath = await realpath(
+      path.resolve(pluginPath, ".codex-plugin/plugin.json")
+    );
+    if (!isWithin(pluginPath, manifestPath)) {
+      throw new Error(`${label} resolves outside the plugin root`);
+    }
     manifest = JSON.parse(await readFile(manifestPath, "utf-8")) as unknown;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
@@ -387,8 +393,8 @@ const validateLocalPlugin = async (
   if (!(await pathExists(nativeManifestPath(pluginPath)))) {
     return false;
   }
-  const manifest = await readManifest(
-    nativeManifestPath(pluginPath),
+  const manifest = await readNativeManifest(
+    pluginPath,
     `native manifest for ${plugin.name}`
   );
   requiredString(
@@ -409,8 +415,8 @@ const validateCodexOnlyPlugin = async (
   pluginPath: string,
   catalogNames: ReadonlySet<string>
 ): Promise<NativePlugin> => {
-  const manifest = await readManifest(
-    nativeManifestPath(pluginPath),
+  const manifest = await readNativeManifest(
+    pluginPath,
     `native manifest for ${directory}`
   );
   const name = requiredString(
@@ -446,6 +452,7 @@ const validateCodexOnlyPlugin = async (
  */
 const findCodexOnlyPlugins = async (
   repositoryRoot: string,
+  rootRealPath: string,
   catalogRealPaths: ReadonlySet<string>,
   catalogNames: ReadonlySet<string>
 ): Promise<NativePlugin[]> => {
@@ -455,8 +462,11 @@ const findCodexOnlyPlugins = async (
     entries
       .filter((entry) => entry.isDirectory())
       .map(async (entry) => {
-        const pluginPath = await realpath(
-          path.resolve(pluginsRoot, entry.name)
+        const pluginPath = await resolveLocalPluginPath(
+          repositoryRoot,
+          rootRealPath,
+          entry.name,
+          { path: `./plugins/${entry.name}`, source: "local" }
         );
         const listed =
           catalogRealPaths.has(pluginPath) ||
@@ -561,6 +571,7 @@ export const createCodexMarketplace = async (
   );
   const codexOnlyPlugins = await findCodexOnlyPlugins(
     repositoryRoot,
+    rootRealPath,
     seenRealPaths,
     seenNames
   );

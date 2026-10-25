@@ -13,7 +13,7 @@ metadata:
     pnpm catalogs:
       url: https://pnpm.io/catalogs
     pnpm installation:
-      version: 12.10.1
+      version: 12.15.0
       url: https://pnpm.io/installation
 ---
 

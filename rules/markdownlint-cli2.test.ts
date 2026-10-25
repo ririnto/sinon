@@ -72,7 +72,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
       rm(path.join(directory, "ignored.local.md")),
       rm(path.join(directory, "included.md"))
     ]);
-
     const harnessDirectory = path.join(directory, "plugins/harness");
     const otherDirectory = path.join(
       directory,
@@ -96,7 +95,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
         "# Other plugin\n\nAn em dash \u2014 and a [skill](../skills/example/SKILL.md).\n"
       )
     ]);
-
     const generalRules = runMarkdownlint(directory, "plugins/harness/rules.md");
     expect(generalRules.status).toBe(1);
     for (const rule of [
@@ -107,7 +105,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
       expect(generalRules.output).toContain(rule);
     }
     await rm(path.join(harnessDirectory, "rules.md"));
-
     const harnessScope = runMarkdownlint(
       directory,
       "plugins/harness/scoped.md"
@@ -124,7 +121,7 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
-});
+}, 30_000);
 
 test("upstream box drawing configuration preserves Unicode coverage, columns and no fixes", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-upstream-boxes-"));
@@ -180,4 +177,4 @@ test("upstream box drawing configuration preserves Unicode coverage, columns and
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
-});
+}, 30_000);

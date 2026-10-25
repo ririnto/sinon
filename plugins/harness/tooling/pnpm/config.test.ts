@@ -142,14 +142,22 @@ const preparePackageRoot = async (directory: string): Promise<void> => {
   );
 };
 
-const runPackageScript = (directory: string, script: string) =>
-  spawnSync("pnpm", ["run", script], {
+/**
+ * Runs a package script in a materialized fixture as a directly invoked pnpm.
+ * Drops Corepack markers so the fixture's packageManager pin governs the run instead of the caller's Corepack dispatch.
+ */
+const runPackageScript = (directory: string, script: string) => {
+  const environment = Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !name.startsWith("COREPACK"))
+  );
+  return spawnSync("pnpm", ["run", script], {
     cwd: directory,
     env: {
-      ...process.env,
-      PATH: `${path.join(nodeModulesDirectory, ".bin")}${path.delimiter}${process.env.PATH}`
+      ...environment,
+      PATH: `${path.join(nodeModulesDirectory, ".bin")}${path.delimiter}${environment.PATH}`
     }
   });
+};
 
 const markdownFiles = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -623,6 +631,31 @@ describe("pnpm profile configuration", () => {
       expect(fixed).toContain("  // Explain the return value");
       expect(fixed).toContain('  });\n  test("second"');
     } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }, 90_000);
+
+  test("materialized scripts ignore inherited Corepack markers", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "sinon-corepack-"));
+    const corepackRoot = process.env.COREPACK_ROOT;
+    process.env.COREPACK_ROOT = "/nonexistent-corepack-root";
+    try {
+      await preparePackageRoot(directory);
+      await writeFile(
+        path.join(directory, "README.md"),
+        "# Target\n\nReady.\n"
+      );
+      const result = runPackageScript(directory, "check:markdownlint-cli2");
+      expect(
+        result.status,
+        result.stderr.toString() + result.stdout.toString()
+      ).toBe(0);
+    } finally {
+      if (corepackRoot === undefined) {
+        delete process.env.COREPACK_ROOT;
+      } else {
+        process.env.COREPACK_ROOT = corepackRoot;
+      }
       await rm(directory, { force: true, recursive: true });
     }
   }, 90_000);
