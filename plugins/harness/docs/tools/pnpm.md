@@ -407,6 +407,8 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 ## Source Profile Version Evidence
 
 The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `8.0.1`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
+The Harness source-profile baseline is maintained independently from the Sinon root catalog and may lag it.
+The root `pnpm-workspace.yaml` catalog, `package.json`, and `pnpm-lock.yaml` own installed root tool versions.
 Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.
 The target owns final dependency versions through its manifest and lockfile.
 The fragment's catalog ranges are source-profile evidence, not mandatory target pins.
