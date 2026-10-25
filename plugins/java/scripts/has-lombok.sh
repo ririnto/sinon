@@ -53,12 +53,10 @@ contains_lombok_dependency() {
 # @return Prints one file path per line, excluding .git/, node_modules/, build/, target/.
 find_project_files() {
   find "${project_root}" \
+    -mindepth 1 \
+    \( -type d \( -name .git -o -name node_modules -o -name build -o -name target \) -prune \) -o \
     -type f \
     \( -name pom.xml -o -name build.gradle -o -name build.gradle.kts -o -path '*/gradle/libs.versions.toml' -o -name .classpath -o -name .factorypath \) \
-    -not -path '*/.git/*' \
-    -not -path '*/node_modules/*' \
-    -not -path '*/build/*' \
-    -not -path '*/target/*' \
     -print
 }
 
