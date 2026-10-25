@@ -1,26 +1,80 @@
-import { expect, test } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
-import {
-  extractFrontmatterFromText,
-  parseFields
-} from "../skills/spec-driven-development/scripts/sdd/frontmatter.js";
+import { expect, onTestFinished, test, vi } from "vitest";
 
-test("extractFrontmatterFromText returns the closing line number", () => {
-  expect(
-    extractFrontmatterFromText("---\ntitle: value\n---\nbody")?.endLine
-  ).toBe(3);
-});
+import { main } from "../skills/spec-driven-development/scripts/sdd/cli.js";
 
-test("extractFrontmatterFromText returns undefined without a header", () => {
-  expect(extractFrontmatterFromText("title: value\n---")).toBeUndefined();
-});
+test.each([
+  [
+    [],
+    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" },
+    undefined
+  ],
+  [
+    ["--fields", ""],
+    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" },
+    undefined
+  ],
+  [
+    ["--fields", ", ,"],
+    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" },
+    undefined
+  ],
+  [
+    ["--fields", " status, tags, ,title"],
+    { status: "draft", tag: ["one"], title: "Value" },
+    ["status", "tag", "title"]
+  ]
+] as const)(
+  "get-frontmatter selects fields with options %j and reports the header boundary",
+  (options, expected, fieldOrder) => {
+    const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-fields-"));
+    onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+    const file = path.join(directory, "SPEC.md");
+    writeFileSync(
+      file,
+      "---\ntitle: Value\ntag: [one]\nstatus: draft\ndescription: Hidden\n---\nbody: ignored\n"
+    );
+    const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
+    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    onTestFinished(() => {
+      vi.restoreAllMocks();
+    });
+    expect(main(["get-frontmatter", "spec", file, ...options])).toBe(0);
+    expect(output).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(output.mock.calls[0]?.[0]))).toEqual({
+      ...expected,
+      file,
+      frontmatter_end_line: 6,
+      kind: "spec"
+    });
+    if (fieldOrder !== undefined) {
+      expect(
+        Object.keys(JSON.parse(String(output.mock.calls[0]?.[0])))
+      ).toEqual(["file", "frontmatter_end_line", "kind", ...fieldOrder]);
+    }
+    expect(errors).not.toHaveBeenCalled();
+  }
+);
 
-test("extractFrontmatterFromText rejects unterminated frontmatter", () => {
-  expect(() => extractFrontmatterFromText("---\ntitle: value")).toThrow(
-    "Unterminated YAML frontmatter"
-  );
-});
-
-test("parseFields returns undefined for empty input", () => {
-  expect(parseFields("")).toBeUndefined();
+test.each([
+  ["missing", "title: value\n---"],
+  ["unterminated", "---\ntitle: value"]
+])("get-frontmatter rejects a %s header without output", (_kind, content) => {
+  const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-header-"));
+  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  const file = path.join(directory, "SPEC.md");
+  writeFileSync(file, content);
+  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
+  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+  expect(main(["get-frontmatter", "spec", file])).toBe(1);
+  expect(output).not.toHaveBeenCalled();
+  expect(errors).toHaveBeenCalledTimes(1);
+  expect(errors.mock.calls.flat().join("\n")).toContain(file);
+  expect(errors.mock.calls.flat().join("\n")).toContain("frontmatter");
 });

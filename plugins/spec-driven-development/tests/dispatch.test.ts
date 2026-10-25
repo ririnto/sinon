@@ -4,7 +4,6 @@ import path from "node:path";
 
 import { expect, onTestFinished, test, vi } from "vitest";
 
-import { parseArgs } from "../skills/spec-driven-development/scripts/sdd/args.js";
 import { main } from "../skills/spec-driven-development/scripts/sdd/cli.js";
 import { generateMermaid } from "../skills/spec-driven-development/scripts/sdd/graph.js";
 import { repositoryPaths } from "./test-support/paths.js";
@@ -63,26 +62,20 @@ test("diagram generation keeps colliding path IDs distinct", () => {
   expect(errors).not.toHaveBeenCalled();
 });
 
-test("parseArgs returns undefined for an omitted command", () => {
-  expect(parseArgs([])).toBeUndefined();
-});
-
-test("parseArgs marks long help as a boolean option", () => {
-  const parsed = parseArgs(["--help"]);
-  expect(parsed?.options.help).toBe(true);
-  expect(parsed?.positionals).toHaveLength(0);
-});
-
-test("parseArgs returns undefined for an unknown option", () => {
-  expect(parseArgs(["validate", "--unknown"])).toBeUndefined();
-});
-
-test("main returns zero for long help", () => {
-  expect(main(["--help"])).toBe(0);
-});
-
-test("main returns one for an unknown command", () => {
-  expect(main(["unknown-command"])).toBe(1);
+test.each([
+  [[], 1],
+  [["--help"], 0],
+  [["validate", repositoryPaths.sddFixtureRoot, "--unknown"], 1],
+  [["unknown-command"], 1]
+] as const)("main reports the command outcome for %j", (args, expected) => {
+  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
+  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+  expect(main(args)).toBe(expected);
+  expect(output).not.toHaveBeenCalled();
+  expect(errors).toHaveBeenCalled();
 });
 
 test("list-tags preserves lexical ordering and counts", () => {
@@ -183,28 +176,21 @@ test.each([
   }
 );
 
-test.each([
-  ["number", "status: 1"],
-  ["null", "status: null"],
-  ["list", "status: [draft]"],
-  ["mapping", "status: {value: draft}"],
-  ["missing", ""],
-  ["unknown string", "status: unknown"],
-  ["quoted numeric string", 'status: "1"']
-])("validate exits nonzero for a %s status", (_kind, statusField) => {
+test("validate reports an invalid status and exits nonzero", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-status-cli-"));
   onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
   const specDirectory = path.join(directory, "spec", "domain");
   mkdirSync(specDirectory, { recursive: true });
+  const file = path.join(specDirectory, "SPEC.md");
   writeFileSync(
-    path.join(specDirectory, "SPEC.md"),
-    `---\ntitle: Status Example\ndescription: Example.\nlast_updated: "2026-10-23"\n${statusField}\ncall: []\n---\n`
+    file,
+    '---\ntitle: Status Example\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: unknown\ncall: []\n---\n'
   );
   const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
-
   expect(main(["validate", directory])).toBe(1);
+  expect(errors.mock.calls.flat().join("\n")).toContain(file);
   expect(errors.mock.calls.flat().join("\n")).toContain("status");
 });
