@@ -70,10 +70,10 @@ Keep an existing parent, BOM, or version-catalog pin unless the task authorizes 
 ### Minimal application shape
 
 ```java
-@SpringBootApplication
 /**
  * Entry point that boots the application through Spring Boot's auto-configuration.
  */
+@SpringBootApplication
 public class Application {
     /**
      * Launches the Spring application context.
