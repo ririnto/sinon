@@ -3,26 +3,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { describe, expect, test } from "vitest";
+import { expect, test } from "vitest";
 
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
-import tsdoc from "../plugins/tsdoc-plugin.js";
-
-type Rule = (typeof tsdoc.rules)["require-export-tsdoc"];
-type RuleContext = Parameters<Rule["create"]>[0];
-type Visitor = ReturnType<Rule["create"]>;
-type ExportNode = Parameters<NonNullable<Visitor["ExportNamedDeclaration"]>>[0];
-
-interface Report {
-  readonly data?: Record<string, string | undefined>;
-  readonly messageId: string;
-  readonly node: unknown;
-}
-
-interface Comment {
-  readonly type: string;
-  readonly value: string;
-}
 
 const writeConfig = (directory: string): Promise<void> =>
   writeFile(
@@ -35,117 +18,38 @@ const writeConfig = (directory: string): Promise<void> =>
     })
   );
 
-const makeExportedFunction = (): ExportNode =>
-  ({
-    declaration: {
-      end: 20,
-      id: { name: "parse", type: "Identifier" },
-      parent: undefined,
-      start: 0,
-      type: "FunctionDeclaration"
-    },
-    parent: undefined,
-    start: 0,
-    type: "ExportNamedDeclaration"
-  }) as unknown as ExportNode;
-
-const makeContext = (
-  commentsBefore: readonly Comment[] = []
-): { context: RuleContext; reports: Report[] } => {
-  const reports: Report[] = [];
-  return {
-    context: {
-      filename: "source.ts",
-      report: (report: Report) => {
-        reports.push(report);
-      },
-      sourceCode: {
-        getCommentsBefore: () =>
-          commentsBefore.map((comment) => ({
-            ...comment,
-            end: comment.value.length + 4,
-            start: 0
-          })),
-        text: `/*${commentsBefore[0]?.value ?? ""}*/\n`
-      }
-    } as unknown as RuleContext,
-    reports
-  };
-};
-
-describe("pnpm TSDoc rule", () => {
-  test.each([false, true])(
-    "Ultracite checks public methods on a directly exported class expression (documented=%s)",
-    async (documented) => {
-      const directory = await mkdtemp(
-        path.join(tmpdir(), "sinon-tsdoc-exported-class-")
+test.each([false, true])(
+  "Ultracite checks public methods on a directly exported class expression (documented=%s)",
+  async (documented) => {
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "sinon-tsdoc-exported-class-")
+    );
+    const doc = "/**\n * Provide the service.\n */\n";
+    const memberDoc = documented
+      ? "  /**\n   * Read the service.\n   */\n"
+      : "";
+    const filename = "service.ts";
+    try {
+      await writeConfig(directory);
+      await writeFile(
+        path.join(directory, filename),
+        `${doc}export const Service = class {\n${memberDoc}  read() {\n    return this;\n  }\n};\n`
       );
-      const doc = "/**\n * Provide the service.\n */\n";
-      const memberDoc = documented
-        ? "  /**\n   * Read the service.\n   */\n"
-        : "";
-      const filename = "service.ts";
-      try {
-        await writeConfig(directory);
-        await writeFile(
-          path.join(directory, filename),
-          `${doc}export const Service = class {\n${memberDoc}  read() {\n    return this;\n  }\n};\n`
-        );
-        if (documented) {
-          expect(runUltracite(directory, filename, "fix").status).toBe(0);
-        }
-        const result = runUltracite(directory, filename);
-        expect(result.status).toBe(documented ? 0 : 1);
-        expect(result.diagnostics.map(({ message }) => message)).toEqual(
-          documented
-            ? []
-            : ['Missing TSDoc for exported public API method "read".']
-        );
-      } finally {
-        await rm(directory, { force: true, recursive: true });
+      if (documented) {
+        expect(runUltracite(directory, filename, "fix").status).toBe(0);
       }
+      const result = runUltracite(directory, filename);
+      expect(result.status).toBe(documented ? 0 : 1);
+      expect(result.diagnostics.map(({ message }) => message)).toEqual(
+        documented
+          ? []
+          : ['Missing TSDoc for exported public API method "read".']
+      );
+    } finally {
+      await rm(directory, { force: true, recursive: true });
     }
-  );
-
-  test("reports an exported TypeScript function without TSDoc", () => {
-    const { context, reports } = makeContext();
-    tsdoc.rules["require-export-tsdoc"]
-      .create(context)
-      .ExportNamedDeclaration?.(makeExportedFunction());
-    expect(reports).toHaveLength(1);
-    expect(reports[0]?.messageId).toBe("missingTsdoc");
-    expect(reports[0]?.data).toEqual({ kind: "function", name: "parse" });
-  });
-
-  test.each(["* Parse input. ", "* Parse input.\n ", "*\n * Parse input. "])(
-    "reports documentation with a shared delimiter line: %s",
-    (value) => {
-      const { context, reports } = makeContext([{ type: "Block", value }]);
-      tsdoc.rules["require-export-tsdoc"]
-        .create(context)
-        .ExportNamedDeclaration?.(makeExportedFunction());
-      expect(reports[0]?.messageId).toBe("multilineTsdoc");
-      expect(reports).toHaveLength(1);
-    }
-  );
-
-  test("allows a documented export and ignores JavaScript files", () => {
-    const documented = makeContext([
-      { type: "Block", value: "*\n * Parse input.\n " }
-    ]);
-    tsdoc.rules["require-export-tsdoc"]
-      .create(documented.context)
-      .ExportNamedDeclaration?.(makeExportedFunction());
-    expect(documented.reports).toEqual([]);
-    const javascript = makeContext();
-    javascript.context.filename = "source.js";
-    expect(
-      Object.keys(
-        tsdoc.rules["require-export-tsdoc"].create(javascript.context)
-      )
-    ).toEqual([]);
-  });
-});
+  }
+);
 
 test("Ultracite checks TSDoc delimiter lines on exports and methods", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-"));
@@ -229,6 +133,7 @@ test("Ultracite requires TSDoc on every exported form and public member", async 
     await writeFile(
       path.join(directory, "invalid.ts"),
       [
+        "export function parse() { return 1; }",
         "export interface Shape { size: number; }",
         "export type Alias = string;",
         "export enum Mode { On }",
@@ -260,6 +165,7 @@ test("Ultracite requires TSDoc on every exported form and public member", async 
     const invalid = runUltracite(directory, "invalid.ts");
     expect(invalid.status).toBe(1);
     expect(invalid.diagnostics.map(({ message }) => message)).toEqual([
+      'Missing TSDoc for exported public API function "parse".',
       'Missing TSDoc for exported public API interface "Shape".',
       'Missing TSDoc for exported public API type alias "Alias".',
       'Missing TSDoc for exported public API enum "Mode".',
