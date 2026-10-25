@@ -392,6 +392,62 @@ test("check mode reports drift without rewriting the generated marketplace", asy
   expect(readFileSync(outputPath, "utf-8")).toBe(drift);
 });
 
+test.each(
+  [true, false].flatMap((listed) =>
+    [".codex-plugin", ".codex-plugin/plugin.json"].map((component) => ({
+      component,
+      listed
+    }))
+  )
+)(
+  "rejects escaping native manifest $component with listed=$listed before writing the catalog",
+  async ({ component, listed }) => {
+    const root = makeRoot();
+    const outside = makeRoot();
+    writePlugin(root, "helper");
+    writePlugin(outside, "helper");
+    const target = path.join(root, "plugins/helper", component);
+    rmSync(target, { recursive: true });
+    symlinkSync(
+      path.join(outside, "plugins/helper", component),
+      target,
+      component.endsWith(".json") ? "file" : "dir"
+    );
+    await expect(
+      syncCodexMarketplace(
+        catalog(listed ? [localEntry("helper")] : []),
+        root,
+        false
+      )
+    ).rejects.toThrow("resolves outside the plugin root");
+    expect(readdirSync(root)).toEqual(["plugins"]);
+  }
+);
+
+test("rejects Codex-only discovery through an external plugins directory", async () => {
+  const root = makeRoot();
+  const outside = makeRoot();
+  writePlugin(outside, "helper");
+  rmSync(path.join(root, "plugins"), { recursive: true });
+  symlinkSync(path.join(outside, "plugins"), path.join(root, "plugins"), "dir");
+  await expect(syncCodexMarketplace(catalog([]), root, false)).rejects.toThrow(
+    "resolves outside the repository root"
+  );
+  expect(readdirSync(root)).toEqual(["plugins"]);
+});
+
+test("accepts native manifest links contained within the same plugin", async () => {
+  const root = makeRoot();
+  writePlugin(root, "helper");
+  const manifest = path.join(root, "plugins/helper/.codex-plugin/plugin.json");
+  copyFileSync(manifest, path.join(root, "plugins/helper/identity.json"));
+  rmSync(manifest);
+  symlinkSync("../identity.json", manifest, "file");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).resolves.toMatchObject({ plugins: [{ name: "helper" }] });
+});
+
 const outputComponents = [
   ".agents",
   ".agents/plugins",

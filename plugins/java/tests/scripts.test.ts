@@ -53,7 +53,10 @@ describe("Java shell script behavior", () => {
     ["build.gradle.kts", 'compileOnly("org.projectlombok:lombok")', 0],
     ["gradle/libs.versions.toml", 'lombok = "1.18.40"', 0],
     ["module/pom.xml", "org.projectlombok", 0],
+    [".git/pom.xml", "org.projectlombok", 1],
+    ["node_modules/pom.xml", "org.projectlombok", 1],
     ["build/pom.xml", "org.projectlombok", 1],
+    ["target/pom.xml", "org.projectlombok", 1],
     ["pom.xml", "<project/>", 1]
   ])("Lombok detection in %s", async (file, content, status) => {
     const { project } = await fixture();
@@ -66,6 +69,40 @@ describe("Java shell script behavior", () => {
     ]);
     expect(result.status, result.stderr.toString()).toBe(status);
   });
+
+  test.each(
+    [".git", "node_modules", "build", "target"].flatMap((directory) => [
+      directory,
+      `${directory}/checkout`
+    ])
+  )(
+    "discovers module metadata when the project is located at %s",
+    async (location) => {
+      const { project } = await fixture();
+      const root = path.join(project, location);
+      const module = path.join(root, "module");
+      await mkdir(module, { recursive: true });
+      const jar = path.join(module, "lombok-1.18.40.jar");
+      await writeFile(jar, "fixture");
+      await writeFile(path.join(module, "pom.xml"), "org.projectlombok");
+      await writeFile(
+        path.join(module, ".classpath"),
+        'path="lombok-1.18.40.jar"'
+      );
+      const detected = spawnSync("sh", [
+        path.join(scripts, "has-lombok.sh"),
+        root
+      ]);
+      expect(detected.status, detected.stderr.toString()).toBe(0);
+      const resolved = spawnSync("sh", [
+        path.join(scripts, "has-lombok.sh"),
+        "--resolve-project-jar",
+        root
+      ]);
+      expect(resolved.status, resolved.stderr.toString()).toBe(0);
+      expect(resolved.stdout.toString()).toBe(`${jar}\n`);
+    }
+  );
 
   test.each([
     ["1.18.39", 1],
