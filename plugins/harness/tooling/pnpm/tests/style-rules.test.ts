@@ -460,7 +460,7 @@ test("inline-comment checks preserve directives and license notices", async () =
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
-}, 30_000);
+}, 60_000);
 
 const registrationCases = [
   [

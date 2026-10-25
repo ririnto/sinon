@@ -10,6 +10,10 @@ const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const pnpmProfile = path.join(import.meta.dirname, "../tooling/pnpm");
 const gradleProfile = path.join(import.meta.dirname, "../tooling/gradle");
 
+/**
+ * Builds the environment for spawned fixture tools.
+ * Drops Git local variables and Corepack markers so pnpm honors each fixture's packageManager pin instead of the caller's Corepack dispatch.
+ */
 const fixtureEnvironment = (): NodeJS.ProcessEnv => {
   const localNames = new Set(
     execFileSync("git", ["rev-parse", "--local-env-vars"], {
@@ -19,7 +23,9 @@ const fixtureEnvironment = (): NodeJS.ProcessEnv => {
       .split("\n")
   );
   return Object.fromEntries(
-    Object.entries(process.env).filter(([name]) => !localNames.has(name))
+    Object.entries(process.env).filter(
+      ([name]) => !localNames.has(name) && !name.startsWith("COREPACK")
+    )
   );
 };
 
