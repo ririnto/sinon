@@ -65,7 +65,7 @@ test("diagram generation keeps colliding path IDs distinct", () => {
 test.each([
   [[], 1],
   [["--help"], 0],
-  [["validate", "--unknown"], 1],
+  [["validate", repositoryPaths.sddFixtureRoot, "--unknown"], 1],
   [["unknown-command"], 1]
 ] as const)("main reports the command outcome for %j", (args, expected) => {
   const output = vi.spyOn(console, "log").mockImplementation(vi.fn());

@@ -9,23 +9,27 @@ import { main } from "../skills/spec-driven-development/scripts/sdd/cli.js";
 test.each([
   [
     [],
-    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" }
+    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" },
+    undefined
   ],
   [
     ["--fields", ""],
-    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" }
+    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" },
+    undefined
   ],
   [
     ["--fields", ", ,"],
-    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" }
+    { description: "Hidden", status: "draft", tag: ["one"], title: "Value" },
+    undefined
   ],
   [
-    ["--fields", "title, tags, ,status"],
-    { status: "draft", tag: ["one"], title: "Value" }
+    ["--fields", " status, tags, ,title"],
+    { status: "draft", tag: ["one"], title: "Value" },
+    ["status", "tag", "title"]
   ]
 ] as const)(
   "get-frontmatter selects fields with options %j and reports the header boundary",
-  (options, expected) => {
+  (options, expected, fieldOrder) => {
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-fields-"));
     onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
     const file = path.join(directory, "SPEC.md");
@@ -46,6 +50,11 @@ test.each([
       frontmatter_end_line: 6,
       kind: "spec"
     });
+    if (fieldOrder !== undefined) {
+      expect(
+        Object.keys(JSON.parse(String(output.mock.calls[0]?.[0])))
+      ).toEqual(["file", "frontmatter_end_line", "kind", ...fieldOrder]);
+    }
     expect(errors).not.toHaveBeenCalled();
   }
 );

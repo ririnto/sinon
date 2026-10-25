@@ -11,6 +11,7 @@ test.each([
   ["spec/child/SPEC.md", ["../child/SPEC.md"]],
   ["../child/SPEC.md", ["../child/SPEC.md"]],
   ["absolute#fragment", ["../child/SPEC.md"]],
+  ["child/RESEARCH.md", []],
   ["#fragment", []],
   ["https://example.invalid/SPEC.md", []]
 ] as const)(
@@ -36,6 +37,7 @@ test.each([
           " child/SPEC.md#first ",
           { path: "child/SPEC.md#duplicate" },
           { path: "../child/SPEC.md" },
+          { path: "../../child/SPEC.md" },
           "https://example.invalid/SPEC.md",
           absolute,
           "child/RESEARCH.md",
