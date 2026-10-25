@@ -24,15 +24,18 @@ class ExplicitPropertyTypeTest :
             ).forEach { (source, expected) ->
                 val name = source.substringAfter("val ").substringBefore(" =")
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder
-                        listOf(
-                            KtLintRuleTestEngine.Diagnostic(
-                                1,
-                                source.indexOf(name) + 1,
-                                "harness:explicit-property-type",
-                                canBeAutoCorrected = true
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    source.indexOf(name) + 1,
+                                    "harness:explicit-property-type",
+                                    canBeAutoCorrected = true
+                                )
                             )
                         )
+                    }
                     formattedCode shouldBe expected
                 }
             }
@@ -40,25 +43,31 @@ class ExplicitPropertyTypeTest :
 
         test("autocorrects companion object property") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "class C { companion object { val n = 42 } }")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            34,
-                            "harness:explicit-property-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                34,
+                                "harness:explicit-property-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe "class C { companion object { val n: kotlin.Int = 42 } }"
             }
         }
 
         test("autocorrects object property") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "object O { val n = 42 }")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(1, 16, "harness:explicit-property-type", canBeAutoCorrected = true)
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(1, 16, "harness:explicit-property-type", canBeAutoCorrected = true)
+                        )
                     )
+                }
                 formattedCode shouldBe "object O { val n: kotlin.Int = 42 }"
             }
         }
@@ -73,15 +82,20 @@ class ExplicitPropertyTypeTest :
                 "class C { val x = 1u }",
                 "class C { val x = 1UL }"
             ).forEach { source ->
-                KtLintRuleTestEngine.execute(ruleProvider, source).diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            15,
-                            "harness:explicit-property-type",
-                            canBeAutoCorrected = false
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    15,
+                                    "harness:explicit-property-type",
+                                    canBeAutoCorrected = false
+                                )
+                            )
                         )
-                    )
+                    }
+                }
             }
         }
 
@@ -93,7 +107,9 @@ class ExplicitPropertyTypeTest :
                 "class C { val x: Int = 42 }"
             ).forEach { source ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder emptyList()
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(emptyList())
+                    }
                     formattedCode shouldBe source
                 }
             }
@@ -106,51 +122,64 @@ class ExplicitPropertyTypeTest :
                 "internal var top = true" to "internal var top: kotlin.Boolean = true"
             ).forEach { (source, expected) ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder
-                        listOf(
-                            KtLintRuleTestEngine.Diagnostic(
-                                1,
-                                source.indexOf("top") + 1,
-                                "harness:explicit-property-type",
-                                canBeAutoCorrected = true
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(
+                            listOf(
+                                KtLintRuleTestEngine.Diagnostic(
+                                    1,
+                                    source.indexOf("top") + 1,
+                                    "harness:explicit-property-type",
+                                    canBeAutoCorrected = true
+                                )
                             )
                         )
+                    }
                     formattedCode shouldBe expected
                 }
             }
         }
 
         test("leaves unsafe top level initializers lint only") {
-            KtLintRuleTestEngine.execute(ruleProvider, "private val top = compute()").diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        13,
-                        "harness:explicit-property-type",
-                        canBeAutoCorrected = false
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "private val top = compute()")) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                13,
+                                "harness:explicit-property-type",
+                                canBeAutoCorrected = false
+                            )
+                        )
                     )
-                )
+                }
+            }
         }
 
         test("ignores script properties") {
             val source = "val top = 42\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("autocorrects property with annotation referencing name") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, """class C { @Ann(name = "name") val name = 42 }""")) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            1,
-                            35,
-                            "harness:explicit-property-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                35,
+                                "harness:explicit-property-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe """class C { @Ann(name = "name") val name: kotlin.Int = 42 }"""
             }
         }
@@ -172,25 +201,32 @@ class ExplicitPropertyTypeTest :
                 """.trimIndent() + "\n"
             val firstPass = KtLintRuleTestEngine.execute(ruleProvider, source)
             assertSoftly(firstPass) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            3,
-                            source.indexOf("message") - source.lastIndexOf('\n', source.indexOf("message")),
-                            "harness:explicit-property-type",
-                            canBeAutoCorrected = true
-                        ),
-                        KtLintRuleTestEngine.Diagnostic(
-                            4,
-                            source.indexOf("count") - source.lastIndexOf('\n', source.indexOf("count")),
-                            "harness:explicit-property-type",
-                            canBeAutoCorrected = true
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                3,
+                                source.indexOf("message") - source.lastIndexOf('\n', source.indexOf("message")),
+                                "harness:explicit-property-type",
+                                canBeAutoCorrected = true
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                source.indexOf("count") - source.lastIndexOf('\n', source.indexOf("count")),
+                                "harness:explicit-property-type",
+                                canBeAutoCorrected = true
+                            )
                         )
                     )
+                }
             }
-            val secondPass = KtLintRuleTestEngine.execute(ruleProvider, firstPass.formattedCode).formattedCode
-            secondPass shouldBe expected
-            KtLintRuleTestEngine.execute(ruleProvider, secondPass).formattedCode shouldBe expected
+            val secondPass = KtLintRuleTestEngine.execute(ruleProvider, firstPass.formattedCode)
+            assertSoftly(secondPass) {
+                formattedCode shouldBe expected
+            }
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, secondPass.formattedCode)) {
+                formattedCode shouldBe expected
+            }
         }
     }) {
     companion object {

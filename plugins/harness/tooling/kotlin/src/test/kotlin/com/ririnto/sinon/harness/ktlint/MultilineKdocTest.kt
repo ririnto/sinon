@@ -21,8 +21,11 @@ class MultilineKdocTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                    )
+                }
                 formattedCode shouldBe
                     """
                     /**
@@ -42,7 +45,9 @@ class MultilineKdocTest :
                 class Service
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -59,8 +64,11 @@ class MultilineKdocTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                    )
+                }
                 formattedCode shouldBe
                     """
                     /**
@@ -84,8 +92,11 @@ class MultilineKdocTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                    )
+                }
                 formattedCode shouldBe
                     """
                     /**
@@ -110,8 +121,11 @@ class MultilineKdocTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                    )
+                }
                 formattedCode shouldBe
                     """
                     /**
@@ -136,8 +150,11 @@ class MultilineKdocTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", canBeAutoCorrected = true))
+                    )
+                }
                 formattedCode shouldBe
                     """
                     /**
@@ -159,8 +176,9 @@ class MultilineKdocTest :
                     class Service
                     """.trimIndent() + "\n"
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                    diagnostics shouldContainExactlyInAnyOrder
-                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", false))
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", false)))
+                    }
                     formattedCode shouldBe source
                 }
             }
@@ -174,8 +192,9 @@ class MultilineKdocTest :
                  */ class Service
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", false))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", false)))
+                }
                 formattedCode shouldBe source
             }
         }
@@ -189,8 +208,9 @@ class MultilineKdocTest :
                 class Service
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 16, "harness:multiline-kdoc", false))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(KtLintRuleTestEngine.Diagnostic(1, 16, "harness:multiline-kdoc", false)))
+                }
                 formattedCode shouldBe source
             }
         }
@@ -206,8 +226,9 @@ class MultilineKdocTest :
                         """.trimIndent() + "\n"
                     )
                 ) {
-                    diagnostics shouldContainExactlyInAnyOrder
-                        listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", true))
+                    assertSoftly(diagnostics) {
+                        shouldContainExactlyInAnyOrder(listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", true)))
+                    }
                     formattedCode shouldBe
                         """
                         /**
@@ -229,8 +250,9 @@ class MultilineKdocTest :
                 class Service
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", false))
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(listOf(KtLintRuleTestEngine.Diagnostic(1, 1, "harness:multiline-kdoc", false)))
+                }
                 formattedCode shouldBe source
             }
         }

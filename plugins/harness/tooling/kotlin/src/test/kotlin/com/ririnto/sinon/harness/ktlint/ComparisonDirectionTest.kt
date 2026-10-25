@@ -12,36 +12,50 @@ import io.kotest.matchers.shouldBe
 class ComparisonDirectionTest :
     FunSpec({
         test("reports but never autocorrects") {
-            KtLintRuleTestEngine.execute(ruleProvider, "fun compare(a: Int, b: Int) = a > b\n").diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        33,
-                        "harness:comparison-direction",
-                        canBeAutoCorrected = false
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun compare(a: Int, b: Int) = a > b\n")) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                33,
+                                "harness:comparison-direction",
+                                canBeAutoCorrected = false
+                            )
+                        )
                     )
-                )
+                }
+            }
         }
 
         test("reports greater than or equal") {
-            KtLintRuleTestEngine.execute(ruleProvider, "fun compare(a: Int, b: Int) = a >= b\n").diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        33,
-                        "harness:comparison-direction",
-                        canBeAutoCorrected = false
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun compare(a: Int, b: Int) = a >= b\n")) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                33,
+                                "harness:comparison-direction",
+                                canBeAutoCorrected = false
+                            )
+                        )
                     )
-                )
+                }
+            }
         }
 
         test("leaves less than operators unflagged") {
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun compare(a: Int, b: Int) = a < b\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun compare(a: Int, b: Int) = a < b\n"
             }
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, "fun compare(a: Int, b: Int) = a <= b\n")) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe "fun compare(a: Int, b: Int) = a <= b\n"
             }
         }

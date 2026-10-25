@@ -12,8 +12,8 @@ import io.kotest.matchers.shouldBe
 class TerminalBranchWhenTest :
     FunSpec({
         test("reports only outermost same subject equality chain with final else") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun sample(kind: String) {
@@ -27,15 +27,21 @@ class TerminalBranchWhenTest :
                         if (kind == "first") work()
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        5,
-                        "harness:terminal-branch-when",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                5,
+                                "harness:terminal-branch-when",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("ignores if without final else") {
@@ -47,14 +53,16 @@ class TerminalBranchWhenTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("reports same subject type checks") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun render(value: Any) {
@@ -63,15 +71,21 @@ class TerminalBranchWhenTest :
                         else renderOther(value)
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        5,
-                        "harness:terminal-branch-when",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                5,
+                                "harness:terminal-branch-when",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("preserves arbitrary boolean and negated conditions") {
@@ -84,7 +98,9 @@ class TerminalBranchWhenTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -102,7 +118,9 @@ class TerminalBranchWhenTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }

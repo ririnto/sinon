@@ -28,15 +28,18 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            10,
-                            16,
-                            "harness:slf-direct-logging",
-                            false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                10,
+                                16,
+                                "harness:slf-direct-logging",
+                                false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe source
             }
         }
@@ -59,15 +62,18 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            11,
-                            16,
-                            "harness:slf-direct-logging",
-                            false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                11,
+                                16,
+                                "harness:slf-direct-logging",
+                                false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe source
             }
         }
@@ -90,22 +96,25 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder
-                    listOf(
-                        KtLintRuleTestEngine.Diagnostic(
-                            9,
-                            38,
-                            "harness:slf-direct-logging",
-                            false
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                9,
+                                38,
+                                "harness:slf-direct-logging",
+                                false
+                            )
                         )
                     )
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("each direct log level is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import org.slf4j.LoggerFactory
@@ -119,62 +128,74 @@ class SlfDirectLoggingTest :
                         logger.error("error")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        6,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        8,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        9,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                6,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                8,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                9,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("fully qualified logger factory call is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun log() = org.slf4j.LoggerFactory.getLogger("sample").info("message")
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        1,
-                        57,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                1,
+                                57,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("typed logger property is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import org.slf4j.Logger
@@ -184,20 +205,26 @@ class SlfDirectLoggingTest :
                         logger.info("message")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("typed function parameter is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import org.slf4j.Logger
@@ -206,15 +233,21 @@ class SlfDirectLoggingTest :
                         logger.info("message")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        12,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                12,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("fluent logging is safe") {
@@ -228,7 +261,9 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -242,7 +277,9 @@ class SlfDirectLoggingTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe
                     """
                     fun log() = other.info("message")
@@ -251,8 +288,8 @@ class SlfDirectLoggingTest :
         }
 
         test("nullable safe call logger parameter is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import org.slf4j.Logger
@@ -261,40 +298,52 @@ class SlfDirectLoggingTest :
                         logger?.info("message")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        4,
-                        13,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                4,
+                                13,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("nullable fully qualified logger parameter is flagged") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun log(logger: org.slf4j.Logger?) {
                         logger?.info("message")
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        2,
-                        13,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                2,
+                                13,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("same named non logger in another class is safe") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import org.slf4j.Logger
@@ -315,15 +364,21 @@ class SlfDirectLoggingTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        5,
-                        13,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                5,
+                                13,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("shadowing parameter or local value is safe") {
@@ -353,14 +408,16 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
 
         test("companion and member loggers are flagged inside their class") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     import org.slf4j.LoggerFactory
@@ -378,21 +435,27 @@ class SlfDirectLoggingTest :
                         }
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(
-                        7,
-                        16,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    ),
-                    KtLintRuleTestEngine.Diagnostic(
-                        8,
-                        16,
-                        "harness:slf-direct-logging",
-                        canBeAutoCorrected = false
-                    )
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(
+                                7,
+                                16,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            ),
+                            KtLintRuleTestEngine.Diagnostic(
+                                8,
+                                16,
+                                "harness:slf-direct-logging",
+                                canBeAutoCorrected = false
+                            )
+                        )
+                    )
+                }
+            }
         }
 
         test("factory calls nested in unrelated receivers and initializers are safe") {
@@ -416,7 +479,9 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -438,7 +503,9 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -455,7 +522,9 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }
@@ -472,7 +541,9 @@ class SlfDirectLoggingTest :
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe source
             }
         }

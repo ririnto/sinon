@@ -12,8 +12,8 @@ import io.kotest.matchers.shouldBe
 class NullComparisonIdentityTest :
     FunSpec({
         test("flags structural null comparisons on either side including parentheses") {
-            KtLintRuleTestEngine
-                .execute(
+            assertSoftly(
+                KtLintRuleTestEngine.execute(
                     ruleProvider,
                     """
                     fun inspect(value: Any?) {
@@ -23,13 +23,19 @@ class NullComparisonIdentityTest :
                         ((null)) != (value)
                     }
                     """.trimIndent() + "\n"
-                ).diagnostics shouldContainExactlyInAnyOrder
-                listOf(
-                    KtLintRuleTestEngine.Diagnostic(2, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(3, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(4, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
-                    KtLintRuleTestEngine.Diagnostic(5, 5, "harness:null-comparison-identity", canBeAutoCorrected = false)
                 )
+            ) {
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(
+                        listOf(
+                            KtLintRuleTestEngine.Diagnostic(2, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(3, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(4, 5, "harness:null-comparison-identity", canBeAutoCorrected = false),
+                            KtLintRuleTestEngine.Diagnostic(5, 5, "harness:null-comparison-identity", canBeAutoCorrected = false)
+                        )
+                    )
+                }
+            }
         }
 
         test("allows identity comparisons and structural comparisons without null literal") {
@@ -46,7 +52,9 @@ class NullComparisonIdentityTest :
                     """.trimIndent() + "\n"
                 )
             ) {
-                diagnostics shouldContainExactlyInAnyOrder emptyList()
+                assertSoftly(diagnostics) {
+                    shouldContainExactlyInAnyOrder(emptyList())
+                }
                 formattedCode shouldBe
                     """
                     fun inspect(value: Any?) {
