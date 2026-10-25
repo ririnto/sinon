@@ -1,36 +1,29 @@
 ---
 description: >-
-  Open this when deciding whether a Kotlin pipeline should stay eager or move to Sequence is the real blocker.
+  Use for collection builders, compound rejection predicates, or pipeline laziness when the skill needs focused examples.
 ---
 
 # Collections and Sequences
 
-Open this when collection shape and laziness tradeoffs are the hard part.
+Use these examples when the Kotlin skill's collection rules need more detail.
 
-## Rules
+## Chained filters and callable references
 
-- keep ordinary collection pipelines as the default for finite in-memory work
-- switch to `Sequence` only when laziness or single-pass processing materially improves the path
-- break long chains into named locals when business meaning is getting hidden
-- prefer simple `map`, `filter`, `associate`, and `groupBy` before clever pipeline tricks
-- use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged
-- split `filter` predicates containing `&&` when chained filters preserve their meaning.
-  Preserve order, nullability, smart casts, side effects, and eager or lazy behavior.
-- chain independent positive `takeIf` predicates when each one qualifies the same object.
-  Use `?.takeIf` after a nullable receiver so a rejected first predicate skips the next one.
-  Keep `takeUnless` and `filterNot` predicates intact.
-  Do not split mixed-polarity predicates when that changes the Boolean logic.
-
-## Patterns
-
-Readable eager pipeline:
+Here, `users` is a finite list of immutable `User` values, and `hasValidName` is a pure predicate.
+The first filter selects enabled users before the second filter checks their names.
 
 ```kotlin
-fun enabledNames(users: List<User>): List<String> =
-    users.filter(User::enabled).map(User::name)
+fun hasValidName(user: User): Boolean = user.name.isNotBlank()
+
+val enabledNames = users
+    .filter(User::enabled)
+    .filter(::hasValidName)
+    .map(User::name)
 ```
 
-Lazy sequence when the source is large and the chain is selective:
+## Lazy sequences
+
+Use a lazy sequence when the source is large and the chain is selective:
 
 ```kotlin
 fun loadEnabledUsers(lines: List<String>): List<UserId> =
@@ -45,36 +38,44 @@ fun loadEnabledUsers(lines: List<String>): List<UserId> =
         .toList()
 ```
 
-Chain independent predicates and use callable references when they preserve the original behavior:
+## Compound rejection predicates
 
 ```kotlin
-fun hasValidName(user: User): Boolean = user.name.isNotBlank()
+data class Subscription(val suspended: Boolean, val expired: Boolean)
 
-val enabledNames = users
-    .filter(User::enabled)
-    .filter(::hasValidName)
-    .map(User::name)
+fun activeSubscription(subscription: Subscription?): Subscription? =
+    subscription?.takeUnless { current ->
+        current.suspended && current.expired
+    }
+
+fun activeSubscriptionByNegation(subscription: Subscription?): Subscription? =
+    subscription?.takeIf { current ->
+        !(current.suspended && current.expired)
+    }
+
+fun activeSubscriptionBySplit(subscription: Subscription?): Subscription? =
+    subscription
+        ?.takeUnless { current -> current.suspended }
+        ?.takeUnless { current -> current.expired }
 ```
 
-Keep one predicate if splitting changes evaluation order, short-circuiting, null handling, smart casts, side effects, or eager/lazy behavior.
+The safe calls preserve a null result without evaluating either predicate when `subscription` is null.
 
-Use `takeIf` chains for independent positive criteria on one object:
+For a non-null `subscription`, the compound predicate rejects only when both flags are true.
+The negated `takeIf` version returns the same result as the compound `takeUnless` version.
+The split chain rejects when either flag is true.
 
-```kotlin
-data class AccountPolicy(val enabled: Boolean, val verified: Boolean)
-
-fun eligibleAccount(account: AccountPolicy?): AccountPolicy? =
-    account
-        ?.takeIf(AccountPolicy::enabled)
-        ?.takeIf(AccountPolicy::verified)
-```
+| Suspended | Expired | Compound result | Split result |
+| --- | --- | --- | --- |
+| `false` | `false` | `subscription` | `subscription` |
+| `false` | `true` | `subscription` | `null` |
+| `true` | `false` | `subscription` | `null` |
+| `true` | `true` | `null` | `null` |
 
 ## Pitfalls
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| converting every pipeline to `asSequence()` | lazy machinery adds noise without a payoff | stay eager until laziness helps materially |
-| leaving a long pipeline unreadable | the domain meaning gets buried | split the path into named steps |
 | using `Sequence` and then immediately materializing after every step | the code pays complexity without keeping laziness | keep the pipeline either clearly lazy or clearly eager |
 
 ## Key Operations Reference
@@ -104,10 +105,29 @@ val joined: String = numbers.fold("") { acc, n -> "$acc,$n" }
 
 ### Building collections immutably
 
+The list and set combine pinned names with active names from `source` without an intermediate filtered collection.
+The map adds source entries to cached entries without a separate `associateBy` result.
+Source items replace cached entries with matching IDs.
+
 ```kotlin
 val filtered: List<String> = buildList {
+    addAll(pinnedNames)
     for (item in source) {
         if (item.isActive()) { add(item.name) }
+    }
+}
+
+val uniqueNames: Set<String> = buildSet {
+    addAll(pinnedNames)
+    for (item in source) {
+        if (item.isActive()) { add(item.name) }
+    }
+}
+
+val itemById: Map<String, Item> = buildMap {
+    putAll(cachedItemsById)
+    for (item in source) {
+        put(item.id, item)
     }
 }
 ```

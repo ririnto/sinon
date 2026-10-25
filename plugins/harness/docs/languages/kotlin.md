@@ -20,6 +20,8 @@ metadata:
       url:
         - https://kotlinlang.org/docs/_llms/scope-functions.txt
         - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/take-if.html
+    Kotlin Collection Builders:
+      url: https://kotlinlang.org/docs/constructing-collections.html
     Kotest:
       version: 6.2.5
       url:
@@ -52,6 +54,7 @@ metadata:
 
 These rules extend the [common rules](../rules.md) for Kotlin files.
 Read them together with that document.
+Load this reference only after reading the Harness `implement` or `review` skill.
 The [Gradle tool reference](../tools/gradle.md) owns commands and configuration.
 
 ## Effective Visibility And Documentation Comments
@@ -88,6 +91,11 @@ Keep predicates together when later conditions need earlier smart casts.
 Keep them together when splitting changes nullability, short-circuit behavior, effects, exception timing, eager work, allocations, or required performance.
 Keep `takeUnless` and `filterNot` predicates intact.
 Do not split mixed-polarity predicates when that changes their Boolean logic.
+Prefer `takeUnless { condition }` to `takeIf { !condition }` only when Boolean behavior is identical.
+Preserve evaluation order and count, short-circuiting, effects, and exception timing.
+Confine local mutable accumulation that constructs a collection result to `buildList`, `buildSet`, and `buildMap` scopes.
+This requirement excludes owned long-lived mutable state, stateful delegates, recursive visited sets, and algorithmic worklists.
+Do not let a mutable builder receiver escape its lambda.
 Use a `Sequence` only when lazy evaluation matches the contract.
 For optional nullable processing, prefer `?.let` with a named non-null parameter.
 Use the captured parameter instead of rereading the nullable property.
