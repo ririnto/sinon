@@ -1,4 +1,6 @@
 ---
+description: >-
+  Overview of the Observability Assets plugin, its included skills, and practical observability configuration workflow coverage.
 metadata:
   reference:
     Claude Code plugins:
@@ -14,8 +16,6 @@ metadata:
     Grafana:
       version: 13.2.3
       url: https://github.com/grafana/grafana/releases/tag/v13.2.3
-description: >-
-  Overview of the Observability Assets plugin, its included skills, and practical observability configuration workflow coverage.
 ---
 
 # Observability Assets

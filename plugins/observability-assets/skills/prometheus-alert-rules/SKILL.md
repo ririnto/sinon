@@ -170,12 +170,12 @@ inactive --> pending --> firing
 
 ```
 
-## Inactive
+### Inactive
 
 The expression evaluates to false or produces no series.
 No alert state exists.
 
-## Pending
+### Pending
 
 The expression first evaluates to true.
 A timer starts for the `for` duration.
@@ -186,7 +186,9 @@ During pending:
 - If the expression becomes false before `for` elapses, the alert reverts to inactive
 - If the expression stays true for the full `for` duration, the alert transitions to firing
 
-## Firing: The `for` duration has been satisfied while the expression remains true
+### Firing
+
+The `for` duration has been satisfied while the expression remains true.
 
 - Alert instances are sent to Alertmanager
 - Notifications are dispatched according to Alertmanager routing
@@ -241,7 +243,7 @@ Template rules:
 
 - Templates execute once per alert instance (per labelset)
 - Template errors cause the entire annotation to render as the raw error string
-- Use `{{ $labels.name }}` syntax -- dot notation like `{{ $labels.name }}` works.
+- Use dot notation such as `{{ $labels.name }}` to access labels.
   - Bracket notation `{{ index $labels "name" }}` handles special characters
 - `$value` is always a string.
   - Compare numerically with helper functions where available
