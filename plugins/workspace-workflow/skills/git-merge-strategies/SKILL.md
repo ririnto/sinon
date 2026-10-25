@@ -17,6 +17,9 @@ metadata:
 
 Integrate the named source into the named target using repository policy and actual ancestry.
 This skill covers merges, not rebase, cherry-pick, or remote publication.
+For PR-based delivery, open the PR before independent review of the complete posted change.
+Complete independent review and resolve required checks and blockers before normal integration.
+Never push directly to protected branches or the named base branch.
 
 ## Authority And Preconditions
 
@@ -89,6 +92,25 @@ A merge request alone does not authorize global Git configuration edits.
 Verify the expected history result, affected diff, and preservation of unrelated work.
 Run native checks for content changed by integration or conflict resolution.
 Reuse valid checks for unchanged inputs instead of rerunning suites because commit hashes changed.
+
+### Post-Merge Base Synchronization
+
+After the platform records the PR merge, locate the base worktree.
+Confirm that `git -C /path/to/base-worktree branch --show-current` reports `<base>`.
+Resolve the actual remote and base branch before running this command in that worktree:
+
+```sh
+git -C /path/to/base-worktree pull --ff-only <remote> <base>
+```
+
+If fast-forward synchronization fails, report the blocker without creating a local merge or rewriting history.
+Compare the local named base ref, its remote-tracking ref, and the platform's posted PR merge record.
+For `main`, compare local `main`, `<remote>/main`, and the recorded merge result.
+Require both refs to point to the same commit and the recorded merge result to be an ancestor of that commit.
+Account for later base advances rather than requiring current tips to equal an older merge result.
+Resolve discrepancies before dependent work or task-owned branch and worktree cleanup.
+
+### Handoff
 
 Report source and target, merge mode, resulting commit, checks, and unresolved conflicts or blockers.
 Do not push, delete remote branches, or rewrite published history without a separate applicable grant.

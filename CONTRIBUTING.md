@@ -40,6 +40,8 @@ Reuse passing checks only when relevant behavior, inputs, configuration, and too
 ## Commits And Pull Requests
 
 Create a feature branch from the current named base branch.
+Never push directly to protected branches or the named base branch.
+Push the feature branch and open its pull request before independent review.
 Keep commits small and reviewable.
 Separate each commit title from its body with a blank line.
 Explain the reason, main changes, verification, and material limitations in the body.
@@ -47,6 +49,13 @@ Write each complete body sentence on its own line and separate paragraphs with b
 
 Use the [pull request template](.github/pull_request_template.md) for the resulting behavior, scope, verification, and limitations.
 Link the issue and use a closing reference only when the change satisfies its acceptance criteria.
-Open pull requests for independent review of the complete posted change.
-Resolve acceptance blockers and required checks before normal integration.
-Verify the named base branch after integration before removing task-owned branches or worktrees.
+Complete independent review of the complete posted change and resolve acceptance blockers and required checks before normal integration.
+After the platform records the PR merge, locate the base worktree.
+Confirm `git -C /path/to/base-worktree branch --show-current` reports `<base>`.
+Run `git -C /path/to/base-worktree pull --ff-only <remote> <base>` there before dependent work or cleanup.
+If fast-forward synchronization fails, report the blocker without creating a local merge or rewriting history.
+Compare the local named base ref, its remote-tracking ref, and the platform's posted PR merge record.
+For `main`, compare local `main`, `<remote>/main`, and the recorded merge result.
+Require both refs to point to the same commit and the recorded merge result to be an ancestor of that commit.
+Account for later base advances rather than requiring the current tips to equal an older merge result.
+Resolve readback discrepancies before dependent work or removing task-owned branches or worktrees.

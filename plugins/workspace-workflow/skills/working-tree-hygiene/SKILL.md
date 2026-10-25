@@ -88,8 +88,12 @@ Ahead/behind counts describe local remote-tracking refs, which may be stale.
 Fetch the named remote when current remote evidence is needed and network access is authorized.
 If the branch is behind or diverged, choose the repository-approved merge or rebase path before acting.
 Do not use an unqualified `git pull` as automatic remediation.
+After PR integration, use [git-merge-strategies](../git-merge-strategies/SKILL.md) for fast-forward-only synchronization in the base branch's worktree and three-way readback.
 
 A ready-to-push report identifies the intended commits, target ref, relevant validation, and remaining blockers.
+Never push directly to protected branches or the named base branch.
+Push the feature branch and open its PR before independent review.
+Complete independent review and resolve required checks and blockers before normal integration.
 Unrelated dirty work does not enter a push, but MUST remain untouched and separate from the verified commit state.
 Never force-push merely to resolve a rejected push.
 
