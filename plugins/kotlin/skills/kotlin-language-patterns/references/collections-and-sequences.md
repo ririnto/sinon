@@ -58,6 +58,12 @@ The split chain rejects when either flag is true.
 | `true` | `false` | `subscription` | `null` |
 | `true` | `true` | `null` | `null` |
 
+## Pitfalls
+
+| Anti-pattern | Why it fails | Correct move |
+| --- | --- | --- |
+| using `Sequence` and then immediately materializing after every step | the code pays complexity without keeping laziness | keep the pipeline either clearly lazy or clearly eager |
+
 ## Key Operations Reference
 
 ### Grouping and associating
