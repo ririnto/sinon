@@ -263,13 +263,6 @@ const exportTsdocRule = {
         }
       }
     };
-    /**
-     * Resolve a class binding in the export statement's enclosing statement list.
-     *
-     * @param node Export statement referencing a local binding.
-     * @param name Local identifier to resolve.
-     * @returns Nothing.
-     */
     const validateLocalClass = (node: Node, name: string | undefined): void => {
       const scope = node.parent;
       if (
