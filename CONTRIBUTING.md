@@ -37,6 +37,29 @@ Record exact commands, outcomes, and material limitations.
 Keep failed and unrun checks distinct from passing evidence.
 Reuse passing checks only when relevant behavior, inputs, configuration, and tools remain unchanged.
 
+### Root And Profile Lint Modes
+
+The root `check:react-effects` and `ultracite:check` scripts intentionally run Ultracite without `--type-aware` for the current root configuration.
+Installing `oxlint-tsgolint` does not enable type-aware execution in those scripts.
+The separate root `check:typescript` script runs `tsc --noEmit`.
+Its command-line option does not apply to Ultracite's TypeScript configuration.
+
+Adding `--type-aware` to either root lint command produced exit code 1 with this diagnostic:
+
+```text
+typescript(tsconfig-error): Invalid tsconfig
+Option 'allowImportingTsExtensions' can only be used when one of 'noEmit', 'emitDeclarationOnly', or 'rewriteRelativeImportExtensions' is set.
+```
+
+The root `tsconfig.json` enables `allowImportingTsExtensions` without those emission options.
+Both root lint commands passed without the flag in the recorded comparison.
+Enabling root type-aware linting requires a separately verified configuration change.
+
+The Harness profile has a separate execution contract in `plugins/harness/tooling/pnpm/package.fragment.json`.
+Its Ultracite check and fix scripts explicitly pass `--type-aware`.
+Its base `oxlint.config.ts` enables `typescript/no-floating-promises` with `ignoreVoid: false`.
+Passing root checks does not establish that profile's type-aware promise diagnostics.
+
 ## Commits And Pull Requests
 
 Create a feature branch from the current named base branch.
