@@ -422,10 +422,13 @@ describe("pnpm profile configuration", () => {
         );
         expect(status).toBe(1);
         expect(
-          diagnostics
-            .filter(({ code }) => code?.startsWith("style("))
-            .map(({ code }) => code)
-        ).toEqual([stylePass.ruleCode]);
+          diagnostics.filter(({ code }) => code?.startsWith("style("))
+        ).toEqual([
+          expect.objectContaining({
+            code: stylePass.ruleCode,
+            severity: "error"
+          })
+        ]);
       } finally {
         await rm(directory, { force: true, recursive: true });
       }
