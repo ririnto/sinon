@@ -7,6 +7,20 @@ description: >-
 
 Use these examples when the Kotlin skill's collection rules need more detail.
 
+## Chained filters and callable references
+
+Here, `users` is a finite list of immutable `User` values, and `hasValidName` is a pure predicate.
+The first filter selects enabled users before the second filter checks their names.
+
+```kotlin
+fun hasValidName(user: User): Boolean = user.name.isNotBlank()
+
+val enabledNames = users
+    .filter(User::enabled)
+    .filter(::hasValidName)
+    .map(User::name)
+```
+
 ## Lazy sequences
 
 Use a lazy sequence when the source is large and the chain is selective:
@@ -91,20 +105,27 @@ val joined: String = numbers.fold("") { acc, n -> "$acc,$n" }
 
 ### Building collections immutably
 
+The list and set combine pinned names with active names from `source` without an intermediate filtered collection.
+The map adds source entries to cached entries without a separate `associateBy` result.
+Source items replace cached entries with matching IDs.
+
 ```kotlin
 val filtered: List<String> = buildList {
+    addAll(pinnedNames)
     for (item in source) {
         if (item.isActive()) { add(item.name) }
     }
 }
 
 val uniqueNames: Set<String> = buildSet {
+    addAll(pinnedNames)
     for (item in source) {
         if (item.isActive()) { add(item.name) }
     }
 }
 
 val itemById: Map<String, Item> = buildMap {
+    putAll(cachedItemsById)
     for (item in source) {
         put(item.id, item)
     }

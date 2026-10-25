@@ -112,8 +112,9 @@ For new dependencies or required upgrades, check Maven Central for the latest st
 - SHOULD keep collection pipelines eager by default and move to `Sequence` only when laziness materially helps.
 - SHOULD use simple `map`, `filter`, `associate`, and `groupBy` steps before less familiar pipeline operations when they express the same transformation clearly.
 - SHOULD split long collection chains into named local values when business meaning is hard to see.
-- MUST confine mutable collection accumulation to `buildList`, `buildSet`, and `buildMap` scopes.
-  Keep mutations inside their builder lambdas and do not let their mutable receivers escape.
+- MUST confine local mutable accumulation that constructs a collection result to `buildList`, `buildSet`, and `buildMap` scopes.
+  This requirement excludes owned long-lived mutable state, stateful delegates, recursive visited sets, and algorithmic worklists.
+  Keep result-construction mutations inside those lambdas and do not let their mutable receivers escape.
 - SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.

@@ -93,7 +93,8 @@ Keep `takeUnless` and `filterNot` predicates intact.
 Do not split mixed-polarity predicates when that changes their Boolean logic.
 Prefer `takeUnless { condition }` to `takeIf { !condition }` only when Boolean behavior is identical.
 Preserve evaluation order and count, short-circuiting, effects, and exception timing.
-Confine mutable collection accumulation to `buildList`, `buildSet`, and `buildMap` scopes.
+Confine local mutable accumulation that constructs a collection result to `buildList`, `buildSet`, and `buildMap` scopes.
+This requirement excludes owned long-lived mutable state, stateful delegates, recursive visited sets, and algorithmic worklists.
 Do not let a mutable builder receiver escape its lambda.
 Use a `Sequence` only when lazy evaluation matches the contract.
 For optional nullable processing, prefer `?.let` with a named non-null parameter.
