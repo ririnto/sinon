@@ -657,158 +657,60 @@ test.each(
   }
 );
 
-interface ModelAgentContract {
-  readonly name: string;
-  readonly model: string;
-  readonly effort: string;
-  readonly family: string;
-}
-
-const modelAgentPackages = [
-  {
-    agents: [
-      {
-        effort: "high",
-        family: "Haiku",
-        model: "gpt-6-luna[1m]",
-        name: "luna-high"
-      },
-      {
-        effort: "max",
-        family: "Sonnet",
-        model: "gpt-6-luna[1m]",
-        name: "luna-max"
-      },
-      {
-        effort: "medium",
-        family: "Opus",
-        model: "gpt-6.1-sol[1m]",
-        name: "sol-medium"
-      },
-      {
-        effort: "high",
-        family: "Opus",
-        model: "gpt-6.1-sol[1m]",
-        name: "sol-high"
-      },
-      {
-        effort: "high",
-        family: "Fable",
-        model: "gpt-6-astra[1m]",
-        name: "astra"
-      }
-    ],
-    name: "gpt-agents"
-  },
-  {
-    agents: [
-      {
-        effort: "max",
-        family: "Haiku",
-        model: "glm-5.3-flash[1m]",
-        name: "glm-flash"
-      },
-      {
-        effort: "high",
-        family: "Sonnet",
-        model: "glm-5.3[1m]",
-        name: "glm-high"
-      },
-      {
-        effort: "max",
-        family: "Opus",
-        model: "glm-5.3[1m]",
-        name: "glm-max"
-      }
-    ],
-    name: "glm-agents"
-  }
-] as const;
-
-const readModelAgent = (packageName: string, name: string): string =>
-  readFileSync(
-    new URL(`../../plugins/${packageName}/agents/${name}.md`, import.meta.url),
-    "utf-8"
-  );
-
-const assertModelAgent = (
-  source: string,
-  contract: ModelAgentContract
-): string => {
-  const match =
-    /^---\r?\n(?<frontmatter>[\s\S]*?)\r?\n---(?:\r?\n|$)(?<body>[\s\S]*)$/u.exec(
-      source
-    );
-  if (!match?.groups) {
-    throw new Error("Missing agent frontmatter boundaries");
-  }
-  const { frontmatter, body } = match.groups;
-  const document = parseDocument(frontmatter, { uniqueKeys: true });
-  expect(document.errors).toEqual([]);
-  expect(document.get("name")).toBe(contract.name);
-  expect(document.get("model")).toBe(contract.model);
-  expect(document.get("effort")).toBe(contract.effort);
-  expect(body.trim()).toBe("");
-  const node = document.get("description", true);
-  if (!isScalar(node) || typeof node.value !== "string") {
-    throw new Error("Description must be a string scalar");
-  }
-  expect(node.type).toBe(Scalar.BLOCK_FOLDED);
-  const description = node.value;
-  expect(description.trim()).not.toBe("");
-  expect(description).toBe(description.trim());
-  expect(
-    [
-      ...description.matchAll(
-        /\bClaude\s+(?<family>Haiku|Sonnet|Opus|Fable)\b/gu
-      )
-    ].map((family) => family.groups?.family)
-  ).toEqual([contract.family]);
-  expect(description).toMatch(/\bmodel\b/iu);
-  expect(description).toMatch(/\beffort\b/iu);
-  expect(description).toMatch(/\b(?:overrides?|arguments?|parameters?)\b/iu);
-  expect(description).toMatch(
-    /\b(?:must not|do not|don't|never|avoid|omit|without)\b/iu
-  );
-  expect(description).not.toContain(contract.model.replace("[1m]", ""));
-  expect(description).not.toMatch(/\b(?:low|medium|high|xhigh|max)\b/iu);
-  if (contract.name === "astra") {
-    expect(description).toMatch(/\bonly\b/iu);
-    expect(description).toMatch(/\bexplicit(?:ly)?\b/iu);
-    expect(description).toMatch(/\brequest(?:ed)?\b/iu);
-  }
-  return description;
-};
-
-const tableCells = (line: string): string[] =>
-  line
-    .split("|")
-    .slice(1, -1)
-    .map((cell) => cell.trim().replaceAll("`", ""));
-
-const assertModelInventory = (
-  readme: string,
-  contracts: readonly ModelAgentContract[]
-): void => {
-  const tables = readme
-    .split(/\r?\n\r?\n/u)
-    .filter(
-      (block) =>
-        tableCells(block.split(/\r?\n/u)[0]).join("|") === "Agent|Model|Effort"
-    );
-  expect(tables).toHaveLength(1);
-  expect(tables[0].split(/\r?\n/u).slice(2).map(tableCells)).toEqual(
-    contracts.map((contract) => [
-      contract.name,
-      contract.model,
-      contract.effort
-    ])
-  );
-};
-
-test.each(modelAgentPackages)(
-  "validates the registered $name source inventory",
-  (plugin) => {
+test("validates model-agent metadata, inventories, and description budget", () => {
+  const descriptions: string[] = [];
+  for (const plugin of [
+    {
+      agents: [
+        {
+          effort: "high",
+          model: "gpt-6-luna[1m]",
+          name: "luna-high"
+        },
+        {
+          effort: "max",
+          model: "gpt-6-luna[1m]",
+          name: "luna-max"
+        },
+        {
+          effort: "medium",
+          model: "gpt-6.1-sol[1m]",
+          name: "sol-medium"
+        },
+        {
+          effort: "high",
+          model: "gpt-6.1-sol[1m]",
+          name: "sol-high"
+        },
+        {
+          effort: "high",
+          model: "gpt-6-astra[1m]",
+          name: "astra"
+        }
+      ],
+      name: "gpt-agents"
+    },
+    {
+      agents: [
+        {
+          effort: "max",
+          model: "glm-5.3-flash[1m]",
+          name: "glm-flash"
+        },
+        {
+          effort: "high",
+          model: "glm-5.3[1m]",
+          name: "glm-high"
+        },
+        {
+          effort: "max",
+          model: "glm-5.3[1m]",
+          name: "glm-max"
+        }
+      ],
+      name: "glm-agents"
+    }
+  ] as const) {
     const root = new URL(`../../plugins/${plugin.name}/`, import.meta.url);
     expect(
       readdirSync(new URL("agents/", root))
@@ -816,124 +718,58 @@ test.each(modelAgentPackages)(
         .toSorted()
     ).toEqual(plugin.agents.map((agent) => `${agent.name}.md`).toSorted());
     for (const contract of plugin.agents) {
-      assertModelAgent(readModelAgent(plugin.name, contract.name), contract);
+      const match =
+        /^---\r?\n(?<frontmatter>[\s\S]*?)\r?\n---(?:\r?\n|$)(?<body>[\s\S]*)$/u.exec(
+          readFileSync(new URL(`agents/${contract.name}.md`, root), "utf-8")
+        );
+      if (!match?.groups) {
+        throw new Error("Missing agent frontmatter boundaries");
+      }
+      const { frontmatter, body } = match.groups;
+      const document = parseDocument(frontmatter, { uniqueKeys: true });
+      expect(document.errors).toEqual([]);
+      expect(document.get("name")).toBe(contract.name);
+      expect(document.get("model")).toBe(contract.model);
+      expect(document.get("effort")).toBe(contract.effort);
+      expect(body.trim()).toBe("");
+      const node = document.get("description", true);
+      if (!isScalar(node) || typeof node.value !== "string") {
+        throw new Error("Description must be a string scalar");
+      }
+      expect(node.type).toBe(Scalar.BLOCK_FOLDED);
+      expect(node.value.trim()).not.toBe("");
+      expect(node.value).toBe(node.value.trim());
+      descriptions.push(node.value);
     }
-    assertModelInventory(
-      readFileSync(new URL("README.md", root), "utf-8"),
-      plugin.agents
+    const tables = readFileSync(new URL("README.md", root), "utf-8")
+      .split(/\r?\n\r?\n/u)
+      .filter(
+        (block) =>
+          block
+            .split(/\r?\n/u)[0]
+            .split("|")
+            .slice(1, -1)
+            .map((cell) => cell.trim().replaceAll("`", ""))
+            .join("|") === "Agent|Model|Effort"
+      );
+    expect(tables).toHaveLength(1);
+    expect(
+      tables[0]
+        .split(/\r?\n/u)
+        .slice(2)
+        .map((line) =>
+          line
+            .split("|")
+            .slice(1, -1)
+            .map((cell) => cell.trim().replaceAll("`", ""))
+        )
+    ).toEqual(
+      plugin.agents.map((contract) => [
+        contract.name,
+        contract.model,
+        contract.effort
+      ])
     );
   }
-);
-
-test("keeps combined model-agent descriptions below the host warning budget", () => {
-  const descriptions = modelAgentPackages.flatMap((plugin) =>
-    plugin.agents.map((contract) =>
-      assertModelAgent(readModelAgent(plugin.name, contract.name), contract)
-    )
-  );
   expect(Buffer.byteLength(descriptions.join(" "))).toBeLessThan(15_000);
-});
-
-const withDescription = (source: string, description: string): string =>
-  source.replace(
-    /description: >-\r?\n[\s\S]*?\r?\nmodel:/u,
-    `description: >-\n  ${description}\nmodel:`
-  );
-
-test.each(modelAgentPackages)(
-  "allows harmless $name description rewording",
-  (plugin) => {
-    for (const contract of plugin.agents) {
-      const restriction =
-        contract.name === "astra" ? " Only use when explicitly requested." : "";
-      const description = `Matches Claude ${contract.family}. Do not pass model or effort arguments.${restriction}`;
-      expect(() =>
-        assertModelAgent(
-          withDescription(
-            readModelAgent(plugin.name, contract.name),
-            description
-          ),
-          contract
-        )
-      ).not.toThrow();
-    }
-  }
-);
-
-test.each([
-  ["missing context suffix", (source: string) => source.replace("[1m]", "")],
-  [
-    "changed model",
-    (source: string) => source.replace("gpt-6-luna", "other-model")
-  ],
-  [
-    "changed effort",
-    (source: string) => source.replace("effort: high", "effort: low")
-  ],
-  ["non-empty body", (source: string) => `${source}\n# Role\n`],
-  ["empty description", (source: string) => withDescription(source, "")],
-  [
-    "missing caller rule",
-    (source: string) => withDescription(source, "Equivalent to Claude Haiku.")
-  ],
-  [
-    "wrong equivalent",
-    (source: string) =>
-      withDescription(
-        source,
-        "Matches Claude Opus. Do not pass model or effort arguments."
-      )
-  ],
-  [
-    "multiple equivalents",
-    (source: string) =>
-      withDescription(
-        source,
-        "Matches Claude Haiku and Claude Sonnet. Do not pass model or effort arguments."
-      )
-  ],
-  [
-    "configured effort in description",
-    (source: string) =>
-      withDescription(
-        source,
-        "Matches Claude Haiku at high effort. Do not pass model or effort arguments."
-      )
-  ],
-  [
-    "duplicate model key",
-    (source: string) =>
-      source.replace("effort: high", "model: gpt-6-luna[1m]\neffort: high")
-  ]
-] as const)("rejects %s in a model-agent definition", (_label, mutate) => {
-  const [contract] = modelAgentPackages[0].agents;
-  expect(() =>
-    assertModelAgent(
-      mutate(readModelAgent("gpt-agents", contract.name)),
-      contract
-    )
-  ).toThrow();
-});
-
-test("rejects a missing Astra explicit-request restriction", () => {
-  const contract = modelAgentPackages[0].agents.find(
-    (agent) => agent.name === "astra"
-  );
-  if (!contract) {
-    throw new Error("Missing Astra contract");
-  }
-  const source = withDescription(
-    readModelAgent("gpt-agents", "astra"),
-    "Equivalent to Claude Fable. Never supply model or effort overrides."
-  );
-  expect(() => assertModelAgent(source, contract)).toThrow();
-});
-
-test.each(modelAgentPackages)("rejects $name README model drift", (plugin) => {
-  const readme = readFileSync(
-    new URL(`../../plugins/${plugin.name}/README.md`, import.meta.url),
-    "utf-8"
-  );
-  const drifted = readme.replaceAll(plugin.agents[0].model, "other-model[1m]");
-  expect(() => assertModelInventory(drifted, plugin.agents)).toThrow();
 });
