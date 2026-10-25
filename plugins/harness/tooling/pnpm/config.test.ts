@@ -33,37 +33,16 @@ const markdownlintBin = path.join(
 const stylePasses = [
   {
     configurationFile: "oxlint.style-no-blank-lines-in-functions.config.ts",
-    fixture: [
-      "export const sample = () => {",
-      "",
-      "  return 1;",
-      "};",
-      "sample();"
-    ].join("\n"),
     pluginFile: "no-blank-lines-in-functions.ts",
     ruleCode: "style(no-blank-lines-in-functions)"
   },
   {
     configurationFile: "oxlint.style-no-inline-comments-in-functions.config.ts",
-    fixture: [
-      "export const sample = () => {",
-      "  // explain",
-      "  return 1;",
-      "};",
-      "sample();"
-    ].join("\n"),
     pluginFile: "no-inline-comments-in-functions.ts",
     ruleCode: "style(no-inline-comments-in-functions)"
   },
   {
     configurationFile: "oxlint.style-sibling-test-spacing.config.ts",
-    fixture: [
-      'import { describe, test } from "vitest";',
-      'describe("suite", () => {',
-      '  test("first", () => {});',
-      '  test("second", () => {});',
-      "});"
-    ].join("\n"),
     pluginFile: "sibling-test-spacing.ts",
     ruleCode: "style(sibling-test-spacing)"
   }
@@ -434,7 +413,7 @@ describe("pnpm profile configuration", () => {
         expect(pluginFiles.toSorted()).toEqual(
           [stylePass.pluginFile, "tsdoc-plugin.ts"].toSorted()
         );
-        await writeFile(path.join(directory, "sample.ts"), stylePass.fixture);
+        await writeFile(path.join(directory, "sample.ts"), packageStyleFixture);
         const { diagnostics, status } = runUltracite(
           directory,
           "sample.ts",
@@ -470,6 +449,10 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "dist/ignored.ts"),
         packageStyleFixture
       );
+      await writeFile(
+        path.join(directory, "src/client.generated.ts"),
+        packageStyleFixture
+      );
       const result = runPackageScript(directory, "check:ultracite");
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status, output).toBe(1);
@@ -482,6 +465,7 @@ describe("pnpm profile configuration", () => {
         "Separate sibling tests and lifecycle registrations with one blank line."
       );
       expect(output).not.toContain("dist/ignored.ts");
+      expect(output).not.toContain("src/client.generated.ts");
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
