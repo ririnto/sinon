@@ -264,7 +264,7 @@ const exportTsdocRule = {
       }
     };
     /**
-     * Resolve a class declaration in the export statement's enclosing statement list.
+     * Resolve a class binding in the export statement's enclosing statement list.
      *
      * @param node Export statement referencing a local binding.
      * @param name Local identifier to resolve.
@@ -289,6 +289,16 @@ const exportTsdocRule = {
             declaration.id?.name === name
           ) {
             validateClassMembers(declaration);
+          } else if (declaration?.type === "VariableDeclaration") {
+            for (const declarator of declaration.declarations) {
+              if (
+                declarator.id.type === "Identifier" &&
+                declarator.id.name === name &&
+                declarator.init?.type === "ClassExpression"
+              ) {
+                validateClassMembers(declarator.init);
+              }
+            }
           }
         }
       }
