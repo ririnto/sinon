@@ -347,6 +347,18 @@ The rule diagnoses unhandled promises rather than every use of `void`.
 It accepts explicit rejection handling, awaited calls, and returned promises.
 It provides suggestions upstream, but normal Ultracite fixes do not rewrite `void` into `await`.
 Keep that conversion under the [common async policy](../rules.md#code-rules-common-to-all-languages) because scheduling and cancellation require semantic review.
+The Sinon root `check:react-effects` and `ultracite:check` scripts omit `--type-aware`.
+Adding the flag makes both commands exit with code 1 and report this configuration diagnostic:
+
+```text
+typescript(tsconfig-error): Invalid tsconfig
+Option 'allowImportingTsExtensions' can only be used when one of 'noEmit', 'emitDeclarationOnly', or 'rewriteRelativeImportExtensions' is set.
+```
+
+The root `tsconfig.json` enables `allowImportingTsExtensions` without `noEmit`, `emitDeclarationOnly`, or `rewriteRelativeImportExtensions`.
+Both root lint commands pass without the flag.
+The separate root `check:typescript` script runs `tsc --noEmit`, which does not configure Ultracite's TypeScript checks.
+A passing root check does not establish that the profile's type-aware promise diagnostic ran.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
 The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.87.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.0.1/packages/cli/src/commands/check.ts).
 
