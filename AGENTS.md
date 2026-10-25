@@ -15,7 +15,7 @@ Sinon publishes Claude Code and Codex plugins with portable Agent Skills.
 
 ## Project Structure
 
-- `plugins/` contains publishable packages.
+- `plugins/` contains Sinon-maintained plugins and temporary upstream-owned marketplace-exposure shims.
 - `.claude-plugin/marketplace.json` owns local package roots and external catalog registrations.
 - `.claude-plugin/marketplace/` owns catalog generation and validation.
 - `.agents/plugins/marketplace.json` is the generated Codex view of that inventory.
@@ -28,6 +28,11 @@ Sinon publishes Claude Code and Codex plugins with portable Agent Skills.
 Keep one documented responsibility per top-level component.
 Update architecture, dependencies, consumers, and documentation when adding, removing, or moving a component.
 Do not add legacy parallel surfaces or compatibility shims without an external contract.
+
+An upstream-owned marketplace-exposure shim is temporary and is not maintained by Sinon.
+Limit shims to pure marketplace exposure, required identity and licensing metadata, and verbatim upstream-content synchronization.
+Do not add local extensions, reflow upstream prose, or put Sinon portfolio policy inside a shim.
+Remove a shim when its upstream project publishes its own Claude marketplace listing.
 
 ## Authoring
 

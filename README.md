@@ -32,7 +32,9 @@ metadata:
 Sinon is a plugin marketplace for Claude Code and Codex.
 It publishes curated local plugins and selected external plugins.
 
-Sinon-maintained plugins live under `plugins/`.
+Most plugins under `plugins/` are maintained by Sinon.
+Herdr is a temporary, upstream-owned marketplace-exposure shim that Sinon does not maintain.
+Remove the Herdr shim when its upstream project publishes its own Claude marketplace listing.
 Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
@@ -54,7 +56,7 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 - `rules/`: root Markdownlint entry points that re-export the canonical implementations in `plugins/harness/tooling/pnpm/rules/`.
 - `plugins/harness/tooling/pnpm/rules/`: canonical Markdown lint rule implementations for the shared profile and repository.
 - `.github/`: dependency update configuration and contribution templates.
-- `plugins/`: plugins maintained in this repository.
+- `plugins/`: plugins maintained in this repository, except for upstream-owned marketplace-exposure shims.
 
 ## Plugin Layout
 
@@ -118,6 +120,7 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [glm-agents](./plugins/glm-agents/README.md)
 - [gpt-agents](./plugins/gpt-agents/README.md)
 - [harness](./plugins/harness/README.md)
+- [herdr](./plugins/herdr/README.md): an upstream-owned, temporary marketplace-exposure shim that Sinon does not maintain.
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
 - [kotlin](./plugins/kotlin/README.md)
