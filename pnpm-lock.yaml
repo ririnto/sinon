@@ -195,8 +195,8 @@ catalogs:
       specifier: ^1.2.0
       version: 1.2.0
     npm-run-all2:
-      specifier: ^9.0.3
-      version: 9.0.3
+      specifier: ^9.0.4
+      version: 9.0.4
     oxfmt:
       specifier: ^0.74.0
       version: 0.74.0
@@ -219,8 +219,8 @@ catalogs:
       specifier: ^7.0.2
       version: 7.0.2
     ultracite:
-      specifier: ^8.0.1
-      version: 8.0.1
+      specifier: ^8.0.2
+      version: 8.0.2
     vitest:
       specifier: ^5.0.5
       version: 5.0.5
@@ -261,7 +261,7 @@ importers:
         version: 1.2.0
       npm-run-all2:
         specifier: 'catalog:'
-        version: 9.0.3
+        version: 9.0.4
       oxfmt:
         specifier: 'catalog:'
         version: 0.74.0
@@ -285,7 +285,7 @@ importers:
         version: 7.0.2
       ultracite:
         specifier: 'catalog:'
-        version: 8.0.1(eslint@10.13.0)(oxfmt@0.74.0)(oxlint@1.89.0(oxlint-tsgolint@7.0.2004))
+        version: 8.0.2(eslint@10.13.0)(oxfmt@0.74.0)(oxlint@1.89.0(oxlint-tsgolint@7.0.2004))
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@24.19.2)(vite@8.3.3(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
@@ -2095,8 +2095,8 @@ packages:
     resolution: {integrity: sha512-tdt4aFn9QamlhdN3HV2D2ccpBwO5/fyjjbXUxYA6uBjyekMZcZvDq0aSj9t5Jo+tih6AYFnt/cuIRn9013e0Uw==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
-  npm-run-all2@9.0.3:
-    resolution: {integrity: sha512-BQAEdU1PtYc48qYRdghW2BVTQT3VqWCoFQmO87NlM1h1PYwMCKQpUWaNyB20V26caNzFsXQDfyOdznLlHCih6g==}
+  npm-run-all2@9.0.4:
+    resolution: {integrity: sha512-GuGRF8MddEKavyUzjy0k2z2pA76/N+eT8lHlypx0/AhShLKD2FOerQxHhpFhcqnQmAqCkunUCYlf6Z9RKh/4zg==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0, npm: '>= 10'}
     hasBin: true
 
@@ -2292,8 +2292,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  shell-quote@1.11.0:
-    resolution: {integrity: sha512-JdxDPD0DBTyu08pq0kPC0xSNet/qsU07qT6IsX1AS8oO2ICNRY4ldNa8OAI6PuwAH8tG3lxEhbqmyp4Dw4036g==}
+  shell-quote@1.12.0:
+    resolution: {integrity: sha512-PcByqNyT/38F2kDNi006HAMRJaULuBzq/FOsw3qdZvX/GA9W/jamDaRskgHjubHiftXK5sIFxLNkvrXUwcof6Q==}
     engines: {node: '>= 0.4'}
 
   signal-exit@4.1.0:
@@ -2384,8 +2384,8 @@ packages:
   ufo@1.6.4:
     resolution: {integrity: sha512-JFNbkD1Svwe0KvGi8GOeLcP4kAWQ609twvCdcHxq1oSL8svv39ZuSvajcD8B+5D0eL4+s1Is2D/O6KN3qcTeRA==}
 
-  ultracite@8.0.1:
-    resolution: {integrity: sha512-4XtB3My7o/O8uveSBPjMO6aPwkO7LEGDf2RCuR4jMVSJ4JByLNIb8+xpCR5M+HssgPrl0aSTQ/40od80ItmiqQ==}
+  ultracite@8.0.2:
+    resolution: {integrity: sha512-fXAMds8JnXvwizV4Ee3PFQNIu9zPvZtd2/+X6gh6ZWSvuzpiLkSWeUlsZvXIWRync+oLHgyKAje5cPgpeb61jw==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -4301,7 +4301,7 @@ snapshots:
 
   npm-normalize-package-bin@6.0.0: {}
 
-  npm-run-all2@9.0.3:
+  npm-run-all2@9.0.4:
     dependencies:
       ansi-styles: 7.0.0
       cross-spawn: 7.0.6
@@ -4309,7 +4309,7 @@ snapshots:
       picomatch: 4.0.7
       pidtree: 1.0.0
       read-package-json-fast: 6.0.0
-      shell-quote: 1.11.0
+      shell-quote: 1.12.0
       which: 7.0.0
 
   npm-run-path@6.0.0:
@@ -4557,7 +4557,7 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  shell-quote@1.11.0: {}
+  shell-quote@1.12.0: {}
 
   signal-exit@4.1.0: {}
 
@@ -4654,7 +4654,7 @@ snapshots:
 
   ufo@1.6.4: {}
 
-  ultracite@8.0.1(eslint@10.13.0)(oxfmt@0.74.0)(oxlint@1.89.0(oxlint-tsgolint@7.0.2004)):
+  ultracite@8.0.2(eslint@10.13.0)(oxfmt@0.74.0)(oxlint@1.89.0(oxlint-tsgolint@7.0.2004)):
     dependencies:
       '@clack/prompts': 1.8.1
       cli-truncate: 6.1.1
