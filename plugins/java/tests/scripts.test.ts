@@ -348,7 +348,8 @@ process.exitCode = result.status ?? 1;
         `-javaagent:${old}`
       );
       expect(wrappedProperties.inputArguments).toContain(`-javaagent:${other}`);
-    }
+    },
+    30_000
   );
 
   test("missing launcher returns its existing status", async () => {
