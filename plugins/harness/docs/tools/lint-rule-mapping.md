@@ -163,7 +163,7 @@ Keep existing Kotlin consumer implementations until their owner verifies a behav
 
 The surveyed Cargo configurations vary in editions, MSRV declarations, toolchain pins, and lint policy.
 The shared profile preserves target toolchains and compatibility declarations while composing the existing Clippy and rustfmt checks.
-Package-specific Clippy and Cargo-deny rules remain target-owned because the surveyed policies do not share one common rule.
+Package-specific Clippy rules beyond the shared profile thresholds and Cargo-deny policies remain target-owned.
 This composition adds no custom Cargo diagnostic for shared enforcement.
 
 | Area | Group decision | Pillars | Effective enforcement |
@@ -171,7 +171,7 @@ This composition adds no custom Cargo diagnostic for shared enforcement.
 | Toolchain | Preserve target channel pins and use the stable fallback for new unpinned roots. | Stability, consistency | `rust-toolchain.toml` and the CI catalog select the target channel or stable fallback. |
 | Library MSRV | Record the oldest stable compiler from the preceding twelve months in new published libraries unless their documented consumer contract requires an older floor. | Stability, consistency | `Cargo.toml` records the floor; CI tests it only when a job selects that compiler. |
 | MSRV changes | Release an increase that drops an advertised compiler as a minor version. | Stability, consistency | Package release policy owns version changes because the profile does not set package versions. |
-| Clippy | Keep the cognitive-complexity threshold at 25 and the strict warnings gate, while leaving extra rules target-owned. | Maintainability, stability | `clippy.toml` sets the threshold, and the workspace command denies that lint and all warnings. |
+| Clippy | Keep profile thresholds at 25 for cognitive complexity, 5 for arguments, and 250 for type complexity. | Maintainability, stability | `clippy.toml` sets all three, and the workspace command denies cognitive complexity explicitly and all warnings, including `clippy::too_many_arguments`. |
 | Formatting | Merge stable rustfmt settings and validate without source rewrites. | Consistency, maintainability | `rustfmt.toml` supplies the profile keys, and `cargo fmt --all -- --check` checks without writing files. |
 
 The [Rust tool reference](rust.md) documents the support window, configuration sources, and commands.

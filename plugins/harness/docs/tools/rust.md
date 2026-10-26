@@ -5,7 +5,10 @@ metadata:
     Cargo rust-version:
       url: https://doc.rust-lang.org/cargo/reference/rust-version.html
     Clippy:
-      url: https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity
+      url:
+        - https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity
+        - https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments
+        - https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity
     Rust MSRV support:
       url: https://docs.cloud.google.com/rust/docs/supported-rust-versions
     rustup:
@@ -58,11 +61,13 @@ Never overwrite an existing `rust-toolchain.toml`.
 The target's channel, profile, and component pins stay authoritative.
 A target pinned to an older channel keeps its pin.
 Do not bump it to satisfy this profile.
-The thresholds in `clippy.toml` and the layout options in `rustfmt.toml` are project choices.
+The profile thresholds in `clippy.toml` and layout options in `rustfmt.toml` are defaults.
 When the target already sets a value, its value wins.
 The cognitive complexity threshold is 25, and the validation commands explicitly enable `clippy::cognitive_complexity`.
 This restriction lint is allowed by default, so setting its threshold alone does not activate it.
-Keep package-specific Clippy lint tables and Cargo-deny rules in target-owned configuration.
+The profile also sets `too-many-arguments-threshold` to 5 and `type-complexity-threshold` to 250.
+Clippy warns by default for `clippy::too_many_arguments`, and the workspace command's `-D warnings` denies that diagnostic.
+Keep additional package-specific Clippy lint tables and Cargo-deny rules in target-owned configuration.
 
 ## Validation Commands
 
