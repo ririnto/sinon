@@ -92,7 +92,7 @@ After PR integration, use [git-merge-strategies](../git-merge-strategies/SKILL.m
 
 A ready-to-push report identifies the intended commits, target ref, relevant validation, and remaining blockers.
 Never push directly to protected branches or the named base branch.
-When publication is separately authorized, follow the PR-first review requirements in `CONTRIBUTING.md`.
+When publication is separately authorized, follow the [PR-first review procedure](../../references/pr-first-review.md) before independent review or normal integration.
 Unrelated dirty work does not enter a push, but MUST remain untouched and separate from the verified commit state.
 Never force-push merely to resolve a rejected push.
 

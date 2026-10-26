@@ -17,7 +17,7 @@ metadata:
 
 Integrate the named source into the named target using repository policy and actual ancestry.
 This skill covers merges, not rebase, cherry-pick, or remote publication.
-For PR-based delivery, follow the PR-first review requirements in `CONTRIBUTING.md` before normal integration.
+For PR-based delivery, follow the [PR-first review procedure](../../references/pr-first-review.md) before independent review or normal integration.
 Those merge prerequisites do not authorize remote publication.
 Never push directly to protected branches or the named base branch.
 
