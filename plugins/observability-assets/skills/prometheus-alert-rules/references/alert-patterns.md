@@ -9,6 +9,9 @@ Use this reference for worked examples of rule patterns and group layouts.
 
 ## Recording-rule split pattern
 
+A named intermediate signal makes the alert expression easier to read.
+Alerts and dashboards can share the recorded result without repeating expensive aggregation or subquery work.
+
 ```yaml
 - record: job:http_requests:rate5m
   expr: >-
