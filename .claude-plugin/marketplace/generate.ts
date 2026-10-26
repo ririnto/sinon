@@ -500,9 +500,20 @@ export const createCodexMarketplace = async (
   repositoryRoot: string
 ): Promise<NativeMarketplace> => {
   const catalog = parseCatalog(catalogValue);
-  const sources = catalog.plugins.map((plugin) =>
-    plugin.name === "herdr" ? undefined : mapSource(plugin.source, plugin.name)
-  );
+  const sources = catalog.plugins.map((plugin) => {
+    if (plugin.name !== "herdr") {
+      return mapSource(plugin.source, plugin.name);
+    }
+    if (
+      !isRecord(plugin.source) ||
+      plugin.source.source !== "github" ||
+      plugin.source.repo !== "herdrdev/herdr" ||
+      Object.keys(plugin.source).length !== 2
+    ) {
+      throw new Error("Herdr must use the direct GitHub source herdrdev/herdr");
+    }
+    return null;
+  });
   const seenNames = new Set<string>();
   const seenPaths = new Set<string>();
   for (const [index, plugin] of catalog.plugins.entries()) {
@@ -556,7 +567,7 @@ export const createCodexMarketplace = async (
   const catalogPlugins = catalog.plugins.flatMap(
     (plugin, index): NativePlugin[] => {
       const source = sources[index];
-      return source !== undefined && hasNativeManifest[index]
+      return source !== null && source !== undefined && hasNativeManifest[index]
         ? [
             {
               category: categoryLabel(plugin.category),

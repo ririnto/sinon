@@ -112,7 +112,7 @@ test("maps local packages and preserves external URL selectors", async () => {
   });
 });
 
-test("omits Herdr's GitHub source from the Codex marketplace", async () => {
+test("omits Herdr from Codex when it uses the direct upstream source", async () => {
   const result = await createCodexMarketplace(
     catalog([
       {
@@ -124,6 +124,26 @@ test("omits Herdr's GitHub source from the Codex marketplace", async () => {
   );
   expect(result.plugins).toEqual([]);
 });
+
+test.each([
+  { source: "./plugins/herdr" },
+  { source: "https://github.com/herdrdev/herdr.git" },
+  { source: { repo: "herdrdev/other", source: "github" } },
+  { source: { source: "github" } },
+  { source: { ref: "master", repo: "herdrdev/herdr", source: "github" } },
+  { source: { source: "url", url: "https://github.com/herdrdev/herdr.git" } },
+  { source: { source: "unsupported", url: "https://example.com" } }
+])(
+  "rejects a Herdr source other than its direct upstream repository: %j",
+  async ({ source }) => {
+    await expect(
+      createCodexMarketplace(
+        catalog([{ ...localEntry("herdr"), source }]),
+        makeRoot()
+      )
+    ).rejects.toThrow(Error);
+  }
+);
 
 test.each([
   { path: "pstack", ref: "main" },
