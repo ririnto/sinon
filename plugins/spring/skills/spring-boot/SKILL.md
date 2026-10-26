@@ -103,11 +103,11 @@ Use `ApplicationRunner` or `CommandLineRunner` for startup tasks that belong to 
 class CatalogConfiguration {
 }
 
-@Validated
-@ConfigurationProperties("catalog")
 /**
  * Holds the validated {@code catalog} configuration properties.
  */
+@Validated
+@ConfigurationProperties("catalog")
 public record CatalogProperties(@NotBlank String region, int pageSize) {
 }
 ```
