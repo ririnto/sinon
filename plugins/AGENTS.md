@@ -3,9 +3,6 @@
 Each publishable package lives directly under `plugins/<plugin>/` and keeps its README, manifest, runtime files, scripts, tests, and assets inside that root.
 The package root is the containment boundary for declared paths and packaged content.
 
-The upstream `herdr` skill is installed separately and has no local package.
-The Sinon-owned `lane-supervision` plugin depends on that installed skill for Herdr CLI guidance.
-
 ## Package Contract
 
 Keep the marketplace manifest aligned with package roots.

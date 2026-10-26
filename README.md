@@ -35,7 +35,6 @@ Sinon is a plugin marketplace for Claude Code and Codex.
 It publishes curated local plugins and selected external plugins.
 
 Plugins under `plugins/` are maintained by Sinon.
-Herdr uses a separately installed upstream skill and has no local package in Sinon.
 Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
@@ -125,7 +124,6 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
 - [kotlin](./plugins/kotlin/README.md)
-- [lane-supervision](./plugins/lane-supervision/README.md)
 - [netty](./plugins/netty/README.md)
 - [observability-assets](./plugins/observability-assets/README.md)
 - [reactor](./plugins/reactor/README.md)
@@ -142,18 +140,6 @@ Sinon selects external plugins through its marketplace catalog.
   Install it as `codex-app-server@sinon` in either host.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the runtime, Skills, and version.
-
-## Install the upstream Herdr skill
-
-Install Herdr's skill directly from upstream:
-
-```sh
-npx skills add herdrdev/herdr --skill herdr -g
-```
-
-Load the installed `herdr` skill before using Herdr controls or Sinon's `lane-supervision` skill.
-Sinon does not bundle or maintain the upstream skill.
-The [lane-supervision package](./plugins/lane-supervision/README.md) documents its prerequisite and retained relative-link limitation.
 
 ## Install pstack from the official marketplace
 
@@ -293,6 +279,7 @@ codex plugin add ddgs@sinon
 
 For a local checkout, use `codex plugin marketplace add /path/to/sinon`.
 The repository catalog at `.agents/plugins/marketplace.json` exposes the Claude catalog entries that have a native Codex manifest, plus Codex-only packages.
+Herdr is Claude-only because upstream does not provide the root `plugin.json` required by Codex.
 Its local source paths are relative to the repository root.
 External Workgraph continues to follow its upstream `main` branch.
 
@@ -320,6 +307,5 @@ The `claude-agents`, `glm-agents`, and `gpt-agents` packages also include a loca
 The following plugins use their local canonical Apache-2.0 license:
 
 - [harness](./plugins/harness/LICENSE)
-- [lane-supervision](./plugins/lane-supervision/LICENSE)
 - [spec-driven-development](./plugins/spec-driven-development/LICENSE)
 - [workspace-workflow](./plugins/workspace-workflow/LICENSE)

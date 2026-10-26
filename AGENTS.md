@@ -29,9 +29,7 @@ Keep one documented responsibility per top-level component.
 Update architecture, dependencies, consumers, and documentation when adding, removing, or moving a component.
 Do not add legacy parallel surfaces or compatibility shims without an external contract.
 
-Herdr uses the upstream skill installed with `npx skills add herdrdev/herdr --skill herdr -g`.
 Do not add a local Herdr package or copy the upstream skill.
-Keep Sinon's `lane-supervision` capability in its own plugin.
 
 ## Authoring
 
