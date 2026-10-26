@@ -40,6 +40,7 @@ For a new application root, use the current stable channel unless its target con
 For a new published library, use the oldest stable Rust release from the preceding twelve months unless its documented consumer contract requires an older compiler.
 Test a published library with its declared minimum compiler.
 When raising that minimum drops a previously supported compiler, release the change as a minor version update.
+
 For a new toolchain selection, check the official rustup release channel for the current stable version compatible with the target before pinning it.
 For new crate dependencies, check crates.io for the latest stable version compatible with the target's Rust version and Cargo constraints.
 Keep existing toolchain and crate pins unless the task authorizes changing them.
