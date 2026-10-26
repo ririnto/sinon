@@ -54,6 +54,8 @@ plugins/workspace-workflow/
 |   +-- workspace-architect.md
 |   +-- commit-message-architect.md
 |   +-- change-description-architect.md
++-- references/
+|   +-- pr-first-review.md
 +-- skills/
     +-- commit-convention/
     |   +-- SKILL.md
