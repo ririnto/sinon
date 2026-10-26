@@ -2,8 +2,12 @@
 title: Rust Tool Reference
 metadata:
   reference:
+    Cargo rust-version:
+      url: https://doc.rust-lang.org/cargo/reference/rust-version.html
     Clippy:
       url: https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity
+    Rust MSRV support:
+      url: https://docs.cloud.google.com/rust/docs/supported-rust-versions
     rustup:
       url: https://rust-lang.github.io/rustup/concepts/toolchains.html
 ---
@@ -30,6 +34,12 @@ In a workspace with member subdirectories, install configuration at the workspac
 - The required components are `clippy` and `rustfmt`.
   Add them to an existing toolchain with `rustup component add clippy rustfmt`.
 
+Cargo's `package.rust-version` field declares the package's minimum supported compiler.
+`rust-toolchain.toml` selects the compiler used by local commands.
+For a new application root, use the current stable channel unless its target contract requires a pin.
+For a new published library, use the oldest stable Rust release from the preceding twelve months unless its documented consumer contract requires an older compiler.
+Test a published library with its declared minimum compiler.
+When raising that minimum drops a previously supported compiler, release the change as a minor version update.
 For a new toolchain selection, check the official rustup release channel for the current stable version compatible with the target before pinning it.
 For new crate dependencies, check crates.io for the latest stable version compatible with the target's Rust version and Cargo constraints.
 Keep existing toolchain and crate pins unless the task authorizes changing them.
@@ -51,6 +61,7 @@ The thresholds in `clippy.toml` and the layout options in `rustfmt.toml` are pro
 When the target already sets a value, its value wins.
 The cognitive complexity threshold is 25, and the validation commands explicitly enable `clippy::cognitive_complexity`.
 This restriction lint is allowed by default, so setting its threshold alone does not activate it.
+Keep package-specific Clippy lint tables and Cargo-deny rules in target-owned configuration.
 
 ## Validation Commands
 
@@ -68,6 +79,8 @@ cargo test --workspace
 ```
 
 `cargo fmt --all` applies formatting.
+Use the check form while materializing profile settings.
+Apply formatting only for an authorized source change after confirming that the output preserves comments and literals.
 `cargo clippy --fix --workspace --all-targets --all-features --allow-dirty --allow-staged -- -D clippy::cognitive_complexity -D warnings` applies safe machine-applicable fixes.
 Never use `--broken-code`.
 The `--all-targets --all-features -- -D clippy::cognitive_complexity -D warnings` lint strictness and the `--workspace` test scope are project choices, not universal defaults.
