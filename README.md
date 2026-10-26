@@ -16,6 +16,8 @@ metadata:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference.md
     Cursor pstack marketplace:
       url: https://raw.githubusercontent.com/cursor/plugins/main/.claude-plugin/marketplace.json
+    Herdr agent skill:
+      url: https://herdr.dev/docs/agent-skill/
     Claude plugin components:
       url:
         - https://code.claude.com/docs/en/plugins/manifest-reference.md
@@ -32,9 +34,8 @@ metadata:
 Sinon is a plugin marketplace for Claude Code and Codex.
 It publishes curated local plugins and selected external plugins.
 
-Most plugins under `plugins/` are maintained by Sinon.
-Herdr is a temporary, upstream-owned marketplace-exposure shim that Sinon does not maintain.
-Remove the Herdr shim when its upstream project publishes its own Claude marketplace listing.
+Plugins under `plugins/` are maintained by Sinon.
+Herdr uses a separately installed upstream skill and has no local package in Sinon.
 Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
@@ -56,7 +57,7 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 - `rules/`: root Markdownlint entry points that re-export the canonical implementations in `plugins/harness/tooling/pnpm/rules/`.
 - `plugins/harness/tooling/pnpm/rules/`: canonical Markdown lint rule implementations for the shared profile and repository.
 - `.github/`: dependency update configuration and contribution templates.
-- `plugins/`: plugins maintained in this repository, except for upstream-owned marketplace-exposure shims.
+- `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
 
@@ -121,10 +122,10 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [glm-agents](./plugins/glm-agents/README.md)
 - [gpt-agents](./plugins/gpt-agents/README.md)
 - [harness](./plugins/harness/README.md)
-- [herdr](./plugins/herdr/README.md): an upstream-owned, temporary marketplace-exposure shim that Sinon does not maintain.
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
 - [kotlin](./plugins/kotlin/README.md)
+- [lane-supervision](./plugins/lane-supervision/README.md)
 - [netty](./plugins/netty/README.md)
 - [observability-assets](./plugins/observability-assets/README.md)
 - [reactor](./plugins/reactor/README.md)
@@ -141,6 +142,18 @@ Sinon selects external plugins through its marketplace catalog.
   Install it as `codex-app-server@sinon` in either host.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the runtime, Skills, and version.
+
+## Install the upstream Herdr skill
+
+Install Herdr's skill directly from upstream:
+
+```sh
+npx skills add herdrdev/herdr --skill herdr -g
+```
+
+Load the installed `herdr` skill before using Herdr controls or Sinon's `lane-supervision` skill.
+Sinon does not bundle or maintain the upstream skill.
+The [lane-supervision package](./plugins/lane-supervision/README.md) documents its prerequisite and retained relative-link limitation.
 
 ## Install pstack from the official marketplace
 
@@ -307,6 +320,6 @@ The `claude-agents`, `glm-agents`, and `gpt-agents` packages also include a loca
 The following plugins use their local canonical Apache-2.0 license:
 
 - [harness](./plugins/harness/LICENSE)
-- [herdr](./plugins/herdr/LICENSE)
+- [lane-supervision](./plugins/lane-supervision/LICENSE)
 - [spec-driven-development](./plugins/spec-driven-development/LICENSE)
 - [workspace-workflow](./plugins/workspace-workflow/LICENSE)
