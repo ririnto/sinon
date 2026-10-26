@@ -104,6 +104,22 @@
     },
     {
       "author": {
+        "name": "herdrdev"
+      },
+      "category": "development",
+      "description": "Control Herdr, a terminal multiplexer for coding agents.",
+      "license": "Apache-2.0",
+      "name": "herdr",
+      "source": {
+        "source": "github",
+        "repo": "herdrdev/herdr"
+      },
+      "homepage": "https://herdr.dev/docs/agent-skill/",
+      "keywords": ["herdr", "agent-skill", "terminal-multiplexer"],
+      "repository": "https://github.com/herdrdev/herdr"
+    },
+    {
+      "author": {
         "name": "ririnto"
       },
       "category": "development",
@@ -177,25 +193,6 @@
         "kotlin-language",
         "coroutines",
         "flow"
-      ],
-      "repository": "https://github.com/ririnto/sinon"
-    },
-    {
-      "author": {
-        "name": "ririnto"
-      },
-      "category": "development",
-      "description": "Supervise assigned existing agent lanes, deliver continuation directives, and verify results without repository-write ownership.",
-      "license": "Apache-2.0",
-      "name": "lane-supervision",
-      "source": "./plugins/lane-supervision",
-      "version": "2026.10.26.01",
-      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/lane-supervision",
-      "keywords": [
-        "lane-supervision",
-        "agents",
-        "continuation",
-        "verification"
       ],
       "repository": "https://github.com/ririnto/sinon"
     },

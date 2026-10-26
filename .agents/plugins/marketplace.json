@@ -127,18 +127,6 @@
     },
     {
       "category": "Development",
-      "name": "lane-supervision",
-      "policy": {
-        "authentication": "ON_INSTALL",
-        "installation": "AVAILABLE"
-      },
-      "source": {
-        "path": "./plugins/lane-supervision",
-        "source": "local"
-      }
-    },
-    {
-      "category": "Development",
       "name": "netty",
       "policy": {
         "authentication": "ON_INSTALL",

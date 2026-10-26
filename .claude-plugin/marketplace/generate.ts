@@ -501,7 +501,7 @@ export const createCodexMarketplace = async (
 ): Promise<NativeMarketplace> => {
   const catalog = parseCatalog(catalogValue);
   const sources = catalog.plugins.map((plugin) =>
-    mapSource(plugin.source, plugin.name)
+    plugin.name === "herdr" ? undefined : mapSource(plugin.source, plugin.name)
   );
   const seenNames = new Set<string>();
   const seenPaths = new Set<string>();
@@ -554,8 +554,9 @@ export const createCodexMarketplace = async (
     })
   );
   const catalogPlugins = catalog.plugins.flatMap(
-    (plugin, index): NativePlugin[] =>
-      hasNativeManifest[index]
+    (plugin, index): NativePlugin[] => {
+      const source = sources[index];
+      return source !== undefined && hasNativeManifest[index]
         ? [
             {
               category: categoryLabel(plugin.category),
@@ -564,10 +565,11 @@ export const createCodexMarketplace = async (
                 authentication: "ON_INSTALL",
                 installation: "AVAILABLE"
               },
-              source: sources[index] as PluginSource
+              source
             }
           ]
-        : []
+        : [];
+    }
   );
   const codexOnlyPlugins = await findCodexOnlyPlugins(
     repositoryRoot,

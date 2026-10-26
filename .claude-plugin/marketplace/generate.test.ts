@@ -112,6 +112,19 @@ test("maps local packages and preserves external URL selectors", async () => {
   });
 });
 
+test("omits Herdr's GitHub source from the Codex marketplace", async () => {
+  const result = await createCodexMarketplace(
+    catalog([
+      {
+        ...localEntry("herdr"),
+        source: { repo: "herdrdev/herdr", source: "github" }
+      }
+    ]),
+    makeRoot()
+  );
+  expect(result.plugins).toEqual([]);
+});
+
 test.each([
   { path: "pstack", ref: "main" },
   { path: "tools/pstack" },
