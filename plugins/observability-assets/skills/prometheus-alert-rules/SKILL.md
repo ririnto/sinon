@@ -218,7 +218,7 @@ These variables are available inside `{{ }}` template expressions in annotation 
 | Variable | Type | Description |
 | --- | --- | --- |
 | `$labels` | map | Labels of the alert instance (from the expression result). Access fields as `$labels.label_name`. |
-| `$value` | string | String representation of the alert expression value at the time of firing. |
+| `$value` | `float64` or histogram | Alert sample value from `.Value`. |
 | `$externalLabels` | map | External labels configured on the Prometheus server (`prometheus.yml` -> `global.external_labels`). |
 | `$externalURL` | string | Configured external URL of the Prometheus server (`prometheus.yml` -> `global.external_url`). |
 
@@ -245,8 +245,9 @@ Template rules:
 - Template errors cause the entire annotation to render as the raw error string
 - Use dot notation such as `{{ $labels.name }}` to access labels.
   - Bracket notation `{{ index $labels "name" }}` handles special characters
-- `$value` is always a string.
-  - Compare numerically with helper functions where available
+- Format a `float64` sample for display with a template function such as `printf "%.2f" $value`.
+- Compare a sample numerically with functions such as `gt` only when it is a `float64`.
+- A histogram sample is not a numeric scalar.
 - Do NOT put templates in `labels` values unless you have a specific reason -- labels should be stable and low-cardinality
 - Keep link-like annotations such as `runbook_url` as literal strings without template variables
 
@@ -510,7 +511,7 @@ Return:
 | If the blocker is... | Read... |
 | --- | --- |
 | deciding whether an alert needs dedicated regression coverage, recording-rule settle-time checks, or `for`/`keep_firing_for` lifecycle protection | [`./references/testing.md`](./references/testing.md) |
-| choosing between direct alerts, recording rules, or reusable low-noise alert patterns | [`./references/alert-patterns.md`](./references/alert-patterns.md) |
+| adapting worked alert patterns or grouping related recording and alert rules | [`./references/alert-patterns.md`](./references/alert-patterns.md) |
 
 ## Invariants
 
