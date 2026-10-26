@@ -26,6 +26,37 @@ Language and tool documents own their specific requirements.
 Use the sections and indexed references that apply to the task.
 Treat engineering preferences as Harness policy and use cited vendor documentation for technical claims.
 
+## Four-Pillar Disposition
+
+Pillars describe the intended benefit of a standard and do not claim that a check measures that benefit.
+Profile checks apply only when a target materializes the profile and invokes its command.
+Policy-only means no current automated diagnostic or repository-wide check enforces the standard.
+
+| Standard | Applicable pillars | Effective enforcement |
+| --- | --- | --- |
+| Instruction priority and task-scoped discovery | Stability, maintainability | Policy only because instruction selection and conflict resolution are not static checks. |
+| Runtime support and LTS compatibility | Stability, consistency | Policy only because runtime pins remain target-owned and no universal LTS check exists. |
+| Implementation, dependency choice, and compatibility | Stability, consistency, maintainability | Profile catalogs and baseline tests validate selected configuration composition, while semantic reuse and compatibility decisions remain policy. |
+| Validation, evidence scope, and skipped gates | Stability, maintainability | `pnpm run check` composes the repository `check:*` scripts and materialized profiles define target checks, while evidence scope and skipped-gate handling remain policy. |
+| Editor configuration and profile merges | Consistency, maintainability | Harness baseline and Gradle profile tests check configuration merging and target preservation, while IDE interpretation requires the selected consumer. |
+| Rule design and rollout | Stability, consistency, maintainability | Existing rule fixtures and configured profile commands enforce registered rules, while candidate staging and rollout decisions remain policy. |
+| Accumulator efficiency and complexity limits | Performance, maintainability | The base Oxlint rule is enforced by `check:ultracite`, while Cargo Clippy limits apply only in targets that invoke the selected Cargo profile command. |
+| Named regular-expression captures | Stability, consistency, maintainability | Policy only because the current rule catalog has no cross-language named-capture diagnostic. |
+| Public documentation, comments, and source spacing | Consistency, maintainability | Applicable TSDoc, Markdown, Oxlint, and KtLint rules run through their configured commands, while unknown syntax contexts and exceptions remain policy. |
+| Single-use logic and behavior preservation | Stability, maintainability | Policy only because inlining can change evaluation, resource lifetime, snapshots, overloads, or receiver resolution. |
+| Production interfaces and test adaptation | Stability, maintainability | Existing behavior tests enforce covered contracts, while the prohibition on test seams remains policy. |
+| Asynchronous waiting and guard inversion | Stability, maintainability | Type-aware TypeScript lint rejects unhandled promises in selected profiles, while await conversion and guard inversion remain policy. |
+| Assertions and structured-output comparisons | Stability, maintainability | Policy only outside existing assertion and parser behavior tests because no universal assertion-quality rule exists. |
+| Markdown authoring | Consistency, maintainability | `check:markdownlint-cli2` runs configured custom and upstream rules, with Harness-only rules limited to their configured path scope. |
+| YAML authoring | Stability, consistency | Policy only except where a target explicitly selects a native YAML validator. |
+| Language and tool references | Consistency, maintainability | `check:markdownlint-cli2` checks configured prose and link rules, while reference selection and profile applicability remain review policy. |
+| Domain boundaries, clarity, and error handling | Stability, maintainability | Policy only outside language type checks and behavior tests selected by a target. |
+| Retry, concurrency, and shared-state safety | Stability, maintainability | Policy only unless a selected behavior test covers the target command's recovery and concurrency contract. |
+| User-driven and accessible interfaces | Stability, consistency, maintainability | WCAG and interaction requirements remain policy because no repository-wide accessibility scan is configured. |
+| Test-layer selection and observable assertions | Stability, maintainability | Root checks execute maintained root suites and selected profiles add target suites, while test-layer selection and assertion design remain policy. |
+| Review and documentation alignment | Stability, maintainability | Review remains a human process because tooling does not infer semantic contract changes. |
+| Kotlin single-condition Boolean `when` branches | Consistency, maintainability | Policy only because `harness:terminal-branch-when` covers comparison chains and does not diagnose this Boolean form. |
+
 ## Instruction Priority And Discovery
 
 Follow system, safety, and tool constraints first.
@@ -175,6 +206,7 @@ Keep a guard return when inversion would change cleanup, exception timing, loop 
 Compare expected strings with full equality.
 Parse structured output (JSON, HTML, URLs, headers, event streams), and compare exact fields or elements instead of substring, prefix, or suffix matching.
 Use membership assertions only when membership itself is the observable contract.
+For a single Boolean condition in Kotlin, prefer a subject-taking `when (condition) { true -> ...; else -> ... }` over a subjectless `when { condition -> ... }`.
 
 ## Documentation Formatting
 
