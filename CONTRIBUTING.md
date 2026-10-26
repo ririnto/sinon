@@ -53,6 +53,9 @@ Link the issue and use a closing reference only when the change satisfies its ac
 Complete independent review of the complete posted change and resolve acceptance blockers and required checks before normal integration.
 After the platform records the PR merge, locate the base worktree.
 Confirm `git -C /path/to/base-worktree branch --show-current` reports `<base>`.
+If no base worktree can be located or verified on `<base>`, including one with detached `HEAD`, stop and report a blocker.
+Do not switch another worktree's branch, create a competing worktree, or run the pull from an unverified checkout.
+Continue only through an authorized recovery path.
 Run `git -C /path/to/base-worktree pull --ff-only <remote> <base>` there before dependent work or cleanup.
 If fast-forward synchronization fails, report the blocker without creating a local merge or rewriting history.
 Compare the local named base ref, its remote-tracking ref, and the platform's posted PR merge record.

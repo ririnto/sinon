@@ -17,8 +17,8 @@ metadata:
 
 Integrate the named source into the named target using repository policy and actual ancestry.
 This skill covers merges, not rebase, cherry-pick, or remote publication.
-For PR-based delivery, open the PR before independent review of the complete posted change.
-Complete independent review and resolve required checks and blockers before normal integration.
+For PR-based delivery, follow the PR-first review requirements in `CONTRIBUTING.md` before normal integration.
+Those merge prerequisites do not authorize remote publication.
 Never push directly to protected branches or the named base branch.
 
 ## Authority And Preconditions
@@ -97,6 +97,9 @@ Reuse valid checks for unchanged inputs instead of rerunning suites because comm
 
 After the platform records the PR merge, locate the base worktree.
 Confirm that `git -C /path/to/base-worktree branch --show-current` reports `<base>`.
+If no base worktree can be located or verified on `<base>`, including one with detached `HEAD`, stop and report a blocker.
+Do not switch another worktree's branch, create a competing worktree, or run the pull from an unverified checkout.
+Continue only through an authorized recovery path.
 Resolve the actual remote and base branch before running this command in that worktree:
 
 ```sh
