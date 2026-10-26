@@ -511,7 +511,7 @@ Return:
 | If the blocker is... | Read... |
 | --- | --- |
 | deciding whether an alert needs dedicated regression coverage, recording-rule settle-time checks, or `for`/`keep_firing_for` lifecycle protection | [`./references/testing.md`](./references/testing.md) |
-| choosing between direct alerts, recording rules, or reusable low-noise alert patterns | [`./references/alert-patterns.md`](./references/alert-patterns.md) |
+| adapting worked alert patterns or grouping related recording and alert rules | [`./references/alert-patterns.md`](./references/alert-patterns.md) |
 
 ## Invariants
 

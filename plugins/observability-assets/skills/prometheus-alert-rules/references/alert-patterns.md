@@ -1,36 +1,13 @@
 ---
 description: >-
-  Open this when choosing between direct alerts, recording-rule-backed alerts, or reusable low-noise alert patterns is the blocker.
+  Open this for worked examples of recording-rule layouts, alert grouping, and low-noise patterns.
 ---
 
 # Prometheus Alert Patterns Reference
 
-Use this reference when the blocker is choosing the right alert shape rather than writing YAML syntax.
+Use this reference for worked examples of rule patterns and group layouts.
 
-## Direct Alert vs Recording Rule
-
-- Use a direct alert when the expression is short, read rarely, and cheap enough to evaluate directly.
-- Use a recording rule when the query is expensive, reused, or easier to reason about as one named intermediate signal.
-
-Decision sketch:
-
-```text
-short and one-off expression -> direct alert
-expensive or reused expression -> recording rule first, alert second
-
-```
-
-Use this when the blocker is deciding whether the alert should stay direct or split through one reusable recorded metric.
-
-## When to Promote a Query into `record:`
-
-Promote a query into a recording rule when one of these is true:
-
-- The same expression is reused across alerts and dashboards.
-- The expression contains expensive aggregation or subquery work that should not be recomputed everywhere.
-- The alert becomes easier to read if it consumes one named intermediate metric.
-
-Recording-rule split pattern:
+## Recording-rule split pattern
 
 ```yaml
 - record: job:http_requests:rate5m
@@ -47,8 +24,6 @@ Recording-rule split pattern:
     )
 
 ```
-
-Use this when the blocker is deciding whether one repeated expression deserves its own reusable recorded metric.
 
 ## Broken vs Better
 
