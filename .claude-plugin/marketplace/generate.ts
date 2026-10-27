@@ -500,7 +500,7 @@ export const createCodexMarketplace = async (
   repositoryRoot: string
 ): Promise<NativeMarketplace> => {
   const catalog = parseCatalog(catalogValue);
-  const sources = catalog.plugins.map((plugin) => {
+  const sources = catalog.plugins.map((plugin): PluginSource => {
     if (plugin.name !== "herdr") {
       return mapSource(plugin.source, plugin.name);
     }
@@ -512,7 +512,7 @@ export const createCodexMarketplace = async (
     ) {
       throw new Error("Herdr must use the direct GitHub source herdrdev/herdr");
     }
-    return null;
+    return { source: "url", url: "https://github.com/herdrdev/herdr.git" };
   });
   const seenNames = new Set<string>();
   const seenPaths = new Set<string>();
@@ -522,7 +522,7 @@ export const createCodexMarketplace = async (
     }
     seenNames.add(plugin.name);
     const source = sources[index];
-    if (source?.source === "local") {
+    if (source.source === "local") {
       if (seenPaths.has(source.path)) {
         throw new Error(
           `Duplicate local marketplace source path: ${source.path}`
@@ -535,7 +535,7 @@ export const createCodexMarketplace = async (
   const localPluginPaths = await Promise.all(
     catalog.plugins.map((plugin, index) => {
       const source = sources[index];
-      return source?.source === "local"
+      return source.source === "local"
         ? resolveLocalPluginPath(
             repositoryRoot,
             rootRealPath,
@@ -567,7 +567,7 @@ export const createCodexMarketplace = async (
   const catalogPlugins = catalog.plugins.flatMap(
     (plugin, index): NativePlugin[] => {
       const source = sources[index];
-      return source !== null && source !== undefined && hasNativeManifest[index]
+      return hasNativeManifest[index]
         ? [
             {
               category: categoryLabel(plugin.category),
