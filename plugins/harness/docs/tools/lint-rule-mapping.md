@@ -63,6 +63,8 @@ Prefer maintained upstream rules when their supported configuration preserves th
 The tables record repository policy decisions against the reviewed candidates, not a claim about every available package.
 Keep custom rules when upstream changes detection boundaries, protected syntax, or required safe fixes.
 No additional Detekt runtime or ESLint process accompanies these decisions.
+Pillars identify intended benefits and do not imply that a rule directly measures them.
+An effective command enforces a row only in targets that materialize the owning profile and run that command.
 
 ## Oxlint Policies
 
@@ -70,26 +72,27 @@ Each retained module remains self-contained and independently registrable throug
 The style rules use separate configurations because their modules share the canonical `style` namespace.
 The existing base configuration retains its registrations.
 
-| Custom ID | Upstream comparison | Decision and distinguishing behavior |
-| --- | --- | --- |
-| `style/no-blank-lines-in-functions` | Stylistic empty-line, block-padding, and statement-padding rules. | Retain because physical gaps inside function expressions and proven-registration exceptions differ from global or statement-level padding. |
-| `style/no-inline-comments-in-functions` | Native `eslint/no-inline-comments` and `eslint-plugin-no-comments`. | Retain because standalone explanatory comments, declaration attachment, directives, and licenses require different predicates without comment-removal fixes. |
-| `style/sibling-test-spacing` | Native Jest padding and Vitest or Jest `padding-around-all`. | Retain because exactly one blank line between adjacent proven registrations differs from generic padding around calls. |
-| `tsdoc/require-export-tsdoc` | JSDoc `require-jsdoc` and `multiline-blocks`, plus TSDoc `syntax`. | Retain because export statements, effective class visibility, and every preceding block's delimiters exceed those rules' contracts. |
-| `react-effects/no-direct-use-effect` | React Compiler rules, including `set-state-in-effect`. | Author a diagnostic-only rule because upstream accepts legitimate effects and does not prohibit every direct React effect call. |
+| Custom ID | Upstream comparison | Decision and distinguishing behavior | Pillars | Effective enforcement |
+| --- | --- | --- | --- | --- |
+| `style/no-blank-lines-in-functions` | Stylistic empty-line, block-padding, and statement-padding rules | Retain because physical gaps inside function expressions and proven-registration exceptions differ from global or statement-level padding. | Consistency, maintainability | `ultracite:check:style:no-blank-lines-in-functions` runs its Oxlint config and `check:ultracite` composes that command. |
+| `style/no-inline-comments-in-functions` | Native `eslint/no-inline-comments` and `eslint-plugin-no-comments` | Retain because standalone explanatory comments, declaration attachment, directives, and licenses require different predicates without comment-removal fixes. | Consistency, maintainability | `ultracite:check:style:no-inline-comments-in-functions` runs its Oxlint config and `check:ultracite` composes that command. |
+| `style/sibling-test-spacing` | Native Jest padding and Vitest or Jest `padding-around-all` | Retain because exactly one blank line between adjacent proven registrations differs from generic padding around calls. | Consistency, maintainability | `ultracite:check:style:sibling-test-spacing` runs its Oxlint config and `check:ultracite` composes that command. |
+| `tsdoc/require-export-tsdoc` | JSDoc `require-jsdoc` and `multiline-blocks`, plus TSDoc `syntax` | Retain because export statements, effective class visibility, and every preceding block's delimiters exceed those rules' contracts. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
+| `react-effects/no-direct-use-effect` | React Compiler rules, including `set-state-in-effect` | Author a diagnostic-only rule because upstream accepts legitimate effects and does not prohibit every direct React effect call. | Stability, maintainability | `ultracite:check:react-effects` runs its Oxlint config and `check:ultracite` composes that command. |
 
-The React configuration registers `eslint-plugin-react-hooks` through `jsPlugins` with `name: "react-hooks-js"` and `specifier: "eslint-plugin-react-hooks"`.
-Oxlint executes the five required aliased rules alongside its native spread rule in the same configuration.
+The React-effects configuration registers `eslint-plugin-react-hooks` through `jsPlugins` with `name: "react-hooks-js"` and `specifier: "eslint-plugin-react-hooks"`.
+The React-effects Oxlint configuration executes the adopted upstream rules and native spread rule through `ultracite:check:react-effects`.
+The five custom rules run through the base or dedicated Oxlint configurations named in the table.
 The profile declares the upstream package dependency and catalog entry without introducing an ESLint process.
 
-| Adopted upstream ID | Positive fixture | Negative fixture |
-| --- | --- | --- |
-| `react-hooks-js/set-state-in-render` | The unconditional setter in `render.tsx` produces the aliased diagnostic. | The event-handler setter in `valid-render.tsx` produces no matching diagnostic. |
-| `react-hooks-js/set-state-in-effect` | The synchronous setter in `effect.tsx` produces the aliased diagnostic. | The timer callback in `valid-effect.tsx` produces no matching diagnostic. |
-| `react-hooks-js/immutability` | The prop mutation in `mutation.tsx` produces the aliased diagnostic. | The local copy mutation in `valid-mutation.tsx` produces no matching diagnostic. |
-| `react-hooks-js/purity` | The render-time random call in `random.tsx` produces the aliased diagnostic. | The constant expression in `valid-random.tsx` produces no matching diagnostic. |
-| `react-hooks-js/rules-of-hooks` | The conditional hook in `hooks.tsx` produces the aliased diagnostic. | The top-level hook in `valid-hooks.tsx` produces no matching diagnostic. |
-| `oxc/no-accumulating-spread` | The reducer spread in `spread.ts` produces the native diagnostic. | Ordinary copying and in-place accumulation in `valid-spread.ts` produce no matching diagnostic. |
+| Adopted upstream ID | Positive fixture | Negative fixture | Pillars | Effective enforcement |
+| --- | --- | --- | --- | --- |
+| `react-hooks-js/set-state-in-render` | The unconditional setter in `render.tsx` produces the aliased diagnostic. | The event-handler setter in `valid-render.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:react-effects` runs the React-effects Oxlint config and `check:ultracite` composes that command. |
+| `react-hooks-js/set-state-in-effect` | The synchronous setter in `effect.tsx` produces the aliased diagnostic. | The timer callback in `valid-effect.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:react-effects` runs the React-effects Oxlint config and `check:ultracite` composes that command. |
+| `react-hooks-js/immutability` | The prop mutation in `mutation.tsx` produces the aliased diagnostic. | The local copy mutation in `valid-mutation.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:react-effects` runs the React-effects Oxlint config and `check:ultracite` composes that command. |
+| `react-hooks-js/purity` | The render-time random call in `random.tsx` produces the aliased diagnostic. | The constant expression in `valid-random.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:react-effects` runs the React-effects Oxlint config and `check:ultracite` composes that command. |
+| `react-hooks-js/rules-of-hooks` | The conditional hook in `hooks.tsx` produces the aliased diagnostic. | The top-level hook in `valid-hooks.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:react-effects` runs the React-effects Oxlint config and `check:ultracite` composes that command. |
+| `oxc/no-accumulating-spread` | The reducer spread in `spread.ts` produces the native diagnostic. | Ordinary copying and in-place accumulation in `valid-spread.ts` produce no matching diagnostic. | Performance, maintainability | `ultracite:check:react-effects` runs the React-effects Oxlint config and `check:ultracite` composes that command. |
 
 The suite invokes these fixtures through actual Ultracite with both distributed React configurations.
 The render-state rule satisfies the render-state requirement within its documented compiler coverage, including supported conditional-update exceptions.
@@ -101,13 +104,13 @@ The adopted standards reside in lint configuration instead of duplicate guidance
 
 ## Markdown Policies
 
-| Previous custom ID | Upstream comparison | Decision and distinguishing behavior |
-| --- | --- | --- |
-| `docs/no-box-drawing` | Configured `markdownlint-rule-search-replace`. | Replace with `search-replace` because the configured pattern preserves the first box character per line, UTF-16 ranges, code coverage, and diagnostic-only behavior. |
-| `docs/table-separators` | Built-in `MD060/table-column-style`. | Retain because compact table spacing permits delimiter cells longer than three hyphens. |
-| `docs/sentence-per-line` | SemBr and maximum-one-sentence packages. | Retain because wrapped continuations, bounded semicolon clauses, quotations, alerts, and document protections differ. |
-| `docs/no-em-dash` | Text-scoped search-replace and extended-ASCII restrictions. | Retain because authored-prose protections permit quotations, headings, and unrelated Unicode. |
-| `docs/no-relative-skill-links` | `markdownlint-rule-relative-links`. | Retain because the policy prohibits selected relative skill destinations even when those files exist. |
+| Previous custom ID | Upstream comparison | Decision and distinguishing behavior | Pillars | Effective enforcement |
+| --- | --- | --- | --- | --- |
+| `docs/no-box-drawing` | Configured `markdownlint-rule-search-replace` | Replace with `search-replace` because the configured pattern preserves the first box character per line, UTF-16 ranges, code coverage, and diagnostic-only behavior. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured search-replace rule in root and materialized pnpm profiles. |
+| `docs/table-separators` | Built-in `MD060/table-column-style` | Retain because compact table spacing permits delimiter cells longer than three hyphens. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured table rule in root and materialized pnpm profiles. |
+| `docs/sentence-per-line` | SemBr and maximum-one-sentence packages | Retain because wrapped continuations, bounded semicolon clauses, quotations, alerts, and document protections differ. | Consistency, maintainability | `check:markdownlint-cli2` runs the canonical sentence rule in root and materialized pnpm profiles. |
+| `docs/no-em-dash` | Text-scoped search-replace and extended-ASCII restrictions | Retain because authored-prose protections permit quotations, headings, and unrelated Unicode. | Consistency, maintainability | The root config scopes this rule to `plugins/harness/`, while the materialized pnpm profile applies it without that path restriction. |
+| `docs/no-relative-skill-links` | `markdownlint-rule-relative-links` | Retain because the policy prohibits selected relative skill destinations even when those files exist. | Consistency, maintainability | The root config scopes this rule to `plugins/harness/`, while the materialized pnpm profile applies it without that path restriction. |
 
 The replacement changes the diagnostic identifier and upstream message wrapper.
 Remove the old configuration key, local implementation, and root re-export together.
@@ -127,37 +130,39 @@ These existing rules remain attached to the current KtLint ruleset.
 The comparisons do not authorize adding Kotlin enforcement through Oxlint or introducing a Detekt pipeline.
 The table covers all 26 registered custom IDs.
 
-| Custom ID | Upstream comparison | Retained difference |
-| --- | --- | --- |
-| `harness:companion-object-position` | Detekt `ClassOrdering`. | The policy places companions first after enum entries instead of last. |
-| `harness:comparison-direction` | Standard KtLint and Detekt catalogs. | The policy diagnoses every greater-than comparison without unsafe operand-swapping fixes. |
-| `harness:control-flow-braces` | KtLint bracing rules and Detekt mandatory-braces rules. | The policy includes every single-line branch and loop body, including do-while bodies. |
-| `harness:explicit-function-return-type` | Detekt `LibraryCodeMustSpecifyReturnType`. | The policy includes private and local expression-bodied named functions instead of public library APIs alone. |
-| `harness:explicit-property-type` | Detekt `LibraryCodeMustSpecifyReturnType`. | The policy includes private nonlocal properties instead of public library APIs alone. |
-| `harness:explicit-unit-branch` | Detekt `ImplicitUnitReturnType`. | The policy concerns branch results rather than inferred function return types. |
-| `harness:function-body-blank-lines` | KtLint `no-consecutive-blank-lines`. | The policy rejects single interior blank lines with structural protections. |
-| `harness:implicit-lambda-it` | Detekt explicit-it and multiline-lambda rules. | The policy diagnoses referenced implicit parameters across supported lambdas. |
-| `harness:import-over-fqn` | Detekt `UnnecessaryFullyQualifiedName`. | The prerelease candidate uses resolved class and call symbols rather than collision-free type references alone. |
-| `harness:kotest-sibling-spacing` | Generic KtLint blank-line rules. | The policy identifies proven Kotest sibling test and lifecycle registrations. |
-| `harness:kotest-test-assertions` | Detekt check and require idioms. | The policy targets test assertions and Kotest matcher alternatives. |
-| `harness:kotlin-top-level-declaration-count` | KtLint `filename` and Detekt `MatchingDeclarationName`. | The policy counts top-level types with private-helper and main-function exceptions. |
-| `harness:leading-underscore` | KtLint property naming and Detekt naming rules. | The policy also rejects underscore-prefixed private backing properties. |
-| `harness:multiline-kdoc` | KtLint `kdoc-wrapping`. | The policy requires multiline delimiters even for standalone one-line KDoc. |
-| `harness:nested-data-class-last` | Detekt `ClassOrdering`. | The policy specifically places nested data classes after other members. |
-| `harness:no-import-alias` | Standard KtLint and Detekt catalogs. | The policy rejects aliases repeating the imported simple name rather than banning distinct aliases. |
-| `harness:no-java-path-api` | Detekt `ForbiddenMethodCall`. | The policy distinguishes Path and Files syntax and supported toFile chains while recommending Kotlin path APIs. |
-| `harness:no-line-comment` | Detekt `ForbiddenComment`. | Token distinctions and KDoc, directive, shebang, and license exemptions exceed text-pattern matching. |
-| `harness:non-null-assertion` | Detekt unsafe-call and unnecessary-not-null rules. | The policy diagnoses every non-null assertion token regardless of resolved type. |
-| `harness:null-comparison-identity` | Detekt null-equality rules. | The policy targets equality operators against null literals rather than equals calls or referential equality. |
-| `harness:public-declaration-doc-comment` | Detekt undocumented public class, function, and property rules. | Protected constructor properties, all companions, enum entries, and exact documentation attachment distinguish the custom predicates. |
-| `harness:no-regex-constructor` | Detekt `StringShouldBeRawString`. | The policy prefers toRegex calls rather than checking string escaping. |
-| `harness:slf-direct-logging` | Detekt `ForbiddenMethodCall`. | Syntax-proven logging receivers and alias exclusions differ from resolved method signatures and callable references. |
-| `harness:terminal-branch-when` | Detekt `UseIfInsteadOfWhen`. | The policy recommends the opposite conversion for stable parameter comparison chains. |
-| `harness:unchecked-cast-suppression` | Detekt `ForbiddenSuppress`. | Collection arguments and conditional safe annotation removal differ from upstream reporting without fixes. |
-| `harness:unstructured-logging` | Detekt `ForbiddenMethodCall`. | System output chains and printStackTrace coverage differ from configured method signatures without overbroad PrintStream bans. |
+| Custom ID | Upstream comparison | Retained difference | Pillars |
+| --- | --- | --- | --- |
+| `harness:companion-object-position` | Detekt `ClassOrdering` | The policy places companions first after enum entries instead of last. | Consistency, maintainability |
+| `harness:comparison-direction` | Standard KtLint and Detekt catalogs | The policy diagnoses every greater-than comparison without unsafe operand-swapping fixes. | Consistency, maintainability |
+| `harness:control-flow-braces` | KtLint bracing rules and Detekt mandatory-braces rules | The policy includes every single-line branch and loop body, including do-while bodies. | Stability, consistency, maintainability |
+| `harness:explicit-function-return-type` | Detekt `LibraryCodeMustSpecifyReturnType` | The policy includes private and local expression-bodied named functions instead of public library APIs alone. | Stability, maintainability |
+| `harness:explicit-property-type` | Detekt `LibraryCodeMustSpecifyReturnType` | The policy includes private nonlocal properties instead of public library APIs alone. | Stability, maintainability |
+| `harness:explicit-unit-branch` | Detekt `ImplicitUnitReturnType` | The policy concerns branch results rather than inferred function return types. | Stability, consistency |
+| `harness:function-body-blank-lines` | KtLint `no-consecutive-blank-lines` | The policy rejects single interior blank lines with structural protections. | Consistency, maintainability |
+| `harness:implicit-lambda-it` | Detekt explicit-it and multiline-lambda rules | The policy diagnoses referenced implicit parameters across supported lambdas. | Consistency, maintainability |
+| `harness:import-over-fqn` | Detekt `UnnecessaryFullyQualifiedName` | The prerelease candidate uses resolved class and call symbols rather than collision-free type references alone. | Consistency, maintainability |
+| `harness:kotest-sibling-spacing` | Generic KtLint blank-line rules | The policy identifies proven Kotest sibling test and lifecycle registrations. | Consistency, maintainability |
+| `harness:kotest-test-assertions` | Detekt check and require idioms | The policy targets test assertions and Kotest matcher alternatives. | Stability, maintainability |
+| `harness:kotlin-top-level-declaration-count` | KtLint `filename` and Detekt `MatchingDeclarationName` | The policy counts top-level types with private-helper and main-function exceptions. | Consistency, maintainability |
+| `harness:leading-underscore` | KtLint property naming and Detekt naming rules | The policy also rejects underscore-prefixed private backing properties. | Consistency |
+| `harness:multiline-kdoc` | KtLint `kdoc-wrapping` | The policy requires multiline delimiters even for standalone one-line KDoc. | Consistency, maintainability |
+| `harness:nested-data-class-last` | Detekt `ClassOrdering` | The policy specifically places nested data classes after other members. | Consistency, maintainability |
+| `harness:no-import-alias` | Standard KtLint and Detekt catalogs | The policy rejects aliases repeating the imported simple name rather than banning distinct aliases. | Consistency, maintainability |
+| `harness:no-java-path-api` | Detekt `ForbiddenMethodCall` | The policy distinguishes Path and Files syntax and supported toFile chains while recommending Kotlin path APIs. | Stability, consistency, maintainability |
+| `harness:no-line-comment` | Detekt `ForbiddenComment` | Token distinctions and KDoc, directive, shebang, and license exemptions exceed text-pattern matching. | Consistency, maintainability |
+| `harness:non-null-assertion` | Detekt unsafe-call and unnecessary-not-null rules | The policy diagnoses every non-null assertion token regardless of resolved type. | Stability |
+| `harness:null-comparison-identity` | Detekt null-equality rules | The policy targets equality operators against null literals rather than equals calls or referential equality. | Stability |
+| `harness:public-declaration-doc-comment` | Detekt undocumented public class, function, and property rules | The visitor checks effective public and protected classes, functions, properties, primary-constructor properties, and named non-companion objects; it excludes companion objects and does not visit individual enum entries. | Stability, maintainability |
+| `harness:no-regex-constructor` | Detekt `StringShouldBeRawString` | The policy prefers toRegex calls rather than checking string escaping. | Consistency, maintainability |
+| `harness:slf-direct-logging` | Detekt `ForbiddenMethodCall` | Syntax-proven logging receivers and alias exclusions differ from resolved method signatures and callable references. | Stability, maintainability |
+| `harness:terminal-branch-when` | Detekt `UseIfInsteadOfWhen` | The policy recommends the opposite conversion for stable parameter comparison chains. | Consistency, maintainability |
+| `harness:unchecked-cast-suppression` | Detekt `ForbiddenSuppress` | Collection arguments and conditional safe annotation removal differ from upstream reporting without fixes. | Stability, maintainability |
+| `harness:unstructured-logging` | Detekt `ForbiddenMethodCall` | System output chains and printStackTrace coverage differ from configured method signatures without overbroad PrintStream bans. | Stability, maintainability |
 
 Static source comparisons establish these differences without claiming newly executed Kotlin builds or upstream fixture runs.
 Keep existing Kotlin consumer implementations until their owner verifies a behavior-preserving migration.
+Each Kotlin row is enforced only when a target attaches the custom ruleset JAR and runs `ktlintCheck`.
+Selecting the Kotlin profile does not attach this JAR automatically.
 
 ## Cargo Toolchain Policies
 
@@ -185,6 +190,7 @@ The existing native Kotlin rules above remain available without a new enforcemen
 | Candidate | Disposition |
 | --- | --- |
 | KDoc box-drawing candidates. | Leave consumer enforcement unchanged because KDoc requires Kotlin parsing outside this Oxlint-only addition. |
+| Subject-taking Boolean `when` branches | Keep policy-only until semantic positive and negative fixtures and a complete current-Kotlin scan establish a reliable AST-aware rule without false positives. |
 | Combined Go spacing and documentation analyzer. | Leave the combined Go analyzer unchanged because its Go AST, type information, and protected syntax need a native Go pipeline. |
 | Go immediate-return inlining candidate. | Exclude portable autofix claims because its evaluation and type guards require separate native verification. |
 | Go value-range checker. | Leave its diagnostic-only Go command unchanged because range classification requires Go types and platform-aware package loading. |
