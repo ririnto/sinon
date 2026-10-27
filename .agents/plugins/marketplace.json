@@ -91,6 +91,18 @@
     },
     {
       "category": "Development",
+      "name": "herdr",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/herdrdev/herdr.git"
+      }
+    },
+    {
+      "category": "Development",
       "name": "java",
       "policy": {
         "authentication": "ON_INSTALL",

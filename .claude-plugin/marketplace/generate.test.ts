@@ -112,7 +112,7 @@ test("maps local packages and preserves external URL selectors", async () => {
   });
 });
 
-test("omits Herdr from Codex when it uses the direct upstream source", async () => {
+test("maps Herdr from its direct upstream GitHub source", async () => {
   const result = await createCodexMarketplace(
     catalog([
       {
@@ -122,7 +122,14 @@ test("omits Herdr from Codex when it uses the direct upstream source", async () 
     ]),
     makeRoot()
   );
-  expect(result.plugins).toEqual([]);
+  expect(result.plugins).toEqual([
+    {
+      category: "Development",
+      name: "herdr",
+      policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
+      source: { source: "url", url: "https://github.com/herdrdev/herdr.git" }
+    }
+  ]);
 });
 
 test.each([

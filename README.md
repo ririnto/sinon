@@ -279,7 +279,7 @@ codex plugin add ddgs@sinon
 
 For a local checkout, use `codex plugin marketplace add /path/to/sinon`.
 The repository catalog at `.agents/plugins/marketplace.json` exposes the Claude catalog entries that have a native Codex manifest, plus Codex-only packages.
-Herdr is Claude-only because upstream does not provide the root `plugin.json` required by Codex.
+Herdr installs directly from its upstream GitHub repository in both hosts.
 Its local source paths are relative to the repository root.
 External Workgraph continues to follow its upstream `main` branch.
 
