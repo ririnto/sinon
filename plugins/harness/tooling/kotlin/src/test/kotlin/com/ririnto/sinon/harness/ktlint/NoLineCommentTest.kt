@@ -11,6 +11,22 @@ import io.kotest.matchers.shouldBe
  */
 class NoLineCommentTest :
     FunSpec({
+        test("preserves modified-file notices in KDoc") {
+            val source =
+                """
+                /**
+                 * Flags companion objects that are not the first non-enum-entry declaration in their class or object body.
+                 *
+                 * Modified for the local package and rule ID.
+                 */
+                class Example
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(emptyList())
+                formattedCode shouldBe source
+            }
+        }
+
         test("required license and suppression directives are preserved") {
             val source = "fun work() {\n/* @license MIT */\n// noinspection UnusedVariable\nval value = 1\n}\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
@@ -28,11 +44,12 @@ class NoLineCommentTest :
                     // This comment discusses copyright.
                     // The @license marker appears here as prose.
                     /* This text mentions SPDX-License-Identifier: without declaring one. */
+                    // The value was modified by a caller.
                 }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 assertSoftly(diagnostics) {
-                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5), comment(3, 5), comment(4, 5)))
+                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5), comment(3, 5), comment(4, 5), comment(5, 5)))
                 }
                 formattedCode shouldBe source
             }
@@ -42,7 +59,7 @@ class NoLineCommentTest :
             val source =
                 """
                 /*
-                 * Copyright 2026 Sinon contributors.
+                 * Copyright (c) 2026 ririnto
                  * SPDX-License-Identifier: MIT
                  */
                 fun work() {}
