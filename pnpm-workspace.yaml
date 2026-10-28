@@ -5,6 +5,11 @@ allowBuilds:
   esbuild: true
   pnpm: true
 
+minimumReleaseAge: 480
+
+overrides:
+  micromark-extension-math>katex: ^0.19.1
+
 catalog:
   "@google/design.md": ^0.4.0
   "@oxc-project/types": ^0.156.0
