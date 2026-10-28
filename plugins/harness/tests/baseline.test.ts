@@ -84,7 +84,7 @@ describe("fresh-root baseline", () => {
       expect(manifest.devDependencies["markdownlint-rule-search-replace"]).toBe(
         "catalog:"
       );
-      expect(manifest.packageManager).toBe("pnpm@12.15.0");
+      expect(manifest.packageManager).toBe("pnpm@12.16.1");
       expect(manifest.engines.node).toBe(">=24.15.0 <25");
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
