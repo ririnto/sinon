@@ -8,9 +8,9 @@ metadata:
         - https://docs.astral.sh/uv/concepts/projects/dependencies/
         - https://docs.astral.sh/uv/getting-started/installation/
     Ruff:
-      version: 0.16.10
+      version: 0.17.3
       url:
-        - https://github.com/astral-sh/ruff/releases/tag/0.16.10
+        - https://github.com/astral-sh/ruff/releases/tag/0.17.3
         - https://docs.astral.sh/ruff/configuration/
         - https://docs.astral.sh/ruff/rules/
         - https://docs.astral.sh/ruff/rules/missing-type-function-argument/
@@ -18,8 +18,8 @@ metadata:
         - https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
         - https://docs.astral.sh/ruff/rules/new-line-after-last-paragraph/
     setup-uv:
-      tag: v10.2.0
-      url: https://raw.githubusercontent.com/astral-sh/setup-uv/v10.2.0/README.md
+      tag: v10.3.2
+      url: https://raw.githubusercontent.com/astral-sh/setup-uv/v10.3.2/README.md
     Dependabot:
       url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 ---
@@ -40,7 +40,7 @@ For a new empty target, report the initialization gap and run only `uv init` whe
 
 - uv: check the official releases for the latest stable version compatible with the target, then use its official installer.
 - Python: the target's `requires-python` field stays authoritative.
-- Ruff: `>= 0.16.10,<0.17` through the `dev` dependency group.
+- Ruff: `>= 0.17.3,<0.18` through the `dev` dependency group.
 
 These bounds record the source profile's selected versions, not the latest PyPI releases.
 Before adding or upgrading Ruff, check PyPI for the latest stable version compatible with the target's `requires-python` and existing constraints.
