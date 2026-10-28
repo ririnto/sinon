@@ -3,7 +3,7 @@ title: pnpm
 metadata:
   reference:
     pnpm:
-      version: 12.10.1
+      version: 12.15.0
       url:
         - https://pnpm.io/installation
         - https://pnpm.io/catalogs
@@ -16,24 +16,24 @@ metadata:
     Corepack:
       url: https://nodejs.org/docs/latest-v24.x/api/corepack.html
     Oxlint:
-      version: 1.87.0
+      version: 1.90.0
       url:
         - https://oxc.rs/docs/guide/usage/linter/config.md
         - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.md
-        - https://www.npmjs.com/package/oxlint/v/1.87.0
+        - https://www.npmjs.com/package/oxlint/v/1.90.0
     Oxfmt:
-      version: 0.72.0
+      version: 0.75.0
       url:
         - https://oxc.rs/docs/guide/usage/formatter/config.md
-        - https://www.npmjs.com/package/oxfmt/v/0.72.0
+        - https://www.npmjs.com/package/oxfmt/v/0.75.0
     Markdownlint CLI2:
-      version: 0.23.3
-      url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.23.3/README.md
+      version: 0.24.0
+      url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.24.0/README.md
     Markdownlint:
-      version: 0.41.1
+      version: 0.42.0
       url:
-        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.41.1/doc/Rules.md
-        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.41.1/doc/CustomRules.md
+        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.42.0/doc/Rules.md
+        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.42.0/doc/CustomRules.md
     Search-replace rule:
       version: 1.2.0
       url: https://raw.githubusercontent.com/OnkarRuikar/markdownlint-rule-search-replace/main/README.md
@@ -51,24 +51,24 @@ metadata:
         - https://registry.npmjs.org/markdownlint-rule-max-one-sentence-per-line/0.0.2
         - https://raw.githubusercontent.com/aepfli/markdownlint-rule-max-one-sentence-per-line/main/README.md
     Ultracite:
-      version: 8.0.1
-      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%408.0.1/packages/cli/README.md
+      version: 8.1.0
+      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%408.1.0/packages/cli/README.md
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/exactOptionalPropertyTypes.html
         - https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html
         - https://www.typescriptlang.org/tsconfig/verbatimModuleSyntax.html
     npm-run-all2:
-      version: 9.0.3
-      url: https://registry.npmjs.org/npm-run-all2/9.0.3
+      version: 9.0.4
+      url: https://registry.npmjs.org/npm-run-all2/9.0.4
     Husky:
       version: 9.1.7
       url:
         - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
         - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/how-to.md
     Oxc Project Types:
-      version: 0.153.0
-      url: https://registry.npmjs.org/@oxc-project/types/0.153.0
+      version: 0.156.0
+      url: https://registry.npmjs.org/@oxc-project/types/0.156.0
 ---
 
 Use this profile for a pnpm-managed JavaScript, TypeScript, or JSX project.
@@ -360,7 +360,7 @@ Both root lint commands pass without the flag.
 The separate root `check:typescript` script runs `tsc --noEmit`, which does not configure Ultracite's TypeScript checks.
 A passing root check does not establish that the profile's type-aware promise diagnostic ran.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
-The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.87.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.0.1/packages/cli/src/commands/check.ts).
+The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.90.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.1.0/packages/cli/src/commands/check.ts).
 
 ## TypeScript Strictness Merge
 
@@ -418,7 +418,7 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects pnpm `12.10.1`, Oxlint `1.87.0`, Oxfmt `0.72.0`, Ultracite `8.0.1`, Markdownlint `0.41.1`, Markdownlint CLI2 `0.23.3`, npm-run-all2 `9.0.3`, Vitest `5.0.3`, and `@oxc-project/types` `0.153.0`.
+The source profile selects pnpm `12.15.0`, Oxlint `1.90.0`, Oxfmt `0.75.0`, Ultracite `8.1.0`, Markdownlint `0.42.0`, Markdownlint CLI2 `0.24.0`, npm-run-all2 `9.0.4`, Vitest `5.0.5`, and `@oxc-project/types` `0.156.0`.
 The Harness source-profile baseline is maintained independently from the Sinon root catalog and may lag it.
 The root `pnpm-workspace.yaml` catalog, `package.json`, and `pnpm-lock.yaml` own installed root tool versions.
 Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.

@@ -3,10 +3,10 @@ title: Go Tool Reference
 metadata:
   reference:
     golangci-lint:
-      tag: v2.14.0
+      tag: v2.15.0
       url:
-        - https://github.com/golangci/golangci-lint/releases/tag/v2.14.0
-        - https://raw.githubusercontent.com/golangci/golangci-lint/v2.14.0/.golangci.reference.yml
+        - https://github.com/golangci/golangci-lint/releases/tag/v2.15.0
+        - https://raw.githubusercontent.com/golangci/golangci-lint/v2.15.0/.golangci.reference.yml
     NilAway:
       url: https://github.com/uber-go/nilaway
     Go tool dependencies:
@@ -30,7 +30,7 @@ Golangci-lint and NilAway are project-local tools installed into a build-local d
 
 - Go: use the version declared by the target's `go.mod` `go` directive.
   Install a matching toolchain when missing.
-- golangci-lint: v2.14.0.
+- golangci-lint: v2.15.0.
 - NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
 - Task: not required.
   This profile adds no Task dependency.
@@ -86,7 +86,7 @@ For a new installation, use the checked stable compatible golangci-lint version 
 
 ```sh
 export GOBIN="$(pwd)/.bin"
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 GOTOOLCHAIN=auto go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260918162853-acb8859b9031
 export PATH="${GOBIN}:${PATH}"
 ```
