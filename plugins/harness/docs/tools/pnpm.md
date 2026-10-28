@@ -3,7 +3,7 @@ title: pnpm
 metadata:
   reference:
     pnpm:
-      version: 12.15.0
+      version: 12.16.1
       url:
         - https://pnpm.io/installation
         - https://pnpm.io/catalogs
@@ -418,7 +418,7 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects pnpm `12.15.0`, Oxlint `1.90.0`, Oxfmt `0.75.0`, Ultracite `8.1.0`, Markdownlint `0.42.0`, Markdownlint CLI2 `0.24.0`, npm-run-all2 `9.0.4`, Vitest `5.0.5`, and `@oxc-project/types` `0.156.0`.
+The source profile selects pnpm `12.16.1`, Oxlint `1.90.0`, Oxfmt `0.75.0`, Ultracite `8.1.0`, Markdownlint `0.42.0`, Markdownlint CLI2 `0.24.0`, npm-run-all2 `9.0.4`, Vitest `5.0.5`, and `@oxc-project/types` `0.156.0`.
 The Harness source-profile baseline is maintained independently from the Sinon root catalog and may lag it.
 The root `pnpm-workspace.yaml` catalog, `package.json`, and `pnpm-lock.yaml` own installed root tool versions.
 Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.

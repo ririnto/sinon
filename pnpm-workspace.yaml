@@ -20,7 +20,7 @@ catalog:
   oxfmt: ^0.75.0
   oxlint: ^1.90.0
   oxlint-tsgolint: ^7.0.2005
-  pnpm: ^12.15.0
+  pnpm: ^12.16.1
   tar: ^7.5.22
   tsx: ^4.23.15
   typescript: ^7.0.2
