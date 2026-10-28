@@ -11,6 +11,46 @@ import io.kotest.matchers.shouldBe
  */
 class MultilineKdocTest :
     FunSpec({
+        test("reports box drawing in KDoc without changing it") {
+            val source = "/**\r\n * \u251c\u2500 first\r\n * \u2514\u2500 second\r\n */\r\nclass Tree\r\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(
+                    listOf(
+                        KtLintRuleTestEngine.Diagnostic(2, 4, "harness:multiline-kdoc", false),
+                        KtLintRuleTestEngine.Diagnostic(3, 4, "harness:multiline-kdoc", false)
+                    )
+                )
+                formattedCode shouldBe source
+            }
+        }
+
+        test("allows ASCII KDoc and box drawing outside KDoc") {
+            val source =
+                """
+                /**
+                 * +-- child
+                 */
+                class Tree {
+                    val marker = "└─"
+                    // └─
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(emptyList())
+                formattedCode shouldBe source
+            }
+        }
+
+        test("reports box drawing in detached KDoc") {
+            val source = "/**\n * \u2500\n */\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(
+                    listOf(KtLintRuleTestEngine.Diagnostic(2, 4, "harness:multiline-kdoc", false))
+                )
+                formattedCode shouldBe source
+            }
+        }
+
         test("expands single line kdoc") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(

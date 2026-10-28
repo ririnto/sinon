@@ -87,6 +87,9 @@ Inspect each package root in a monorepo and install the profile at each selected
 The profile provides `oxlint.config.ts`, three independent style configs, `oxlint.react-effects.config.ts`, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
 The style configs are `oxlint.style-no-blank-lines-in-functions.config.ts`, `oxlint.style-no-inline-comments-in-functions.config.ts`, and `oxlint.style-sibling-test-spacing.config.ts`.
 The base configuration owns core, TSDoc, and non-style rules.
+Merge its settings into an existing Oxlint configuration without replacing the target's presets or rules.
+Keep the profile's relative JavaScript plugin at the top level because Oxlint rejects relative plugin specifiers inside extended configurations.
+Preserve both configurations' plugins, overrides, environment, and ignore patterns during the merge.
 Each style configuration registers one plugin and one canonical `style/<rule>` identifier.
 Copy `plugins/` next to the Oxlint configs because their `jsPlugins` entries use `./plugins/*.ts` paths.
 Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `rules/*.ts` paths.

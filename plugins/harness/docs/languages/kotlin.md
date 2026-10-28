@@ -66,6 +66,8 @@ Every effective public or protected declaration carries a KDoc comment.
 Write KDoc in English with multiple lines.
 Put the opening `/**` and closing `*/` delimiters on separate lines, including for one-sentence KDoc.
 Write meaningful English sentences on lines beginning with `*`.
+Use ASCII tree markers in KDoc instead of Unicode box-drawing characters.
+The `harness:multiline-kdoc` rule reports the first box-drawing character on each KDoc line without an automatic fix.
 Concise KDoc states the contract, not a restatement of the name.
 A purely private helper needs no KDoc.
 The `harness:public-declaration-doc-comment` rule is on by default and reports effective public declarations without KDoc.

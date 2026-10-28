@@ -145,7 +145,7 @@ The table covers all 26 registered custom IDs.
 | `harness:kotest-test-assertions` | Detekt check and require idioms | The policy targets test assertions and Kotest matcher alternatives. | Stability, maintainability |
 | `harness:kotlin-top-level-declaration-count` | KtLint `filename` and Detekt `MatchingDeclarationName` | The policy counts top-level types with private-helper and main-function exceptions. | Consistency, maintainability |
 | `harness:leading-underscore` | KtLint property naming and Detekt naming rules | The policy also rejects underscore-prefixed private backing properties. | Consistency |
-| `harness:multiline-kdoc` | KtLint `kdoc-wrapping` | The policy requires multiline delimiters even for standalone one-line KDoc. | Consistency, maintainability |
+| `harness:multiline-kdoc` | KtLint `kdoc-wrapping` | The policy requires multiline delimiters and reports Unicode box-drawing characters in KDoc. | Consistency, maintainability |
 | `harness:nested-data-class-last` | Detekt `ClassOrdering` | The policy specifically places nested data classes after other members. | Consistency, maintainability |
 | `harness:no-import-alias` | Standard KtLint and Detekt catalogs | The policy rejects aliases repeating the imported simple name rather than banning distinct aliases. | Consistency, maintainability |
 | `harness:no-java-path-api` | Detekt `ForbiddenMethodCall` | The policy distinguishes Path and Files syntax and supported toFile chains while recommending Kotlin path APIs. | Stability, consistency, maintainability |
@@ -189,7 +189,6 @@ The existing native Kotlin rules above remain available without a new enforcemen
 
 | Candidate | Disposition |
 | --- | --- |
-| KDoc box-drawing candidates. | Leave consumer enforcement unchanged because KDoc requires Kotlin parsing outside this Oxlint-only addition. |
 | Subject-taking Boolean `when` branches | Keep policy-only until semantic positive and negative fixtures and a complete current-Kotlin scan establish a reliable AST-aware rule without false positives. |
 | Combined Go spacing and documentation analyzer. | Leave the combined Go analyzer unchanged because its Go AST, type information, and protected syntax need a native Go pipeline. |
 | Go immediate-return inlining candidate. | Exclude portable autofix claims because its evaluation and type guards require separate native verification. |

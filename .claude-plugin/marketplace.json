@@ -127,7 +127,7 @@
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness",
-      "version": "2026.10.15.08",
+      "version": "2026.10.29.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
       "keywords": [
         "harness",
