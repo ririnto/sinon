@@ -387,6 +387,45 @@ describe("pnpm profile configuration", () => {
     }
   });
 
+  test("Ultracite composes the base with a framework preset and target rules", async () => {
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "sinon-profile-compose-")
+    );
+    try {
+      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+      await preparePackageRoot(directory);
+      await writeFile(
+        path.join(directory, "composed.config.ts"),
+        [
+          'import { defineConfig } from "oxlint";',
+          'import react from "ultracite/oxlint/react";',
+          'import base from "./oxlint.config.ts";',
+          'export default defineConfig({ ...base, extends: [...(base.extends ?? []), react], rules: { ...base.rules, "eslint/no-console": "error" } });'
+        ].join("\n")
+      );
+      await writeFile(
+        path.join(directory, "sample.tsx"),
+        'export const image = <img src="example.png" />;\nconsole.log(image);\n'
+      );
+      const { diagnostics, status } = runUltracite(
+        directory,
+        "sample.tsx",
+        "check",
+        path.join(directory, "composed.config.ts")
+      );
+      expect(status).toBe(1);
+      expect(diagnostics.map(({ code }) => code)).toEqual(
+        expect.arrayContaining([
+          "tsdoc(require-export-tsdoc)",
+          "jsx-a11y(alt-text)",
+          "eslint(no-console)"
+        ])
+      );
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  }, 30_000);
+
   test.each(stylePasses)(
     "Ultracite loads copied $configurationFile with peer plugins absent",
     async (stylePass) => {

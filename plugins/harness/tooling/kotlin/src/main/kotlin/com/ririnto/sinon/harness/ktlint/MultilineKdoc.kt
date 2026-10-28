@@ -7,6 +7,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import com.pinterest.ktlint.rule.engine.core.api.replaceWith
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
+import org.jetbrains.kotlin.kdoc.psi.api.KDoc
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -27,6 +28,17 @@ class MultilineKdoc :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
+        (node.psi as? KDoc)?.let { comment ->
+            var reported = false
+            comment.text.forEachIndexed { index, character ->
+                if (character == '\n' || character == '\r') {
+                    reported = false
+                } else if (!reported && character in '\u2500'..'\u257F') {
+                    emit(comment.textOffset + index, "use ASCII tree markers in KDoc", false)
+                    reported = true
+                }
+            }
+        }
         (node.psi as? KtFile)?.accept(DocVisitor(emit))
     }
 
