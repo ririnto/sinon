@@ -28,6 +28,7 @@ The `eligible` value permits configuration, while the other values return a skip
 It materializes shared sources after checking every destination for conflicts and unsafe symlinks.
 Identical files remain unchanged on a repeat run.
 A conflicting baseline file stops the operation before writes.
+Repeat configuration and confirm no new files or changed bytes before modifying generated files.
 An existing native Gradle version catalog remains target-owned.
 For an existing configured root or a polyglot root, use the profile's bounded merges rather than overwriting its manifest or applying competing installers.
 
@@ -51,8 +52,9 @@ Gradle and Kotlin roots create `gradle/libs.versions.toml` only when missing.
 Use that catalog as the root's single native version source when integrating its build.
 Keep each independent Gradle root's catalog separate.
 Node, frontend, and React roots receive the canonical base Oxc configuration, three independent style configurations, Oxfmt configuration, and flat plugin modules.
-The runtime fragment pins the supported Node 26 LTS line and pnpm baseline.
+The runtime fragment pins the supported Node 26 LTS line.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
+Set the selected pnpm version in the target root's `packageManager` field before installing dependencies or using the CI catalog.
 
 ## Integration Proof
 
@@ -72,7 +74,6 @@ Run `pnpm install` and `pnpm run prepare` after reviewing the generated files.
 Verify `core.hooksPath` and actual Git commit and push operations through the shared [Husky integration](pnpm.md#git-hook-integration).
 Run the root `pnpm run check` and the selected native gate.
 Verify both pnpm hook entrypoints and prove a disposable violation blocks the matching Git operation.
-Repeat configuration and confirm no new files or changed bytes.
 Verify each independently deliverable unit before integrating its successor.
 Check the actual target artifacts and native outcomes rather than inferring success from copied files or script names.
 A wrapper stub proves dispatch and failure propagation, not native compilation.

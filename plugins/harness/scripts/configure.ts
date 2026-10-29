@@ -212,8 +212,7 @@ export const configureBaseline = async (
             )
           )
         ],
-        ["engines", runtime.engines],
-        ["packageManager", runtime.packageManager]
+        ["engines", runtime.engines]
       ]),
       null,
       2

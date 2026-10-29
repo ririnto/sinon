@@ -6,8 +6,7 @@ pnpm:
   image: node:26
   before_script:
     - >-
-      node --eval 'if (require("./package.json").packageManager.includes("+")) { throw new Error("Direct pnpm cannot verify packageManager integrity suffixes. Use a version-only pnpm pin."); }'
-    - npm install --global pnpm@12.16.1
+      package_manager="$(node --print 'require("./package.json").packageManager')" && npm install --global "$package_manager"
   script:
     - pnpm install --frozen-lockfile
     - pnpm run check

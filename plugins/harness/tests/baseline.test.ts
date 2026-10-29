@@ -69,20 +69,25 @@ const assertSortedKeys = (value: unknown): void => {
 };
 
 describe("fresh-root baseline", () => {
-  test.each([
-    { packageManager: "pnpm@12.15.0", status: 0 },
-    {
-      packageManager: `pnpm@12.16.1+sha224.${"0".repeat(56)}`,
-      status: 1
-    }
-  ])(
-    "GitLab pnpm preflight handles $packageManager with exit $status",
-    async ({ packageManager, status }) => {
+  test.each([true, false])(
+    "GitLab pnpm installation reads the root package manifest (exists=%s)",
+    async (exists) => {
       const directory = await targetDirectory();
-      await writeFile(
-        path.join(directory, "package.json"),
-        JSON.stringify({ packageManager })
+      const { packageManager } = JSON.parse(
+        await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
       );
+      await mkdir(path.join(directory, ".bin"));
+      await writeFile(
+        path.join(directory, ".bin/npm"),
+        '#!/usr/bin/env sh\nprintf "%s\\n" "$@"\n',
+        { mode: 0o755 }
+      );
+      if (exists) {
+        await writeFile(
+          path.join(directory, "package.json"),
+          JSON.stringify({ packageManager })
+        );
+      }
       const result = spawnSync(
         "sh",
         [
@@ -99,14 +104,22 @@ describe("fresh-root baseline", () => {
             ).getIn(["pnpm", "before_script", 0])
           )
         ],
-        { cwd: directory, encoding: "utf-8" }
+        {
+          cwd: directory,
+          encoding: "utf-8",
+          env: {
+            ...process.env,
+            PATH: `${path.join(directory, ".bin")}${path.delimiter}${process.env.PATH}`
+          }
+        }
       );
       expect(result.error).toBeUndefined();
-      expect(result.status, result.stderr + result.stdout).toBe(status);
-      if (status !== 0) {
-        expect(result.stderr).toContain(
-          "Direct pnpm cannot verify packageManager integrity suffixes"
-        );
+      if (exists) {
+        expect(result.status, result.stderr).toBe(0);
+        expect(result.stdout).toBe(`install\n--global\n${packageManager}\n`);
+      } else {
+        expect(result.status).not.toBe(0);
+        expect(result.stdout).toBe("");
       }
     }
   );
@@ -124,7 +137,7 @@ describe("fresh-root baseline", () => {
       expect(manifest.devDependencies["markdownlint-rule-search-replace"]).toBe(
         "catalog:"
       );
-      expect(manifest.packageManager).toBe("pnpm@12.16.1");
+      expect(manifest.packageManager).toBeUndefined();
       expect(manifest.engines.node).toBe(">=26.13.0 <27");
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
@@ -365,6 +378,17 @@ describe("fresh-root baseline", () => {
         kept: [],
         status: "skipped"
       });
+      const result = spawnSync(process.execPath, [
+        path.join(repositoryRoot, "plugins/harness/scripts/configure.ts"),
+        "--target",
+        directory,
+        "--profile",
+        "node",
+        "--eligibility",
+        eligibility
+      ]);
+      expect(result.status).toBe(0);
+      expect(JSON.parse(result.stdout.toString()).status).toBe("skipped");
       expect(await readdir(directory)).toEqual(["config.yaml"]);
       expect(await readFile(path.join(directory, "config.yaml"), "utf-8")).toBe(
         "enabled: true\n"
