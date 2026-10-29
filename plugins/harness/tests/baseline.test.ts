@@ -69,9 +69,9 @@ const assertSortedKeys = (value: unknown): void => {
 };
 
 describe("fresh-root baseline", () => {
-  test.each([true, false])(
-    "GitLab pnpm installation reads the root package manifest (exists=%s)",
-    async (exists) => {
+  test.each([0, 7])(
+    "GitLab pnpm installation forwards the selected version and npm exit %s",
+    async (status) => {
       const directory = await targetDirectory();
       const { packageManager } = JSON.parse(
         await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
@@ -79,15 +79,13 @@ describe("fresh-root baseline", () => {
       await mkdir(path.join(directory, ".bin"));
       await writeFile(
         path.join(directory, ".bin/npm"),
-        '#!/usr/bin/env sh\nprintf "%s\\n" "$@"\n',
+        '#!/usr/bin/env sh\nprintf "%s\\n" "$@"\nexit "$INSTALL_STATUS"\n',
         { mode: 0o755 }
       );
-      if (exists) {
-        await writeFile(
-          path.join(directory, "package.json"),
-          JSON.stringify({ packageManager })
-        );
-      }
+      await writeFile(
+        path.join(directory, "package.json"),
+        JSON.stringify({ packageManager })
+      );
       const commands = parseDocument(
         await readFile(
           path.join(
@@ -97,32 +95,19 @@ describe("fresh-root baseline", () => {
           "utf-8"
         )
       ).toJS().pnpm.before_script;
-      expect(commands).toHaveLength(2);
-      const result = spawnSync(
-        "sh",
-        [
-          "-c",
-          `set -e\n${commands[0]}\nprintf 'selected=%s\\n' "$package_manager"\n${commands[1]}`
-        ],
-        {
-          cwd: directory,
-          encoding: "utf-8",
-          env: {
-            ...process.env,
-            PATH: `${path.join(directory, ".bin")}${path.delimiter}${process.env.PATH}`
-          }
+      expect(commands).toHaveLength(1);
+      const result = spawnSync("sh", ["-c", String(commands[0])], {
+        cwd: directory,
+        encoding: "utf-8",
+        env: {
+          ...process.env,
+          INSTALL_STATUS: String(status),
+          PATH: `${path.join(directory, ".bin")}${path.delimiter}${process.env.PATH}`
         }
-      );
+      });
       expect(result.error).toBeUndefined();
-      if (exists) {
-        expect(result.status, result.stderr).toBe(0);
-        expect(result.stdout).toBe(
-          `selected=${packageManager}\ninstall\n--global\n${packageManager}\n`
-        );
-      } else {
-        expect(result.status).not.toBe(0);
-        expect(result.stdout).toBe("");
-      }
+      expect(result.status, result.stderr).toBe(status);
+      expect(result.stdout).toBe(`install\n--global\n${packageManager}\n`);
     }
   );
 
