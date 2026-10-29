@@ -8,8 +8,8 @@ metadata:
     OpenAI Codex plugins:
       url: https://developers.openai.com/plugins/build/plugins.md
     Prometheus:
-      version: 3.15.0
-      url: https://github.com/prometheus/prometheus/releases/tag/v3.15.0
+      version: 3.13.5
+      url: https://github.com/prometheus/prometheus/releases/tag/v3.13.5
     Alertmanager:
       version: 0.34.1
       url: https://github.com/prometheus/alertmanager/releases/tag/v0.34.1
@@ -24,7 +24,7 @@ Observability Assets provides skills for Prometheus and Grafana asset authoring,
 
 ## Documentation Baselines
 
-The documented upstream baselines are Prometheus 3.15.0, Alertmanager 0.34.1, and Grafana 13.2.3.
+The documented upstream baselines are Prometheus 3.13.5, Alertmanager 0.34.1, and Grafana 13.2.3.
 Treat these as documentation baselines, not dependency pins.
 Target deployments may stay on an older supported line, but version-sensitive features need a local version check before use.
 

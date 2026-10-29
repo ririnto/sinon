@@ -14,11 +14,7 @@ Its `check:*` scripts compose the component tests, TypeScript check, lint, forma
 The Promtool fixture runner requires a separate command and network access.
 
 Harness fixtures use the profile's own pnpm version, which can differ from the root version.
-If Corepack reports `ERR_PNPM_BAD_PM_VERSION` for those fixtures, use the installed pnpm executable to allow version selection:
-
-```sh
-PATH="$PWD/node_modules/.bin:$PATH" ./node_modules/.bin/pnpm run check
-```
+Invoke pnpm directly so it selects each fixture's `packageManager` pin.
 
 ## Choose The Relevant Check
 

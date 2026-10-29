@@ -11,11 +11,11 @@ metadata:
       version: 7.5.22
       url: https://raw.githubusercontent.com/isaacs/node-tar/v7.5.22/README.md
     Prometheus:
-      version: 3.15.0
+      version: 3.13.5
       url:
-        - https://github.com/prometheus/prometheus/releases/tag/v3.15.0
-        - https://github.com/prometheus/prometheus/releases/download/v3.15.0/sha256sums.txt
-        - https://raw.githubusercontent.com/prometheus/prometheus/v3.15.0/docs/configuration/unit_testing_rules.md
+        - https://github.com/prometheus/prometheus/releases/tag/v3.13.5
+        - https://github.com/prometheus/prometheus/releases/download/v3.13.5/sha256sums.txt
+        - https://raw.githubusercontent.com/prometheus/prometheus/v3.13.5/docs/configuration/unit_testing_rules.md
 ---
 
 # Prometheus Rule Tests
@@ -28,7 +28,7 @@ pnpm run test:promtool
 
 The runner checks the rule file and then runs its unit test fixture.
 `package.json` owns the release pin in `config.promtoolVersion`.
-When updating the pin, use the latest compatible stable official release and rerun the native fixture checks.
+When updating the pin, prefer the latest compatible supported LTS release, or stable release when no LTS line exists and rerun the native fixture checks.
 The runner downloads the matching official Prometheus release and its checksum index.
 It verifies SHA-256 before reading the selected regular `promtool` executable from the archive.
 It rejects missing, duplicate, and nonregular executable entries, and invalid archives.

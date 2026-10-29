@@ -3,8 +3,8 @@ title: Java
 metadata:
   reference:
     Palantir Java Format:
-      tag: 2.102.0
-      url: https://raw.githubusercontent.com/palantir/palantir-java-format/2.102.0/README.md
+      tag: 2.103.0
+      url: https://raw.githubusercontent.com/palantir/palantir-java-format/2.103.0/README.md
     Checkstyle LineLength:
       url: https://checkstyle.org/checks/sizes/linelength.html
     Java language:

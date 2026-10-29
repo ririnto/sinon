@@ -327,11 +327,11 @@ test("Harness materializes the React policy dependency and package-script execut
       path.join(directory, "sample.ts"),
       'import { useEffect } from "react"; useEffect(() => {});\n'
     );
-    const result = spawnSync(
-      "corepack",
-      ["pnpm", "run", "ultracite:check:react-effects"],
-      { cwd: directory, encoding: "utf-8", timeout: 60_000 }
-    );
+    const result = spawnSync("pnpm", ["run", "ultracite:check:react-effects"], {
+      cwd: directory,
+      encoding: "utf-8",
+      timeout: 60_000
+    });
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
     expect(`${result.stdout}\n${result.stderr}`).toContain(

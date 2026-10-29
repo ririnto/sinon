@@ -34,7 +34,7 @@
   "devDependencies": {
     "@google/design.md": "catalog:",
     "@oxc-project/types": "catalog:",
-    "@tsconfig/node-lts": "catalog:",
+    "@tsconfig/node26": "catalog:",
     "@types/node": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "husky": "catalog:",
@@ -54,10 +54,10 @@
     "yaml": "catalog:"
   },
   "config": {
-    "promtoolVersion": "3.15.0"
+    "promtoolVersion": "3.13.5"
   },
   "engines": {
-    "node": ">=24.15.0 <25"
+    "node": ">=26.13.0 <27"
   },
   "packageManager": "pnpm@12.16.1"
 }

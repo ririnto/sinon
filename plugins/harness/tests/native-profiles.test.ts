@@ -1,12 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import {
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  symlink,
-  writeFile
-} from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -59,7 +52,7 @@ const nativeProfiles = [
 
 /**
  * Builds the environment for spawned fixture tools.
- * Drops Git local variables and Corepack markers so pnpm honors each fixture's packageManager pin instead of the caller's Corepack dispatch.
+ * Drops Git local variables so fixture Git commands stay within their own repository.
  */
 const fixtureEnvironment = (): NodeJS.ProcessEnv => {
   const localNames = new Set(
@@ -70,9 +63,7 @@ const fixtureEnvironment = (): NodeJS.ProcessEnv => {
       .split("\n")
   );
   return Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([name]) => !localNames.has(name) && !name.startsWith("COREPACK")
-    )
+    Object.entries(process.env).filter(([name]) => !localNames.has(name))
   );
 };
 
@@ -201,42 +192,4 @@ describe("remaining native profile Git gates", () => {
     },
     30_000
   );
-
-  test("materialized scripts ignore inherited Corepack markers", async () => {
-    const directory = await mkdtemp(
-      path.join(tmpdir(), "sinon-native-corepack-")
-    );
-    onTestFinished(() => rm(directory, { force: true, recursive: true }));
-    const corepackRoot = process.env.COREPACK_ROOT;
-    process.env.COREPACK_ROOT = "/nonexistent-corepack-root";
-    try {
-      await configureBaseline(directory, "shell", "eligible");
-      await symlink(
-        path.join(repositoryRoot, "node_modules"),
-        path.join(directory, "node_modules"),
-        "dir"
-      );
-      await writeFile(
-        path.join(directory, "README.md"),
-        "# Target\n\nReady.\n"
-      );
-      const result = spawnSync("pnpm", ["run", "check:markdownlint-cli2"], {
-        cwd: directory,
-        env: {
-          ...fixtureEnvironment(),
-          PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
-        }
-      });
-      expect(
-        result.status,
-        result.stderr.toString() + result.stdout.toString()
-      ).toBe(0);
-    } finally {
-      if (corepackRoot === undefined) {
-        delete process.env.COREPACK_ROOT;
-      } else {
-        process.env.COREPACK_ROOT = corepackRoot;
-      }
-    }
-  }, 30_000);
 });

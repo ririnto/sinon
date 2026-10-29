@@ -103,7 +103,7 @@ Run `pnpm install` after dependency changes.
 Run `pnpm run check` for the repository checks.
 Use the [verification map](docs/verification.md) for component commands, consumer smoke checks, and evidence limits.
 The root package commands invoke validation suites owned by their catalog or plugin components.
-Use Node.js 24 for development dependencies.
+Use Node.js 26 for development dependencies.
 Store shared npm dependency versions in `pnpm-workspace.yaml` catalogs and reference them with `catalog:`.
 Follow repository guidance for task-specific checks and package validation.
 Run `pnpm run test:promtool` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).

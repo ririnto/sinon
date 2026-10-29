@@ -14,8 +14,8 @@ metadata:
     Spotless Releases:
       url: https://github.com/diffplug/spotless/releases
     Palantir Java Format:
-      version: 2.102.0
-      url: https://github.com/palantir/palantir-java-format/releases/tag/2.102.0
+      version: 2.103.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.103.0
     Checkstyle:
       version: 14.3.0
       url:
@@ -34,7 +34,7 @@ In a monorepo, repeat the profile for each independent Maven root.
 ## Native setup
 
 Add the Spotless Maven plugin only when the target has no existing formatter with overlapping Java ownership.
-The source profile selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.4`, `palantir-java-format` `2.102.0`, and Checkstyle `14.3.0`.
+The source profile selects `com.diffplug.spotless:spotless-maven-plugin` `3.10.4`, `palantir-java-format` `2.103.0`, and Checkstyle `14.3.0`.
 Before merging any of these tools into a target, check Maven Central for the latest stable compatible versions against the target's Java baseline, parent POM, BOM, and dependency management.
 Keep compatible target-managed versions unless the task authorizes changing them.
 Use the existing repositories and plugin-management policy.
@@ -44,7 +44,7 @@ Merge these version properties into the existing `<project><properties>` section
 ```xml
 <properties>
   <spotless.maven.version>3.10.4</spotless.maven.version>
-  <palantir.java.format.version>2.102.0</palantir.java.format.version>
+  <palantir.java.format.version>2.103.0</palantir.java.format.version>
 </properties>
 ```
 

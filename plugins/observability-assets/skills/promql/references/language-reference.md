@@ -184,8 +184,9 @@ Runs an instant query over a range at a given resolution, producing a range vect
 ```
 
 `<range_expr>`, `<resolution_expr>`, and `<offset_expr>` accept numeric or duration literals such as `3600` and `1h`.
-Duration arithmetic such as `5m * 2` is enabled by default.
-The `step()`, `range()`, `min_of()`, and `max_of()` duration functions require `--enable-feature=promql-experimental-functions`.
+In Prometheus 3.13.5, duration arithmetic such as `5m * 2` requires `--enable-feature=promql-duration-expr`.
+Within duration expressions, `step()`, `range()`, `min_of()`, and `max_of()` require only this flag.
+Standalone calls to these functions require `--enable-feature=promql-experimental-functions`.
 Duration expressions used with `offset` must be parenthesized, such as `offset (step() * 2)`.
 Resolution defaults to the global evaluation interval if omitted.
 
@@ -399,7 +400,6 @@ The `by`/`without` clause may appear before or after the expression.
 | `days_in_month(v)` | Days in month (UTC) | 28-31 |
 | `hour(v)` | Hour (UTC) | 0-23 |
 | `minute(v)` | Minute (UTC) | 0-59 |
-| `start_timestamp(v)` | Start timestamp of each sample | Seconds since 1970-01-01 UTC. Float and histogram samples. Requires the `use-start-timestamps` feature flag and a direct instant-vector argument, otherwise the result is empty. |
 
 ### Sorting functions
 
@@ -489,6 +489,7 @@ With `on`, a label cannot appear in both lists.
 
 Override default behavior of dropping unmatched elements.
 Requires `--enable-feature=promql-binop-fill-modifiers`.
+In Prometheus 3.13.5, `promtool check rules` does not support the fill-modifier flag and rejects fill expressions.
 
 These examples show filling missing matches on both sides, only on the left, only on the right, and on both sides with explicit defaults.
 

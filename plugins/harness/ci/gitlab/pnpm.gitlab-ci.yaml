@@ -3,9 +3,11 @@ stages:
 
 pnpm:
   stage: validate
-  image: node:24
+  image: node:26
   before_script:
-    - corepack enable
+    - >-
+      node --eval 'if (require("./package.json").packageManager.includes("+")) { throw new Error("Direct pnpm cannot verify packageManager integrity suffixes. Use a version-only pnpm pin."); }'
+    - npm install --global pnpm@12.16.1
   script:
     - pnpm install --frozen-lockfile
     - pnpm run check
