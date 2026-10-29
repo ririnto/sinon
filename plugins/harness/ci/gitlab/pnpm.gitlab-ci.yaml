@@ -3,7 +3,7 @@ stages:
 
 pnpm:
   stage: validate
-  image: node:24
+  image: node:26
   before_script:
     - corepack enable
   script:

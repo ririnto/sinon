@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/setup@v3.0.0
+      - uses: pnpm/setup@v3.1.2
         with:
-          runtime: node@24
+          runtime: node@26
           install: false
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check

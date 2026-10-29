@@ -2,11 +2,11 @@
 metadata:
   reference:
     Prometheus:
-      version: 3.15.0
+      version: 3.13.5
       license: Apache-2.0
       url:
-        - https://prometheus.io/docs/prometheus/3.15/configuration/recording_rules/
-        - https://prometheus.io/docs/prometheus/3.15/configuration/alerting_rules/
+        - https://prometheus.io/docs/prometheus/3.13/configuration/recording_rules/
+        - https://prometheus.io/docs/prometheus/3.13/configuration/alerting_rules/
     Prometheus releases:
       url: https://github.com/prometheus/prometheus/releases
 name: prometheus-alert-rules

@@ -18,8 +18,8 @@ metadata:
         - https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
         - https://docs.astral.sh/ruff/rules/new-line-after-last-paragraph/
     setup-uv:
-      tag: v10.3.2
-      url: https://raw.githubusercontent.com/astral-sh/setup-uv/v10.3.2/README.md
+      tag: v10.3.3
+      url: https://raw.githubusercontent.com/astral-sh/setup-uv/v10.3.3/README.md
     Dependabot:
       url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 ---

@@ -2,13 +2,13 @@
 metadata:
   reference:
     Prometheus:
-      version: 3.15.0
+      version: 3.13.5
       license: Apache-2.0
       url:
-        - https://prometheus.io/docs/prometheus/3.15/configuration/unit_testing_rules/
-        - https://prometheus.io/docs/prometheus/3.15/querying/basics/
-        - https://prometheus.io/docs/prometheus/3.15/querying/functions/
-        - https://raw.githubusercontent.com/prometheus/prometheus/v3.15.0/cmd/promtool/unittest.go
+        - https://prometheus.io/docs/prometheus/3.13/configuration/unit_testing_rules/
+        - https://prometheus.io/docs/prometheus/3.13/querying/basics/
+        - https://prometheus.io/docs/prometheus/3.13/querying/functions/
+        - https://raw.githubusercontent.com/prometheus/prometheus/v3.13.5/cmd/promtool/unittest.go
     Prometheus releases:
       url: https://github.com/prometheus/prometheus/releases
     Native Histograms:

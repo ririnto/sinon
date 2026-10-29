@@ -7,7 +7,7 @@ metadata:
     Ultracite:
       url: https://www.ultracite.ai/llms-full.txt
     Storybook:
-      version: 10.6.4
+      version: 10.6.5
       url: https://storybook.js.org/llms-full.txt
     Radix Themes:
       url: https://www.radix-ui.com/themes/docs/overview/getting-started

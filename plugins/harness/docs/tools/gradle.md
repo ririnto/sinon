@@ -12,8 +12,8 @@ metadata:
     Gradle Version Catalogs:
       url: https://docs.gradle.org/current/userguide/version_catalogs.html
     Gradle CI:
-      tag: v6.4.0
-      url: https://raw.githubusercontent.com/gradle/actions/v6.4.0/setup-gradle/README.md
+      tag: v6.4.1
+      url: https://raw.githubusercontent.com/gradle/actions/v6.4.1/setup-gradle/README.md
     ktlint:
       version: 1.8.0
       url:
@@ -32,8 +32,8 @@ metadata:
         - https://kotest.io/docs/framework/project-setup.html
         - https://kotest.io/docs/framework/testing-styles.html
     Palantir Java Format:
-      version: 2.102.0
-      url: https://github.com/palantir/palantir-java-format/releases/tag/2.102.0
+      version: 2.103.0
+      url: https://github.com/palantir/palantir-java-format/releases/tag/2.103.0
     Checkstyle:
       version: 14.3.0
       url:
@@ -58,7 +58,7 @@ In a monorepo, repeat the profile for each independent Gradle root.
 
 Apply the Gradle `java` or `java-library` plugin already used by the target before enabling Java checks.
 Add the Spotless Gradle plugin only when the target has no existing formatter with overlapping Java ownership.
-The source profile selects `com.diffplug.spotless` `8.10.4`, `palantir-java-format` `2.102.0`, and Checkstyle `14.3.0`.
+The source profile selects `com.diffplug.spotless` `8.10.4`, `palantir-java-format` `2.103.0`, and Checkstyle `14.3.0`.
 Before merging any of these tools into a target, check the Gradle Plugin Portal and Maven Central for the latest stable compatible versions against the target's Gradle, Java, and version catalog constraints.
 Keep compatible target-managed versions unless the task authorizes changing them.
 Use the existing repository and plugin-management policy.
@@ -214,7 +214,7 @@ Checkstyle `14.3.0` is the selected engine version for this profile.
 Its lint process requires Java 21 or newer, even when the target compiles for an older Java release.
 Use the target's supported lint runtime or retain a compatible Checkstyle engine.
 If the target's Java or Gradle baseline is older, retain its compatible existing tools or obtain explicit approval for an upgrade.
-The GitLab catalog uses the `gradle:9.7-jdk25-ubi10` image and does not install a separate Gradle distribution.
+The GitLab catalog uses the `gradle:9.8.2-jdk25-ubi10` image and does not install a separate Gradle distribution.
 Gradle has no official LTS line.
 The newer stable Gradle `9.8.1` falls outside Kotlin `2.4.21`'s fully supported range.
 Before adopting that image or the GitHub action versions, check their official releases and the target's Gradle wrapper and Java policy.

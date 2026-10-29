@@ -1,5 +1,5 @@
 catalog:
-  "@storybook/html-vite": ^10.6.4
-  storybook: ^10.6.4
+  "@storybook/html-vite": ^10.6.5
+  storybook: ^10.6.5
   typescript: ^7.0.2
   vite: ^8.3.5

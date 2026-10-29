@@ -3,9 +3,9 @@ metadata:
   reference:
     Node.js releases:
       url: https://nodejs.org/en/about/previous-releases
-    Node LTS TypeScript base:
-      version: 24.0.1
-      url: https://registry.npmjs.org/@tsconfig%2fnode-lts/24.0.1
+    Node 26 TypeScript base:
+      version: 26.0.1
+      url: https://registry.npmjs.org/@tsconfig%2fnode26/26.0.1
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/target.html

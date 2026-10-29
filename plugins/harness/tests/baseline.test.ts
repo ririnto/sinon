@@ -85,7 +85,7 @@ describe("fresh-root baseline", () => {
         "catalog:"
       );
       expect(manifest.packageManager).toBe("pnpm@12.16.1");
-      expect(manifest.engines.node).toBe(">=24.15.0 <25");
+      expect(manifest.engines.node).toBe(">=26.13.0 <27");
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
         "check:markdownlint-cli2": "markdownlint-cli2",
