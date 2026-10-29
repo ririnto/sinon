@@ -88,21 +88,21 @@ describe("fresh-root baseline", () => {
           JSON.stringify({ packageManager })
         );
       }
+      const commands = parseDocument(
+        await readFile(
+          path.join(
+            repositoryRoot,
+            "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"
+          ),
+          "utf-8"
+        )
+      ).toJS().pnpm.before_script;
+      expect(commands).toHaveLength(2);
       const result = spawnSync(
         "sh",
         [
           "-c",
-          String(
-            parseDocument(
-              await readFile(
-                path.join(
-                  repositoryRoot,
-                  "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"
-                ),
-                "utf-8"
-              )
-            ).getIn(["pnpm", "before_script", 0])
-          )
+          `set -e\n${commands[0]}\nprintf 'selected=%s\\n' "$package_manager"\n${commands[1]}`
         ],
         {
           cwd: directory,
@@ -116,7 +116,9 @@ describe("fresh-root baseline", () => {
       expect(result.error).toBeUndefined();
       if (exists) {
         expect(result.status, result.stderr).toBe(0);
-        expect(result.stdout).toBe(`install\n--global\n${packageManager}\n`);
+        expect(result.stdout).toBe(
+          `selected=${packageManager}\ninstall\n--global\n${packageManager}\n`
+        );
       } else {
         expect(result.status).not.toBe(0);
         expect(result.stdout).toBe("");
@@ -138,7 +140,7 @@ describe("fresh-root baseline", () => {
         "catalog:"
       );
       expect(manifest.packageManager).toBeUndefined();
-      expect(manifest.engines.node).toBe(">=26.13.0 <27");
+      expect(manifest.engines.node).toBe("^26.13.0");
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
         "check:markdownlint-cli2": "markdownlint-cli2",

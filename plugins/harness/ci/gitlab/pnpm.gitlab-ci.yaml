@@ -5,8 +5,8 @@ pnpm:
   stage: validate
   image: node:26
   before_script:
-    - >-
-      package_manager="$(node --print 'require("./package.json").packageManager')" && npm install --global "$package_manager"
+    - package_manager="$(node --print 'require("./package.json").packageManager')"
+    - npm install --global "$package_manager"
   script:
     - pnpm install --frozen-lockfile
     - pnpm run check
