@@ -100,7 +100,8 @@ final class RepeatedWithBackoff {
 | error signal | `retry*` | `onError` |
 | complete signal | `repeat*` | `onComplete` |
 
-Bound finite repetition with `take(n)`, `repeatUntil(...)`, or a terminating `repeatWhen(...)` companion.
+Bound finite re-subscriptions with `repeat(n)` or a terminating `repeatWhen(...)` companion.
+Use `take(n)` or `takeUntil(...)` when emitted values provide the required stopping condition; empty completions do not satisfy them.
 For a long-lived stream, identify the cancellation owner and pace re-subscriptions when needed.
 
 ## Guardrails

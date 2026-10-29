@@ -235,7 +235,8 @@ final class PollingService {
 ```
 
 `repeat` re-subscribes on completion (not error).
-For finite work, bound repetition with `take(n)`, `repeatUntil(...)`, or a terminating `repeatWhen(...)` companion.
+For finite work, bound re-subscriptions with `repeat(n)` or a terminating `repeatWhen(...)` companion.
+Use `take(n)` or `takeUntil(...)` when emitted values provide the required stopping condition; empty completions do not satisfy them.
 For a long-lived stream, define cancellation and lifecycle ownership, and pace re-subscriptions when needed.
 
 ### `handle` for conditional single-signal emission
