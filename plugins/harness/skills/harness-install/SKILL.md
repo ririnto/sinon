@@ -18,8 +18,7 @@ Do not install this installer skill into the target.
 ## Target And Authority
 
 Obtain the target path and verify its repository identity, host instructions, skill root contents, and Git status before edits.
-Use the [project baseline eligibility and fresh-root setup](../../docs/tools/baseline.md) before selecting native integrations.
-Archived, inactive, and simple configuration-only targets that need no Harness return a no-write outcome.
+Use the [project baseline and fresh-root setup](../../docs/tools/baseline.md) before selecting native integrations.
 Inspect existing mapped paths before treating them as Harness-owned.
 Preserve unrelated changes, custom skills, configuration, and hooks.
 A dirty target is allowed when installation changes remain isolated.
@@ -138,7 +137,8 @@ Never delete files merely because they are absent from the mapping.
 
 ## Native Integration
 
-For an eligible fresh root, run the baseline configurator with the verified eligibility and project type before completing the selected native integration.
+For a fresh root, run the baseline configurator with the selected eligibility value and project type before completing the selected native integration.
+If the configurator returns `skipped`, stop without configuring the root.
 It supplies the shared Node-side files from canonical sources without configuring project identity or native builds beyond their baseline manifest and version catalog.
 For frontend code, read [frontend guidance](../../docs/tools/frontend.md) and select its compatible renderer and React dependencies only when applicable.
 Read the target manifest, build files, editor configuration, CI, and project identity for each selected integration.
