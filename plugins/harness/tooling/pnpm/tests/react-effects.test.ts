@@ -299,7 +299,7 @@ test.each([
 test("Harness materializes the React policy dependency and package-script execution path", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-install-"));
   try {
-    await configureBaseline(directory, "react", "eligible", "12.15.0");
+    await configureBaseline(directory, "react", "eligible");
     await symlink(
       new URL("../../../../../node_modules", import.meta.url),
       path.join(directory, "node_modules"),

@@ -78,7 +78,7 @@ const packageStyleFixture = [
 ].join("\n");
 
 const preparePackageRoot = async (directory: string): Promise<void> => {
-  await configureBaseline(directory, "node", "eligible", "12.15.0");
+  await configureBaseline(directory, "node", "eligible");
   await symlink(
     nodeModulesDirectory,
     path.join(directory, "node_modules"),
@@ -354,7 +354,7 @@ describe("pnpm profile configuration", () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
     try {
       await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-      await configureBaseline(directory, "node", "eligible", "12.15.0");
+      await configureBaseline(directory, "node", "eligible");
       await symlink(
         path.resolve(profileDirectory, "../../../../node_modules"),
         path.join(directory, "node_modules"),
@@ -429,7 +429,7 @@ describe("pnpm profile configuration", () => {
       );
       try {
         await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-        await configureBaseline(directory, "node", "eligible", "12.15.0");
+        await configureBaseline(directory, "node", "eligible");
         await symlink(
           path.resolve(profileDirectory, "../../../../node_modules"),
           path.join(directory, "node_modules"),

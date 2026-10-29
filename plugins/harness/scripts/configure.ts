@@ -146,17 +146,10 @@ const assertAncestors = async (
 export const configureBaseline = async (
   targetRoot: string,
   profile: BaselineProfile,
-  eligibility: BaselineEligibility,
-  pnpmVersion?: string
+  eligibility: BaselineEligibility
 ): Promise<BaselineResult> => {
   if (eligibility !== "eligible") {
     return { created: [], kept: [], status: "skipped" };
-  }
-  if (
-    !pnpmVersion ||
-    !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/u.test(pnpmVersion)
-  ) {
-    throw new Error("Provide a version-only pnpm release.");
   }
   const root = path.resolve(targetRoot);
   const rootEntry = await lstat(root);
@@ -219,8 +212,7 @@ export const configureBaseline = async (
             )
           )
         ],
-        ["engines", runtime.engines],
-        ["packageManager", `pnpm@${pnpmVersion}`]
+        ["engines", runtime.engines]
       ]),
       null,
       2
@@ -338,14 +330,13 @@ if (
       eligibility: { type: "string" },
       help: { type: "boolean" },
       "non-interactive": { default: true, type: "boolean" },
-      "pnpm-version": { type: "string" },
       profile: { type: "string" },
       target: { type: "string" }
     }
   });
   if (values.help) {
     process.stdout.write(
-      "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|rust|uv|shell|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> [--pnpm-version <version>] --non-interactive\nFor eligible targets, --pnpm-version is required.\n"
+      "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|rust|uv|shell|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> --non-interactive\n"
     );
   } else {
     if (
@@ -360,7 +351,7 @@ if (
       );
     }
     process.stdout.write(
-      `${JSON.stringify(await configureBaseline(values.target, values.profile, values.eligibility, values["pnpm-version"]))}\n`
+      `${JSON.stringify(await configureBaseline(values.target, values.profile, values.eligibility))}\n`
     );
   }
 }

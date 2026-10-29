@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-development",
-  "version": "2026.10.15.02",
+  "version": "2026.10.29.01",
   "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
   "author": {
     "name": "ririnto"

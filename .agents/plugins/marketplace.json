@@ -18,6 +18,19 @@
     },
     {
       "category": "Development",
+      "name": "clear-writing",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "ref": "main",
+        "source": "url",
+        "url": "https://github.com/ririnto/clear-writing.git"
+      }
+    },
+    {
+      "category": "Development",
       "name": "codegraph",
       "policy": {
         "authentication": "ON_INSTALL",

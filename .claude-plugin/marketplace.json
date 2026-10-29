@@ -2,12 +2,28 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "description": "Claude catalog view for the Sinon marketplace.",
   "name": "sinon",
-  "version": "2026.10.15.01",
+  "version": "2026.10.29.01",
   "owner": {
     "email": "ririnto@kakao.com",
     "name": "ririnto"
   },
   "plugins": [
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
+      "description": "Clear, relevant writing with readable Markdown, dependency diagrams, and precise mathematical relationships.",
+      "name": "clear-writing",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/clear-writing.git",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ririnto/clear-writing",
+      "keywords": ["writing", "editing", "markdown", "mermaid", "latex"],
+      "repository": "https://github.com/ririnto/clear-writing"
+    },
     {
       "author": {
         "name": "ririnto"
@@ -127,7 +143,7 @@
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness",
-      "version": "2026.10.29.02",
+      "version": "2026.10.29.03",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
       "keywords": [
         "harness",
@@ -277,7 +293,7 @@
       "license": "Apache-2.0",
       "name": "spec-driven-development",
       "source": "./plugins/spec-driven-development",
-      "version": "2026.10.15.02",
+      "version": "2026.10.29.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
       "keywords": ["spec", "specification", "workflow", "review", "research"],
       "repository": "https://github.com/ririnto/sinon"

@@ -69,30 +69,25 @@ const assertSortedKeys = (value: unknown): void => {
 };
 
 describe("fresh-root baseline", () => {
-  test.each([
-    { packageManager: "pnpm@12.15.0", status: 0 },
-    { packageManager: "pnpm@12.16.1", status: 0 },
-    {
-      packageManager: `pnpm@12.16.1+sha224.${"0".repeat(56)}`,
-      status: 1
-    },
-    { packageManager: "npm@12.16.1", status: 1 },
-    { packageManager: "pnpm@12.16.1;touch injected", status: 1 },
-    { packageManager: undefined, status: 1 }
-  ])(
-    "GitLab pnpm installation handles $packageManager with exit $status",
-    async ({ packageManager, status }) => {
+  test.each([true, false])(
+    "GitLab pnpm installation reads the root package manifest (exists=%s)",
+    async (exists) => {
       const directory = await targetDirectory();
+      const { packageManager } = JSON.parse(
+        await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
+      );
       await mkdir(path.join(directory, ".bin"));
       await writeFile(
         path.join(directory, ".bin/npm"),
         '#!/usr/bin/env sh\nprintf "%s\\n" "$@"\n',
         { mode: 0o755 }
       );
-      await writeFile(
-        path.join(directory, "package.json"),
-        JSON.stringify({ packageManager })
-      );
+      if (exists) {
+        await writeFile(
+          path.join(directory, "package.json"),
+          JSON.stringify({ packageManager })
+        );
+      }
       const result = spawnSync(
         "sh",
         [
@@ -119,18 +114,11 @@ describe("fresh-root baseline", () => {
         }
       );
       expect(result.error).toBeUndefined();
-      expect(result.status, result.stderr + result.stdout).toBe(status);
-      if (status === 0) {
+      if (exists) {
+        expect(result.status, result.stderr).toBe(0);
         expect(result.stdout).toBe(`install\n--global\n${packageManager}\n`);
-      } else if (packageManager?.includes("+")) {
-        expect(result.stderr).toContain(
-          "Direct pnpm cannot verify packageManager integrity suffixes"
-        );
-        expect(result.stdout).toBe("");
       } else {
-        expect(result.stderr).toContain(
-          "packageManager must specify a pnpm version"
-        );
+        expect(result.status).not.toBe(0);
         expect(result.stdout).toBe("");
       }
     }
@@ -140,12 +128,7 @@ describe("fresh-root baseline", () => {
     "%s materializes the shared gate and retains it on repetition",
     async (profile) => {
       const directory = await targetDirectory();
-      const first = await configureBaseline(
-        directory,
-        profile,
-        "eligible",
-        "12.15.0"
-      );
+      const first = await configureBaseline(directory, profile, "eligible");
       expect(first.status).toBe("configured");
       const manifest = JSON.parse(
         await readFile(path.join(directory, "package.json"), "utf-8")
@@ -154,7 +137,7 @@ describe("fresh-root baseline", () => {
       expect(manifest.devDependencies["markdownlint-rule-search-replace"]).toBe(
         "catalog:"
       );
-      expect(manifest.packageManager).toBe("pnpm@12.15.0");
+      expect(manifest.packageManager).toBeUndefined();
       expect(manifest.engines.node).toBe(">=26.13.0 <27");
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
@@ -379,12 +362,7 @@ describe("fresh-root baseline", () => {
           "radix-ui": "catalog:"
         });
       }
-      const second = await configureBaseline(
-        directory,
-        profile,
-        "eligible",
-        "12.15.0"
-      );
+      const second = await configureBaseline(directory, profile, "eligible");
       expect(second.created).toEqual([]);
       expect(second.kept.toSorted()).toEqual(first.created.toSorted());
     }
@@ -418,19 +396,6 @@ describe("fresh-root baseline", () => {
     }
   );
 
-  test.each([
-    "",
-    "pnpm@12.15.0",
-    "12.15.0+sha512.hash",
-    "12.15.0;touch injected"
-  ])("invalid pnpm version %s blocks all writes", async (version) => {
-    const directory = await targetDirectory();
-    await expect(
-      configureBaseline(directory, "node", "eligible", version)
-    ).rejects.toThrow("Provide a version-only pnpm release.");
-    expect(await readdir(directory)).toEqual([]);
-  });
-
   test("a conflicting package blocks all writes", async () => {
     const directory = await targetDirectory();
     await writeFile(
@@ -438,7 +403,7 @@ describe("fresh-root baseline", () => {
       '{"name":"existing-owner"}\n'
     );
     await expect(
-      configureBaseline(directory, "gradle", "eligible", "12.15.0")
+      configureBaseline(directory, "gradle", "eligible")
     ).rejects.toThrow("Conflict at package.json");
     expect(await readdir(directory)).toEqual(["package.json"]);
     expect(await readFile(path.join(directory, "package.json"), "utf-8")).toBe(
@@ -451,7 +416,7 @@ describe("fresh-root baseline", () => {
     const outside = await targetDirectory();
     await symlink(outside, path.join(directory, ".husky"), "dir");
     await expect(
-      configureBaseline(directory, "node", "eligible", "12.15.0")
+      configureBaseline(directory, "node", "eligible")
     ).rejects.toThrow("Unsafe destination ancestor");
     expect(await readdir(directory)).toEqual([".husky"]);
     expect(await readdir(outside)).toEqual([]);
@@ -462,12 +427,7 @@ describe("fresh-root baseline", () => {
     await mkdir(path.join(directory, "gradle"));
     const catalog = '[versions]\nkotlin = "target-owned"\n';
     await writeFile(path.join(directory, "gradle/libs.versions.toml"), catalog);
-    const result = await configureBaseline(
-      directory,
-      "kotlin",
-      "eligible",
-      "12.15.0"
-    );
+    const result = await configureBaseline(directory, "kotlin", "eligible");
     expect(result.kept).toEqual(["gradle/libs.versions.toml"]);
     expect(
       await readFile(path.join(directory, "gradle/libs.versions.toml"), "utf-8")
@@ -497,22 +457,9 @@ describe("fresh-root baseline", () => {
       "--profile",
       "unsupported",
       "--eligibility",
-      "eligible",
-      "--pnpm-version",
-      "12.15.0"
-    ]);
-    expect(invalid.status).toBe(1);
-    expect(await readdir(directory)).toEqual([]);
-    const missingVersion = spawnSync(process.execPath, [
-      script,
-      "--target",
-      directory,
-      "--profile",
-      "go",
-      "--eligibility",
       "eligible"
     ]);
-    expect(missingVersion.status).toBe(1);
+    expect(invalid.status).toBe(1);
     expect(await readdir(directory)).toEqual([]);
     const result = spawnSync(process.execPath, [
       script,
@@ -521,9 +468,7 @@ describe("fresh-root baseline", () => {
       "--profile",
       "go",
       "--eligibility",
-      "eligible",
-      "--pnpm-version",
-      "12.15.0"
+      "eligible"
     ]);
     expect(result.status).toBe(0);
     expect(JSON.parse(result.stdout.toString()).status).toBe("configured");
@@ -531,7 +476,7 @@ describe("fresh-root baseline", () => {
 
   test("the frontend design gate rejects an invalid color token", async () => {
     const directory = await targetDirectory();
-    await configureBaseline(directory, "frontend", "eligible", "12.15.0");
+    await configureBaseline(directory, "frontend", "eligible");
     const binary = path.join(repositoryRoot, "node_modules/.bin/designmd");
     const valid = spawnSync(binary, ["lint", "DESIGN.md"], { cwd: directory });
     expect(valid.status).toBe(0);
@@ -582,7 +527,7 @@ describe("fresh-root baseline", () => {
       const remote = path.join(directory, "remote.git");
       expect(git("init", "--bare", remote).status).toBe(0);
       expect(git("remote", "add", "origin", remote).status).toBe(0);
-      await configureBaseline(directory, "node", "eligible", "12.15.0");
+      await configureBaseline(directory, "node", "eligible");
       await symlink(
         path.join(repositoryRoot, "node_modules"),
         path.join(directory, "node_modules"),
@@ -700,7 +645,7 @@ describe("Maven and Go hook entrypoints", () => {
       const remote = path.join(directory, "remote.git");
       expect(git("init", "--bare", remote).status).toBe(0);
       expect(git("remote", "add", "origin", remote).status).toBe(0);
-      await configureBaseline(directory, profile, "eligible", "12.15.0");
+      await configureBaseline(directory, profile, "eligible");
       await mkdir(path.join(directory, ".bin"));
       const stubs =
         profile === "maven" ? ["mvnw"] : ["go", "golangci-lint", "nilaway"];

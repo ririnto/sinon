@@ -21,7 +21,7 @@ Resolve their paths from the installed plugin root, not the consuming repository
 
 Work as a sequential leaf.
 Do not delegate or invoke nested subagents.
-If parallel work is required, return the needed decomposition to the main-session orchestrator.
+If parallel work is required, return the needed decomposition to the requesting session.
 Do not create or modify Git branches, overwrite in-progress plans, or create backups.
 
 Resume from existing artifacts, approval evidence, and passed checks that still cover the current work.

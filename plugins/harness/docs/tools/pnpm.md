@@ -410,8 +410,7 @@ Replace that runtime selection when the target requires another compatible versi
 It does not infer pnpm from `package.json` alone.
 The GitLab catalog supplies a Node.js 26 image example.
 It installs the version specified in the target's `packageManager` field directly through npm.
-The GitLab bootstrap rejects integrity-qualified pins before installing pnpm because direct pnpm does not verify their integrity suffixes.
-Use a version-only pnpm pin with this catalog.
+Use a version-only pnpm pin with this catalog because direct pnpm does not verify integrity suffixes.
 Adapt runtime versions, working directories, and image pins to the target's existing CI requirements.
 CI runs `pnpm install --frozen-lockfile` when `pnpm-lock.yaml` exists, then the target's `pnpm run check` script.
 Require a committed lockfile for a frozen installation.

@@ -6,7 +6,7 @@ pnpm:
   image: node:26
   before_script:
     - >-
-      package_manager=$(node --eval 'const value = require("./package.json").packageManager; if (typeof value === "string" && value.includes("+")) { throw new Error("Direct pnpm cannot verify packageManager integrity suffixes. Use a version-only pnpm pin."); } if (typeof value !== "string" || !/^pnpm@\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/.test(value)) { throw new Error("packageManager must specify a pnpm version."); } process.stdout.write(value);') && npm install --global "$package_manager"
+      package_manager="$(node --print 'require("./package.json").packageManager')" && npm install --global "$package_manager"
   script:
     - pnpm install --frozen-lockfile
     - pnpm run check

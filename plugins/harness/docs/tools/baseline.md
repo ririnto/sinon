@@ -9,28 +9,22 @@ metadata:
       url: https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
 ---
 
-This document owns the standing fresh-project baseline, not a repository campaign.
-The installer verifies eligibility and selects a project type before configuring it.
-Never modify an archived repository.
-For an existing repository, first verify meaningful source, build, or maintained behavior changes in the last three months.
-Push timestamps and dependency-bot churn alone do not establish meaningful activity.
-Skip inactive repositories and simple configuration-only repositories that need no Harness integration.
-Current authorized project creation counts as activity for a new repository.
-Keep the eligibility decision in task context.
+Inspect the target and select a project type before configuring it.
+Preserve target-owned files and obtain authority for changes before writing.
 
 ## Fresh Roots
 
 Use `scripts/configure.ts` from the current plugin root with supported Node LTS:
 
 ```sh
-node <plugin-root>/scripts/configure.ts --target <target-root> --profile <profile> --eligibility eligible --pnpm-version <version> --non-interactive
+node <plugin-root>/scripts/configure.ts --target <target-root> --profile <profile> --eligibility eligible --non-interactive
 ```
 
 Replace the placeholders with the verified paths and selected profile.
-For eligible targets, supply the chosen pnpm release without the `pnpm@` prefix or an integrity suffix.
 Use `--help` for the supported choices.
 The command never prompts and reports only repository-relative output paths.
-The command requires the eligibility decision explicitly and accepts `archived`, `inactive`, and `configuration-only` as no-write outcomes.
+The command requires `--eligibility` with one of `eligible`, `archived`, `inactive`, or `configuration-only`.
+The `eligible` value permits configuration, while the other values return a skipped result without writes.
 It materializes shared sources after checking every destination for conflicts and unsafe symlinks.
 Identical files remain unchanged on a repeat run.
 A conflicting baseline file stops the operation before writes.
@@ -59,6 +53,7 @@ Keep each independent Gradle root's catalog separate.
 Node, frontend, and React roots receive the canonical base Oxc configuration, three independent style configurations, Oxfmt configuration, and flat plugin modules.
 The runtime fragment pins the supported Node 26 LTS line.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
+Set the selected pnpm version in the target root's `packageManager` field before installing dependencies or using the CI catalog.
 
 ## Integration Proof
 

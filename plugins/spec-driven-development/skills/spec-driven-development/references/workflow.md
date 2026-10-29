@@ -188,7 +188,7 @@ Activities:
 1. The review checklist MUST be applied.
 2. Review evidence MUST follow the contract in [Review Evidence Contract](#review-evidence-contract).
 3. Use independent review only when uncertainty or consequences justify it and delegation is authorized.
-   A leaf agent performs its own review or returns a required independent review to the orchestrator.
+   A leaf agent performs its own review or returns a required independent review to the lead agent.
 4. Frontmatter completeness and status transitions MUST be checked.
 5. Outbound links and inbound query integrity MUST be verified.
 6. If `RESEARCH.md` is relevant, its findings MUST be current enough for this review.
@@ -235,7 +235,7 @@ Activities:
 1. The review checklist MUST be applied.
 2. Review evidence MUST follow the contract in [Review Evidence Contract](#review-evidence-contract).
 3. Use independent review only when uncertainty or consequences justify it and delegation is authorized.
-   A leaf agent performs its own review or returns a required independent review to the orchestrator.
+   A leaf agent performs its own review or returns a required independent review to the lead agent.
 4. Every Functional Requirement MUST map to implementation or to explicit justification in `SPEC.md`.
 5. Dependency changes MUST update frontmatter `call` before review closes.
 6. Relevant `RESEARCH.md` artifacts MUST remain synchronized with the implemented state.
