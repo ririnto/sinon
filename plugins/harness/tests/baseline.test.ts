@@ -40,7 +40,7 @@ const targetDirectory = async (): Promise<string> => {
 
 /**
  * Builds the environment for spawned fixture tools.
- * Drops Git local variables and Corepack markers so pnpm honors each fixture's packageManager pin instead of the caller's Corepack dispatch.
+ * Drops Git local variables so fixture Git commands stay within their own repository.
  */
 const fixtureEnvironment = (): NodeJS.ProcessEnv => {
   const localNames = new Set(
@@ -51,9 +51,7 @@ const fixtureEnvironment = (): NodeJS.ProcessEnv => {
       .split("\n")
   );
   return Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([name]) => !localNames.has(name) && !name.startsWith("COREPACK")
-    )
+    Object.entries(process.env).filter(([name]) => !localNames.has(name))
   );
 };
 
@@ -71,6 +69,48 @@ const assertSortedKeys = (value: unknown): void => {
 };
 
 describe("fresh-root baseline", () => {
+  test.each([
+    { packageManager: "pnpm@12.15.0", status: 0 },
+    {
+      packageManager: `pnpm@12.16.1+sha224.${"0".repeat(56)}`,
+      status: 1
+    }
+  ])(
+    "GitLab pnpm preflight handles $packageManager with exit $status",
+    async ({ packageManager, status }) => {
+      const directory = await targetDirectory();
+      await writeFile(
+        path.join(directory, "package.json"),
+        JSON.stringify({ packageManager })
+      );
+      const result = spawnSync(
+        "sh",
+        [
+          "-c",
+          String(
+            parseDocument(
+              await readFile(
+                path.join(
+                  repositoryRoot,
+                  "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"
+                ),
+                "utf-8"
+              )
+            ).getIn(["pnpm", "before_script", 0])
+          )
+        ],
+        { cwd: directory, encoding: "utf-8" }
+      );
+      expect(result.error).toBeUndefined();
+      expect(result.status, result.stderr + result.stdout).toBe(status);
+      if (status !== 0) {
+        expect(result.stderr).toContain(
+          "Direct pnpm cannot verify packageManager integrity suffixes"
+        );
+      }
+    }
+  );
+
   test.each(profiles)(
     "%s materializes the shared gate and retains it on repetition",
     async (profile) => {
@@ -508,41 +548,6 @@ describe("fresh-root baseline", () => {
     },
     30_000
   );
-
-  test("materialized scripts ignore inherited Corepack markers", async () => {
-    const directory = await targetDirectory();
-    const corepackRoot = process.env.COREPACK_ROOT;
-    process.env.COREPACK_ROOT = "/nonexistent-corepack-root";
-    try {
-      await configureBaseline(directory, "node", "eligible");
-      await symlink(
-        path.join(repositoryRoot, "node_modules"),
-        path.join(directory, "node_modules"),
-        "dir"
-      );
-      await writeFile(
-        path.join(directory, "README.md"),
-        "# Target\n\nReady.\n"
-      );
-      const result = spawnSync("pnpm", ["run", "check:markdownlint-cli2"], {
-        cwd: directory,
-        env: {
-          ...fixtureEnvironment(),
-          PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
-        }
-      });
-      expect(
-        result.status,
-        result.stderr.toString() + result.stdout.toString()
-      ).toBe(0);
-    } finally {
-      if (corepackRoot === undefined) {
-        delete process.env.COREPACK_ROOT;
-      } else {
-        process.env.COREPACK_ROOT = corepackRoot;
-      }
-    }
-  }, 30_000);
 });
 
 describe("Maven and Go hook entrypoints", () => {

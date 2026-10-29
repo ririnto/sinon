@@ -12,7 +12,7 @@ const gradleProfile = path.join(import.meta.dirname, "../tooling/gradle");
 
 /**
  * Builds the environment for spawned fixture tools.
- * Drops Git local variables and Corepack markers so pnpm honors each fixture's packageManager pin instead of the caller's Corepack dispatch.
+ * Drops Git local variables so fixture Git commands stay within their own repository.
  */
 const fixtureEnvironment = (): NodeJS.ProcessEnv => {
   const localNames = new Set(
@@ -23,9 +23,7 @@ const fixtureEnvironment = (): NodeJS.ProcessEnv => {
       .split("\n")
   );
   return Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([name]) => !localNames.has(name) && !name.startsWith("COREPACK")
-    )
+    Object.entries(process.env).filter(([name]) => !localNames.has(name))
   );
 };
 
