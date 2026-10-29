@@ -200,13 +200,15 @@ fuzzy_compare: true
 
 tests:
   - promql_expr_test:
-      - expr: 1 / 10
+      - expr: 0.1 + 0.2
         eval_time: 0m
         exp_samples:
           - labels: '{}'
-            value: 0.1
+            value: 0.3
 ```
 
+The expression produces `0.30000000000000004`, which differs from `0.3` by one float64 step.
+Promtool accepts that difference with `fuzzy_compare` but rejects it with strict comparison.
 `fuzzy_compare` does not change alert firing comparisons or annotation text.
 Test values on both sides of the firing threshold when the boundary matters.
 Round a production expression only when the alert contract requires it, because rounding can change whether an alert fires.

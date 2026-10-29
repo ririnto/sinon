@@ -180,6 +180,7 @@ An off-boundary alert assertion deliberately observes the latest earlier evaluat
 ## Fuzzy Compare Behavior
 
 When `fuzzy_compare: true` is set, promtool effectively ignores differences in the last bit of the mantissa.
+Expected values differing by many float64 steps still fail, so use values that are genuinely adjacent.
 
 ### When to use it
 
@@ -197,15 +198,15 @@ Example showing the difference:
 
 ```yaml
 promql_expr_test:
-  - expr: sum(rate(http_requests_total{status="500"}[5m])) / sum(rate(http_requests_total[5m]))
-    eval_time: 10m
+  - expr: 0.1 + 0.2
+    eval_time: 0m
     exp_samples:
       - labels: '{}'
-        value: 0.05
+        value: 0.3
 ```
 
-Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`.
-With `fuzzy_compare: true` at the top level, that small difference is close enough to `0.05`.
+Without `fuzzy_compare`, the actual result `0.30000000000000004` differs from the expected `0.3`.
+With `fuzzy_compare: true` at the top level, promtool accepts this one-bit difference.
 
 ## start_timestamp Use Cases
 
