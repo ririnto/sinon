@@ -11,6 +11,8 @@ metadata:
       url: https://plugins.gradle.org/plugin/com.diffplug.spotless
     Gradle Version Catalogs:
       url: https://docs.gradle.org/current/userguide/version_catalogs.html
+    Gradle Wrapper:
+      url: https://docs.gradle.org/current/userguide/gradle_wrapper.html
     Gradle CI:
       tag: v6.4.1
       url: https://raw.githubusercontent.com/gradle/actions/v6.4.1/setup-gradle/README.md
@@ -128,7 +130,7 @@ Do not copy only its JAR or place its source under `buildSrc`.
 The module coordinates are `com.ririnto.sinon.harness:harness-kotlin:1.0.0`.
 It uses Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
 Kotlin `2.4.21` is fully supported with Gradle `7.6.3` through `9.7.0`.
-The current GitLab catalog uses Gradle `9.7.0` so this module stays within that supported range.
+Keep the target's wrapper version within that range when using this module.
 The registered rules are exposed by `com.ririnto.sinon.harness.ktlint.RuleSetProvider` through the `RuleSetProviderV3` service descriptor.
 
 For a target-owned copy, add the produced JAR to the target's ktlint ruleset configuration after the target's existing Kotlin and ktlint plugins are applied:
@@ -214,9 +216,11 @@ Checkstyle `14.3.0` is the selected engine version for this profile.
 Its lint process requires Java 21 or newer, even when the target compiles for an older Java release.
 Use the target's supported lint runtime or retain a compatible Checkstyle engine.
 If the target's Java or Gradle baseline is older, retain its compatible existing tools or obtain explicit approval for an upgrade.
-The GitLab catalog uses the `gradle:9.8.2-jdk25-ubi10` image and does not install a separate Gradle distribution.
+The GitLab catalog uses the `gradle:9.8.2-jdk25-ubi10` image for its Java runtime and invokes the target's `./gradlew check`.
+The target's checked-in wrapper selects the executed Gradle version and downloads that distribution when necessary.
+The image's bundled Gradle version does not select the wrapper's version.
 Gradle has no official LTS line.
-The newer stable Gradle `9.8.1` falls outside Kotlin `2.4.21`'s fully supported range.
+Gradle `9.8.2` falls outside Kotlin `2.4.21`'s fully supported range.
 Before adopting that image or the GitHub action versions, check their official releases and the target's Gradle wrapper and Java policy.
 Keep compatible target pins.
 The CI catalog assumes that the target contains a checked-in `./gradlew` wrapper.

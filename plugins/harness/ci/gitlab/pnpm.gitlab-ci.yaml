@@ -5,6 +5,7 @@ pnpm:
   stage: validate
   image: node:26
   before_script:
+    - npm install --global corepack@0.36.0
     - corepack enable
   script:
     - pnpm install --frozen-lockfile

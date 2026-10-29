@@ -9,12 +9,13 @@ metadata:
         - https://pnpm.io/catalogs
         - https://pnpm.io/cli/install
     pnpm setup:
-      version: 3.0.0
+      version: 3.1.2
       url: https://raw.githubusercontent.com/pnpm/setup/v3.1.2/README.md
     Node.js:
       url: https://nodejs.org/en/about/previous-releases
     Corepack:
-      url: https://nodejs.org/docs/latest-v24.x/api/corepack.html
+      version: 0.36.0
+      url: https://raw.githubusercontent.com/nodejs/corepack/v0.36.0/README.md
     Oxlint:
       version: 1.90.0
       url:
@@ -410,7 +411,8 @@ The GitHub catalog uses `pnpm/setup@v3.1.2` and reads that pin from the target m
 The catalog supplies Node.js 26 as a source example.
 Replace that runtime selection when the target requires another compatible version.
 It does not infer pnpm from `package.json` alone.
-The GitLab catalog supplies a Node.js 26 image example and enables Corepack to use the target's `packageManager` pin.
+The GitLab catalog supplies a Node.js 26 image example, which does not bundle Corepack.
+It installs Corepack `0.36.0` through npm before enabling its shims to use the target's `packageManager` pin.
 Adapt runtime versions, working directories, and image pins to the target's existing CI requirements.
 CI runs `pnpm install --frozen-lockfile` when `pnpm-lock.yaml` exists, then the target's `pnpm run check` script.
 Require a committed lockfile for a frozen installation.
