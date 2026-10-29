@@ -23,10 +23,11 @@ Keep the eligibility decision in task context.
 Use `scripts/configure.ts` from the current plugin root with supported Node LTS:
 
 ```sh
-node <plugin-root>/scripts/configure.ts --target <target-root> --profile <profile> --eligibility eligible --non-interactive
+node <plugin-root>/scripts/configure.ts --target <target-root> --profile <profile> --eligibility eligible --pnpm-version <version> --non-interactive
 ```
 
 Replace the placeholders with the verified paths and selected profile.
+For eligible targets, supply the chosen pnpm release without the `pnpm@` prefix or an integrity suffix.
 Use `--help` for the supported choices.
 The command never prompts and reports only repository-relative output paths.
 The command requires the eligibility decision explicitly and accepts `archived`, `inactive`, and `configuration-only` as no-write outcomes.
@@ -56,7 +57,7 @@ Gradle and Kotlin roots create `gradle/libs.versions.toml` only when missing.
 Use that catalog as the root's single native version source when integrating its build.
 Keep each independent Gradle root's catalog separate.
 Node, frontend, and React roots receive the canonical base Oxc configuration, three independent style configurations, Oxfmt configuration, and flat plugin modules.
-The runtime fragment pins the supported Node 26 LTS line and pnpm baseline.
+The runtime fragment pins the supported Node 26 LTS line.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
 
 ## Integration Proof

@@ -45,7 +45,6 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
-    "pnpm": "catalog:",
     "tar": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

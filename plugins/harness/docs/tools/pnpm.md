@@ -409,8 +409,7 @@ The catalog supplies Node.js 26 as a source example.
 Replace that runtime selection when the target requires another compatible version.
 It does not infer pnpm from `package.json` alone.
 The GitLab catalog supplies a Node.js 26 image example.
-It installs pnpm `12.16.1` directly through npm.
-pnpm then selects the version in the target's unchanged `packageManager` field.
+It installs the version specified in the target's `packageManager` field directly through npm.
 The GitLab bootstrap rejects integrity-qualified pins before installing pnpm because direct pnpm does not verify their integrity suffixes.
 Use a version-only pnpm pin with this catalog.
 Adapt runtime versions, working directories, and image pins to the target's existing CI requirements.
@@ -423,7 +422,8 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects pnpm `12.16.1`, Oxlint `1.90.0`, Oxfmt `0.75.0`, Ultracite `8.1.0`, Markdownlint `0.42.0`, Markdownlint CLI2 `0.24.0`, npm-run-all2 `9.0.4`, Vitest `5.0.5`, and `@oxc-project/types` `0.156.0`.
+The source profile selects Oxlint `1.90.0`, Oxfmt `0.75.0`, Ultracite `8.1.0`, Markdownlint `0.42.0`, Markdownlint CLI2 `0.24.0`, npm-run-all2 `9.0.4`, Vitest `5.0.5`, and `@oxc-project/types` `0.156.0`.
+Each target selects its own pnpm version.
 The Harness source-profile baseline is maintained independently from the Sinon root catalog and may lag it.
 The root `pnpm-workspace.yaml` catalog, `package.json`, and `pnpm-lock.yaml` own installed root tool versions.
 Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.

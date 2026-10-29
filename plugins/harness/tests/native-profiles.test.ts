@@ -132,7 +132,7 @@ describe("remaining native profile Git gates", () => {
       const remote = path.join(directory, "remote.git");
       expect(git("init", "--bare", remote).status).toBe(0);
       expect(git("remote", "add", "origin", remote).status).toBe(0);
-      await configureBaseline(directory, profile, "eligible");
+      await configureBaseline(directory, profile, "eligible", "12.15.0");
       await mkdir(path.join(directory, ".bin"));
       await Promise.all(
         executables.map((name) =>

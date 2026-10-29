@@ -6,6 +6,5 @@
     "fast-sort": "catalog:",
     "tsx": "catalog:",
     "yaml": "catalog:"
-  },
-  "packageManager": "pnpm@12.16.1"
+  }
 }
