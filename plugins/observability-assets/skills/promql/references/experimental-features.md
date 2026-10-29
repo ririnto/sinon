@@ -14,11 +14,13 @@ Use this reference when the query requires a function or operator that is gated 
 | `--enable-feature=promql-experimental-functions` | Enables experimental PromQL functions. |
 | | Current examples include `double_exponential_smoothing`, `end`, `first_over_time`, and `histogram_quantiles`. |
 | | They also include `info`, `limit_ratio`, `limitk`, `mad_over_time`, `range`, `start`, and `step`. |
-| | Label sort and timestamp helper functions are also gated by this flag. |
-| | The `step()`, `range()`, `min_of()`, and `max_of()` duration functions also require this flag. |
+| | Label sort, timestamp helpers, `min_of`, and `max_of` are also gated by this flag. |
+| `--enable-feature=promql-duration-expr` | Enables arithmetic in selector ranges, subquery ranges and resolutions, and offsets. |
 | `--enable-feature=promql-binop-fill-modifiers` | Enables `fill()`, `fill_left()`, `fill_right()` modifiers for binary operations |
 
-Duration expressions are enabled by default and do not require a feature flag.
+In Prometheus 3.13.5, duration expressions require `--enable-feature=promql-duration-expr`.
+Within duration expressions, `step()`, `range()`, `min_of()`, and `max_of()` require only this flag.
+Standalone calls to these functions require `--enable-feature=promql-experimental-functions`.
 
 ## Experimental Functions Summary
 
@@ -68,6 +70,7 @@ Duration expressions are enabled by default and do not require a feature flag.
 ## Fill Modifiers (Experimental)
 
 Fill modifiers override the default behavior of dropping unmatched elements in binary vector operations.
+In Prometheus 3.13.5, `promtool check rules` does not support the fill-modifier flag and rejects fill expressions.
 
 These examples show filling missing matches on both sides, only on the left, only on the right, and on both sides with different defaults.
 
@@ -77,7 +80,7 @@ expr1 / fill(0) expr2
 expr1 * fill_left(1) expr2
 expr1 + fill_right(-1) expr2
 
-expr1 fill_left(0) fill_right(1) + expr2
+expr1 + fill_left(0) fill_right(1) expr2
 
 ```
 
@@ -88,7 +91,7 @@ Constraints:
 - Cannot create series missing on both sides.
 - Must appear after all other modifiers (`bool`, `on`, `ignoring`, `group_left`, `group_right`).
 - Not supported for set operators (`and`, `or`, `unless`).
-- With `group_left`/`group_right`: filling the "many" side produces one filled series per match group.
+- With `group_left`/`group_right`: filling the "many" side produces one filled series per match group using only the matching labels.
   - Filling the "one" side does not fill extra labels specified in the group modifier.
 
 ## Stability Caveats
