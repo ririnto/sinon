@@ -135,6 +135,9 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 Sinon selects external plugins through its marketplace catalog.
 
+- [clear-writing](https://github.com/ririnto/clear-writing): the Sinon catalog follows the upstream `main` branch.
+  The upstream repository owns the writing skill and version.
+  Install it as `clear-writing@sinon` in either host.
 - [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream `main` branch.
   The upstream repository owns the MCP runtime, thread-control skill, monitor, checks, and release version.
   Install it as `codex-app-server@sinon` in either host.
