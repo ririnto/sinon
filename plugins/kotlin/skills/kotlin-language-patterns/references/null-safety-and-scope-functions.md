@@ -99,7 +99,8 @@ class Service {
 
 Restrictions: `lateinit` only works with non-primitive types that do not have a custom getter.
 Access before initialization throws `UninitializedPropertyAccessException`.
-A class that a container or DI framework constructs takes its dependencies through non-null, default-free constructor parameters instead of a `lateinit` property.
+Model injected dependencies as required or optional according to the application and container contract.
+Constructor injection can make required dependencies available before first use.
 
 ## Smart Cast Limits
 

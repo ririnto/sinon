@@ -28,14 +28,17 @@ Keep the upstream reference originals read-only.
 Create a project-owned `DESIGN.md` using the design.md format and the actual product's design tokens and rationale.
 Replace the generated starter before accepting product design work.
 Do not copy an example visual identity or invent product requirements.
+For an established project, preserve its existing design system and tokens.
+Adopt this profile's design baseline only when the task selects or establishes the baseline.
 Check semantics, keyboard and focus behavior, responsive layout, reduced motion, and measured rendering performance for the selected interface.
 Keep the [shared accessibility rules](../rules.md#frontend-and-accessible-interfaces) as the acceptance floor when an upstream preference differs.
 For non-React projects, apply only the relevant interface and JavaScript guidance.
 Do not introduce React or Radix React dependencies to satisfy this profile in another framework.
 
-React projects use Radix Themes, Colors, Icons, and Primitives as their primary design building blocks.
+React projects without an established design system use Radix Themes, Colors, Icons, and Primitives as their primary design building blocks.
+Preserve an existing design system and its components when the project already has one.
 The React fragment supplies `@radix-ui/themes`, `@radix-ui/colors`, `@radix-ui/react-icons`, and the `radix-ui` Primitives package through the workspace catalog.
-Import the Themes stylesheet once at the application entry and wrap the relevant application surface in its `Theme` provider.
+When using the Radix baseline, import the Themes stylesheet once at the application entry and wrap the relevant application surface in its `Theme` provider.
 Use Primitives where Themes does not cover the required interaction, retaining accessible names and focus behavior.
 For React, check data dependencies, bundle boundaries, rendering, and measured performance for the changed flow.
 Preserve framework boundaries and avoid speculative memoization or unrelated architecture changes.

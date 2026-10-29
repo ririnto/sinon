@@ -101,9 +101,10 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
       chat:
-        model: gpt-4o-mini
+        model: ${OPENAI_CHAT_MODEL}
 ```
 
+Set `OPENAI_CHAT_MODEL` to a model supported by the target account and Spring AI version.
 Start with one provider, one model, and one environment-backed secret.
 Open [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) when model family, context window, latency, cost, or provider fit is still unclear.
 

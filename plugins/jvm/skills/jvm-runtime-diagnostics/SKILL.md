@@ -112,6 +112,14 @@ jcmd <pid> JFR.check
 ```
 
 Use when: the issue depends on time-based evidence such as CPU, allocation, I/O, or lock behavior.
+Stop the recording when the investigation finishes:
+
+```sh
+jcmd <pid> JFR.stop name=baseline
+```
+
+Leave a recording you did not start untouched unless the owner authorizes a change.
+Add `filename=` to `JFR.stop` when the captured data must survive the stop.
 
 Startup-attached JFR:
 

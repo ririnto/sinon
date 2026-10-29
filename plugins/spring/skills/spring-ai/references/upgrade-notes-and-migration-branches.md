@@ -71,11 +71,12 @@ The `.conversationId()` builder method on memory advisors has been removed.
 ### Options immutability
 
 All mutable setter methods have been removed from `ChatOptions` classes.
-Use the builder pattern exclusively:
+Use the builder pattern exclusively.
+Set `modelName` to a model supported by the target provider:
 
 ```java
 OpenAiChatOptions options = OpenAiChatOptions.builder()
-    .model("gpt-4.1")
+    .model(modelName)
     .temperature(0.7)
     .build();
 ```
@@ -86,10 +87,10 @@ Properties no longer use `.options` in the path:
 
 ```properties
 # Before
-spring.ai.openai.chat.options.model=gpt-4.1
+spring.ai.openai.chat.options.model=${OPENAI_CHAT_MODEL}
 
 # After
-spring.ai.openai.chat.model=gpt-4.1
+spring.ai.openai.chat.model=${OPENAI_CHAT_MODEL}
 ```
 
 ### ToolCallingAdvisor auto-registration

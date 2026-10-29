@@ -53,12 +53,15 @@ Resolve launcher and runtime-image requirements before packaging.
 
 ## Minimal Setup
 
-Confirm the local JDK toolchain first:
+Confirm the local JDK toolchain first.
+On JDK 9 or later, use:
 
 ```sh
 java --version
 javac --version
 ```
+
+On JDK 8, use `java -version` and `javac -version` because `--version` is unavailable there.
 
 For module-aware slimming or packaging, also confirm the input artifact you will analyze or package exists before invoking `jdeps`, `jlink`, or `jpackage`.
 

@@ -5,7 +5,7 @@ description: >-
 
 # Retry and Repeat Strategies
 
-Open this when failure recovery needs a deliberate retry policy rather than a plain `retry(n)`, or when completion-side re-subscription needs a termination condition.
+Open this when failure recovery needs a deliberate retry policy rather than a plain `retry(n)`, or when completion-side re-subscription needs lifecycle control.
 
 ## Error-side retry: choose the policy
 
@@ -100,7 +100,8 @@ final class RepeatedWithBackoff {
 | error signal | `retry*` | `onError` |
 | complete signal | `repeat*` | `onComplete` |
 
-Always pair `repeat*` with a terminating condition: use `take(n)` or `repeatUntil(...)`, or configure `repeatWhen(...)` with a terminating companion, bound, or predicate.
+Bound finite repetition with `take(n)`, `repeatUntil(...)`, or a terminating `repeatWhen(...)` companion.
+For a long-lived stream, identify the cancellation owner and pace re-subscriptions when needed.
 
 ## Guardrails
 
@@ -108,4 +109,4 @@ Always pair `repeat*` with a terminating condition: use `take(n)` or `repeatUnti
 - Backoff without a bound still turns an outage into pressure.
 - Make retry and repeat exhaustion behavior explicit so the final error is predictable.
 - Keep side effects idempotent before adding retries.
-- Do not use `repeat()` without a termination condition -- it loops forever on every completion.
+- Prevent unintended unbounded or rapid re-subscriptions with a bound or managed cancellation and pacing.

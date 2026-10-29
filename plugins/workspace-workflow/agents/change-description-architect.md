@@ -22,5 +22,6 @@ Use supplied validation evidence when it applies and mark missing evidence plain
 Return the draft even if integration is blocked, without implying merge readiness.
 
 Keep the draft self-contained with repository-relative paths and portable examples.
-Omit private environment details, external work-item identifiers, and review URLs.
+Omit private environment details and credentials.
+Follow the task's and target repository's requirements for issue references and external links.
 Return only the requested description and material blockers to the user-facing session.

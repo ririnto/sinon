@@ -36,7 +36,8 @@ It does not cover:
 - Draft from the requested diff or supplied evidence.
   Inspect staged changes when composing the next commit and history when repository conventions are unclear.
 - Message drafting does not authorize staging, commits, history edits, or publication.
-- Keep rationale self-contained, with portable paths and no private environment details, external work-item identifiers, or review URLs.
+- Keep rationale self-contained, with portable paths and no private environment details or credentials.
+  Follow the task's and target repository's requirements for issue references and external links.
 - Keep each commit to one logical change when the task and repository workflow support that split.
   - A logical change is a single feature, bug fix, documentation update, or refactor rather than a mix of independent concerns.
 - Keep the first line concise, imperative, and free of a trailing period.

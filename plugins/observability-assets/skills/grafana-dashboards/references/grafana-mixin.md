@@ -20,12 +20,11 @@ Review the mixin source itself when the normal dashboard JSON review is no longe
 
 - check Jsonnet source for stable identifiers
 - include `uid`, folder assumptions, and tags in that source review
-- check that the default time range policy starts at `now-30m` or less
-- allow wider ranges only when the source explains why
+- check that the default time range supports the operator question and fits the target's query cost and retention
 - set datasource configuration explicitly in source
 - do not inherit datasource defaults from an environment default
-- keep rounded display-oriented PromQL in source templates
-- do not hand-edit rounding only in rendered JSON
+- keep intentional query or display precision changes in source templates
+- do not hand-edit those changes only in rendered JSON
 
 Example source snippet to inspect:
 

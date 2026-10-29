@@ -39,17 +39,10 @@ Use `${verifiedVersion}` or the repository's version-reference style when no ver
 Open [`maven-central.md`](./references/maven-central.md) for online lookup, response fields, pagination, or artifact-specific installation details.
 Dependency lookup does not itself authorize adding or upgrading a dependency.
 
-## First runnable commands
+## Local coordinate check
 
-Start with one local coordinate check:
-
-```sh
-for file in pom.xml build.gradle build.gradle.kts gradle/libs.versions.toml; do
-    if [ -f "${file}" ]; then grep -nE 'org\.awaitility|awaitility' "${file}"; fi
-done
-```
-
-Use when: you need to confirm whether the repository already declares the dependency or version reference locally.
+Inspect the requested artifact's declarations and managed version in the target project.
+Adapt the examples below to the requested coordinates.
 
 ## Ready-to-adapt templates
 

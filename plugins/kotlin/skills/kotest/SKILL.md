@@ -107,7 +107,7 @@ metadata:
       url: https://kotest.io/docs/framework/isolation-mode.html
 name: kotest
 description: >-
-  Write or fix Kotlin JVM tests, including deterministic coroutine, Flow, and exception-contract tests.
+  Write or fix Kotlin JVM tests with Kotest, including coroutine, Flow, and exception-contract tests.
 ---
 
 # Kotest
@@ -137,13 +137,14 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 - SHOULD name tests as `verbCondition` or `subjectVerb` describing the observable behavior (e.g., `returnsCachedProfile`, `emitsLoadingThenData`, `rejectsInvalidInput`).
 - SHOULD use Kotest `FunSpec` and matchers as the default surface for new JVM test suites.
 - SHOULD choose the spec style for the test's structure and declare tests through its constructor DSL.
-- MUST declare explicit types on class, object, and companion properties, including private test helpers.
+- Follow the target project's type declaration conventions.
 - SHOULD keep shared immutable class-level test configuration in a typed companion object property.
 - MUST enable Kotest `coroutineTestScope` when virtual scheduler control is required.
   Plain suspending tests need no wrapper.
 - SHOULD use `first()` for one emission and `take(n).toList()` for a known prefix.
   Use `single()` only when the Flow completes after one element.
-- MUST use `shouldThrowExactly<T>()` for exception assertions to require the exact type.
+- Use `shouldThrowExactly<T>()` when the exact exception type is part of the contract.
+  Use `shouldThrow<T>()` when a subtype also satisfies it.
 - MUST assert the caught exception's message and meaningful fields when the exception contract matters, not only the type.
 - MUST NOT migrate an existing suite or replace its native library-specific harness unless the task authorizes that change.
 - MUST compare serialized output with full equality after parsing structured formats into exact fields or elements.
@@ -291,8 +292,9 @@ class UiStateRepositoryTest : FunSpec({
 
 ### Use direct exception assertions
 
-Use `shouldThrowExactly<T>()` for exception assertions to require the exact type.
-It returns the exception, so message and property checks stay explicit.
+Use `shouldThrowExactly<T>()` when the exact exception type is part of the contract.
+Use `shouldThrow<T>()` when a subtype also satisfies it.
+Both return the exception, so message and property checks stay explicit.
 
 ```kotlin
 import io.kotest.assertions.throwables.shouldThrowExactly

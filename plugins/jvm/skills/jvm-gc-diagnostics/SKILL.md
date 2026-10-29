@@ -107,6 +107,13 @@ jcmd <pid> JFR.dump name=gc-baseline filename=/path/to/private-diagnostics/gc-ba
 ```
 
 Use when: the pause or latency problem depends on runtime behavior over time.
+Stop the recording after the dump when the investigation finishes:
+
+```sh
+jcmd <pid> JFR.stop name=gc-baseline
+```
+
+Leave a recording you did not start untouched unless the owner authorizes a change.
 
 Startup-attached GC-oriented JFR:
 

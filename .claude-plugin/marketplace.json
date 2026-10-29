@@ -78,7 +78,7 @@
       "license": "MIT",
       "name": "document-creator",
       "source": "./plugins/document-creator",
-      "version": "2026.10.03.02",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/document-creator",
       "keywords": [
         "spec",
@@ -99,7 +99,7 @@
       "license": "MIT",
       "name": "glm-agents",
       "source": "./plugins/glm-agents",
-      "version": "2026.10.14.02",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/glm-agents",
       "keywords": ["claude-code", "subagents", "zai", "glm"],
       "repository": "https://github.com/ririnto/sinon"
@@ -113,7 +113,7 @@
       "license": "MIT",
       "name": "gpt-agents",
       "source": "./plugins/gpt-agents",
-      "version": "2026.10.14.02",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/gpt-agents",
       "keywords": ["claude-code", "subagents", "openai", "gpt"],
       "repository": "https://github.com/ririnto/sinon"
@@ -143,7 +143,7 @@
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness",
-      "version": "2026.10.29.03",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
       "keywords": [
         "harness",
@@ -164,7 +164,7 @@
       "license": "MIT",
       "name": "java",
       "source": "./plugins/java",
-      "version": "2026.10.15.01",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
       "keywords": [
         "java",
@@ -187,7 +187,7 @@
       "license": "MIT",
       "name": "jvm",
       "source": "./plugins/jvm",
-      "version": "2026.10.03.02",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/jvm",
       "keywords": ["jvm", "javac", "jfr", "gc", "diagnostics"],
       "repository": "https://github.com/ririnto/sinon"
@@ -201,7 +201,7 @@
       "license": "MIT",
       "name": "kotlin",
       "source": "./plugins/kotlin",
-      "version": "2026.10.03.03",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/kotlin",
       "keywords": [
         "kotlin",
@@ -247,7 +247,7 @@
       "license": "MIT",
       "name": "observability-assets",
       "source": "./plugins/observability-assets",
-      "version": "2026.10.15.01",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/observability-assets",
       "keywords": [
         "prometheus",
@@ -269,7 +269,7 @@
       "license": "MIT",
       "name": "reactor",
       "source": "./plugins/reactor",
-      "version": "2026.10.03.02",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/reactor",
       "keywords": [
         "reactor",
@@ -307,7 +307,7 @@
       "license": "MIT",
       "name": "spring",
       "source": "./plugins/spring",
-      "version": "2026.10.15.01",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spring",
       "keywords": [
         "spring",
@@ -350,7 +350,7 @@
       "license": "Apache-2.0",
       "name": "workspace-workflow",
       "source": "./plugins/workspace-workflow",
-      "version": "2026.10.03.02",
+      "version": "2026.10.30.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/workspace-workflow",
       "keywords": [
         "git",

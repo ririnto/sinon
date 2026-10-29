@@ -19,7 +19,7 @@ The common case is checking the target Java LTS baseline first, then choosing th
 
 ## Operating rules
 
-- MUST identify the target Java LTS version (`8`, `11`, `17`, `21`, or `25`) before recommending any version-sensitive syntax.
+- MUST identify the actual target Java version before recommending any version-sensitive syntax.
 - MUST distinguish stable language features from preview-only or withdrawn features.
 - SHOULD prefer stable syntax unless preview use is explicitly requested.
 - MUST explain fallback forms when recommending syntax unavailable on the target baseline.

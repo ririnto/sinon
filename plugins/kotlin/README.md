@@ -36,7 +36,8 @@ Keep Java, JVM, and Spring-specific behavior outside Kotlin guidance.
 ### Scope boundaries
 
 Pure Kotlin unit tests, coroutine tests, and test-structure decisions that do not require Spring context stay in Kotlin-focused guidance.
-Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure behavior are outside Kotlin-focused guidance.
+Use the Kotest Spring reference for Kotest's Spring integration and lifecycle callbacks.
+Spring Boot test slices and framework-specific behavior remain outside Kotlin-focused guidance.
 
 These topics fall outside Kotlin's scope:
 

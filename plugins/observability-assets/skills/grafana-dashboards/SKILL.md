@@ -41,8 +41,7 @@ Select the supporting reference for the affected dashboard fields or generation 
 - Preserve the stable `uid`, title, and datasource contract unless the task requires a deliberate change.
 - Shape affected panels around query results and the operator question, using the Panel Type Decision Guide when needed.
 - Add variables, repeats, transformations, field settings, and navigation only when they improve the intended view.
-- Default the dashboard time range to the last 30 minutes or less.
-  Widen it only when the operator question needs more history.
+- Choose a default time range that supports the operator question and fits the target's query cost and retention.
 - Change Jsonnet or mixin source when it owns the dashboard, then review the affected rendered output.
 
 Default to Grafana's V2 Resource model when the task is about Grafana 13 Observability as Code or the newer `/apis` dashboard flow.
@@ -326,7 +325,7 @@ Review the affected dashboard fields with these checks:
 - variables and repeated panels are present only when they improve the normal read path
 - transformations, field config, units, thresholds, and legends improve readability instead of hiding query problems
 - links and annotations add operator context without turning the dashboard into a navigation maze
-- the default time range stays within the last 30 minutes unless a wider window is explicitly justified
+- the default time range supports the operator question and fits the target's query cost and retention
 - panel types match the operator question instead of defaulting to timeseries for everything
 - variable types match the data source (query for dynamic lists, custom for static enums)
 - overrides target the correct fields with appropriate matchers
@@ -363,7 +362,6 @@ Return:
 
 - MUST keep dashboard identity stable with an explicit `uid`.
 - MUST validate edited JSON before claiming the dashboard is ready.
-- MUST keep the default dashboard time range within 30 minutes unless a wider window is explicitly justified.
 - MUST keep datasource references explicit.
 - MUST NOT include unstable runtime-only fields in Git-owned dashboard JSON.
 - SHOULD keep panels organized around one operator story rather than a random metric collection.
@@ -376,7 +374,7 @@ Return:
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
 | copying a UI export with unstable metadata and no cleanup | reviews become noisy and identity drifts | normalize the JSON and keep a stable `uid`, title, and panel structure |
-| setting the default dashboard range broader than 30 minutes with no operator reason | live queries scan far more data than the common path needs | start with `now-30m` and widen only when the investigation needs more history |
+| choosing a default range without considering the operator question or query cost | the dashboard can omit needed history or scan unnecessary data | select a range suited to the task and deployment |
 | treating generated or exported dashboard JSON as authoritative without checking the source workflow behind it | reviewers lose track of the asset source | keep direct JSON and mixin-generated workflows explicit and review the right source of truth |
 | mixing unrelated panels into one dashboard | operators cannot read the story quickly | group panels by one question such as traffic, latency, and errors |
 | leaving datasource references implicit or environment-specific without review | dashboards break when moved between environments | make datasource references explicit in the dashboard asset itself |

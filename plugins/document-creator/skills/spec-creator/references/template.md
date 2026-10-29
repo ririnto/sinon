@@ -186,7 +186,7 @@ Important boundary:
 
 ### 5.2 Abstraction Levels
 
-The system is organized into these layers:
+When the system is layered, name its actual layers; the list below is one worked example, not a required architecture:
 
 1. `Policy Layer` (repo-defined)
    - [Team-specific rules, prompt body, configuration policy]
@@ -261,6 +261,8 @@ Configuration is resolved in this order:
 4. [Step 4 - validate]
 
 ### 7.2 Dynamic Reload Semantics
+
+Include this section only when the spec'd system must reload configuration without restart:
 
 - The software MUST detect changes to [config file / settings].
 - On change, it MUST re-read and re-apply [which config fields] without restart.
