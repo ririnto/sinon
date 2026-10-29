@@ -38,24 +38,24 @@ class KotlinTopLevelDeclarationCount :
                 if (
                     !(
                         declarations.isEmpty() ||
-                        (
-                            entryPoints.size <= 1 &&
-                                when (counted.size) {
-                                    0 -> {
-                                        entryPoints.size == 1
-                                    }
+                            (
+                                entryPoints.size <= 1 &&
+                                    when (counted.size) {
+                                        0 -> {
+                                            entryPoints.size == 1
+                                        }
 
-                                    1 -> {
-                                        counted.single().let { declaration ->
-                                            declaration is KtClassOrObject || declaration is KtTypeAlias
+                                        1 -> {
+                                            counted.single().let { declaration ->
+                                                declaration is KtClassOrObject || declaration is KtTypeAlias
+                                            }
+                                        }
+
+                                        else -> {
+                                            false
                                         }
                                     }
-
-                                    else -> {
-                                        false
-                                    }
-                                }
-                        )
+                            )
                     )
                 ) {
                     emit(0, "declare a single top-level type declaration in this file", false)
