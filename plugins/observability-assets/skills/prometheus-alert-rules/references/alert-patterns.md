@@ -15,16 +15,13 @@ Alerts and dashboards can share the recorded result without repeating expensive 
 ```yaml
 - record: job:http_requests:rate5m
   expr: >-
-    round(sum by (job) (rate(http_requests_total[5m])), 0.001)
+    sum by (job) (rate(http_requests_total[5m]))
 
 - alert: Api5xxRatioAbove5Percent
   expr: |-
-    5 < round(
-      100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
-        /
-      sum(job:http_requests:rate5m{job="api"}),
-      0.001
-    )
+    5 < 100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
+      /
+    sum(job:http_requests:rate5m{job="api"})
 
 ```
 
@@ -35,7 +32,7 @@ Broken:
 ```yaml
 - alert: CpuUsageAbove90Percent
   expr: >-
-    0.9 < round(rate(node_cpu_seconds_total{mode!="idle"}[1m]), 0.001)
+    0.9 < rate(node_cpu_seconds_total{mode!="idle"}[1m])
 
 ```
 
@@ -44,12 +41,9 @@ Better -- symptom-oriented with explicit `for` window and actionable annotations
 ```yaml
 - alert: Api5xxRatioAbove5Percent
   expr: |-
-    5 < round(
-      100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
-        /
-      sum(rate(http_requests_total{job="api"}[5m])),
-      0.001
-    )
+    5 < 100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
+      /
+    sum(rate(http_requests_total{job="api"}[5m]))
   for: 10m
   annotations:
     description: |-
@@ -77,7 +71,7 @@ groups:
     rules:
       - record: job:http_requests:rate5m
         expr: >-
-          round(sum by (job) (rate(http_requests_total[5m])), 0.001)
+          sum by (job) (rate(http_requests_total[5m]))
       - record: job:http_errors:rate5m
         expr: >-
           sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))

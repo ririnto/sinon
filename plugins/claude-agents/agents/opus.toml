@@ -1,5 +1,5 @@
 name = "opus"
-description = "Equivalent to GPT Sol."
+description = "Claude Opus tier for explicitly requested Opus work."
 model = "claude-opus-5-5"
 model_reasoning_effort = "medium"
 developer_instructions = """

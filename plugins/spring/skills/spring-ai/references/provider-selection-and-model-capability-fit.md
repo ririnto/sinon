@@ -58,13 +58,15 @@ Use only the selectors needed for the surfaces the application actually exposes.
 
 ### OpenAI
 
+Set `OPENAI_CHAT_MODEL` to a model supported by the target account and Spring AI version.
+
 ```yaml
 spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
       chat:
-        model: gpt-4o
+        model: ${OPENAI_CHAT_MODEL}
 ```
 
 ### Anthropic
@@ -106,6 +108,8 @@ spring:
 
 ### Google GenAI
 
+Set `GOOGLE_GENAI_CHAT_MODEL` to a model supported by the target account and Spring AI version.
+
 ```yaml
 spring:
   ai:
@@ -113,7 +117,7 @@ spring:
       genai:
         api-key: ${GOOGLE_GENAI_API_KEY}
         chat:
-          model: gemini-2.0-flash
+          model: ${GOOGLE_GENAI_CHAT_MODEL}
 ```
 
 ### Ollama

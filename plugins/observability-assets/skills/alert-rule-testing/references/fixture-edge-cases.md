@@ -190,29 +190,28 @@ Use when: the alert depends on `rate()` or `increase()` over counters and you ne
 ## Float Precision Edge Cases
 
 Floating-point arithmetic in PromQL can produce values like `5.000000000001` instead of exactly `5`.
-Two strategies:
+Choose fixture values away from the boundary unless the test specifically covers threshold behavior.
+Use `fuzzy_compare` for numeric result comparisons when appropriate.
 
-### Strategy 1: Use `fuzzy_compare` at the top level
+### Use `fuzzy_compare` at the top level
 
 ```yaml
 fuzzy_compare: true
 
 tests:
-  - alert_rule_test:
-      - eval_time: 16m
-        alertname: RatioAlert
-        exp_alerts:
-          - exp_labels:
-              severity: page
+  - promql_expr_test:
+      - expr: 0.1 + 0.2
+        eval_time: 0m
+        exp_samples:
+          - labels: '{}'
+            value: 0.3
 ```
 
-### Strategy 2: Round in the rule expression
-
-```yaml
-expr: 5 < round(100 * errors / total, 0.001)
-```
-
-Apply rounding in the rule file rather than the test file when the production expression should also avoid boundary precision noise.
+The expression produces `0.30000000000000004`, which differs from `0.3` by one float64 step.
+Promtool accepts that difference with `fuzzy_compare` but rejects it with strict comparison.
+`fuzzy_compare` does not change alert firing comparisons or annotation text.
+Test values on both sides of the firing threshold when the boundary matters.
+Round a production expression only when the alert contract requires it, because rounding can change whether an alert fires.
 
 See [`./test-execution-controls.md`](./test-execution-controls.md) for more on `fuzzy_compare`.
 

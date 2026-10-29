@@ -46,17 +46,21 @@ Keep token accounting near the application seam so the same numbers are availabl
 
 ### ChatClient response logging
 
+The model tag below reports the configured model, which may differ from the provider's actual response model.
+
 ```java
 @Service
 class ReleaseNotesAssistant {
     private final ChatClient chat;
     private final MeterRegistry meter;
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final String modelName = "gpt-4o-mini";
+    private final String modelName;
 
-    ReleaseNotesAssistant(ChatClient.Builder builder, MeterRegistry meter) {
+    ReleaseNotesAssistant(ChatClient.Builder builder, MeterRegistry meter,
+                          @Value("${spring.ai.openai.chat.model}") String modelName) {
         this.chat = builder.defaultSystem("You summarize release notes concisely.").build();
         this.meter = meter;
+        this.modelName = modelName;
     }
 
     String summarize(String notes) {

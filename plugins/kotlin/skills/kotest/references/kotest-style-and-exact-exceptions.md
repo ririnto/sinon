@@ -15,7 +15,7 @@ Open this when the project already uses Kotest and the remaining blocker is keep
 - use direct matchers for one assertion, a dependent assertion chain, or exception assertions
 - in an unambiguous receiver lambda, call `shouldBe(expected)` rather than writing `this shouldBe expected`
   - keep an explicit receiver when multiple receivers make omission ambiguous
-- use `shouldThrowExactly<T>()` for exception assertions to require the exact type
+- use `shouldThrowExactly<T>()` when the exact exception type is part of the contract
 - capture the returned exception and assert its exact stable message or meaningful contract field
 - use `shouldNotThrowAny` only when the no-exception property itself is the contract
 - do not place `shouldThrowExactly` or another throwing assertion inside `assertSoftly`.

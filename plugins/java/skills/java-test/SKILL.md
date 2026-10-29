@@ -25,7 +25,7 @@ Keep build-tool wiring separate from behavioral assertions.
 
 - MUST select tests from acceptance criteria and regression risks, reusing existing coverage when sufficient.
 - SHOULD prefer a unit test when it can prove the behavior.
-- MUST use an integration test only when the behavior requires a real process, database, network, filesystem boundary, container, or framework runtime.
+- Use an integration test when the behavior depends on interactions among real components or an external boundary.
 - MUST reserve end-to-end tests for distinct core user journeys that lower-level tests do not already prove.
 - MUST NOT impose test-layer ratios or add every layer for each change.
 - MUST use the repository's native test runner without adding a task-specific execution wrapper.

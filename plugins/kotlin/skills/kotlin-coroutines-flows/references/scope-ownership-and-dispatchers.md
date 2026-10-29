@@ -46,6 +46,10 @@ It does not rescue child coroutines from structured-concurrency failure propagat
 
 Root `launch` with local exception reporting:
 
+The supplied scope must use a `SupervisorJob` so a failed launch does not cancel the rest of the scope.
+The `CoroutineExceptionHandler` reports this root launch's uncaught failure either way.
+Its lifecycle owner must cancel the scope when the work is no longer needed.
+
 ```kotlin
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope

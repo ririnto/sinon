@@ -73,9 +73,8 @@ For new dependencies or required upgrades, check Maven Central for the latest st
   - Validate at boundaries instead.
 - MUST pin platform-type nullability at the Java interop boundary.
   - Never let `T!` propagate inward.
-- SHOULD prefer `val` by default.
-  - `val` prevents reassignment but does not make the referenced object or collection immutable.
-  - Use `var` only for backing fields, JavaBean compatibility, or circular construction dependencies.
+- SHOULD prefer `val` when reassignment is unnecessary.
+  `val` prevents reassignment but does not make the referenced object or collection immutable.
 - SHOULD preserve evaluation order, evaluation count, exception timing, mutable snapshots, and closure capture when changing a binding to `val`.
 - SHOULD choose the smallest type shape that matches the domain.
 - SHOULD use `?.let` when nullable data should trigger work only when present.
@@ -85,20 +84,10 @@ For new dependencies or required upgrades, check Maven Central for the latest st
 - SHOULD invert a guard condition to keep the main path positive instead of using `return`, `break`, or `continue`.
   Do this only when behavior stays the same and no nesting or mutable state is added.
 - SHOULD use `when (subject)` when one value determines the branches.
-- SHOULD split `filter` predicates with `&&` into chained filters when their semantics stay unchanged.
-  Preserve evaluation order, nullability, smart casts, side effects, and eager or lazy behavior.
-  Keep one predicate when splitting changes any of those semantics.
-- SHOULD chain independent positive `takeIf` predicates instead of combining them with `&&`.
-  Use a safe call before each `takeIf` when the receiver is nullable.
-  Keep the original order and short-circuit behavior.
-  Keep `takeUnless` and `filterNot` predicates intact.
-  Do not split mixed positive and negative predicates when the Boolean logic changes.
-- SHOULD prefer `takeUnless { condition }` to `takeIf { !condition }` only when Boolean behavior is identical.
-  Preserve evaluation order and count, short-circuiting, effects, and exception timing.
+- Preserve evaluation order, nullability, smart casts, side effects, and eager or lazy behavior when changing predicates.
 - SHOULD use callable references for simple `map`, `filter`, and similar lambdas when overload and receiver resolution stay unchanged.
   Keep a lambda when a reference changes evaluation or meaning.
-- MUST declare an explicit type for every class, object, and companion object property, including private properties.
-- MUST declare an explicit type for private top-level properties.
+- Follow the target project's type declaration conventions.
 - SHOULD prefer `kotlin.io.path.div` for JVM `Path` composition when the Kotlin standard library is available.
 - SHOULD expose read-only collection interfaces from public APIs rather than mutable variants.
 - SHOULD prefer direct string helpers before introducing `Regex`.
@@ -115,20 +104,15 @@ For new dependencies or required upgrades, check Maven Central for the latest st
 - MUST confine local mutable accumulation that constructs a collection result to `buildList`, `buildSet`, and `buildMap` scopes.
   This requirement excludes owned long-lived mutable state, stateful delegates, recursive visited sets, and algorithmic worklists.
   Keep result-construction mutations inside those lambdas and do not let their mutable receivers escape.
-- SHOULD use `runCatching` and `Result` at parsing, I/O, or integration boundaries rather than ordinary local business flow.
+- Use `runCatching` and `Result` when a boundary needs a result value for failures.
+  In suspending code, let `CancellationException` propagate rather than capturing it as a failure.
 - MUST preserve Java interoperability requirements when they matter.
 - MUST call out JVM-only or experimental APIs inline instead of treating them as unconditional defaults.
-- MUST NOT use the implicit `it` lambda parameter.
-  Name the parameter with a meaningful role or use a callable reference.
-  - This rule never expires for short scopes.
-  - The `it` name of a Kotest test-case DSL call, such as `it("calculates total") { }`, is a test name argument, not an implicit lambda parameter.
+- Name lambda parameters when doing so clarifies their role or avoids ambiguity.
 - SHOULD use infix functions only when the operation reads naturally at the call site and stays unambiguous without extra context.
 - SHOULD keep class members in a stable scan order so the public shape stays predictable.
-- MUST declare constructor parameters that a container or DI framework supplies non-null and default-free.
-  - A missing required value fails registration instead of falling back to a code default or a nullable property.
-  - This rule targets registered classes only.
-    Domain and protocol values keep explicit nullable flow.
-- SHOULD express optional behavior as explicit strategy implementations selected at composition time instead of a nullable or defaulted dependency.
+- Model required and optional constructor dependencies according to the container and application contract.
+  Fail clearly when a required dependency is missing.
 
 ## Task Context
 

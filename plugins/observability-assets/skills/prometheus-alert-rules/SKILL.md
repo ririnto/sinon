@@ -104,12 +104,9 @@ groups:
     rules:
       - alert: ApiP95LatencyAbove750ms
         expr: >-
-          0.75 < round(
-            histogram_quantile(
-              0.95,
-              sum by (le) (rate(http_request_duration_seconds_bucket{job="api"}[5m]))
-            ),
-            0.001
+          0.75 < histogram_quantile(
+            0.95,
+            sum by (job, le) (rate(http_request_duration_seconds_bucket{job="api"}[5m]))
           )
         for: 10m
         keep_firing_for: 5m
@@ -144,7 +141,7 @@ groups:
     rules:
       - record: job:http_requests:rate5m
         expr: >-
-          round(sum by (job) (rate(http_requests_total[5m])), 0.001)
+          sum by (job) (rate(http_requests_total[5m]))
         labels:
           environment: production
 
@@ -268,12 +265,9 @@ groups:
     rules:
       - alert: ApiP95LatencyAbove750ms
         expr: >-
-          0.75 < round(
-            histogram_quantile(
-              0.95,
-              sum by (le) (rate(http_request_duration_seconds_bucket{job="api"}[5m]))
-            ),
-            0.001
+          0.75 < histogram_quantile(
+            0.95,
+            sum by (job, le) (rate(http_request_duration_seconds_bucket{job="api"}[5m]))
           )
         for: 10m
         labels:
@@ -360,8 +354,8 @@ YAML scalar rule:
 - Use `|-` for multiline PromQL strings
 - Use `>-` for one-line expressions when plain scalars would become fragile or need escaping
 - Prefer block scalars over ad hoc quoting when the expression contains YAML-sensitive characters and readability matters
-- Use `round(expr, 0.001)` or an equally explicit precision when `rate()`, division, or quantile evaluation is expected to produce decimal values
-- Write comparisons as `threshold < expr` or `threshold <= expr` so the smaller value stays on the left
+- Round only when the alert contract requires it, because rounding can change threshold decisions
+- Choose comparison operators and operand order that express the intended firing condition
 
 Rule lifecycle rule:
 
@@ -380,12 +374,9 @@ groups:
     rules:
       - alert: Api5xxRatioAbove5Percent
         expr: |-
-          5 < round(
-            100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
-              /
-            sum(rate(http_requests_total{job="api"}[5m])),
-            0.001
-          )
+          5 < 100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
+            /
+          sum(rate(http_requests_total{job="api"}[5m]))
         for: 10m
         labels:
           severity: page
@@ -409,18 +400,15 @@ groups:
     rules:
       - record: job:http_requests:rate5m
         expr: >-
-          round(sum by (job) (rate(http_requests_total[5m])), 0.001)
+          sum by (job) (rate(http_requests_total[5m]))
 
   - name: api-alerts
     rules:
       - alert: Api5xxRatioAbove5Percent
         expr: |-
-          5 < round(
-            100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
-              /
-            sum(job:http_requests:rate5m{job="api"}),
-            0.001
-          )
+          5 < 100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
+            /
+          sum(job:http_requests:rate5m{job="api"})
         for: 10m
         labels:
           severity: page
@@ -520,8 +508,7 @@ Return:
 - MUST keep routing labels and annotations explicit.
 - MUST keep rule group structure, `for`, and `keep_firing_for` choices deliberate.
 - MUST name alerts so the firing condition is obvious from the alert name itself.
-- MUST round decimal-producing evaluation expressions deliberately.
-- MUST write threshold comparisons with `<` or `<=` so the smaller value stays on the left.
+- MUST preserve the intended threshold behavior when choosing precision and comparison operators.
 - SHOULD keep templates lightweight because they execute on rule evaluation.
 - SHOULD add `promtool test rules` coverage for important or subtle alerts.
 - SHOULD keep expressions and labels stable enough for long-lived operations.

@@ -3,12 +3,9 @@ groups:
     rules:
       - alert: Api5xxRatioAbove5Percent
         expr: |-
-          5 < round(
-            100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
-              /
-            sum(rate(http_requests_total{job="api"}[5m])),
-            0.001
-          )
+          5 < 100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
+            /
+          sum(rate(http_requests_total{job="api"}[5m]))
         for: 10m
         labels:
           severity: page
@@ -17,5 +14,5 @@ groups:
           summary: API 5xx ratio is high
           description: |-
             API 5xx ratio stayed above 5% for 10 minutes.
-            Current value: {{ $value }}%.
+            Current value: {{ printf "%.4f" $value }}%.
           runbook_url: https://runbooks.example.com/api-high-error-rate

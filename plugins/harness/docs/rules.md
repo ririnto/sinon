@@ -61,6 +61,7 @@ Policy-only means no current automated diagnostic or repository-wide check enfor
 
 Follow system, safety, and tool constraints first.
 Explicit user instructions override repository defaults and skill guidance within those constraints.
+The target repository's own conventions govern package-manager choice, dependency layout, documentation language, and comment style where they differ from this policy.
 Treat conflicting shipped guidance as a defect, not permission to bypass a higher-priority rule.
 If a rule blocks progress, name its file and quote the relevant text.
 
@@ -98,7 +99,8 @@ For a requested mechanical change, verify coverage across its stated scope witho
 
 ## Dependency Style
 
-Use pnpm for Node-side dependency management and keep shared dependency versions in pnpm catalogs.
+Use pnpm for Node-side dependency management when the target uses pnpm, and keep shared dependency versions in pnpm catalogs.
+Otherwise retain the target's package manager and dependency conventions.
 Use `^x.y.z` ranges for catalog package releases and `catalog:` references in consuming manifests.
 Keep the pnpm package-manager coordinate as a version without an appended integrity hash.
 Do not pin dependency coordinates with a version-plus-hash or commit hash in pnpm, Gradle, or Maven.

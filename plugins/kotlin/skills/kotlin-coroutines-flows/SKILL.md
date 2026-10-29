@@ -46,7 +46,8 @@ Start with the smallest shape that matches the contract, then open a blocker ref
 - MUST choose `launch` for fire-and-forget work and `async` only when the caller awaits the result.
 - MUST install `CoroutineExceptionHandler` only on root coroutine contexts or root `launch` builders where uncaught exceptions are reported.
   - Do not rely on it for child coroutines or `async` results.
-- MUST keep code inside `flow { }` sequential and free of external context-switching calls.
+- Keep emissions inside `flow { }` in the collector's context.
+  A context switch may compute a value if emission occurs after returning to the original context.
 - SHOULD use `MutableStateFlow.update { }` for atomic state transitions.
 - MUST avoid `GlobalScope`, `GlobalScope.launch`, and detached work unless explicitly about background ownership.
 
@@ -263,7 +264,7 @@ Report any unverified lifecycle or concurrency boundary.
 | catching broad `Exception` in coroutine body | catches `CancellationException` and breaks cancellation | catch specific exceptions or rethrow `CancellationException` |
 | using `async` without `await` | uncaught exceptions propagate as unhandled errors | use `launch` for fire-and-forget |
 | installing `CoroutineExceptionHandler` on child scope or expecting it to handle `async` failures | child handlers do not catch sibling failures, and `async` captures failures in `Deferred` | install handlers only at root contexts and handle `async` with `await` |
-| calling `withContext` inside `flow { }` | violates context-preservation invariant of Flow | move the context switch to `flowOn()` |
+| emitting from inside a changed context in `flow { }` | violates the context-preservation invariant of Flow | compute in a context hop, then emit in the original context, or move the switch to `flowOn()` |
 | assuming `StateFlow` emits every value | `StateFlow` conflates fast updates and drops intermediate values | use `SharedFlow` if every value matters |
 
 ## Scope Boundaries

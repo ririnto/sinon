@@ -235,8 +235,9 @@ final class PollingService {
 ```
 
 `repeat` re-subscribes on completion (not error).
-Combine with `take(n)` or `repeatUntil(...)`.
-When using `repeatWhen(...)`, its companion must include a terminating bound or predicate.
+For finite work, bound re-subscriptions with `repeat(n)` or a terminating `repeatWhen(...)` companion.
+Use `take(n)` or `takeUntil(...)` when emitted values provide the required stopping condition; empty completions do not satisfy them.
+For a long-lived stream, define cancellation and lifecycle ownership, and pace re-subscriptions when needed.
 
 ### `handle` for conditional single-signal emission
 
@@ -280,7 +281,7 @@ Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted 
 | returning `Mono<List<T>>` for a streaming contract | hides streaming semantics and demand | use `Flux<T>` unless the collection itself is the single value |
 | placing blocking I/O inside `map(...)` | occupies the current worker thread invisibly | isolate it with `fromCallable(...)` |
 | using `retry()` without a bound or policy | can loop forever under outage | use bounded retry or a deliberate `Retry` policy |
-| using `repeat()` without a termination condition | re-subscribes forever on every completion | combine with `take(n)`, `repeatUntil(...)`, or a terminating `repeatWhen(...)` companion |
+| repeating without a lifecycle or pacing policy | can re-subscribe indefinitely or overload the source | bound finite work, or manage cancellation and pace a long-lived stream |
 | using `timeout(...)` without fallback | the bounded timeout emits a raw `TimeoutException` downstream | handle that error or provide a fallback via `timeout(duration, fallback)` |
 | treating `Context` like mutable shared state | writes are immutable and per subscription | write a new `Context` and read it with `deferContextual(...)` |
 | choosing `merge(...)` when order matters | output order becomes unstable | use `concat(...)` or `concatMap(...)` |

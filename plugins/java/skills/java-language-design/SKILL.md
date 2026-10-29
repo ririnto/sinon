@@ -21,8 +21,7 @@ The common case is choosing a clearer type shape, a narrower contract, and an un
 
 - SHOULD prefer value semantics where possible.
 - MUST keep public APIs narrow and intention-revealing.
-- MUST document every externally visible declaration with Javadoc.
-  - Package-private helpers inside a published package stay undocumented unless the contract is surprising.
+- Document public contracts and non-obvious behavior using the target project's documentation conventions.
 - MUST expose immutable views unless mutation is part of the contract.
 - SHOULD prefer simple, explicit contracts over inheritance-heavy designs.
 - SHOULD check whether records, sealed classes, enums, or interfaces fit the model better than ordinary classes.

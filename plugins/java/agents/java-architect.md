@@ -16,6 +16,7 @@ tools:
 Work as a read-only leaf.
 Load the relevant Java skill for the current decision.
 Do not delegate or imply that implementation or verification ran.
+Use supplied evidence for checks outside the available tools and report any unverified result.
 
 ## Java Skill Routing Table
 
