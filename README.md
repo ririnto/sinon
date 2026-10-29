@@ -88,9 +88,9 @@ Portable skills follow OpenAI's task-focused authoring guidance, while Claude ma
 ## Standalone Oxlint Policy
 
 `plugins/no-direct-use-effect.ts` is a self-contained Oxlint module, not an agent marketplace package.
-Copy it beside `oxlint.react-effects.config.ts`, preserving the config's `./plugins/` path.
-Invoke it with `pnpm exec ultracite check --config oxlint.react-effects.config.ts` using compatible target dependencies.
-The configuration combines `react-effects/no-direct-use-effect` with aliased React Hooks and native Oxlint diagnostics.
+Copy it into the target's `plugins/` directory and merge its registration and rule from `oxlint.config.ts` into the target's Oxlint configuration.
+Merge the aliased React Hooks and native Oxlint diagnostics from the same configuration when the target needs those checks.
+Run `pnpm exec ultracite check` with compatible target dependencies.
 The [Harness pnpm profile](plugins/harness/docs/tools/pnpm.md#react-effect-policy) provides the same module and installation wiring.
 The [upstream mapping](plugins/harness/docs/tools/lint-rule-mapping.md) records retained semantics, replacements, and consumer migration limits.
 

@@ -186,8 +186,8 @@ test.each(pluginSources)(
 );
 
 test.each([
-  new URL("../../../../../oxlint.react-effects.config.ts", import.meta.url),
-  new URL("../oxlint.react-effects.config.ts", import.meta.url)
+  new URL("../../../../../oxlint.config.ts", import.meta.url),
+  new URL("../oxlint.config.ts", import.meta.url)
 ])(
   "isolated %s runs the maintained React Compiler rules through Ultracite",
   async (source) => {
@@ -196,11 +196,15 @@ test.each([
     );
     try {
       await mkdir(path.join(directory, "plugins"));
-      await cp(source, path.join(directory, "oxlint.react-effects.config.ts"));
+      await cp(source, path.join(directory, "oxlint.config.ts"));
       await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
       await cp(
         pluginSources[0],
         path.join(directory, "plugins/no-direct-use-effect.ts")
+      );
+      await cp(
+        new URL("../plugins/tsdoc-plugin.ts", import.meta.url),
+        path.join(directory, "plugins/tsdoc-plugin.ts")
       );
       await symlink(
         new URL("../../../../../node_modules", import.meta.url),
@@ -208,6 +212,12 @@ test.each([
         "dir"
       );
       const compilerCases = [
+        [
+          "direct.tsx",
+          'import { useEffect } from "react"; useEffect(() => {});',
+          "react-effects(no-direct-use-effect)",
+          'import { useMount } from "framework"; useMount(() => {});'
+        ],
         [
           "render.tsx",
           'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
@@ -255,12 +265,7 @@ test.each([
         path.join(directory, "valid.tsx"),
         'import { useState } from "react"; import { useMount } from "framework"; export function Counter() { const [count, setCount] = useState(0); useMount(() => {}); return <button onClick={() => setCount(count + 1)}>{count}</button>; }\n'
       );
-      const result = runUltracite(
-        directory,
-        ".",
-        "check",
-        "oxlint.react-effects.config.ts"
-      );
+      const result = runUltracite(directory, ".", "check", "oxlint.config.ts");
       expect(result.status).toBe(1);
       for (const [filename, , code] of compilerCases) {
         expect(
@@ -320,14 +325,14 @@ test("Harness materializes the React policy dependency and package-script execut
     expect(manifest.scripts["check:ultracite"]).toBe(
       "run-p --continue-on-error ultracite:check:**"
     );
-    expect(manifest.scripts["ultracite:check:react-effects"]).toBe(
-      "ultracite check --type-aware --config oxlint.react-effects.config.ts"
+    expect(manifest.scripts["ultracite:check:base"]).toBe(
+      "ultracite check --type-aware"
     );
     await writeFile(
       path.join(directory, "sample.ts"),
       'import { useEffect } from "react"; useEffect(() => {});\n'
     );
-    const result = spawnSync("pnpm", ["run", "ultracite:check:react-effects"], {
+    const result = spawnSync("pnpm", ["run", "ultracite:check:base"], {
       cwd: directory,
       encoding: "utf-8",
       timeout: 60_000

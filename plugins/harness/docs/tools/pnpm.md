@@ -82,7 +82,7 @@ Inspect each package root in a monorepo and install the profile at each selected
 
 ## Managed Sources
 
-The profile provides `oxlint.config.ts`, three independent style configs, `oxlint.react-effects.config.ts`, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
+The profile provides `oxlint.config.ts`, three independent style configs, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
 The style configs are `oxlint.style-no-blank-lines-in-functions.config.ts`, `oxlint.style-no-inline-comments-in-functions.config.ts`, and `oxlint.style-sibling-test-spacing.config.ts`.
 The base configuration owns core, TSDoc, and non-style rules.
 Merge its settings into an existing Oxlint configuration without replacing the target's presets or rules.
@@ -308,11 +308,14 @@ Passing this rule establishes only that its supported patterns were absent.
 
 ## React Effect Policy
 
-`oxlint.react-effects.config.ts` owns the custom direct-effect policy and maintained upstream React checks.
+`oxlint.config.ts` owns the custom direct-effect policy and maintained upstream React checks alongside the base rules.
 The [rule mapping](lint-rule-mapping.md) records exact IDs, upstream comparisons, and consumer migration boundaries.
 Projects using React directly or through framework dependencies consume this same configuration through Ultracite.
 The shared Node profile also installs it because source-proven matching leaves unrelated code outside the custom diagnostic.
-Keep the existing base and style configurations intact.
+Merge the base configuration into the target's existing configuration and keep the independent style configurations intact.
+For an existing React-effect pass, migrate any target-owned rules and settings that the merged base still needs.
+Update or remove the obsolete `ultracite:check:react-effects` script and its references to `oxlint.react-effects.config.ts`, preserving unrelated commands.
+Remove the old configuration only after confirming no retained command references it.
 
 The configuration registers `eslint-plugin-react-hooks` with the supported `jsPlugins` object alias.
 Its `name` is `react-hooks-js`, and its `specifier` is `eslint-plugin-react-hooks`.
@@ -335,8 +338,8 @@ The rule reports diagnostics without fixes because replacing effects can change 
 The [mapping](lint-rule-mapping.md#oxlint-policies) records upstream fixture results and compiler coverage limits.
 The custom call diagnostic covers a separate requirement from the upstream checks.
 
-`ultracite:check:react-effects` runs the separate configuration with type awareness.
-The shared check and fix commands discover it without additional formatter-writing passes.
+`ultracite:check:base` runs the base configuration with type awareness, including the React policy.
+The shared check and fix commands include the base configuration without additional formatter-writing passes.
 Verify both positive and negative target fixtures before claiming consumer adoption.
 
 ## Type-Aware Promise Checks
@@ -348,8 +351,8 @@ The rule diagnoses unhandled promises rather than every use of `void`.
 It accepts explicit rejection handling, awaited calls, and returned promises.
 It provides suggestions upstream, but normal Ultracite fixes do not rewrite `void` into `await`.
 Keep that conversion under the [common async policy](../rules.md#code-rules-common-to-all-languages) because scheduling and cancellation require semantic review.
-The Sinon root `check:react-effects` and `ultracite:check` scripts omit `--type-aware`.
-Adding the flag makes both commands exit with code 1 and report this configuration diagnostic:
+The Sinon root `ultracite:check` script omits `--type-aware`.
+Adding the flag reports this configuration diagnostic:
 
 ```text
 typescript(tsconfig-error): Invalid tsconfig
@@ -357,7 +360,7 @@ Option 'allowImportingTsExtensions' can only be used when one of 'noEmit', 'emit
 ```
 
 The root `tsconfig.json` enables `allowImportingTsExtensions` without `noEmit`, `emitDeclarationOnly`, or `rewriteRelativeImportExtensions`.
-Both root lint commands pass without the flag.
+The root lint command runs without the flag.
 The separate root `check:typescript` script runs `tsc --noEmit`, which does not configure Ultracite's TypeScript checks.
 A passing root check does not establish that the profile's type-aware promise diagnostic ran.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
@@ -377,14 +380,14 @@ Skip the fragment for a JavaScript-only target.
 
 Run `pnpm install` after a dependency change.
 Run `pnpm run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs the base, three style passes, and React policy through `run-p --continue-on-error ultracite:check:**`.
-The recursive pattern includes the separate React and style configurations.
+The `check:ultracite` task runs the base and three style passes through `run-p --continue-on-error ultracite:check:**`.
+The base pass includes the React policy, and the recursive pattern includes the independent style configurations.
 All passes report findings before the combined command fails if any pass fails.
 Each Ultracite check reports findings without writing source changes.
 The nested `ultracite:` scripts keep the top-level `run-p check:*` from discovering style passes twice.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `pnpm run fix` within the authorized source-edit scope.
-The `fix:ultracite` task runs one formatter-writing base fix, then read-only style and React checks through `run-s --continue-on-error`.
+The `fix:ultracite` task runs one formatter-writing base fix, then read-only style checks through `run-s --continue-on-error`.
 The command preserves a failing exit status while collecting diagnostics from every pass.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
 Run `pnpm run test` only when the target owns that native test command.
