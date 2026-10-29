@@ -121,8 +121,7 @@ class KotestTestAssertions :
             file.importDirectives
                 .mapNotNull { directive ->
                     val path = directive.importedFqName?.asString() ?: return@mapNotNull null
-                    val alias = directive.aliasName
-                    val importedName = alias ?: path.substringAfterLast('.')
+                    val importedName = directive.aliasName ?: path.substringAfterLast('.')
                     if (importedName == callName) {
                         path
                     } else {

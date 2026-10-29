@@ -493,8 +493,8 @@ class NoJavaPathApi :
 
             is KtPostfixExpression -> {
                 baseExpression?.knownType()?.let { resultType ->
-                    when {
-                        operationToken == KtTokens.EXCLEXCL -> KnownType.nonNullable(resultType)
+                    when (operationToken) {
+                        KtTokens.EXCLEXCL -> KnownType.nonNullable(resultType)
                         else -> resultType
                     }
                 }
@@ -578,9 +578,9 @@ class NoJavaPathApi :
         usage: PsiElement
     ): Boolean =
         this?.qualifiedName()?.let { name ->
-            when {
-                name == fullyQualifiedName -> !isNameShadowed(rootPackageName, usage)
-                name in importedNames -> !isNameShadowed(name, usage)
+            when (name) {
+                fullyQualifiedName -> !isNameShadowed(rootPackageName, usage)
+                in importedNames -> !isNameShadowed(name, usage)
                 else -> false
             }
         } == true

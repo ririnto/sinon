@@ -1,7 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
-import com.pinterest.ktlint.rule.engine.core.api.ElementType.WHITE_SPACE
+import com.pinterest.ktlint.rule.engine.core.api.ElementType
 import com.pinterest.ktlint.rule.engine.core.api.Rule
 import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
@@ -37,7 +37,7 @@ class FunctionBodyBlankLines :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        if (node.elementType == WHITE_SPACE &&
+        if (with(ElementType) { node.elementType == WHITE_SPACE } &&
             1 < node.text.count { character -> character == '\n' } &&
             node.psi.parent is KtBlockExpression &&
             !node.treePrev.keepsSeparation() &&

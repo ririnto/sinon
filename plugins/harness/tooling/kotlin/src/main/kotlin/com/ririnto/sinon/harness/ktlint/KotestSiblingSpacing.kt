@@ -1,7 +1,7 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
-import com.pinterest.ktlint.rule.engine.core.api.ElementType.WHITE_SPACE
+import com.pinterest.ktlint.rule.engine.core.api.ElementType
 import com.pinterest.ktlint.rule.engine.core.api.Rule
 import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
@@ -26,7 +26,7 @@ class KotestSiblingSpacing :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         val newlineCount = node.text.count { character -> character == '\n' }
-        if (node.elementType == WHITE_SPACE &&
+        if (with(ElementType) { node.elementType == WHITE_SPACE } &&
             newlineCount != 0 &&
             newlineCount != 2 &&
             KotestRegistrations.isRegistrationSeparator(node)

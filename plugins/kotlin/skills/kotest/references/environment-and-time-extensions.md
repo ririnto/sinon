@@ -61,12 +61,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.clock.TestClock
 import io.kotest.matchers.shouldBe
 import java.time.Instant
-import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration
 
 class ClockTest : FunSpec({
     test("advances an injected clock") {
         val clock = TestClock.utc(Instant.parse("2026-01-01T00:00:00Z"))
-        clock.plus(1.days)
+        clock.plus(with(Duration) { 1.days })
         clock.instant() shouldBe Instant.parse("2026-01-02T00:00:00Z")
     }
 })

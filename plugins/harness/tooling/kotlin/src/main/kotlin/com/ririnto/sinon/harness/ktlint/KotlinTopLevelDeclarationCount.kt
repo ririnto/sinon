@@ -35,8 +35,8 @@ class KotlinTopLevelDeclarationCount :
                 val declarations = ktFile.declarations
                 val entryPoints = declarations.filter { declaration -> declaration.isMainFunction() }
                 val counted = declarations.filterNot { declaration -> declaration.isPrivateHelper() || declaration in entryPoints }
-                val valid =
-                    declarations.isEmpty() ||
+                if (
+                    !(declarations.isEmpty() ||
                         (
                             entryPoints.size <= 1 &&
                                 when (counted.size) {
@@ -54,8 +54,8 @@ class KotlinTopLevelDeclarationCount :
                                         false
                                     }
                                 }
-                        )
-                if (!valid) {
+                        ))
+                ) {
                     emit(0, "declare a single top-level type declaration in this file", false)
                 }
             }

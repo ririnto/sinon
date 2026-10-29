@@ -13,12 +13,12 @@ Use bounded Flow collection when emissions, rather than external polling, define
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration
 
 class SettlementProjectionTest : FunSpec({
     test("projects the settlement eventually") {
         service.startProjection()
-        eventually(5.seconds) {
+        eventually(with(Duration) { 5.seconds }) {
             repository.status() shouldBe ProjectionStatus.READY
         }
     }
