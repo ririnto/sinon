@@ -8,7 +8,11 @@ export default defineConfig({
   env: core.env,
   extends: [core],
   ignorePatterns: core.ignorePatterns,
-  jsPlugins: ["./plugins/tsdoc-plugin.ts"],
+  jsPlugins: [
+    { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
+    "./plugins/no-direct-use-effect.ts",
+    "./plugins/tsdoc-plugin.ts"
+  ],
   overrides: [
     {
       files: ["**/*.{js,jsx,mjs,cjs}"],
@@ -23,6 +27,13 @@ export default defineConfig({
     }
   ],
   rules: {
+    "oxc/no-accumulating-spread": "deny",
+    "react-effects/no-direct-use-effect": "deny",
+    "react-hooks-js/immutability": "deny",
+    "react-hooks-js/purity": "deny",
+    "react-hooks-js/rules-of-hooks": "deny",
+    "react-hooks-js/set-state-in-effect": "deny",
+    "react-hooks-js/set-state-in-render": "deny",
     "tsdoc/require-export-tsdoc": "deny",
     "typescript/consistent-type-imports": [
       "error",

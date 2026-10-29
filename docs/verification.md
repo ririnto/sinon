@@ -30,8 +30,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Promtool release verification and process handling | `pnpm run check:promtool-release` | Local archive and process fixtures test integrity checks and child-process behavior. |
 | Prometheus rule examples | `pnpm run test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
-| Source lint and formatting | `pnpm run check:ultracite` | Root source and the hidden marketplace tooling pass their configured lint and formatting checks. |
-| React effect policy | `pnpm run check:react-effects` | The separate React policy configuration accepts the repository source. |
+| Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and the hidden marketplace tooling pass their configured lint and formatting checks, including the React effect policy. |
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |
 
 The root [package scripts](../package.json) own command composition.

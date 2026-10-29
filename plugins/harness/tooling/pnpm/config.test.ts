@@ -224,12 +224,18 @@ describe("pnpm profile configuration", () => {
       },
       {
         commands: [
-          "ultracite check",
+          "ultracite check --config oxlint.config.ts",
+          "ultracite check --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm",
           "ultracite check .claude-plugin/marketplace"
         ],
         gate: "check:ultracite"
       }
-    ].flatMap((entry) => [-1, 0, 1].map((failure) => ({ ...entry, failure })))
+    ].flatMap((entry) =>
+      [-1, ...entry.commands.map((_, index) => index)].map((failure) => ({
+        ...entry,
+        failure
+      }))
+    )
   )(
     "$gate preserves tool order with failure $failure",
     async ({ commands, failure, gate }) => {
