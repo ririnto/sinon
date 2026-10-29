@@ -127,7 +127,7 @@
       "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness",
-      "version": "2026.10.29.02",
+      "version": "2026.10.29.03",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
       "keywords": [
         "harness",
@@ -277,7 +277,7 @@
       "license": "Apache-2.0",
       "name": "spec-driven-development",
       "source": "./plugins/spec-driven-development",
-      "version": "2026.10.15.02",
+      "version": "2026.10.29.01",
       "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
       "keywords": ["spec", "specification", "workflow", "review", "research"],
       "repository": "https://github.com/ririnto/sinon"
