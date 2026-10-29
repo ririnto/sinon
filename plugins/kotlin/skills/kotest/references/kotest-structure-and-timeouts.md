@@ -35,10 +35,10 @@ Use `blockingTest = true` only when blocking work must be interrupted.
 ```kotlin
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration
 
 class FeedRefreshTest : FunSpec({
-    test("refresh finishes within budget").config(timeout = 500.milliseconds) {
+    test("refresh finishes within budget").config(timeout = with(Duration) { 500.milliseconds }) {
         service.refresh() shouldBe RefreshResult.Done
     }
 })

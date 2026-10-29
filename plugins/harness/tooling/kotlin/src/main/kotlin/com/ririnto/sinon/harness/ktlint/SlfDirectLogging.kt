@@ -118,8 +118,8 @@ class SlfDirectLogging :
                 }
 
                 is KtDotQualifiedExpression -> {
-                    val call = selectorExpression as? KtCallExpression
-                    (call?.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == "getLogger" &&
+                    ((selectorExpression as? KtCallExpression)?.calleeExpression as? KtNameReferenceExpression)
+                        ?.getReferencedName() == "getLogger" &&
                         when (receiverExpression.text) {
                             "org.slf4j.LoggerFactory" -> {
                                 true

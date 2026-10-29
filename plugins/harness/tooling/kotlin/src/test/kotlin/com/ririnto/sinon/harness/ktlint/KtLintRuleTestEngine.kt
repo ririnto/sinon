@@ -2,7 +2,6 @@ package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.api.Code
 import com.pinterest.ktlint.rule.engine.api.EditorConfigOverride
-import com.pinterest.ktlint.rule.engine.api.EditorConfigOverride.Companion.plus
 import com.pinterest.ktlint.rule.engine.api.KtLintRuleEngine
 import com.pinterest.ktlint.rule.engine.api.LintError
 import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
@@ -42,12 +41,14 @@ internal object KtLintRuleTestEngine {
 
     private fun EditorConfigOverride.enableRuleSet(ruleProvider: RuleProvider): EditorConfigOverride {
         val ruleSetProperty = ruleProvider.ruleId.ruleSetId.createRuleSetExecutionEditorConfigProperty()
-        return this.plus(
-            EXPERIMENTAL_RULES_EXECUTION_PROPERTY to RuleExecution.enabled,
-            *listOfNotNull(
-                (ruleSetProperty to RuleExecution.enabled).takeIf { properties[ruleSetProperty] === null }
-            ).toTypedArray()
-        )
+        return with(EditorConfigOverride) {
+            this@enableRuleSet.plus(
+                EXPERIMENTAL_RULES_EXECUTION_PROPERTY to RuleExecution.enabled,
+                *listOfNotNull(
+                    (ruleSetProperty to RuleExecution.enabled).takeIf { this@enableRuleSet.properties[ruleSetProperty] === null }
+                ).toTypedArray()
+            )
+        }
     }
 
     data class Diagnostic(
