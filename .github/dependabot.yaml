@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     ignore:
       - dependency-name: "@types/node"
         update-types:
@@ -21,7 +21,7 @@ updates:
   - package-ecosystem: gradle
     directory: /plugins/harness/tooling/kotlin
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       kotlin-toolchain:
         patterns:
