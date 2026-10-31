@@ -1,9 +1,9 @@
 {
+  "extends": "@tsconfig/node-lts/tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
     "module": "nodenext",
     "noEmit": true,
-    "target": "esnext",
     "types": ["node"]
   },
   "include": [

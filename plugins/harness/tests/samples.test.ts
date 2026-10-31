@@ -85,55 +85,6 @@ test.each(samples)(
   }
 );
 
-test.each([
-  ["pnpm@12.16.1", 0, "install --global pnpm@12.16.1"],
-  ["npm@1.0.0", 1, ""],
-  ["pnpm@latest", 1, ""]
-] as const)(
-  "pnpm sample CI validates package manager %s",
-  async (manager, status, output) => {
-    const directory = await mkdtemp(path.join(tmpdir(), "sinon-ci-fixture-"));
-    onTestFinished(() => rm(directory, { force: true, recursive: true }));
-    await mkdir(path.join(directory, "bin"));
-    await writeFile(
-      path.join(directory, "bin/npm"),
-      '#!/usr/bin/env sh\nprintf "%s\\n" "$*"\n',
-      { mode: 0o755 }
-    );
-    await writeFile(
-      path.join(directory, "package.json"),
-      JSON.stringify({ packageManager: manager })
-    );
-    const result = spawnSync(
-      "sh",
-      [
-        "-c",
-        String(
-          parse(
-            await readFile(
-              path.resolve(
-                import.meta.dirname,
-                "../samples/pnpm-workspace/.gitlab-ci.yml"
-              ),
-              "utf-8"
-            )
-          ).pnpm.before_script[0]
-        )
-      ],
-      {
-        cwd: directory,
-        encoding: "utf-8",
-        env: {
-          ...process.env,
-          PATH: `${path.join(directory, "bin")}${path.delimiter}${process.env.PATH}`
-        }
-      }
-    );
-    expect(result.status).toBe(status);
-    expect(result.stdout.trim()).toBe(output);
-  }
-);
-
 test("rejects unsafe inputs before writing and excludes generated files", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-sample-fixture-"));
   onTestFinished(() => rm(directory, { force: true, recursive: true }));

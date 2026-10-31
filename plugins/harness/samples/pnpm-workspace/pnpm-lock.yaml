@@ -167,6 +167,9 @@ catalogs:
     '@oxc-project/types':
       specifier: ^0.156.0
       version: 0.156.0
+    '@tsconfig/node-lts':
+      specifier: ^24.0.1
+      version: 24.0.1
     '@types/node':
       specifier: ^26.6.6
       version: 26.6.6
@@ -217,6 +220,9 @@ importers:
       '@oxc-project/types':
         specifier: 'catalog:'
         version: 0.156.0
+      '@tsconfig/node-lts':
+        specifier: 'catalog:'
+        version: 24.0.1
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -878,6 +884,9 @@ packages:
   '@sindresorhus/merge-streams@4.0.0':
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
+
+  '@tsconfig/node-lts@24.0.1':
+    resolution: {integrity: sha512-xo+1KtV5zVb90fyyeglG1n5cqg3cQXLlCkEpLptYlZUNk28xmwhuD5GmxoXwmrVtUTvaMyclun9kAd0TK7H+Pg==}
 
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
@@ -2353,6 +2362,8 @@ snapshots:
   '@sec-ant/readable-stream@0.4.1': {}
 
   '@sindresorhus/merge-streams@4.0.0': {}
+
+  '@tsconfig/node-lts@24.0.1': {}
 
   '@types/debug@4.1.13':
     dependencies:

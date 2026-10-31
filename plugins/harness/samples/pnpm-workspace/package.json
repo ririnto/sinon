@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@oxc-project/types": "catalog:",
+    "@tsconfig/node-lts": "catalog:",
     "@types/node": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "husky": "catalog:",

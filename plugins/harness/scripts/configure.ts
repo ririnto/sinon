@@ -122,10 +122,8 @@ const addProfileSources = async (
   profile: BaselineProfile
 ): Promise<void> => {
   if (profile === "go") {
-    sources.set(
-      "scripts/go-check.sh",
-      await readSource("go/scripts/go-check.sh")
-    );
+    sources.set("Taskfile.yaml", await readSource("go/Taskfile.yaml"));
+    await addDirectory(sources, "go/tools", "tools");
   }
 };
 

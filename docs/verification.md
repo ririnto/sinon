@@ -68,8 +68,16 @@ HARNESS_GO_DOCS_TEST=1 pnpm exec vitest run plugins/harness/tests/go-doc-generat
 
 The first fixture installs its temporary Node and Python dependencies and needs Cargo and uv.
 The JVM fixture needs a JDK, Gradle, Maven, and dependency access.
-The Go fixture needs Go, pkgsite, and golangci-lint.
+The Go fixture needs Go and dependency access for the pinned tools.
 These fixtures generate documentation and exercise diagnostic failures; the default Go test run skips the external-tool checks.
+
+For Go workspace changes, run the native integration fixture:
+
+```sh
+HARNESS_GO_WORKSPACE_TEST=1 pnpm exec vitest run plugins/harness/tests/go-workspace.test.ts
+```
+
+The fixture needs Go and dependency access for the pinned Task tool.
 
 After changing packaged plugin content, run the host validator in that package, for example:
 

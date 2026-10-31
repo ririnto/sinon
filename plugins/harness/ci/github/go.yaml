@@ -1,11 +1,11 @@
-name: golangci-lint
+name: Go checks
 
 on:
   push:
   pull_request:
 
 jobs:
-  golangci-lint:
+  go:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
@@ -18,18 +18,8 @@ jobs:
             **/go.sum
             go.work
             go.work.sum
-      - name: Install Go tools
-        run: |-
-          install_dir="${RUNNER_TEMP}/go-bin"
-          mkdir -p "${install_dir}"
-          export GOBIN="${install_dir}"
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
-          GOTOOLCHAIN=auto go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260918162853-acb8859b9031
-          echo "${install_dir}" >> "${GITHUB_PATH}"
-      - run: sh scripts/go-check.sh lint
-      - run: sh scripts/go-check.sh format
-      - run: sh scripts/go-check.sh nilaway
-      - run: sh scripts/go-check.sh test
+      - run: |-
+          HARNESS_GOWORK="$(go env GOWORK)" GOWORK=off go -C tools tool task --dir .. check
 
 permissions:
   contents: read

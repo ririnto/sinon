@@ -1,7 +1,4 @@
 # Canonical golangci-lint v2 configuration for the Harness `go` profile.
-# Requires an existing go.mod at the target root.
-# Merge settings into an existing .golangci.yaml instead of replacing it;
-# see docs/tools/go.md for integration rules.
 
 version: "2"
 

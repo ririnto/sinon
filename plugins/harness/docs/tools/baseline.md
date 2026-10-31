@@ -67,7 +67,7 @@ Set the selected pnpm version in the target root's `packageManager` field before
 Complete the selected native profile's build integration before activating its hooks.
 Gradle requires real `ktlintCheck` and `check` tasks and its checked-in wrapper.
 Maven requires its wrapper and the selected Spotless and Checkstyle goals.
-Go requires the target toolchain and project-local golangci-lint and NilAway binaries on the hook's `PATH`.
+Go requires a toolchain compatible with the target and its separate `tools/go.mod`.
 Rust requires the target-owned Cargo project and its selected toolchain with Clippy and rustfmt.
 uv requires the target-owned Python project and its synced Ruff dependency.
 Shell requires ShellCheck and shfmt on the hook's `PATH` and checks Git-tracked scripts only.

@@ -67,7 +67,7 @@ const includeEntry = async (
 
 /**
  * Copy an independent sample into an existing empty directory.
- * The destination must be a regular directory and the sample may not contain symlinks.
+ * The destination must be a regular directory and copied entries cannot be symlinks.
  */
 export const materializeSample = async (
   name: Sample,
