@@ -110,10 +110,10 @@ Read the two skills, common rules, and selected language and tool references bef
 Preserve canonical content except for these location changes and an explicitly filtered reference index:
 
 - In both copied skills, rewrite the published `../../docs/rules.md` link to `../docs/rules.md`.
+- In the target Markdownlint configuration, rewrite only the `$schema` path to `./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json`.
 - Keep common-rule links to `languages/<name>.md` and `tools/<name>.md` unchanged.
 - Keep language and tool links to `../rules.md`, `../languages/<name>.md`, and `../tools/<name>.md` unchanged.
 
-The published and installed layouts differ only at the consumer-to-rules link.
 Do not change published links to match the target or point target guidance back to the plugin root.
 Profile-native source and destination paths follow the selected tool reference and target layout.
 

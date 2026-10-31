@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json",
+  "$schema": "../../../../node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json",
   "config": {
     "code-block-style": {
       "style": "fenced"

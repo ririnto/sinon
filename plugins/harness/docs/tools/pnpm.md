@@ -180,8 +180,9 @@ The JavaScript override retains the JSDoc parameter and return checks while allo
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
-Its schema path resolves the installed dependency from the target root.
-The source profile's nested location does not resolve that path before materialization.
+The source schema path resolves the installed dependency from the repository root.
+When merging the configuration manually, set `$schema` to `./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json` relative to the target root.
+The baseline configurator makes that adjustment when creating the target configuration.
 The profile ships its custom Markdownlint rules under `rules/`.
 Configured `search-replace` from `markdownlint-rule-search-replace` replaces the retired `docs/no-box-drawing` implementation.
 It reports the first U+2500 through U+257F character per line, including code, with its UTF-16 source column.
