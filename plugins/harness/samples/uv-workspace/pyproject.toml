@@ -1,0 +1,6 @@
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+
+[dependency-groups]
+dev = ["ruff>=0.17.3,<0.18"]
+docs = ["sphinx>=9.1.1,<10", "tomli; python_version < '3.11'"]

@@ -1,0 +1,12 @@
+stages:
+  - validate
+
+rust:
+  stage: validate
+  image: rust:1
+  before_script:
+    - rustup component add clippy rustfmt
+  script:
+    - cargo fmt --all -- --check
+    - cargo clippy --workspace --all-targets --all-features -- -D clippy::cognitive_complexity -D warnings
+    - cargo test --workspace

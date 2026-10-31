@@ -1,0 +1,11 @@
+stages:
+  - validate
+
+ruff:
+  stage: validate
+  image: ghcr.io/astral-sh/uv:python3.15-trixie
+  script:
+    - uv run ruff check .
+    - uv run ruff format --check .
+    - uv run --package workspace-greeter python -m unittest discover -s apps/greeter/tests
+    - uv build --all-packages

@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/node-lts/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "nodenext",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": [
+    "packages/**/*.js",
+    "plugins/**/*.ts",
+    "rules/**/*.ts",
+    "*.config.ts"
+  ]
+}

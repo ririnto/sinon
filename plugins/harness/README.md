@@ -46,11 +46,25 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 - `tooling/pnpm/.husky/`: Node hooks that delegate to the target's pnpm script entrypoints.
 - `tooling/pnpm/rules/no-sensitive-content.mjs`: canonical, opt-in sensitive-content Markdownlint diagnostics exposed through Sinon's private root package.
 - `scripts/configure.ts`: conflict-aware fresh-root baseline materialization for verified eligible projects.
+- `scripts/materialize-sample.ts`: copies a runnable workspace or module sample into an empty directory.
+- `samples/`: independent Go, pnpm, Gradle, Maven, Cargo, and uv projects with native workspace or module configurations.
 - `docs/tools/baseline.md`: standing eligibility, native profile selection, and installation proof.
 - `docs/tools/frontend.md`: frontend and React design, lint, Radix, and Storybook integration.
 - `docs/tools/lint-rule-mapping.md`: upstream rule decisions and consumer migration boundaries.
 - `tooling/{gradle,maven,go,rust,uv,shell}/`: native tool scripts and hook configurations that check Markdown before native tools.
 - `tooling/frontend/` and `tooling/react/`: bounded frontend manifests, catalogs, and Storybook renderer sources.
+
+## Workspace Samples
+
+Create an empty directory and copy a sample into it with Node 26:
+
+```sh
+node scripts/materialize-sample.ts --sample go-workspace --target <empty-directory>
+```
+
+Run `node scripts/materialize-sample.ts --help` from the Harness package for the available names.
+Each copied project owns its configuration and documents its native build and test commands.
+The materializer rejects nonempty destinations and does not link the copied project to Sinon.
 
 ## Sensitive-Content Export
 

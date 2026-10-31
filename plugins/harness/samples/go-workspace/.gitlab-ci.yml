@@ -1,0 +1,9 @@
+stages:
+  - validate
+
+golangci-lint:
+  stage: validate
+  image: golang:1.27
+  script:
+    - |-
+      HARNESS_GOWORK="$(go env GOWORK)" GOWORK=off go -C tools tool task --dir .. check
