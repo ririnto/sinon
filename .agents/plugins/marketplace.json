@@ -24,7 +24,6 @@
         "installation": "AVAILABLE"
       },
       "source": {
-        "ref": "main",
         "source": "url",
         "url": "https://github.com/ririnto/clear-writing.git"
       }
@@ -49,7 +48,6 @@
         "installation": "AVAILABLE"
       },
       "source": {
-        "ref": "main",
         "source": "url",
         "url": "https://github.com/ririnto/codex-app-server.git"
       }
@@ -218,7 +216,6 @@
         "installation": "AVAILABLE"
       },
       "source": {
-        "ref": "main",
         "source": "url",
         "url": "https://github.com/ririnto/workgraph.git"
       }

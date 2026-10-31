@@ -138,7 +138,8 @@ Never delete files merely because they are absent from the mapping.
 
 For a fresh root, run the baseline configurator with the selected eligibility value and project type before completing the selected native integration.
 If the configurator returns `skipped`, stop without configuring the root.
-It supplies the shared Node-side files from canonical sources without configuring project identity or native builds beyond their baseline manifest and version catalog.
+It supplies the shared Node-side files and the selected profile's baseline native configuration from canonical sources.
+It leaves project identity and native build integration with the target.
 For frontend code, read [frontend guidance](../../docs/tools/frontend.md) and select its compatible renderer and React dependencies only when applicable.
 Read the target manifest, build files, editor configuration, CI, and project identity for each selected integration.
 Use the profile's merge rules.

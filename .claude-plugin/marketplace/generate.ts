@@ -36,16 +36,12 @@ interface LocalSource {
 interface UrlSource {
   readonly source: "url";
   readonly url: string;
-  readonly ref?: string;
-  readonly sha?: string;
 }
 
 interface GitSubdirSource {
   readonly source: "git-subdir";
   readonly url: string;
   readonly path: string;
-  readonly ref?: string;
-  readonly sha?: string;
 }
 
 type PluginSource = LocalSource | UrlSource | GitSubdirSource;
@@ -179,7 +175,7 @@ const mapSource = (source: unknown, pluginName: string): PluginSource => {
   }
   const unsupportedKeys = Object.keys(source).filter(
     (key) =>
-      !["source", "url", "ref", "sha"].includes(key) &&
+      !["source", "url"].includes(key) &&
       !(source.source === "git-subdir" && key === "path")
   );
   if (unsupportedKeys.length > 0) {
@@ -188,29 +184,14 @@ const mapSource = (source: unknown, pluginName: string): PluginSource => {
     );
   }
   const url = requiredString(source.url, `URL source for ${pluginName}`);
-  if (source.ref !== undefined && typeof source.ref !== "string") {
-    throw new Error(`URL ref for ${pluginName} must be a string`);
-  }
-  if (source.sha !== undefined && typeof source.sha !== "string") {
-    throw new Error(`URL sha for ${pluginName} must be a string`);
-  }
-  if (source.ref !== undefined && source.sha !== undefined) {
-    throw new Error(
-      `URL source for ${pluginName} cannot specify both ref and sha`
-    );
-  }
   if (source.source === "git-subdir") {
     return {
-      ...(source.ref === undefined ? {} : { ref: source.ref }),
-      ...(source.sha === undefined ? {} : { sha: source.sha }),
       path: gitSubdirectory(source.path, pluginName),
       source: "git-subdir",
       url
     };
   }
   return {
-    ...(source.ref === undefined ? {} : { ref: source.ref }),
-    ...(source.sha === undefined ? {} : { sha: source.sha }),
     source: "url",
     url
   };

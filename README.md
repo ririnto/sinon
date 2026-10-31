@@ -22,6 +22,7 @@ metadata:
       url:
         - https://code.claude.com/docs/en/plugins/manifest-reference.md
         - https://code.claude.com/docs/en/plugins/cli-reference.md
+        - https://code.claude.com/docs/en/plugins/loading.md
         - https://code.claude.com/docs/en/plugins/troubleshooting.md
     Claude skill frontmatter:
       url: https://code.claude.com/docs/en/skills.md
@@ -135,13 +136,13 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 Sinon selects external plugins through its marketplace catalog.
 
-- [clear-writing](https://github.com/ririnto/clear-writing): the Sinon catalog follows the upstream `main` branch.
+- [clear-writing](https://github.com/ririnto/clear-writing): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the writing skill and version.
   Install it as `clear-writing@sinon` in either host.
-- [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream `main` branch.
+- [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the MCP runtime, thread-control skill, monitor, checks, and release version.
   Install it as `codex-app-server@sinon` in either host.
-- [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream `main` branch.
+- [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the runtime, Skills, and version.
 
 ## Install pstack from the official marketplace
@@ -275,7 +276,7 @@ claude --plugin-dir /path/to/sinon/plugins/java
 Add the repository marketplace and install a plugin with the supported Codex CLI:
 
 ```sh
-codex plugin marketplace add ririnto/sinon --ref main
+codex plugin marketplace add ririnto/sinon
 codex plugin list --available --marketplace sinon
 codex plugin add ddgs@sinon
 ```
@@ -284,7 +285,7 @@ For a local checkout, use `codex plugin marketplace add /path/to/sinon`.
 The generated Codex catalog at `.agents/plugins/marketplace.json` includes eligible local packages with a native Codex manifest, external sources, and Codex-only packages.
 Herdr installs directly from its upstream GitHub repository in both hosts.
 Its local source paths are relative to the repository root.
-External Workgraph continues to follow its upstream `main` branch.
+External Workgraph follows its upstream default branch.
 
 Install plugins through the Codex plugin browser when using the desktop app.
 Start a new session after installation and trust hooks when the host requests it.
@@ -292,13 +293,45 @@ CodeGraph provides separate Codex startup hooks and Claude startup and `EnterWor
 DDGS and CodeGraph prepare their upstream tools on demand with native package caches.
 See each package README for runtime requirements and host-specific capabilities.
 
+## Update Installed Plugins
+
+Refresh the Claude Code catalog before updating an installed plugin:
+
+```sh
+claude plugin marketplace update sinon
+claude plugin update workgraph@sinon
+```
+
+Replace `workgraph` with the installed plugin's name and select its installation scope with `--scope` when needed.
+Run `/reload-plugins` in the active Claude Code session or open a new session to load the update.
+Check the installed version and scope with `claude plugin list --json`.
+
+For a Git marketplace registered in Codex, refresh the marketplace snapshot:
+
+```sh
+codex plugin marketplace upgrade sinon
+codex plugin list --marketplace sinon --json
+```
+
+Check the installed plugin's version and enabled state before starting a new session.
+For a local marketplace, update its checkout before refreshing the installed plugin through the host.
+
+Omitting a Git revision selector lets the host follow the upstream default branch.
+A branch selector such as `main` can also advance, so removing it does not diagnose every stale update.
+Claude Code uses the plugin manifest's release version first, then the marketplace entry's version, and otherwise a source-derived version.
+Publishers must increase a declared release version when the packaged content changes so a cached installation can detect the update.
+
 ## Maintaining The Catalogs
 
 Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
 Keep each local package's Codex identity aligned with its Claude marketplace entry.
 The marketplace catalog owns its generator and regression suite under `.claude-plugin/marketplace/`.
 Generate the native Codex view with `pnpm run marketplace:generate`.
-External `git-subdir` sources preserve their URL, subdirectory, and Git selector in the generated view.
+External `git-subdir` sources preserve their URL and subdirectory in the generated view.
+Omit Git revision selectors from external sources, including `ref` values such as `main` and `sha` commit pins.
+The generator rejects revision-selector fields instead of copying them into the Codex catalog.
+Keep external release metadata in the upstream plugin manifest.
+Keep each local plugin's release version aligned between its Claude catalog entry and native Codex manifest.
 Commit the generated catalog with its source changes.
 The repository checks reject stale catalogs and invalid local package mappings.
 
