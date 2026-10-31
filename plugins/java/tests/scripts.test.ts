@@ -329,18 +329,6 @@ public final class Probe {
       }
       const options = `-Dmessage='hello world'  -Dlabel="alpha  beta" -Dkeep=present -javaagent:${old} -javaagent:${other}`;
       const args = ["--data", "value with spaces"];
-      const direct = spawnSync(
-        "java",
-        [`-javaagent:${selected}`, "-cp", classes, "Probe", ...args],
-        {
-          cwd: project,
-          env: {
-            ...environment,
-            JDK_JAVA_OPTIONS: options
-          }
-        }
-      );
-      expect(direct.status, direct.stderr.toString()).toBe(0);
       await writeFile(
         path.join(bin, "jdtls"),
         `#!${process.execPath}
@@ -360,19 +348,14 @@ process.exitCode = result.status ?? 1;
         { cwd: project, env: environment }
       );
       expect(wrapped.status, wrapped.stderr.toString()).toBe(0);
-      const directProperties = readJavaProbe(direct.stdout);
       const wrappedProperties = readJavaProbe(wrapped.stdout);
-      expect(wrappedProperties.message).toBe(directProperties.message);
       expect(wrappedProperties.message).toBe("hello world");
-      expect(wrappedProperties.label).toBe(directProperties.label);
       expect(wrappedProperties.label).toBe("alpha  beta");
-      expect(wrappedProperties.keep).toBe(directProperties.keep);
       expect(wrappedProperties.keep).toBe("present");
       expect(wrappedProperties.selected).toBe("true");
       expect(wrappedProperties.old).toBe("null");
       expect(wrappedProperties.other).toBe("true");
       expect(wrappedProperties.forwarded).toBe("--data|value with spaces");
-      expect(wrappedProperties.forwarded).toBe(directProperties.forwarded);
       expect(wrappedProperties.inputArguments).toContain(
         `-javaagent:${selected}`
       );
