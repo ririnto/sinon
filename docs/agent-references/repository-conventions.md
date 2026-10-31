@@ -22,7 +22,7 @@ Shell and TypeScript sections apply to source, documentation sections to prose, 
 
 ## Shell
 
-POSIX scripts start with `#!/usr/bin/env sh`, `# -*- coding: utf-8 -*-`, and `set -e`.
+POSIX scripts start with `#!/usr/bin/env sh`, `# vim: set fileencoding=utf-8 :`, and `set -e`.
 Do not use `set -u`, `[[ ]]`, standalone bracket short-circuits, output suppression to `/dev/null`, or `|| true`.
 Use uppercase constants, lowercase variables, function docstrings, no blank function-body lines, and visible diagnostics.
 

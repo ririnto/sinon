@@ -62,7 +62,7 @@ describe("Java CI entrypoints", () => {
       try {
         await writeFile(
           path.join(directory, wrapper),
-          "#!/bin/sh\n# -*- coding: utf-8 -*-\nset -e\nprintf '%s\\n' \"$*\" > calls\n",
+          "#!/bin/sh\n# vim: set fileencoding=utf-8 :\nset -e\nprintf '%s\\n' \"$*\" > calls\n",
           { mode: 0o755 }
         );
         const options = { cwd: directory, env: { PATH: directory } };
@@ -157,7 +157,7 @@ describe("Gradle Node-side script integration", () => {
         );
         await writeFile(
           path.join(directory, "gradlew"),
-          "#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\nprintf '%s\\n' \"$*\" >> gradle-calls.txt\n"
+          "#!/usr/bin/env sh\n# vim: set fileencoding=utf-8 :\nset -e\nprintf '%s\\n' \"$*\" >> gradle-calls.txt\n"
         );
         await chmod(path.join(directory, "gradlew"), 0o755);
         const options = {
