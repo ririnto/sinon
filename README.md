@@ -12,6 +12,12 @@ metadata:
       url:
         - https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/utils/plugins/src/plugin_namespace.rs
         - https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/core-plugins/src/loader.rs
+    Codex plugin updates:
+      version: 6ff1e1ca3b30fc8b914720681fcf5fe62e95f856
+      url:
+        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/marketplace_upgrade.rs
+        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/manager.rs
+        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/store.rs
     Claude plugin marketplaces:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference.md
     Cursor pstack marketplace:
@@ -314,7 +320,17 @@ codex plugin list --marketplace sinon --json
 ```
 
 Check the installed plugin's version and enabled state before starting a new session.
-For a local marketplace, update its checkout before refreshing the installed plugin through the host.
+A successful marketplace upgrade can leave an external plugin's cached copy unchanged when only its upstream source has advanced.
+For an already-enabled plugin that remains stale, install it again from the refreshed catalog:
+
+```sh
+codex plugin add workgraph@sinon
+codex plugin list --marketplace sinon --json
+```
+
+Replace `workgraph` with the installed plugin's name and confirm the resulting version and enabled state.
+The `add` command enables the plugin, so keep previously disabled plugins disabled through the host's plugin controls.
+For a local marketplace, update its checkout before refreshing the installed plugin through the host or this already-enabled-plugin path.
 
 Omitting a Git revision selector lets the host follow the upstream default branch.
 A branch selector such as `main` can also advance, so removing it does not diagnose every stale update.
