@@ -10,21 +10,22 @@ metadata:
     OpenAI hooks:
       url: https://learn.chatgpt.com/docs/hooks.md
     Codex plugin loading:
-      version: 0.166.0
+      version: 2026-10-31 main branch
       url:
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/utils/plugins/src/plugin_namespace.rs
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/loader.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/utils/plugins/src/plugin_namespace.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/core-plugins/src/loader.rs
     Codex plugin updates:
-      version: 6ff1e1ca3b30fc8b914720681fcf5fe62e95f856
+      version: 2026-10-31 main branch
       url:
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/marketplace_upgrade.rs
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/manager.rs
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/core-plugins/src/store.rs
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/hooks/src/engine/plugin_fingerprint.rs
-        - https://raw.githubusercontent.com/openai/codex/6ff1e1ca3b30fc8b914720681fcf5fe62e95f856/codex-rs/hooks/src/engine/plugin_trust.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/core-plugins/src/marketplace_upgrade.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/core-plugins/src/manager.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/core-plugins/src/store.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/hooks/src/engine/plugin_fingerprint.rs
+        - https://raw.githubusercontent.com/openai/codex/main/codex-rs/hooks/src/engine/plugin_trust.rs
     Claude plugin marketplaces:
       url: https://code.claude.com/docs/en/plugins/marketplace-reference.md
     Cursor pstack marketplace:
+      version: 2026-10-31 main branch
       url: https://raw.githubusercontent.com/cursor/plugins/main/.claude-plugin/marketplace.json
     Herdr agent skill:
       url: https://herdr.dev/docs/agent-skill/
@@ -77,7 +78,7 @@ Each host reads its own plugin metadata:
 - `.claude-plugin/marketplace.json`: Claude plugin entries and metadata.
 
 Codex discovers shared skills from `skills/` and loads MCP files declared by its manifest.
-Root `plugin.json` files are excluded because they shadow native manifests and skip hooks in Codex CLI 0.166.0.
+Root `plugin.json` files are excluded because recognized Agent Plugin manifests shadow native manifests and skip hooks in the Codex main branch as of 2026-10-31.
 Claude Code uses `.mcp.json` for its MCP servers.
 Claude Code discovers shared skills, agents, LSP configuration, and hooks from their default package paths.
 Claude-specific agents and LSP configuration retain their host contracts.
@@ -323,6 +324,7 @@ codex plugin marketplace upgrade sinon
 codex plugin list --marketplace sinon --json
 ```
 
+The Codex update behavior below is based on the main branch as of 2026-10-31.
 Check the installed plugin's version and enabled state after the refresh.
 A successful marketplace upgrade can leave an external plugin's cached copy unchanged when only its upstream source has advanced.
 For an already-enabled plugin that remains stale, install it again from the refreshed catalog:
