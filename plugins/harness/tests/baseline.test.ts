@@ -69,34 +69,36 @@ const assertSortedKeys = (value: unknown): void => {
 };
 
 describe("fresh-root baseline", () => {
-  test.each([0, 7])(
-    "GitLab pnpm installation forwards the selected version and npm exit %s",
-    async (status) => {
+  test.each([
+    ["GitLab", "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", 0],
+    ["GitLab", "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", 7],
+    ["GitHub", "plugins/harness/ci/github/pnpm.yaml", 0],
+    ["GitHub", "plugins/harness/ci/github/pnpm.yaml", 7]
+  ])(
+    "%s pnpm installation from %s forwards the selected version and npm exit %s",
+    async (platform, file, status) => {
       const directory = await targetDirectory();
-      const { packageManager } = JSON.parse(
-        await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
-      );
+      const packageManager = "pnpm@1.2.3";
       await mkdir(path.join(directory, ".bin"));
       await writeFile(
         path.join(directory, ".bin/npm"),
-        '#!/usr/bin/env sh\nprintf "%s\\n" "$@"\nexit "$INSTALL_STATUS"\n',
+        '#!/usr/bin/env sh\nfor arg do echo "$arg"; done\nexit "$INSTALL_STATUS"\n',
         { mode: 0o755 }
       );
       await writeFile(
         path.join(directory, "package.json"),
         JSON.stringify({ packageManager })
       );
-      const commands = parseDocument(
-        await readFile(
-          path.join(
-            repositoryRoot,
-            "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"
-          ),
-          "utf-8"
-        )
-      ).toJS().pnpm.before_script;
-      expect(commands).toHaveLength(1);
-      const result = spawnSync("sh", ["-c", String(commands[0])], {
+      const ci = parseDocument(
+        await readFile(path.join(repositoryRoot, String(file)), "utf-8")
+      ).toJS();
+      const command =
+        platform === "GitLab"
+          ? ci.pnpm.before_script[0]
+          : ci.jobs.pnpm.steps.find((step: { run?: string }) =>
+              step.run?.startsWith("npm install --global ")
+            ).run;
+      const result = spawnSync("sh", ["-c", command], {
         cwd: directory,
         encoding: "utf-8",
         env: {
@@ -125,7 +127,10 @@ describe("fresh-root baseline", () => {
         "catalog:"
       );
       expect(manifest.packageManager).toBeUndefined();
-      expect(manifest.engines.node).toBe("^26.13.0");
+      const rootManifest = JSON.parse(
+        await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
+      );
+      expect(manifest.engines.node).toBe(rootManifest.engines.node);
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
         "check:markdownlint-cli2": "markdownlint-cli2",

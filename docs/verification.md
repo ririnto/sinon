@@ -9,6 +9,13 @@ pnpm install --frozen-lockfile
 pnpm run check
 ```
 
+The root `package.json` owns the Node.js engine range and pnpm pin, and `pnpm-workspace.yaml` owns dependency ranges.
+Run `pnpm run versions:sync` after changing these values to update the self-contained plugin snapshots.
+The complete gate checks those snapshots for drift.
+Each installed target owns its resulting manifest and catalog independently.
+The API documentation profile uses the named catalog for its compatible TypeScript peer.
+The separately distributed specification plugin owns its standalone catalog and lockfile.
+
 The root has no separate `build` or `test` script.
 Its `check:*` scripts compose the component tests, TypeScript check, lint, formatting, and catalog validation.
 The Promtool fixture runner requires a separate command and network access.

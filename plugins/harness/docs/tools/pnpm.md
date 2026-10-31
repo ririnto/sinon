@@ -3,19 +3,14 @@ title: pnpm
 metadata:
   reference:
     pnpm:
-      version: 12.16.1
       url:
         - https://pnpm.io/installation
         - https://pnpm.io/catalogs
         - https://pnpm.io/cli/install
     TypeDoc:
-      version: 0.28.20
       url:
         - https://typedoc.org/documents/Options.Input.html
         - https://typedoc.org/documents/Options.Validation.html
-    pnpm setup:
-      version: 3.1.2
-      url: https://raw.githubusercontent.com/pnpm/setup/v3.1.2/README.md
     Node.js:
       url: https://nodejs.org/en/about/previous-releases
     Oxlint:
@@ -128,7 +123,7 @@ Use the [Git hook integration](#git-hook-integration) for the script surface.
 
 For a library with public JavaScript or TypeScript exports, merge `tooling/pnpm/api-docs.package.fragment.json` and `tooling/pnpm/api-docs.pnpm-workspace.fragment.yaml` into the target manifest and catalog.
 Use a TypeDoc version compatible with the target's TypeScript version and Node runtime.
-TypeDoc 0.28.20 accepts TypeScript 5.0 through 6.0; preserve a compatible target pin.
+Check the selected TypeDoc release's published TypeScript peer range and preserve a compatible target pin.
 Copy `tooling/pnpm/typedoc.json` to the project root when no TypeDoc configuration exists, or merge its settings without replacing the target's entry points or other options.
 The configuration writes HTML to `build/api-docs` and makes warnings fail the command.
 Ignore that generated directory in version control.
@@ -432,13 +427,10 @@ pnpm 12 is a native executable and does not require Node.js after installation.
 Installing pnpm 12 through npm requires Node.js 22.13 or newer.
 Bootstrap it with a compatible development Node.js version or use its standalone installer.
 Pin pnpm through the target's `packageManager` field.
-The GitHub catalog uses `pnpm/setup@v3.1.2` and reads that pin from the target manifest.
-The catalog supplies Node.js 26 as a source example.
+The GitHub and GitLab catalogs install the version specified in the target's `packageManager` field through npm.
+Both catalogs supply Node.js 26 as a source example.
 Replace that runtime selection when the target requires another compatible version.
-It does not infer pnpm from `package.json` alone.
-The GitLab catalog supplies a Node.js 26 image example.
-It installs the version specified in the target's `packageManager` field directly through npm.
-Use a version-only pnpm pin with this catalog because direct pnpm does not verify integrity suffixes.
+The npm installation does not verify integrity suffixes in the `packageManager` field.
 Adapt runtime versions, working directories, and image pins to the target's existing CI requirements.
 CI runs `pnpm install --frozen-lockfile` when `pnpm-lock.yaml` exists, then the target's `pnpm run check` script.
 Require a committed lockfile for a frozen installation.
@@ -449,19 +441,9 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects these catalog ranges:
-
-- Oxlint `^1.90.0`.
-- Oxfmt `^0.75.0`.
-- Ultracite `^8.1.0`.
-- Markdownlint `^0.42.0`.
-- Markdownlint CLI2 `^0.24.0`.
-- npm-run-all2 `^9.0.4`.
-- Vitest `^5.0.5`.
-- `@oxc-project/types` `^0.156.0`.
-
+The source profile catalog fragments carry the selected version ranges.
 Each target selects its own pnpm version.
-The Harness source-profile baseline is maintained independently from the Sinon root catalog and may lag it.
+The source-profile fragments are synchronized from the Sinon root catalog before publication.
 The root `pnpm-workspace.yaml` catalog, `package.json`, and `pnpm-lock.yaml` own installed root tool versions.
 Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.
 The target owns final dependency versions through its manifest and lockfile.
