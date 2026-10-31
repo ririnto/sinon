@@ -3,8 +3,8 @@ metadata:
   reference:
     Node.js releases:
       url: https://nodejs.org/en/about/previous-releases
-    Node 26 TypeScript base:
-      url: https://www.npmjs.com/package/@tsconfig/node26
+    Node LTS TypeScript base:
+      url: https://www.npmjs.com/package/@tsconfig/node-lts
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/target.html

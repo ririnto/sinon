@@ -29,6 +29,8 @@ It materializes shared sources after checking every destination for conflicts an
 Identical files remain unchanged on a repeat run.
 A conflicting baseline file stops the operation before writes.
 Repeat configuration and confirm no new files or changed bytes before modifying generated files.
+For TypeScript, add `--typescript-profile` with `node`, `vite-react`, `vue`, `react-native`, or `next` to materialize the corresponding target-owned compiler configuration and catalog dependency.
+Select it only for TypeScript projects.
 An existing native Gradle version catalog remains target-owned.
 Rust formatter, Clippy, toolchain and EditorConfig files also remain target-owned, including hidden formatter/linter names and the legacy toolchain filename.
 For an existing configured root or a polyglot root, use the profile's bounded merges rather than overwriting its manifest or applying competing installers.

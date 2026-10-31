@@ -35,7 +35,7 @@ test("version snapshots detect drift, update, and remain self-contained", async 
   );
   await writeFile(
     path.join(fixture, "pnpm-workspace.yaml"),
-    'catalog:\n  example: "^2.0.0"\ncatalogs:\n  api-docs:\n    example: "^3.0.0"\n'
+    'catalog:\n  example: "^2.0.0"\ncatalogs:\n  api-docs:\n    example: "^3.0.0"\n  vue:\n    example: "^4.0.0"\n'
   );
   await Promise.all(
     [
@@ -54,6 +54,13 @@ test("version snapshots detect drift, update, and remain self-contained", async 
     path.join(
       fixture,
       "plugins/harness/tooling/pnpm/api-docs.pnpm-workspace.fragment.yaml"
+    ),
+    'catalog:\n  example: "^1.0.0"\n'
+  );
+  await writeFile(
+    path.join(
+      fixture,
+      "plugins/harness/tooling/pnpm/vue.pnpm-workspace.fragment.yaml"
     ),
     'catalog:\n  example: "^1.0.0"\n'
   );
@@ -106,6 +113,16 @@ test("version snapshots detect drift, update, and remain self-contained", async 
     )
   );
   expect(docsCatalog.catalog.example).toBe("^3.0.0");
+  const vueCatalog = parse(
+    await readFile(
+      path.join(
+        fixture,
+        "plugins/harness/tooling/pnpm/vue.pnpm-workspace.fragment.yaml"
+      ),
+      "utf-8"
+    )
+  );
+  expect(vueCatalog.catalog.example).toBe("^4.0.0");
   const ci = parse(
     await readFile(
       path.join(fixture, "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"),

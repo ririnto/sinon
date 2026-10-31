@@ -20,7 +20,8 @@ const files = [
   "plugins/harness/tooling/pnpm/pnpm-workspace.fragment.yaml",
   "plugins/harness/tooling/frontend/pnpm-workspace.fragment.yaml",
   "plugins/harness/tooling/react/pnpm-workspace.fragment.yaml",
-  "plugins/harness/tooling/pnpm/api-docs.pnpm-workspace.fragment.yaml"
+  "plugins/harness/tooling/pnpm/api-docs.pnpm-workspace.fragment.yaml",
+  "plugins/harness/tooling/pnpm/vue.pnpm-workspace.fragment.yaml"
 ];
 const snapshots = await Promise.all(
   files.map(async (file) => {
@@ -28,9 +29,12 @@ const snapshots = await Promise.all(
     const original = await readFile(target, "utf-8");
     const document = parseDocument(original);
     const snapshot = document.get("catalog", true);
-    const catalog = file.includes("api-docs")
-      ? workspace.getIn(["catalogs", "api-docs"], true)
-      : workspace.get("catalog", true);
+    let catalog = workspace.get("catalog", true);
+    if (file.includes("api-docs")) {
+      catalog = workspace.getIn(["catalogs", "api-docs"], true);
+    } else if (file.includes("vue.pnpm")) {
+      catalog = workspace.getIn(["catalogs", "vue"], true);
+    }
     for (const { key } of snapshot.items) {
       const name = String(key.value);
       const version = catalog.get(name);
