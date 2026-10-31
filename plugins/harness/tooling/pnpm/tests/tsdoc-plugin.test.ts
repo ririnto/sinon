@@ -7,8 +7,8 @@ import { expect, test } from "vitest";
 
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
 
-const writeConfig = (directory: string): Promise<void> =>
-  writeFile(
+const writeConfig = async (directory: string): Promise<void> => {
+  await writeFile(
     path.join(directory, ".oxlintrc.json"),
     JSON.stringify({
       jsPlugins: [
@@ -17,6 +17,7 @@ const writeConfig = (directory: string): Promise<void> =>
       rules: { "tsdoc/require-export-tsdoc": "error" }
     })
   );
+};
 
 test.each([false, true])(
   "Ultracite checks public methods on a directly exported class expression (documented=%s)",
@@ -253,9 +254,9 @@ test.each(
         }))
       );
       await Promise.all(
-        fixtures.map(({ filename, source }) =>
-          writeFile(path.join(directory, filename), source)
-        )
+        fixtures.map(async ({ filename, source }) => {
+          await writeFile(path.join(directory, filename), source);
+        })
       );
       for (const { documented, filename } of fixtures) {
         if (documented) {

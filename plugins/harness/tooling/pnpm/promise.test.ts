@@ -8,8 +8,8 @@ import { expect, test } from "vitest";
 import { runUltracite } from "../../tests/ultracite-fixture.js";
 
 const findings = (result: ReturnType<typeof runUltracite>) =>
-  result.diagnostics.filter(({ code }) =>
-    code?.includes("no-floating-promises")
+  result.diagnostics.filter(
+    ({ code }) => code?.includes("no-floating-promises") === true
   );
 
 test("Ultracite executes type-aware promise diagnostics without rewriting void", async () => {
