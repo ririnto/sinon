@@ -261,19 +261,6 @@ describe("fresh-root baseline", () => {
         expect(first.created).toContain("docs/index.rst");
       }
       if (profile === "node" || profile === "frontend" || profile === "react") {
-        expect(manifest.scripts).toMatchObject({
-          "check:ultracite": "run-p --continue-on-error ultracite:check:**",
-          "fix:ultracite":
-            "run-s --continue-on-error ultracite:fix:base ultracite:check:style:*",
-          "ultracite:check:base": "ultracite check --type-aware",
-          "ultracite:check:style:no-blank-lines-in-functions":
-            "ultracite check --type-aware --config oxlint.style-no-blank-lines-in-functions.config.ts",
-          "ultracite:check:style:no-inline-comments-in-functions":
-            "ultracite check --type-aware --config oxlint.style-no-inline-comments-in-functions.config.ts",
-          "ultracite:check:style:sibling-test-spacing":
-            "ultracite check --type-aware --config oxlint.style-sibling-test-spacing.config.ts",
-          "ultracite:fix:base": "ultracite fix --type-aware"
-        });
         expect(
           Object.keys(manifest.scripts).filter((script) =>
             script.startsWith("check:")

@@ -57,7 +57,7 @@ test("blank-line checks preserve directive, comment, and literal gaps", async ()
     expect(invalid.status).toBe(1);
     expect(
       invalid.diagnostics
-        .filter(({ code }) => code?.startsWith("style("))
+        .filter(({ code }) => code?.startsWith("style(") === true)
         .map(({ code }) => code)
     ).toEqual([
       "style(no-blank-lines-in-functions)",
@@ -230,9 +230,9 @@ test("inline-comment checks preserve directives and license notices", async () =
       "style/no-inline-comments-in-functions"
     );
     await Promise.all(
-      commentFixtures.map(({ filename, source }) =>
-        writeFile(path.join(directory, filename), source)
-      )
+      commentFixtures.map(async ({ filename, source }) => {
+        await writeFile(path.join(directory, filename), source);
+      })
     );
     for (const { filename, expected } of commentFixtures) {
       if (expected === 0) {
@@ -336,15 +336,15 @@ test.each([
     try {
       await writeRuleConfiguration(directory, pluginFile, ruleId);
       await Promise.all(
-        registrationCases.map(([filename, source]) =>
-          writeFile(path.join(directory, filename), source)
-        )
+        registrationCases.map(async ([filename, source]) => {
+          await writeFile(path.join(directory, filename), source);
+        })
       );
       for (const testCase of registrationCases) {
         const { diagnostics } = runUltracite(directory, testCase[0]);
         expect(
           diagnostics
-            .filter(({ code }) => code?.startsWith("style("))
+            .filter(({ code }) => code?.startsWith("style(") === true)
             .map(({ code }) => code),
           testCase[0]
         ).toEqual(

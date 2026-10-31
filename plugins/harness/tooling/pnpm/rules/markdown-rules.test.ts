@@ -17,16 +17,13 @@ import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 
 import rootSentenceRules from "../../../../../rules/sentence-per-line.js";
+import sensitiveContent from "./no-sensitive-content.mjs";
 import {
   sentencePerLine,
   noEmDash,
   noRelativeSkillLinks
 } from "./sentence-per-line.js";
 import tableSeparators from "./table-separators.js";
-
-const { default: sensitiveContent }: { default: Rule } = await import(
-  new URL("no-sensitive-content.mjs", import.meta.url).href
-);
 
 interface Violation {
   readonly detail: string | null;
@@ -260,8 +257,9 @@ describe("sensitive-content package loading", () => {
     expect(resolved).toBe(
       path.join(import.meta.dirname, "no-sensitive-content.mjs")
     );
-    const loaded = await import(resolved);
-    expect(loaded.default).toBe(sensitiveContent);
+    expect(await import(resolved)).toBe(
+      await import("./no-sensitive-content.mjs")
+    );
     expect(() =>
       createRequire(import.meta.url).resolve("sinon/rules/missing")
     ).toThrow();
