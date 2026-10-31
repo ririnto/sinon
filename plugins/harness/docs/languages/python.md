@@ -49,7 +49,9 @@ Convert deep recursion to iteration when depth scales with input size.
 
 ## Documentation
 
-Write module, class, and public-function docstrings in imperative prose.
+Document meaningful public module, class, and function contracts in imperative prose.
+Include parameter semantics, return behavior, and raised errors when those details help callers.
+Do not add boilerplate to trivial declarations merely to satisfy a missing-docstring rule.
 Use multiline docstrings, including one-sentence docstrings.
 Put opening and closing triple quotes on separate lines.
 One short paragraph states the contract.

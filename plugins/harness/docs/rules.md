@@ -168,8 +168,9 @@ Do not invent named-group support, add artificial wrappers, or add packages sole
 Preserve optional groups, selected matches, flags, Unicode, offsets, iteration, replacements, negative cases, evaluation order, and cleanup.
 Exclude third-party, vendored, and generated code from this convention's migration scope.
 
-Document every externally exposed declaration in English using the language's multiline documentation syntax.
-Keep documentation at declaration level and state the contract or reason instead of restating the identifier.
+Document public contracts in English using the language's documentation syntax.
+Explain behavior and meaningful parameter, return, error, and link details where they help callers.
+Do not add comments that merely repeat a trivial declaration's name or type.
 Keep function bodies free of blank lines.
 Separate sibling functions, tests, and lifecycle registrations with one blank line.
 The test-registration spacing diagnostic recognizes only imported framework bindings in proven registration scopes.

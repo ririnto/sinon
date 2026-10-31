@@ -6,5 +6,6 @@
 
 [dependency-groups]
 dev = ["ruff>=0.17.3,<0.18"]
+docs = ["sphinx", "tomli; python_version < '3.11'"]
 # Merge rule: union by group name. Add a missing group, and add missing
 # requirements to an existing group; never drop the target's own entries.

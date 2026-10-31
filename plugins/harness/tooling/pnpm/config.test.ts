@@ -368,7 +368,7 @@ describe("pnpm profile configuration", () => {
       );
       await writeFile(
         path.join(directory, "sample.ts"),
-        `${packageStyleFixture}\nexport const undocumented = 1;\n`
+        `${packageStyleFixture}\nexport function undocumented() { return 1; }\n`
       );
       const { diagnostics, status } = runUltracite(
         directory,
@@ -406,7 +406,7 @@ describe("pnpm profile configuration", () => {
       );
       await writeFile(
         path.join(directory, "sample.tsx"),
-        'export const image = <img src="example.png" />;\nconsole.log(image);\n'
+        'export function image() { return <img src="example.png" />; }\nconsole.log(image);\n'
       );
       const { diagnostics, status } = runUltracite(
         directory,

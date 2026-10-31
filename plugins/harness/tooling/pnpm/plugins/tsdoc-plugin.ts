@@ -1,7 +1,6 @@
 import type {
   Class,
   ClassElement,
-  ExportAllDeclaration,
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
   MethodDefinition,
@@ -137,30 +136,15 @@ const variableName = (node: VariableDeclaration): string =>
   nameOf(node.declarations[0]?.id) ?? "variable declaration";
 
 /**
- * Describe an export statement that has no inline declaration for diagnostics.
- *
- * @param node Export list or re-export statement.
- * @returns The exported names followed by the re-export source when present.
- */
-const exportStatementName = (
-  node: ExportAllDeclaration | ExportNamedDeclaration
-): string => {
-  const names =
-    node.type === "ExportAllDeclaration"
-      ? "*"
-      : node.specifiers
-          .map((specifier) => nameOf(specifier.exported) ?? "[anonymous]")
-          .join(", ");
-  return node.source ? `${names} from "${node.source.value}"` : names;
-};
-
-/**
- * Require multiline TSDoc on exported TypeScript public API declarations.
+ * Check TSDoc on exported TypeScript public API declarations.
  */
 const exportTsdocRule = {
   create(context: RuleContext) {
     const { sourceCode } = context;
     const checkedClasses = new WeakSet<Class>();
+    const checkedDeclarations = new WeakSet<Node>();
+    const checkedVariableDeclarators = new WeakSet<Node>();
+    const checkedVariableComments = new WeakSet<Node>();
     /**
      * Find TSDoc blocks before a node or its export wrapper.
      *
@@ -182,25 +166,32 @@ const exportTsdocRule = {
      * @param node AST node to attach the diagnostic to.
      * @param kind Human-readable declaration kind for the diagnostic message.
      * @param name Human-readable declaration name for the diagnostic message.
+     * @param requirePresence Whether a missing comment is a diagnostic.
      * @returns Nothing.
      */
-    const report = (node: Node, kind: string, name: string): void => {
+    const report = (
+      node: Node,
+      kind: string,
+      name: string,
+      requirePresence = true
+    ): void => {
       const comments = tsdocComments(node);
       if (
-        comments.length === 0 ||
-        !comments.every(
-          (comment) =>
-            /^\*[ \t]*\r?\n[\s\S]*\r?\n[ \t]*$/u.test(comment.value) &&
-            /^[ \t]*$/u.test(
-              sourceCode.text.slice(
-                sourceCode.text.lastIndexOf("\n", comment.start - 1) + 1,
-                comment.start
+        (comments.length === 0 && requirePresence) ||
+        (comments.length > 0 &&
+          !comments.every(
+            (comment) =>
+              /^\*[ \t]*\r?\n[\s\S]*\r?\n[ \t]*$/u.test(comment.value) &&
+              /^[ \t]*$/u.test(
+                sourceCode.text.slice(
+                  sourceCode.text.lastIndexOf("\n", comment.start - 1) + 1,
+                  comment.start
+                )
+              ) &&
+              /^[ \t\r]*$/u.test(
+                sourceCode.text.slice(comment.end).split("\n", 1)[0] ?? ""
               )
-            ) &&
-            /^[ \t\r]*$/u.test(
-              sourceCode.text.slice(comment.end).split("\n", 1)[0] ?? ""
-            )
-        )
+          ))
       ) {
         context.report({
           data: { kind, name },
@@ -238,20 +229,32 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const validateExportedDeclaration = (
-      node: Node | null | undefined
+      node: Node | null | undefined,
+      exportNode?: Node
     ): void => {
-      if (node) {
+      if (node && !checkedDeclarations.has(node)) {
+        checkedDeclarations.add(node);
         const kind = declarationKinds[node.type];
+        const documentationNode =
+          tsdocComments(node).length > 0 ? node : (exportNode ?? node);
         if (isClassDeclaration(node)) {
-          report(node, "class", nodeName(node));
+          report(documentationNode, "class", nodeName(node));
           validateClassMembers(node);
         } else if (kind !== undefined) {
           report(
-            node,
+            documentationNode,
             kind,
             node.type === "VariableDeclaration"
               ? variableName(node)
-              : nodeName(node)
+              : nodeName(node),
+            node.type !== "TSTypeAliasDeclaration" &&
+              (node.type !== "VariableDeclaration" ||
+                node.declarations.some(
+                  ({ init }) =>
+                    init?.type === "ArrowFunctionExpression" ||
+                    init?.type === "FunctionExpression" ||
+                    init?.type === "ClassExpression"
+                ))
           );
           if (node.type === "VariableDeclaration") {
             for (const declaration of node.declarations) {
@@ -263,7 +266,44 @@ const exportTsdocRule = {
         }
       }
     };
-    const validateLocalClass = (node: Node, name: string | undefined): void => {
+    const validateLocalVariable = (
+      declaration: VariableDeclaration,
+      node: Node,
+      name: string
+    ): void => {
+      for (const declarator of declaration.declarations) {
+        if (
+          declarator.id.type === "Identifier" &&
+          declarator.id.name === name
+        ) {
+          const requirePresence =
+            declarator.init?.type === "ArrowFunctionExpression" ||
+            declarator.init?.type === "FunctionExpression" ||
+            declarator.init?.type === "ClassExpression";
+          if (
+            !checkedDeclarations.has(declaration) &&
+            !checkedVariableDeclarators.has(declarator)
+          ) {
+            checkedVariableDeclarators.add(declarator);
+            const documentationNode =
+              tsdocComments(declaration).length > 0 ? declaration : node;
+            if (!checkedVariableComments.has(documentationNode)) {
+              if (tsdocComments(documentationNode).length > 0) {
+                checkedVariableComments.add(documentationNode);
+              }
+              report(documentationNode, "variable", name, requirePresence);
+            }
+          }
+          if (declarator.init?.type === "ClassExpression") {
+            validateClassMembers(declarator.init);
+          }
+        }
+      }
+    };
+    const validateLocalDeclaration = (
+      node: Node,
+      name: string | undefined
+    ): void => {
       const scope = node.parent;
       if (
         name !== undefined &&
@@ -278,20 +318,12 @@ const exportTsdocRule = {
               : statement;
           if (
             declaration &&
-            isClassDeclaration(declaration) &&
-            declaration.id?.name === name
+            "id" in declaration &&
+            nameOf(declaration.id) === name
           ) {
-            validateClassMembers(declaration);
+            validateExportedDeclaration(declaration, node);
           } else if (declaration?.type === "VariableDeclaration") {
-            for (const declarator of declaration.declarations) {
-              if (
-                declarator.id.type === "Identifier" &&
-                declarator.id.name === name &&
-                declarator.init?.type === "ClassExpression"
-              ) {
-                validateClassMembers(declarator.init);
-              }
-            }
+            validateLocalVariable(declaration, node, name);
           }
         }
       }
@@ -300,45 +332,33 @@ const exportTsdocRule = {
       context.filename ?? context.getFilename?.() ?? ""
     )
       ? {
-          ExportAllDeclaration(node: ExportAllDeclaration) {
-            report(node, "re-export", exportStatementName(node));
-          },
           ExportDefaultDeclaration(node: ExportDefaultDeclaration) {
             if (node.declaration.type in declarationKinds) {
               validateExportedDeclaration(node.declaration);
-            } else {
-              report(node, "default export", "default");
-              if (node.declaration.type === "Identifier") {
-                validateLocalClass(node, node.declaration.name);
-              }
+            } else if (node.declaration.type === "Identifier") {
+              validateLocalDeclaration(node, node.declaration.name);
             }
           },
           ExportNamedDeclaration(node: ExportNamedDeclaration) {
             if (node.declaration) {
               validateExportedDeclaration(node.declaration);
-            } else if (node.source || node.specifiers.length > 0) {
-              report(
-                node,
-                node.source ? "re-export" : "export list",
-                exportStatementName(node)
-              );
-              if (!node.source) {
-                for (const specifier of node.specifiers) {
-                  validateLocalClass(node, nameOf(specifier.local));
-                }
+            } else if (!node.source) {
+              for (const specifier of node.specifiers) {
+                validateLocalDeclaration(node, nameOf(specifier.local));
               }
             }
           },
           TSExportAssignment(node: TSExportAssignment) {
-            report(node, "export assignment", "=");
+            if (node.expression.type === "Identifier") {
+              validateLocalDeclaration(node, node.expression.name);
+            }
           }
         }
       : {};
   },
   meta: {
     docs: {
-      description:
-        "Require multiline TSDoc on exported TypeScript public API declarations."
+      description: "Check TSDoc on exported TypeScript public API declarations."
     },
     messages: {
       missingTsdoc:

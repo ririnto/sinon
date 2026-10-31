@@ -55,6 +55,9 @@ Keep each independent Gradle root's catalog separate.
 Rust roots create missing native configuration according to the [Rust profile's filename and preservation rules](rust.md#native-configuration-sources).
 The configurator leaves the Cargo manifest, crate identity, edition and minimum compiler unchanged.
 Node, frontend, and React roots receive the canonical base Oxc configuration, three independent style configurations, Oxfmt configuration, and flat plugin modules.
+Node API roots also receive TypeDoc configuration and a compatible TypeScript peer in the pnpm catalog.
+uv roots receive Sphinx configuration under `docs/` for the target's public package.
+Complete each selected profile's native documentation integration for its actual public entry points before running generation.
 The runtime fragment pins the supported Node 26 LTS line.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
 Set the selected pnpm version in the target root's `packageManager` field before installing dependencies or using the CI catalog.

@@ -1,0 +1,5 @@
+dokka {
+    dokkaPublications.html {
+        failOnWarning.set(true)
+    }
+}

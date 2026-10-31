@@ -101,6 +101,8 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-root>/oxlint.style-sibling-test-spacing.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-sibling-test-spacing.config.ts` when pnpm is selected |
 | `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
+| `<target-root>/typedoc.json` | `<plugin-root>/tooling/pnpm/typedoc.json` for a Node API profile |
+| `<target-root>/docs/conf.py` and `docs/index.rst` | `<plugin-root>/tooling/uv/docs/` when uv is selected |
 | `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |
 
 Use the `pnpm` hook source for Node, frontend, and React, and `gradle` for Kotlin.
@@ -147,6 +149,8 @@ Add only missing settings and preserve target values on conflict.
 Keep existing manifests, identity, source roots, toolchains, test owners, formatters, checkers, hooks, and unrelated CI jobs.
 Do not replace whole configuration files or silently upgrade dependencies to match a profile.
 Create native configuration only where the selected reference permits it and no target-owned file conflicts.
+When the target owns a public API and its selected profile supports documentation generation, configure and run the generator against the actual public entry points.
+Resolve actionable generator warnings and retain the configuration in the target without a dependency on the plugin checkout.
 
 For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs/tools/pnpm.md#bounded-manifest-merge).
 For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).

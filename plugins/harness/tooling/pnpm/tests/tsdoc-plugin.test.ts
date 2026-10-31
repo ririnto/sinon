@@ -72,7 +72,8 @@ test("Ultracite checks TSDoc delimiter lines on exports and methods", async () =
         "/**\n * Return a value.\n */ export function closingCode() { return 1; }\n" +
         "const value = 1; /**\n * Return the stored value.\n */\nexport function openingCode() { return value; }\n" +
         "/**\n * First.\n */\n/** Second. */\nexport const adjacentInline = 1;\n" +
-        "/** First. */\n/**\n * Second.\n */\nexport const adjacentMultiline = 1;\n"
+        "/** First. */\n/**\n * Second.\n */\nexport const adjacentMultiline = 1;\n" +
+        "/** An identifier. */\nexport type Identifier = string;\n"
     );
     await writeFile(
       path.join(directory, "source.js"),
@@ -94,12 +95,12 @@ test("Ultracite checks TSDoc delimiter lines on exports and methods", async () =
           diagnostics.filter((diagnostic: { message: string }) =>
             diagnostic.message.includes("Use multiline TSDoc")
           )
-        ).toHaveLength(7);
+        ).toHaveLength(8);
         expect(
           diagnostics.filter((diagnostic: { message: string }) =>
             diagnostic.message.includes("Missing TSDoc")
           )
-        ).toHaveLength(1);
+        ).toHaveLength(0);
       }
     }
   } finally {
@@ -107,7 +108,7 @@ test("Ultracite checks TSDoc delimiter lines on exports and methods", async () =
   }
 }, 30_000);
 
-test("Ultracite requires TSDoc on every exported form and public member", async () => {
+test("Ultracite checks declarations and members without requiring export wrapper comments", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-forms-"));
   const doc = "/**\n * Document it.\n */\n";
   try {
@@ -167,15 +168,9 @@ test("Ultracite requires TSDoc on every exported form and public member", async 
     expect(invalid.diagnostics.map(({ message }) => message)).toEqual([
       'Missing TSDoc for exported public API function "parse".',
       'Missing TSDoc for exported public API interface "Shape".',
-      'Missing TSDoc for exported public API type alias "Alias".',
       'Missing TSDoc for exported public API enum "Mode".',
       'Missing TSDoc for exported public API namespace "Space".',
-      'Missing TSDoc for exported public API variable "inner".',
       'Missing TSDoc for exported public API function "overload".',
-      'Missing TSDoc for exported public API default export "default".',
-      'Missing TSDoc for exported public API re-export "* from "./other.js"".',
-      'Missing TSDoc for exported public API re-export "a from "./other.js"".',
-      'Missing TSDoc for exported public API export list "local".',
       'Missing TSDoc for exported public API method "run".',
       'Missing TSDoc for exported public API property "handler".',
       'Missing TSDoc for exported public API property "build".'
@@ -184,7 +179,7 @@ test("Ultracite requires TSDoc on every exported form and public member", async 
       runUltracite(directory, "assignment.ts").diagnostics.map(
         ({ message }) => message
       )
-    ).toEqual(['Missing TSDoc for exported public API export assignment "=".']);
+    ).toEqual([]);
     expect(
       runUltracite(directory, "default-function.ts").diagnostics.map(
         ({ message }) => message
@@ -197,6 +192,32 @@ test("Ultracite requires TSDoc on every exported form and public member", async 
         ({ message }) => message
       )
     ).toEqual(['Missing TSDoc for exported public API method "read".']);
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+}, 30_000);
+
+test("Ultracite checks each indirectly exported variable in a shared declaration", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-bindings-"));
+  try {
+    await writeConfig(directory);
+    await writeFile(
+      path.join(directory, "source.ts"),
+      "const label = 1, compute = () => 42;\n" +
+        "/**\n * Expose the label.\n */\nexport { label };\n" +
+        "export { compute };\nexport { compute as calculate };\n"
+    );
+    const result = runUltracite(directory, "source.ts");
+    expect(result.status).toBe(1);
+    expect(result.diagnostics.map(({ message }) => message)).toEqual([
+      'Missing TSDoc for exported public API variable "compute".'
+    ]);
+    await writeFile(
+      path.join(directory, "documented.ts"),
+      "/**\n * Expose the value and calculation.\n */\n" +
+        "const label = 1, compute = () => 42;\nexport { label };\nexport { compute };\n"
+    );
+    expect(runUltracite(directory, "documented.ts").diagnostics).toEqual([]);
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
@@ -228,7 +249,7 @@ test.each(
         [false, true].map((documented) => ({
           documented,
           filename: `source-${index}-${documented}.${extension}`,
-          source: `${declaration} {\n${documented ? doc : ""}run() { return this.#internal(); }\nprivate hidden() {}\nprotected inherited() {}\n#internal() {}\n};\nconst _Helper = class { run() {} };\n${doc}${statement}\n`
+          source: `${doc}${declaration} {\n${documented ? doc : ""}run() { return this.#internal(); }\nprivate hidden() {}\nprotected inherited() {}\n#internal() {}\n};\nconst _Helper = class { run() {} };\n${statement}\n`
         }))
       );
       await Promise.all(
@@ -255,6 +276,27 @@ test.each(
       expect(
         runUltracite(directory, `direct.${extension}`).diagnostics
       ).toHaveLength(2);
+      await writeFile(
+        path.join(directory, `indirect.${extension}`),
+        `class Service {}\nexport { Service };\nexport default Service;\n`
+      );
+      expect(
+        runUltracite(directory, `indirect.${extension}`).diagnostics.map(
+          ({ message }) => message
+        )
+      ).toEqual(['Missing TSDoc for exported public API class "Service".']);
+      await writeFile(
+        path.join(directory, `indirect-values.${extension}`),
+        "function lookup() {}\ntype Key = string;\nconst value = 1;\nconst load = () => 1;\nexport { lookup, Key, value, load };\nexport { lookup as find };\n"
+      );
+      expect(
+        runUltracite(directory, `indirect-values.${extension}`).diagnostics.map(
+          ({ message }) => message
+        )
+      ).toEqual([
+        'Missing TSDoc for exported public API function "lookup".',
+        'Missing TSDoc for exported public API variable "load".'
+      ]);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }

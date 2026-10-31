@@ -74,7 +74,9 @@ Keep slices, owned collections, and direct loops when they make application code
 
 ## Documentation
 
-Document effectively public items and re-exports with `///` prose stating the contract, errors, and panics.
+Document meaningful effectively public contracts with `///` prose stating behavior, relevant parameters, errors, and panics.
+Use links where they help callers navigate related API items.
+Do not add boilerplate to trivial items merely to satisfy a missing-docs lint.
 Account for enclosing-module visibility before treating an item as public API.
 Use doc-comment examples for non-trivial APIs.
 Verify them through the target's documentation-test gate.

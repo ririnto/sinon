@@ -7,6 +7,11 @@ metadata:
         - https://docs.astral.sh/uv/guides/projects/sync/
         - https://docs.astral.sh/uv/concepts/projects/dependencies/
         - https://docs.astral.sh/uv/getting-started/installation/
+    Sphinx:
+      url:
+        - https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+        - https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html
+        - https://www.sphinx-doc.org/en/master/man/sphinx-build.html
     Ruff:
       version: 0.17.3
       url:
@@ -75,7 +80,8 @@ Read the [Python annotation requirements](../languages/python.md#syntax-and-styl
 The selected checks are `ANN001` through `ANN003`, `ANN201`, `ANN204`, `ANN205`, and `ANN206`.
 `ANN202` is not selected.
 Read the [Python docstring requirements](../languages/python.md#documentation) when configuring documentation checks.
-The selected docstring checks are `D100` through `D107`, `D209`, and `D213`.
+The selected docstring checks are `D209` and `D213`.
+Review public contracts for useful docstrings without requiring boilerplate for trivial declarations.
 The profile enables no preview rules and avoids formatter-conflicting rules such as `D203`, `D206`, and `D212`.
 Its 120-column line length matches the Python EditorConfig section.
 
@@ -96,6 +102,32 @@ uv run ruff format --check .
 `uv run ruff check --fix` applies safe lint fixes.
 There is no bundled Python test runner.
 Use the target's own test command when it has one.
+
+## API Documentation
+
+For a Python library, copy `tooling/uv/docs/conf.py` and `index.rst` into the target's `docs/` directory when those files do not exist.
+Merge with existing Sphinx configuration when the target already owns documentation.
+The supplied configuration reads the project name from `pyproject.toml`.
+Merge the `docs` dependency group from the uv fragment into the target manifest, retaining its Python version and existing constraints.
+The conditional `tomli` dependency supplies TOML parsing on Python versions before 3.11.
+Select a Sphinx release compatible with the target Python version and lock it with `uv sync --group docs`.
+Sphinx autodoc imports the documented package, so make the package and its dependencies importable in the uv environment and account for import-time side effects.
+
+Generate Sphinx API source files for the actual public package directory, then build the HTML site:
+
+```sh
+uv run --group docs sphinx-apidoc -o docs/api src/example_package
+pnpm run uv:doc
+```
+
+Replace `src/example_package` with the target's real package path.
+For multiple public packages, generate each package's sources and compose the target's toctree without overwriting existing authored pages.
+Inspect `docs/api/modules.rst` and generated module directives to ensure they cover the intended API.
+The shipped index expects that file.
+The `uv:doc` script runs `uv run --group docs sphinx-build -n -W -b html docs build/api-docs`.
+`-n` reports unresolved references and `-W` fails on warnings.
+Fix reported docstrings, imports, or references and rerun generation.
+The generated HTML belongs in ignored build output; generated source ownership follows the target's documentation convention.
 
 ## CI Behavior
 

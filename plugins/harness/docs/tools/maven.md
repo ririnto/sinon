@@ -23,6 +23,12 @@ metadata:
         - https://raw.githubusercontent.com/checkstyle/checkstyle/checkstyle-14.3.0/pom.xml
     Maven Checkstyle Plugin:
       url: https://maven.apache.org/plugins/maven-checkstyle-plugin/
+    Maven Javadoc Plugin:
+      version: 3.12.0
+      url: https://maven.apache.org/plugins/maven-javadoc-plugin/javadoc-mojo.html
+    Dokka Maven:
+      version: 2.2.0
+      url: https://kotlinlang.org/docs/dokka-maven.html
     Checkstyle Checks:
       url: https://checkstyle.org/checks.html
 ---
@@ -93,15 +99,22 @@ The fragment's `configLocation` path must remain aligned with the installed targ
 Set the Checkstyle engine to `14.3.0` through the plugin dependency when the target permits a managed engine override.
 Bind the `checkstyle:check` goal to the target's existing validation phase without replacing its lifecycle.
 
-The native configuration enforces braces, unused-import hygiene, public Javadoc, Java naming, line length, and prohibited direct standard streams.
+The native configuration enforces braces, unused-import hygiene, public type and callable Javadoc, Java naming, line length, and prohibited direct standard streams.
 It does not invent Maven coordinates, Java packages, release levels, module names, or test runners.
+
+Merge the Javadoc plugin and its version property from `pom.xml.fragment` into the existing build, retaining a compatible target-managed version when present.
+Run `./mvnw javadoc:javadoc` to generate Java API documentation in `target/reports/apidocs`.
+DocLint validates documentation comments and reports missing comments or tags as warnings as well as malformed markup and references.
+Review and address the warnings in the context of the public contract.
+The plugin fails on Javadoc errors by default, while warnings alone do not fail the build.
+DocLint also warns about undocumented trivial public fields, so assess those warnings rather than adding text that merely repeats a field name.
 
 ## Existing target merge
 
 Inspect the complete `pom.xml`, parent POM, profiles, dependency management, plugin management, wrapper, and Java release properties before editing.
 Prefer an existing version property or management section for plugin versions.
 If the target already owns Spotless, Checkstyle, or an equivalent formatter, keep that owner and report the overlap.
-Merge only the required plugin, properties, Checkstyle configuration, and lifecycle execution.
+Merge the selected plugins, properties, Checkstyle configuration, and lifecycle execution.
 Do not overwrite the whole POM or replace an incompatible parent, compiler release, repository, module, test, or publication configuration.
 Keep the target's existing groupId, artifactId, version, source roots, and toolchain.
 
@@ -119,6 +132,13 @@ Do not claim that arbitrary Maven builds can consume the ruleset.
 Do not use a machine-specific `systemPath` or require a Maven publication for local installation.
 If the target cannot express the local JAR classpath and its build dependency, report the integration gap instead of documenting a stale prebuilt JAR.
 Keep this Kotlin path independent from the Java Spotless and Checkstyle setup above.
+
+For a Kotlin Maven project, merge `dokka.pom.xml.fragment` into its build, preserving an existing compatible Dokka version.
+Run `./mvnw dokka:dokka` in each documented module to generate HTML in `target/dokka`.
+Dokka analyzes the project's compile source roots by default, so verify that the target's Kotlin source roots are registered or configure its existing roots in Dokka.
+The Maven plugin does not aggregate multiple modules.
+The supplied configuration fails generation on Dokka warnings, but does not report every undocumented declaration by default.
+Review KDoc for useful contract descriptions alongside generation.
 
 ## Commands
 

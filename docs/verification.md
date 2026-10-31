@@ -51,6 +51,19 @@ For specification tooling, exercise the bundled valid tree through the shipped C
 node --import tsx plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd.ts validate plugins/spec-driven-development/skills/spec-driven-development/references/examples/valid-spec-tree/spec
 ```
 
+For API documentation integrations, run the relevant native fixtures with the tools described by each profile available on `PATH`:
+
+```sh
+sh plugins/harness/tests/fixtures/api-docs/verify.sh
+python3 plugins/harness/tests/fixtures/jvm-documentation/verify.py
+HARNESS_GO_DOCS_TEST=1 pnpm exec vitest run plugins/harness/tests/go-doc-generation.test.ts
+```
+
+The first fixture installs its temporary Node and Python dependencies and needs Cargo and uv.
+The JVM fixture needs a JDK, Gradle, Maven, and dependency access.
+The Go fixture needs Go, pkgsite, and golangci-lint.
+These fixtures generate documentation and exercise diagnostic failures; the default Go test run skips the external-tool checks.
+
 After changing packaged plugin content, run the host validator in that package, for example:
 
 ```sh

@@ -67,11 +67,11 @@ const ignoredOutputs: Record<BaselineProfile, string[]> = {
   gradle: [".gradle/", "build/"],
   kotlin: [".gradle/", ".kotlin/", "build/"],
   maven: ["target/"],
-  node: ["dist/", "coverage/"],
+  node: ["dist/", "coverage/", "build/api-docs/"],
   react: ["dist/", "storybook-static/", ".vite/"],
   rust: ["target/"],
   shell: [],
-  uv: [".venv/", ".ruff_cache/", "__pycache__/", "*.pyc"]
+  uv: [".venv/", ".ruff_cache/", "__pycache__/", "*.pyc", "build/api-docs/"]
 };
 
 const isProfile = (value: string): value is BaselineProfile =>
@@ -164,6 +164,21 @@ export const configureBaseline = async (
   if (profile === "node" || profile === "frontend" || profile === "react") {
     workspace =
       (await readSource("pnpm/allow-builds.fragment.yaml")) + workspace;
+  }
+  if (profile === "node") {
+    const docs: ManifestFragment = JSON.parse(
+      await readSource("pnpm/api-docs.package.fragment.json")
+    );
+    Object.assign(manifest.scripts, docs.scripts);
+    Object.assign(manifest.devDependencies, docs.devDependencies);
+    const docsCatalog = await readSource(
+      "pnpm/api-docs.pnpm-workspace.fragment.yaml"
+    );
+    workspace += docsCatalog.replace(/^catalog:\n/u, "");
+    sources.set("typedoc.json", await readSource("pnpm/typedoc.json"));
+  }
+  if (profile === "uv") {
+    await addDirectory(sources, "uv/docs", "docs");
   }
   if (profile === "frontend" || profile === "react") {
     const extra: ManifestFragment = JSON.parse(
