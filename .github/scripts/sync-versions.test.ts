@@ -69,7 +69,7 @@ test("version snapshots detect drift, update, and remain self-contained", async 
   );
   await writeFile(
     path.join(fixture, "plugins/harness/ci/github/pnpm.yaml"),
-    "jobs:\n  pnpm:\n    steps:\n      - uses: pnpm/setup@v3\n        with:\n          runtime: node@24\n"
+    "jobs:\n  pnpm:\n    steps:\n      - uses: actions/setup-node@v7\n        with:\n          node-version: 24\n"
   );
   await writeFile(
     path.join(fixture, "plugins/harness/tooling/pnpm/runtime.fragment.json"),
@@ -119,5 +119,5 @@ test("version snapshots detect drift, update, and remain self-contained", async 
       "utf-8"
     )
   );
-  expect(github.jobs.pnpm.steps[0].with.runtime).toBe("node@26");
+  expect(github.jobs.pnpm.steps[0].with["node-version"]).toBe(26);
 });

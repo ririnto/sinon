@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/setup@v3.1.2
+      - uses: actions/setup-node@v7.1.0
         with:
-          runtime: node@26
-          install: false
+          node-version: 26
+      - run: npm install --global "$(node --print 'require("./package.json").packageManager')"
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check

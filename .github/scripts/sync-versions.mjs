@@ -69,13 +69,13 @@ const ciSnapshots = await Promise.all(
     } else {
       const steps = document.getIn(["jobs", "pnpm", "steps"], true);
       const step = steps.items.find((item) =>
-        String(item.get("uses")).startsWith("pnpm/setup@")
+        String(item.get("uses")).startsWith("actions/setup-node@")
       );
       if (!step) {
-        throw new Error("Missing pnpm/setup step");
+        throw new Error("Missing actions/setup-node step");
       }
-      scalar = step.getIn(["with", "runtime"], true);
-      value = `node@${major}`;
+      scalar = step.getIn(["with", "node-version"], true);
+      value = Number(major);
     }
     if (!scalar?.range) {
       throw new Error(`Missing Node runtime in ${file}`);
