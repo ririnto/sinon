@@ -185,8 +185,10 @@ describe("fresh-root baseline", () => {
       }
       const rules = await readdir(path.join(directory, "rules"));
       expect(rules.toSorted()).toEqual([
+        "markdown-prose.ts",
+        "no-em-dash.ts",
+        "no-relative-skill-links.ts",
         "no-sensitive-content.mjs",
-        "sentence-per-line.ts",
         "table-separators.ts"
       ]);
       expect(configuration.config["sensitive-content"]).toBeUndefined();

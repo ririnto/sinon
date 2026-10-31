@@ -17,7 +17,6 @@ Separate paragraphs with blank lines and leave spacing around headings, lists, a
 Keep independent instructions on separate lines instead of joining them with semicolons or other punctuation.
 Preserve technical meaning, permissions, code, metadata, exact quotations, licenses, and valid table syntax.
 Exclude generated and vendored material from mechanical prose edits.
-Use the [sentence-boundary detection limits](plugins/harness/docs/tools/pnpm.md#markdown-sentence-boundaries) when interpreting prose lint diagnostics.
 
 Use `.yaml` when the consuming platform supports it.
 Preserve required `.yml` names and record the consumer's filename requirement before renaming files.

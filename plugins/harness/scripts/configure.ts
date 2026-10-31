@@ -254,9 +254,15 @@ export const configureBaseline = async (
       ""
     ].join("\n")
   );
+  const markdownConfiguration = await readSource(
+    "pnpm/.markdownlint-cli2.jsonc"
+  );
   sources.set(
     ".markdownlint-cli2.jsonc",
-    await readSource("pnpm/.markdownlint-cli2.jsonc")
+    markdownConfiguration.replace(
+      '"$schema": "../../../../node_modules/',
+      '"$schema": "./node_modules/'
+    )
   );
   await addDirectory(sources, "pnpm/rules", "rules");
   await addDirectory(
