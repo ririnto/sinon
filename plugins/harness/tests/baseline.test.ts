@@ -203,7 +203,7 @@ describe("fresh-root baseline", () => {
             "utf-8"
           );
           expect(source).toBe(
-            `#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\npnpm run ${hook}\n`
+            `#!/usr/bin/env sh\n# vim: set fileencoding=utf-8 :\nset -e\npnpm run ${hook}\n`
           );
         })
       );
