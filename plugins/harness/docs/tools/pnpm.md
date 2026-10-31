@@ -43,11 +43,6 @@ metadata:
         - https://react.dev/reference/eslint-plugin-react-hooks/lints/set-state-in-effect
     Oxlint React Compiler rules:
       url: https://oxc.rs/docs/guide/usage/linter/rules/react/set-state-in-render.html
-    Maximum one sentence rule:
-      version: 0.0.2
-      url:
-        - https://registry.npmjs.org/markdownlint-rule-max-one-sentence-per-line/0.0.2
-        - https://raw.githubusercontent.com/aepfli/markdownlint-rule-max-one-sentence-per-line/main/README.md
     Ultracite:
       version: 8.1.0
       url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%408.1.0/packages/cli/README.md
@@ -180,16 +175,17 @@ The JavaScript override retains the JSDoc parameter and return checks while allo
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
+The source schema path resolves the installed dependency from the repository root.
+When merging the configuration manually, set `$schema` to `./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json` relative to the target root.
+The baseline configurator makes that adjustment when creating the target configuration.
 The profile ships its custom Markdownlint rules under `rules/`.
 Configured `search-replace` from `markdownlint-rule-search-replace` replaces the retired `docs/no-box-drawing` implementation.
 It reports the first U+2500 through U+257F character per line, including code, with its UTF-16 source column.
 The profile supplies no replacement text or automatic fix.
 Keep its dependency and catalog entry when merging the shared Markdown configuration.
 `docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and ignores fenced code and ordinary data rows.
-`docs/sentence-per-line` reports clear packed sentences and incorrect continuation boundaries in paragraphs, list items, and authored GitHub alerts.
-Its [detection limits](#markdown-sentence-boundaries) preserve literal quotations and syntax that cannot safely follow prose formatting.
-The profile and Sinon root enable this diagnostic rule without providing automatic prose fixes.
-`docs/no-em-dash` reports em dashes in the same authored prose contexts.
+Sentence-per-line formatting remains an authoring guideline rather than an enforced Markdownlint rule.
+`docs/no-em-dash` reports em dashes in authored prose in paragraphs, list items, and GitHub alerts.
 `docs/no-relative-skill-links` reports relative `SKILL.md` destinations in authored links and reference definitions.
 Ordinary reference links and absolute URLs remain valid.
 The link rule classifies external targets from the raw destination and removes query or fragment data before comparing paths.
@@ -198,8 +194,8 @@ Reserved delimiters such as `%2F`, `%3A`, `%3F`, and `%23` stay encoded.
 Control bytes, non-ASCII bytes, and malformed escapes stay literal.
 HTML character references, backslash escapes, and recursive percent decoding remain outside the normalization.
 The rule never rewrites links or reported source ranges.
-These three authored-prose rules share `sentence-per-line.ts` so their token, quotation, and document protections stay consistent.
-Sentence and punctuation checks use visible prose, while the link rule inspects destination tokens without treating them as prose.
+These two authored-prose rules use separate rule files and share `markdown-prose.ts` for token, quotation, and document protections.
+The punctuation rule checks visible prose, while the link rule inspects destination tokens without treating them as prose.
 The `docs/no-em-dash` and `docs/no-relative-skill-links` rules preserve code, frontmatter, quotations, and generated or licensed documents without automatic fixes.
 The Sinon repository enables these two rules only for Harness content, while the portable profile enables them for installed projects.
 Copy that directory alongside the config so the `customRules` paths resolve.
@@ -281,50 +277,6 @@ Passing establishes only that the supported patterns were absent from the suppli
 | Consistency | Consumers share one rule identity, one diagnostic per affected line, and their existing CLI2 command. |
 | Maintainability | One canonical implementation and one explicit package subpath replace consumer-owned copies after verified migration. |
 | Performance | Bounded in-process line scanning uses fixed patterns without subprocess scanners or a measured-speed claim. |
-
-### Markdown Sentence Boundaries
-
-Sentence-per-line formatting is a local authoring policy, not a Markdown syntax requirement.
-Markdownlint's built-in rules do not enforce sentence boundaries.
-Extend the existing rule rather than adding a second parser, rule package, or prose rewrite path.
-
-The rule reports `.`, `!`, or `?` followed by an uppercase or numeric sentence start on the same line.
-It recognizes common abbreviations and semicolon joins using bounded English patterns.
-Derive regular past forms from recognized imperative verbs ending in `e` by adding `d`, excluding `leave` and `write`.
-The past-form branch recognizes one visible candidate word after `the` when it starts with a Unicode letter or number.
-The word may continue with Unicode letters, numbers, combining marks, apostrophes, or hyphens and must end before `.`, `!`, `?`, `;`, `；`, or the physical line ending.
-The branch excludes `most`, `least`, `worst`, and every candidate word ending in `est` as a conservative spelling filter for degree expressions.
-This filter does not prove that the remaining word is a direct object, and it misses genuine noun objects such as `request`, `test`, and `forest`.
-Objects containing any opaque span receive no recognition in this branch because masking cannot establish their word count or spelling.
-Literal words containing underscores are also excluded from these forms.
-The other finite and imperative patterns do not use these object-word filters.
-Organization suffixes such as `Inc.` and enumeration suffixes such as `etc.` can end a sentence when the following text starts a recognized independent clause or instruction.
-Capitalization alone does not establish an independent clause after a semicolon.
-Conjunctive adverbs must start the following clause rather than occur inside a later list item.
-Colon-introduced semicolon series preserve comma-containing items before a final `and` or `or` item.
-It also recognizes sentence endings inside quotations when independent prose follows the closing quotation mark.
-Adjacent lines within one paragraph are checked when the previous line ends with an alphanumeric character.
-A lowercase continuation indicates wrapped prose, while a recognized imperative indicates an instruction missing its terminator.
-Separate paragraphs and list items are not joined for this check.
-
-Code, frontmatter, headings, HTML blocks, links, URLs, decimal values, version strings, and tables remain protected.
-Unmarked blockquotes and paired literal quotation marks preserve exact quotations, including quotations spanning source lines.
-Marked GitHub alerts remain authored prose and are checked inside their blockquote containers.
-Quoted contractions and escaped inner quotation marks preserve the outer quotation boundary.
-Single-letter initials are recognized only in bounded personal-name contexts, not after arbitrary single-letter values.
-License files named `LICENSE`, `LICENCE`, or `COPYING`, with optional extensions, are excluded from this prose rule.
-Generated files are recognized by `generated: true` or `autogenerated: true` frontmatter fields.
-Leading HTML comments beginning with `Generated`, `Automatically generated`, or `Auto-generated` also identify generated files within five lines.
-Other generated or vendored material still needs the target's existing ignore policy.
-These protections affect only the prose rule and do not disable other Markdown checks.
-
-This check is conservative and does not parse natural-language grammar.
-It cannot recognize every abbreviation, language, independent clause, unmarked quotation, or generated file.
-Lowercase sentence starts, unfamiliar semicolon clauses, and capitalized wrapped noun phrases may escape detection.
-Ambiguous lists, temporal expressions, abbreviation boundaries, and partly masked inline text can still produce false positives or false negatives.
-Continuation checks can mistake deliberately arranged unpunctuated prose for wrapped sentences.
-Review each diagnostic manually and preserve meaning when separating sentences or restoring terminators.
-Passing this rule establishes only that its supported patterns were absent.
 
 ## React Effect Policy
 

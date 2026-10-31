@@ -34,12 +34,6 @@ metadata:
     Search-replace:
       version: 1.2.0
       url: https://raw.githubusercontent.com/OnkarRuikar/markdownlint-rule-search-replace/main/README.md
-    SemBr:
-      version: 0.2.0
-      url: https://registry.npmjs.org/markdownlint-rule-sembr/0.2.0
-    Maximum one sentence:
-      version: 0.0.2
-      url: https://registry.npmjs.org/markdownlint-rule-max-one-sentence-per-line/0.0.2
     Relative links:
       url: https://raw.githubusercontent.com/theoludwig/markdownlint-rule-relative-links/main/README.md
     KtLint:
@@ -108,7 +102,6 @@ The adopted standards reside in lint configuration instead of duplicate guidance
 | --- | --- | --- | --- | --- |
 | `docs/no-box-drawing` | Configured `markdownlint-rule-search-replace` | Replace with `search-replace` because the configured pattern preserves the first box character per line, UTF-16 ranges, code coverage, and diagnostic-only behavior. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured search-replace rule in root and materialized pnpm profiles. |
 | `docs/table-separators` | Built-in `MD060/table-column-style` | Retain because compact table spacing permits delimiter cells longer than three hyphens. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured table rule in root and materialized pnpm profiles. |
-| `docs/sentence-per-line` | SemBr and maximum-one-sentence packages | Retain because wrapped continuations, bounded semicolon clauses, quotations, alerts, and document protections differ. | Consistency, maintainability | `check:markdownlint-cli2` runs the canonical sentence rule in root and materialized pnpm profiles. |
 | `docs/no-em-dash` | Text-scoped search-replace and extended-ASCII restrictions | Retain because authored-prose protections permit quotations, headings, and unrelated Unicode. | Consistency, maintainability | The root config scopes this rule to `plugins/harness/`, while the materialized pnpm profile applies it without that path restriction. |
 | `docs/no-relative-skill-links` | `markdownlint-rule-relative-links` | Retain because the policy prohibits selected relative skill destinations even when those files exist. | Consistency, maintainability | The root config scopes this rule to `plugins/harness/`, while the materialized pnpm profile applies it without that path restriction. |
 

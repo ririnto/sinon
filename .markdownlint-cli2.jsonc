@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.24.0/schema/markdownlint-cli2-config-schema.json",
+  "$schema": "./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json",
   "config": {
     "code-block-style": {
       "style": "fenced"
@@ -10,7 +10,6 @@
     "docs/no-relative-skill-links": {
       "paths": ["plugins/harness/"]
     },
-    "docs/sentence-per-line": true,
     "docs/table-separators": true,
     "line-length": false,
     "no-duplicate-heading": {
@@ -38,7 +37,8 @@
   },
   "customRules": [
     "markdownlint-rule-search-replace",
-    "rules/sentence-per-line.ts",
+    "rules/no-em-dash.ts",
+    "rules/no-relative-skill-links.ts",
     "rules/table-separators.ts"
   ],
   "gitignore": true

@@ -1,10 +1,10 @@
 import { spawnSync } from "node:child_process";
 import {
-  cp,
   mkdir,
   mkdtemp,
   readdir,
   readFile,
+  realpath,
   rm,
   symlink,
   writeFile
@@ -12,6 +12,7 @@ import {
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
@@ -611,27 +612,37 @@ describe("pnpm profile configuration", () => {
   test("Markdownlint configuration resolves from an installed copy", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-md-"));
     try {
-      await cp(
-        path.join(profileDirectory, ".markdownlint-cli2.jsonc"),
-        path.join(directory, ".markdownlint-cli2.jsonc")
-      );
-      await cp(
-        path.join(profileDirectory, "rules"),
-        path.join(directory, "rules"),
-        {
-          filter: (source) => !source.endsWith(".test.ts"),
-          recursive: true
-        }
-      );
+      await configureBaseline(directory, "node", "eligible");
       await symlink(
         nodeModulesDirectory,
         path.join(directory, "node_modules"),
         "dir"
       );
+      const schema = await realpath(
+        path.join(
+          path.dirname(resolvePackage("markdownlint-cli2")),
+          "schema/markdownlint-cli2-config-schema.json"
+        )
+      );
+      await Promise.all(
+        [
+          path.join(profileDirectory, ".markdownlint-cli2.jsonc"),
+          path.join(directory, ".markdownlint-cli2.jsonc")
+        ].map(async (configPath) => {
+          const configuration = JSON.parse(await readFile(configPath, "utf-8"));
+          expect(
+            await realpath(
+              new URL(configuration.$schema, pathToFileURL(configPath))
+            )
+          ).toBe(schema);
+        })
+      );
       const installedRules = await readdir(path.join(directory, "rules"));
       expect(installedRules.toSorted()).toEqual([
+        "markdown-prose.ts",
+        "no-em-dash.ts",
+        "no-relative-skill-links.ts",
         "no-sensitive-content.mjs",
-        "sentence-per-line.ts",
         "table-separators.ts"
       ]);
       await mkdir(path.join(directory, "nested"));
@@ -643,20 +654,26 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "nested/ignored.md"),
         "# First\n\n# Second\n"
       );
+      await writeFile(
+        path.join(directory, "sample.md"),
+        "# Sample\n\nFirst sentence. Second sentence.\n"
+      );
       const ignored = spawnSync(process.execPath, [markdownlintBin], {
         cwd: directory
       });
       expect(ignored.status).toBe(0);
       await writeFile(
         path.join(directory, "sample.md"),
-        "# Sample\n\nFirst sentence. Second sentence.\n\n| A |\n| -- |\n| 1 |\n\n──\n"
+        "# Sample\n\nFirst sentence. Second sentence.\n\nAvoid — punctuation and [relative skills](../SKILL.md).\n\n| A |\n| -- |\n| 1 |\n\n──\n"
       );
       const result = spawnSync(process.execPath, [markdownlintBin], {
         cwd: directory
       });
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status).toBe(1);
-      expect(output).toContain("docs/sentence-per-line");
+      expect(output).not.toContain("docs/sentence-per-line");
+      expect(output).toContain("docs/no-em-dash");
+      expect(output).toContain("docs/no-relative-skill-links");
       expect(output).toContain("docs/table-separators");
       expect(output).toContain("search-replace");
     } finally {
