@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.24.0/schema/markdownlint-cli2-config-schema.json",
+  "$schema": "./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json",
   "config": {
     "code-block-style": {
       "style": "fenced"
@@ -38,6 +38,8 @@
   },
   "customRules": [
     "markdownlint-rule-search-replace",
+    "rules/no-em-dash.ts",
+    "rules/no-relative-skill-links.ts",
     "rules/sentence-per-line.ts",
     "rules/table-separators.ts"
   ],

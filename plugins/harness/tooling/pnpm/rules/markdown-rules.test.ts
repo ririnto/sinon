@@ -16,12 +16,10 @@ import type { Rule } from "markdownlint";
 import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 
-import rootSentenceRules from "../../../../../rules/sentence-per-line.js";
-import {
-  sentencePerLine,
-  noEmDash,
-  noRelativeSkillLinks
-} from "./sentence-per-line.js";
+import rootSentenceRule from "../../../../../rules/sentence-per-line.js";
+import noEmDash from "./no-em-dash.js";
+import noRelativeSkillLinks from "./no-relative-skill-links.js";
+import sentencePerLine from "./sentence-per-line.js";
 import tableSeparators from "./table-separators.js";
 
 const { default: sensitiveContent }: { default: Rule } = await import(
@@ -475,7 +473,7 @@ describe("docs/sentence-per-line", () => {
       const errors =
         lint({
           config: { default: false, "docs/sentence-per-line": true },
-          customRules: rootSentenceRules,
+          customRules: [rootSentenceRule],
           strings: { input }
         }).input ?? [];
       expect(
@@ -503,7 +501,7 @@ describe("docs/sentence-per-line", () => {
     const errors =
       lint({
         config: { default: false, "docs/sentence-per-line": true },
-        customRules: rootSentenceRules,
+        customRules: [rootSentenceRule],
         strings: { input }
       }).input ?? [];
     expect(
@@ -536,7 +534,7 @@ describe("docs/sentence-per-line", () => {
     const errors =
       lint({
         config: { default: false, "docs/sentence-per-line": true },
-        customRules: rootSentenceRules,
+        customRules: [rootSentenceRule],
         strings: { input }
       }).input ?? [];
     expect(
@@ -642,7 +640,7 @@ describe("docs/sentence-per-line", () => {
     const errors =
       lint({
         config: { default: false, "docs/sentence-per-line": true },
-        customRules: rootSentenceRules,
+        customRules: [rootSentenceRule],
         strings: { input }
       }).input ?? [];
     expect(errors).toEqual([]);
@@ -672,6 +670,8 @@ describe("docs/sentence-per-line", () => {
       "an ambiguous imperative word in a complex list",
       "The lifecycle has three phases: setup; restart, if needed; and cleanup.\n"
     ],
+    ["a colon-introduced list", "The phases are: setup; restart; cleanup.\n"],
+    ["a time abbreviation", "At 5 p.m. UTC, start the check.\n"],
     [
       "an organization abbreviation within a sentence",
       "The vendor is Acme Inc. and will restart the server.\n"
@@ -716,6 +716,7 @@ describe("docs/sentence-per-line", () => {
 
   test.each([
     ["a paragraph", "First sentence. Second sentence follows.\n", 15],
+    ["Korean sentences", "첫 문장입니다. 다음 문장입니다.\n", 8],
     [
       "an organization abbreviation before an instruction",
       "The vendor is Acme Inc. Restart the server.\n",
@@ -821,11 +822,6 @@ describe("docs/sentence-per-line", () => {
       "an imperative followed by a comma",
       "Setup is complete; restart, if needed.\n",
       18
-    ],
-    [
-      "an instruction after a colon without a later list join",
-      "Before release: all checks passed; restart the service, if needed.\n",
-      34
     ],
     ["a capitalized subject", "First stands alone; This is ready.\n", 19],
     ["a lowercase subject", "First stands alone; this is ready.\n", 19],

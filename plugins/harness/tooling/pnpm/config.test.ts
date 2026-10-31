@@ -630,6 +630,9 @@ describe("pnpm profile configuration", () => {
       );
       const installedRules = await readdir(path.join(directory, "rules"));
       expect(installedRules.toSorted()).toEqual([
+        "markdown-prose.ts",
+        "no-em-dash.ts",
+        "no-relative-skill-links.ts",
         "no-sensitive-content.mjs",
         "sentence-per-line.ts",
         "table-separators.ts"
@@ -649,7 +652,7 @@ describe("pnpm profile configuration", () => {
       expect(ignored.status).toBe(0);
       await writeFile(
         path.join(directory, "sample.md"),
-        "# Sample\n\nFirst sentence. Second sentence.\n\n| A |\n| -- |\n| 1 |\n\n──\n"
+        "# Sample\n\nFirst sentence. Second sentence.\n\nAvoid — punctuation and [relative skills](../SKILL.md).\n\n| A |\n| -- |\n| 1 |\n\n──\n"
       );
       const result = spawnSync(process.execPath, [markdownlintBin], {
         cwd: directory
@@ -657,6 +660,8 @@ describe("pnpm profile configuration", () => {
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status).toBe(1);
       expect(output).toContain("docs/sentence-per-line");
+      expect(output).toContain("docs/no-em-dash");
+      expect(output).toContain("docs/no-relative-skill-links");
       expect(output).toContain("docs/table-separators");
       expect(output).toContain("search-replace");
     } finally {

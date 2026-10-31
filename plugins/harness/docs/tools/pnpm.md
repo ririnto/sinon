@@ -180,6 +180,8 @@ The JavaScript override retains the JSDoc parameter and return checks while allo
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.
 Merge the canonical `.markdownlint-cli2.jsonc` from this profile into an existing target configuration, or create it when none exists.
+Its schema path resolves the installed dependency from the target root.
+The source profile's nested location does not resolve that path before materialization.
 The profile ships its custom Markdownlint rules under `rules/`.
 Configured `search-replace` from `markdownlint-rule-search-replace` replaces the retired `docs/no-box-drawing` implementation.
 It reports the first U+2500 through U+257F character per line, including code, with its UTF-16 source column.
@@ -198,7 +200,7 @@ Reserved delimiters such as `%2F`, `%3A`, `%3F`, and `%23` stay encoded.
 Control bytes, non-ASCII bytes, and malformed escapes stay literal.
 HTML character references, backslash escapes, and recursive percent decoding remain outside the normalization.
 The rule never rewrites links or reported source ranges.
-These three authored-prose rules share `sentence-per-line.ts` so their token, quotation, and document protections stay consistent.
+These three authored-prose rules use separate rule files and share `markdown-prose.ts` for token, quotation, and document protections.
 Sentence and punctuation checks use visible prose, while the link rule inspects destination tokens without treating them as prose.
 The `docs/no-em-dash` and `docs/no-relative-skill-links` rules preserve code, frontmatter, quotations, and generated or licensed documents without automatic fixes.
 The Sinon repository enables these two rules only for Harness content, while the portable profile enables them for installed projects.
@@ -288,8 +290,9 @@ Sentence-per-line formatting is a local authoring policy, not a Markdown syntax 
 Markdownlint's built-in rules do not enforce sentence boundaries.
 Extend the existing rule rather than adding a second parser, rule package, or prose rewrite path.
 
-The rule reports `.`, `!`, or `?` followed by an uppercase or numeric sentence start on the same line.
+The rule reports `.`, `!`, or `?` followed by an uppercase, numeric, or Hangul sentence start on the same line.
 It recognizes common abbreviations and semicolon joins using bounded English patterns.
+These patterns do not detect every language or sentence boundary.
 Derive regular past forms from recognized imperative verbs ending in `e` by adding `d`, excluding `leave` and `write`.
 The past-form branch recognizes one visible candidate word after `the` when it starts with a Unicode letter or number.
 The word may continue with Unicode letters, numbers, combining marks, apostrophes, or hyphens and must end before `.`, `!`, `?`, `;`, `；`, or the physical line ending.
@@ -301,7 +304,7 @@ The other finite and imperative patterns do not use these object-word filters.
 Organization suffixes such as `Inc.` and enumeration suffixes such as `etc.` can end a sentence when the following text starts a recognized independent clause or instruction.
 Capitalization alone does not establish an independent clause after a semicolon.
 Conjunctive adverbs must start the following clause rather than occur inside a later list item.
-Colon-introduced semicolon series preserve comma-containing items before a final `and` or `or` item.
+Semicolons after a colon in the current sentence are skipped because lists and independent clauses can be ambiguous.
 It also recognizes sentence endings inside quotations when independent prose follows the closing quotation mark.
 Adjacent lines within one paragraph are checked when the previous line ends with an alphanumeric character.
 A lowercase continuation indicates wrapped prose, while a recognized imperative indicates an instruction missing its terminator.
@@ -410,6 +413,7 @@ Run `pnpm run fix` within the authorized source-edit scope.
 The `fix:ultracite` task runs one formatter-writing base fix, then read-only style checks through `run-s --continue-on-error`.
 The command preserves a failing exit status while collecting diagnostics from every pass.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
+Although `docs/sentence-per-line` supplies no fixes, this command can change files using fixes from other enabled rules.
 Run `pnpm run test` only when the target owns that native test command.
 The source profile uses `vitest run` for non-watching tests.
 Omit the test command when the target has no native test owner rather than creating a dummy suite or relying on an empty-suite flag.
