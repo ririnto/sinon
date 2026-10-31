@@ -3,13 +3,11 @@ title: pnpm
 metadata:
   reference:
     pnpm:
-      version: 12.16.1
       url:
         - https://pnpm.io/installation
         - https://pnpm.io/catalogs
         - https://pnpm.io/cli/install
     TypeDoc:
-      version: 0.28.20
       url:
         - https://typedoc.org/documents/Options.Input.html
         - https://typedoc.org/documents/Options.Validation.html
@@ -128,7 +126,7 @@ Use the [Git hook integration](#git-hook-integration) for the script surface.
 
 For a library with public JavaScript or TypeScript exports, merge `tooling/pnpm/api-docs.package.fragment.json` and `tooling/pnpm/api-docs.pnpm-workspace.fragment.yaml` into the target manifest and catalog.
 Use a TypeDoc version compatible with the target's TypeScript version and Node runtime.
-TypeDoc 0.28.20 accepts TypeScript 5.0 through 6.0; preserve a compatible target pin.
+Check the selected TypeDoc release's published TypeScript peer range and preserve a compatible target pin.
 Copy `tooling/pnpm/typedoc.json` to the project root when no TypeDoc configuration exists, or merge its settings without replacing the target's entry points or other options.
 The configuration writes HTML to `build/api-docs` and makes warnings fail the command.
 Ignore that generated directory in version control.
@@ -449,19 +447,9 @@ Existing CI jobs and package scripts take precedence over these catalog entries.
 
 ## Source Profile Version Evidence
 
-The source profile selects these catalog ranges:
-
-- Oxlint `^1.90.0`.
-- Oxfmt `^0.75.0`.
-- Ultracite `^8.1.0`.
-- Markdownlint `^0.42.0`.
-- Markdownlint CLI2 `^0.24.0`.
-- npm-run-all2 `^9.0.4`.
-- Vitest `^5.0.5`.
-- `@oxc-project/types` `^0.156.0`.
-
+The source profile catalog fragments carry the selected version ranges.
 Each target selects its own pnpm version.
-The Harness source-profile baseline is maintained independently from the Sinon root catalog and may lag it.
+The source-profile fragments are synchronized from the Sinon root catalog before publication.
 The root `pnpm-workspace.yaml` catalog, `package.json`, and `pnpm-lock.yaml` own installed root tool versions.
 Verify Ultracite upgrades against its selected-version source and supported Oxlint, Oxfmt, and plugin APIs.
 The target owns final dependency versions through its manifest and lockfile.

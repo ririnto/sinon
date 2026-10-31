@@ -4,8 +4,7 @@ metadata:
     Node.js releases:
       url: https://nodejs.org/en/about/previous-releases
     Node 26 TypeScript base:
-      version: 26.0.1
-      url: https://registry.npmjs.org/@tsconfig%2fnode26/26.0.1
+      url: https://www.npmjs.com/package/@tsconfig/node26
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/target.html
@@ -13,7 +12,6 @@ metadata:
     pnpm catalogs:
       url: https://pnpm.io/catalogs
     pnpm installation:
-      version: 12.16.1
       url: https://pnpm.io/installation
 ---
 

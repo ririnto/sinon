@@ -111,6 +111,45 @@ describe("fresh-root baseline", () => {
     }
   );
 
+  test.each([undefined, "npm@1.0.0", "pnpm@latest"])(
+    "GitLab pnpm installation rejects an invalid packageManager: %s",
+    async (packageManager) => {
+      const directory = await targetDirectory();
+      await mkdir(path.join(directory, ".bin"));
+      await writeFile(
+        path.join(directory, ".bin/npm"),
+        '#!/usr/bin/env sh\nprintf "unexpected npm invocation\n"\nexit 99\n',
+        { mode: 0o755 }
+      );
+      await writeFile(
+        path.join(directory, "package.json"),
+        JSON.stringify({ packageManager })
+      );
+      const commands = parseDocument(
+        await readFile(
+          path.join(
+            repositoryRoot,
+            "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"
+          ),
+          "utf-8"
+        )
+      ).toJS().pnpm.before_script;
+      const result = spawnSync("sh", ["-c", String(commands[0])], {
+        cwd: directory,
+        encoding: "utf-8",
+        env: {
+          ...process.env,
+          PATH: `${path.join(directory, ".bin")}${path.delimiter}${process.env.PATH}`
+        }
+      });
+      expect(result.status).not.toBe(0);
+      expect(result.stdout).not.toContain("unexpected npm invocation");
+      expect(result.stderr).toContain(
+        "packageManager must be a version-only pnpm pin"
+      );
+    }
+  );
+
   test.each(profiles)(
     "%s materializes the shared gate and retains it on repetition",
     async (profile) => {
@@ -125,7 +164,10 @@ describe("fresh-root baseline", () => {
         "catalog:"
       );
       expect(manifest.packageManager).toBeUndefined();
-      expect(manifest.engines.node).toBe("^26.13.0");
+      const rootManifest = JSON.parse(
+        await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
+      );
+      expect(manifest.engines.node).toBe(rootManifest.engines.node);
       expect(manifest.scripts).toMatchObject({
         check: "run-p check:*",
         "check:markdownlint-cli2": "markdownlint-cli2",
