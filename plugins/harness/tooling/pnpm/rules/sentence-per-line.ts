@@ -151,7 +151,8 @@ const rebuildLine = (segments: readonly Segment[]): string => {
  */
 const protectText = (text: string): string =>
   text.replaceAll(protectedTextPattern, (match) => {
-    const ending = /(?<ending>[.!?]["'”’])$/u.exec(match)?.groups?.ending ?? "";
+    const { ending = "" } =
+      /(?<ending>[.!?]["'”’])$/u.exec(match)?.groups ?? {};
     const masked = match.replaceAll(/[^\r\n]/gu, (character) =>
       " ".repeat(character.length)
     );
@@ -247,7 +248,7 @@ const joinedSemicolon = (line: string): Finding | undefined => {
     ) {
       return {
         column: index + 1,
-        length: match.groups?.semicolon.length ?? 0
+        length: 1
       };
     }
   }

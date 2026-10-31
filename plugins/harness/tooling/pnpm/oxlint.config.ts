@@ -5,9 +5,11 @@ import core from "ultracite/oxlint/core";
  * Configure the pnpm profile's native lint checks.
  */
 export default defineConfig({
-  env: core.env,
+  ...(core.env === undefined ? {} : { env: core.env }),
   extends: [core],
-  ignorePatterns: core.ignorePatterns,
+  ...(core.ignorePatterns === undefined
+    ? {}
+    : { ignorePatterns: core.ignorePatterns }),
   jsPlugins: [
     { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
     "./plugins/no-direct-use-effect.ts",

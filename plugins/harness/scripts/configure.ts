@@ -25,6 +25,16 @@ export type BaselineProfile =
   | "react";
 
 /**
+ * Select a TypeScript base for the target's actual runtime or framework.
+ */
+export type TypeScriptProfile =
+  | "node"
+  | "vite-react"
+  | "vue"
+  | "react-native"
+  | "next";
+
+/**
  * Carry the installer's verified repository eligibility decision.
  */
 export type BaselineEligibility =
@@ -60,6 +70,31 @@ const nativeProfiles = {
   rust: "rust/package.json",
   shell: "shell/package.json",
   uv: "uv/package.json"
+};
+const typescriptProfiles: Record<
+  TypeScriptProfile,
+  { dependency: string; config: string }
+> = {
+  next: {
+    config: "@tsconfig/next/tsconfig.json",
+    dependency: "@tsconfig/next"
+  },
+  node: {
+    config: "@tsconfig/node-lts/tsconfig.json",
+    dependency: "@tsconfig/node-lts"
+  },
+  "react-native": {
+    config: "@tsconfig/react-native/tsconfig.json",
+    dependency: "@tsconfig/react-native"
+  },
+  "vite-react": {
+    config: "@tsconfig/vite-react/tsconfig.json",
+    dependency: "@tsconfig/vite-react"
+  },
+  vue: {
+    config: "@vue/tsconfig/tsconfig.dom.json",
+    dependency: "@vue/tsconfig"
+  }
 };
 const ignoredOutputs: Record<BaselineProfile, string[]> = {
   frontend: ["dist/", "storybook-static/", ".vite/"],
@@ -137,6 +172,79 @@ const assertAncestors = async (
   );
 };
 
+const addTypeScriptProfile = async (
+  sources: Map<string, string>,
+  manifest: ManifestFragment,
+  profile: BaselineProfile,
+  workspace: string,
+  typescriptProfile?: TypeScriptProfile
+): Promise<string> => {
+  if (!typescriptProfile) {
+    return workspace;
+  }
+  if (!(profile === "node" || profile === "frontend" || profile === "react")) {
+    throw new Error(
+      "TypeScript profiles require a Node, frontend, or React baseline."
+    );
+  }
+  const base = typescriptProfiles[typescriptProfile];
+  manifest.devDependencies[base.dependency] = "catalog:";
+  if (typescriptProfile === "node") {
+    manifest.devDependencies["@types/node"] = "catalog:";
+  }
+  const { compilerOptions } = JSON.parse(
+    await readSource("pnpm/tsconfig.fragment.json")
+  );
+  if (typescriptProfile === "react-native") {
+    delete compilerOptions.verbatimModuleSyntax;
+    compilerOptions.moduleResolution = "bundler";
+  }
+  if (typescriptProfile === "vue") {
+    manifest.devDependencies.typescript = "catalog:vue";
+    delete compilerOptions.verbatimModuleSyntax;
+  }
+  if (typescriptProfile === "vite-react") {
+    delete compilerOptions.noFallthroughCasesInSwitch;
+    delete compilerOptions.verbatimModuleSyntax;
+    compilerOptions.tsBuildInfoFile =
+      "./node_modules/.tmp/tsconfig.app.tsbuildinfo";
+  }
+  sources.set(
+    "tsconfig.json",
+    `${JSON.stringify(
+      {
+        compilerOptions,
+        extends: base.config,
+        ...(typescriptProfile === "next"
+          ? {
+              exclude: ["node_modules"],
+              include: [
+                "next-env.d.ts",
+                "**/*.ts",
+                "**/*.tsx",
+                ".next/types/**/*.ts"
+              ]
+            }
+          : {})
+      },
+      null,
+      2
+    )}\n`
+  );
+  if (typescriptProfile === "vue") {
+    const vueCatalog = await readSource(
+      "pnpm/vue.pnpm-workspace.fragment.yaml"
+    );
+    return (
+      workspace +
+      vueCatalog
+        .replace("catalog:\n", "catalogs:\n  vue:\n")
+        .replace("  typescript:", "    typescript:")
+    );
+  }
+  return workspace;
+};
+
 /**
  * Materialize the eligible fresh-root baseline after a complete conflict preview.
  * Preserve identical files, native version catalogs and Rust configuration on repeated runs.
@@ -146,7 +254,8 @@ const assertAncestors = async (
 export const configureBaseline = async (
   targetRoot: string,
   profile: BaselineProfile,
-  eligibility: BaselineEligibility
+  eligibility: BaselineEligibility,
+  typescriptProfile?: TypeScriptProfile
 ): Promise<BaselineResult> => {
   if (eligibility !== "eligible") {
     return { created: [], kept: [], status: "skipped" };
@@ -194,6 +303,13 @@ export const configureBaseline = async (
     await addDirectory(sources, `${profile}/.storybook`, ".storybook");
     sources.set("DESIGN.md", await readSource("frontend/DESIGN.md.fragment"));
   }
+  workspace = await addTypeScriptProfile(
+    sources,
+    manifest,
+    profile,
+    workspace,
+    typescriptProfile
+  );
   const runtime = JSON.parse(await readSource("pnpm/runtime.fragment.json"));
   sources.set(
     "package.json",
@@ -374,12 +490,13 @@ if (
       help: { type: "boolean" },
       "non-interactive": { default: true, type: "boolean" },
       profile: { type: "string" },
-      target: { type: "string" }
+      target: { type: "string" },
+      "typescript-profile": { type: "string" }
     }
   });
   if (values.help) {
     process.stdout.write(
-      "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|rust|uv|shell|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> --non-interactive\n"
+      "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|rust|uv|shell|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> [--typescript-profile <node|vite-react|vue|react-native|next>] --non-interactive\n"
     );
   } else {
     if (
@@ -393,8 +510,22 @@ if (
         "Provide --target, a supported --profile, and verified --eligibility."
       );
     }
+    if (
+      values["typescript-profile"] &&
+      !Object.hasOwn(typescriptProfiles, values["typescript-profile"])
+    ) {
+      throw new Error("Provide a supported --typescript-profile.");
+    }
+    if (
+      values["typescript-profile"] &&
+      !["node", "frontend", "react"].includes(values.profile)
+    ) {
+      throw new Error(
+        "TypeScript profiles require a Node, frontend, or React baseline."
+      );
+    }
     process.stdout.write(
-      `${JSON.stringify(await configureBaseline(values.target, values.profile, values.eligibility))}\n`
+      `${JSON.stringify(await configureBaseline(values.target, values.profile, values.eligibility, values["typescript-profile"] as TypeScriptProfile | undefined))}\n`
     );
   }
 }

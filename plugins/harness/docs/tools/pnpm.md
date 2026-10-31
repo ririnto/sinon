@@ -2,6 +2,13 @@
 title: pnpm
 metadata:
   reference:
+    TypeScript configurations:
+      url:
+        - https://www.npmjs.com/package/@tsconfig/node-lts
+        - https://www.npmjs.com/package/@tsconfig/vite-react
+        - https://www.npmjs.com/package/@vue/tsconfig
+        - https://www.npmjs.com/package/@tsconfig/react-native
+        - https://www.npmjs.com/package/@tsconfig/next
     pnpm:
       url:
         - https://pnpm.io/installation
@@ -388,13 +395,21 @@ The tested backend contract is documented in the [Oxlint rule implementation](ht
 
 ## TypeScript Strictness Merge
 
-`tsconfig.fragment.json` lists strictness flags that the maintainer's TypeScript projects already use.
-They are `exactOptionalPropertyTypes`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noImplicitReturns`, `noPropertyAccessFromIndexSignature`, `noUncheckedIndexedAccess`, and `verbatimModuleSyntax`.
-Merge only the flags the target's `compilerOptions` do not already set, and preserve any value the target chose.
-Keep the target's `extends`, `module`, `target`, `include`, and `types` settings unchanged.
+Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node-lts` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
+Install the selected base as a target-owned development dependency and add its version to the target's pnpm catalog.
+Keep the Node runtime version independent of the Node LTS base package's version.
+A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit it.
+The configurator applies the strictness fragment while omitting options already supplied by the base.
+React Native uses bundler module resolution for Metro and omits `verbatimModuleSyntax`, which conflicts with the base's CommonJS module setting.
+Next source includes and the Vite build-info path are target-relative.
+The Vue profile selects TypeScript 6 through a named catalog for compatibility with Vue language tooling.
+Install the target framework and required framework types separately, and verify compatibility with the selected TypeScript version.
+
+For an existing TypeScript configuration, inspect its effective compiler settings and consumers, then migrate `extends` to the selected base.
+Preserve required target behavior with justified overrides, including source paths, module and runtime settings, and types.
+Merge missing flags from `tsconfig.fragment.json` after checking their compatibility with the target and chosen base, and report genuine conflicts.
 Each flag can introduce new compiler errors in existing code, so run `pnpm exec tsc --noEmit` after merging and report the new errors instead of fixing unrelated source.
 Skip the fragment for a JavaScript-only target.
-`verbatimModuleSyntax` requires `import type` for type-only imports, which matches the profile's `typescript/consistent-type-imports` rule.
 
 ## Commands
 

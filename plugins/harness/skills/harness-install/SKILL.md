@@ -153,7 +153,7 @@ When the target owns a public API and its selected profile supports documentatio
 Resolve actionable generator warnings and retain the configuration in the target without a dependency on the plugin checkout.
 
 For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs/tools/pnpm.md#bounded-manifest-merge).
-For pnpm, merge the TypeScript strictness fragment only through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
+For pnpm, select and configure the target TypeScript base through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
 The pnpm profile owns the canonical Markdownlint configuration and rules, including config-based `node_modules` exclusion.
 Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
 For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md).

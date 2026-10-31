@@ -170,9 +170,9 @@ catalogs:
     '@oxc-project/types':
       specifier: ^0.156.0
       version: 0.156.0
-    '@tsconfig/node26':
-      specifier: ^26.0.1
-      version: 26.0.1
+    '@tsconfig/node-lts':
+      specifier: ^24.0.1
+      version: 24.0.1
     '@types/node':
       specifier: ^26.6.6
       version: 26.6.6
@@ -238,9 +238,9 @@ importers:
       '@oxc-project/types':
         specifier: 'catalog:'
         version: 0.156.0
-      '@tsconfig/node26':
+      '@tsconfig/node-lts':
         specifier: 'catalog:'
-        version: 26.0.1
+        version: 24.0.1
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -1023,8 +1023,8 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
-  '@tsconfig/node26@26.0.1':
-    resolution: {integrity: sha512-NQT8JUFDKeAIWpR1dakeF534msQAsoSLr1WpKdRDt3sCvk2fsFK3EVKUBG5xKYVamiRO6yTfniiyvCaqOGgn/g==}
+  '@tsconfig/node-lts@24.0.1':
+    resolution: {integrity: sha512-xo+1KtV5zVb90fyyeglG1n5cqg3cQXLlCkEpLptYlZUNk28xmwhuD5GmxoXwmrVtUTvaMyclun9kAd0TK7H+Pg==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -2996,7 +2996,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@tsconfig/node26@26.0.1': {}
+  '@tsconfig/node-lts@24.0.1': {}
 
   '@types/chai@5.2.3':
     dependencies:
