@@ -2,6 +2,14 @@
 title: Rust Tool Reference
 metadata:
   reference:
+    Google Rust style guide:
+      url: https://google.github.io/styleguide/rustguide.html
+    Rustfmt configuration:
+      url: https://raw.githubusercontent.com/rust-lang/rustfmt/master/Configurations.md
+    Cargo validation:
+      url:
+        - https://doc.rust-lang.org/cargo/commands/cargo-test.html
+        - https://doc.rust-lang.org/cargo/reference/features.html
     Cargo rust-version:
       url: https://doc.rust-lang.org/cargo/reference/rust-version.html
     Clippy:
@@ -30,7 +38,7 @@ In a workspace with member subdirectories, install configuration at the workspac
 
 ## Toolchain
 
-- Rust: use the channel declared by the target's `rust-toolchain.toml` when present.
+- Rust: use the channel declared by the target's `rust-toolchain.toml` or legacy `rust-toolchain` file when present.
   Otherwise use the stable toolchain with `clippy` and `rustfmt` components.
 - The supported rustup representations are a named channel such as `stable`, a major/minor channel such as `1.99`, or a full version such as `1.99.0`.
   Cargo has no compatible range syntax for this file.
@@ -52,12 +60,15 @@ Keep existing toolchain and crate pins unless the task authorizes changing them.
 
 | Source file | Destination | Write rule |
 | --- | --- | --- |
-| `tooling/rust/rustfmt.toml` | `rustfmt.toml` at the workspace root | create; merge keys when a config already exists |
-| `tooling/rust/clippy.toml` | `clippy.toml` at the workspace root | create; merge keys when a config already exists |
-| `tooling/rust/rust-toolchain.toml` | `rust-toolchain.toml` at the workspace root | create only when the target has no toolchain file |
-| `tooling/rust/.editorconfig` | merge into existing `.editorconfig` | merge only missing sections and keys |
+| `tooling/rust/rustfmt.toml` | `rustfmt.toml` at the workspace root | Create only when neither `rustfmt.toml` nor `.rustfmt.toml` exists. |
+| `tooling/rust/clippy.toml` | `clippy.toml` at the workspace root | Create only when neither `clippy.toml` nor `.clippy.toml` exists. |
+| `tooling/rust/rust-toolchain.toml` | `rust-toolchain.toml` at the workspace root | Create only when neither `rust-toolchain.toml` nor `rust-toolchain` exists. |
+| `tooling/rust/.editorconfig` | `.editorconfig` at the workspace root | Create only when `.editorconfig` is missing. |
 
-Never overwrite an existing `rust-toolchain.toml`.
+The fresh-root configurator applies these creation rules and reports existing native files as kept.
+It preserves their bytes, including both filenames when a target already has both, and rejects symlinks or non-file destinations before any writes.
+After configuration, use a bounded merge only for authorized missing formatter, linter, or EditorConfig settings.
+Never overwrite an existing toolchain file or create a competing filename to shadow it.
 The target's channel, profile, and component pins stay authoritative.
 A target pinned to an older channel keeps its pin.
 Do not bump it to satisfy this profile.
@@ -68,6 +79,16 @@ This restriction lint is allowed by default, so setting its threshold alone does
 The profile also sets `too-many-arguments-threshold` to 5 and `type-complexity-threshold` to 250.
 Clippy warns by default for `clippy::too_many_arguments`, and the workspace command's `-D warnings` denies that diagnostic.
 Keep additional package-specific Clippy lint tables and Cargo-deny rules in target-owned configuration.
+
+## Formatter Compatibility
+
+The supplied formatter uses a 100-column width and stable settings.
+Its small-item layout choices are profile preferences rather than additional Google requirements.
+Use the target-selected formatter and preserve its Cargo edition and formatting edition.
+Check the installed formatter's support before adopting additional settings.
+Keep module-level import grouping as review guidance when `imports_granularity = "Module"` is unavailable on that formatter.
+Treat `format_macro_matchers` and hexadecimal-literal formatting the same way rather than introducing a nightly requirement.
+Do not add formatting skips, lint suppressions, or weaker gates to make configuration pass.
 
 ## Validation Commands
 
@@ -91,6 +112,9 @@ Apply formatting only for an authorized source change after confirming that the 
 Never use `--broken-code`.
 The `--all-targets --all-features -- -D clippy::cognitive_complexity -D warnings` lint strictness and the `--workspace` test scope are project choices, not universal defaults.
 Match the target's own documented gate when it differs.
+When feature combinations are mutually exclusive, use the target's supported feature matrix while retaining its lint strictness.
+`cargo test --workspace` includes documentation tests by default.
+If a target uses `cargo test --workspace --all-targets`, run its separate documentation-test gate because `--all-targets` does not include doctests.
 
 ## CI Behavior
 

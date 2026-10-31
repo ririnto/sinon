@@ -139,7 +139,7 @@ const assertAncestors = async (
 
 /**
  * Materialize the eligible fresh-root baseline after a complete conflict preview.
- * Preserve identical files and existing native version catalogs on repeated runs.
+ * Preserve identical files, native version catalogs and Rust configuration on repeated runs.
  * Reject differing files or symlink destinations before creating any source.
  * The installer owns eligibility verification, dependency installation and native build integration.
  */
@@ -271,6 +271,38 @@ export const configureBaseline = async (
           : "gradle/libs.versions.toml.fragment"
       )
     );
+  }
+  if (profile === "rust") {
+    const configurations = await Promise.all(
+      (
+        [
+          [".editorconfig"],
+          ["rustfmt.toml", ".rustfmt.toml"],
+          ["clippy.toml", ".clippy.toml"],
+          ["rust-toolchain.toml", "rust-toolchain"]
+        ] as const
+      ).map(async (names) => {
+        const entries = await Promise.all(
+          names.map(async (relative) => {
+            const target = path.join(root, relative);
+            const entry = await inspect(target);
+            if (entry && (!entry.isFile() || entry.isSymbolicLink())) {
+              throw new Error(`Unsafe destination ${relative}.`);
+            }
+            return entry
+              ? ([relative, await readFile(target, "utf-8")] as const)
+              : undefined;
+          })
+        );
+        const existing = entries.filter((entry) => entry !== undefined);
+        return existing.length > 0
+          ? existing
+          : [[names[0], await readSource(`rust/${names[0]}`)] as const];
+      })
+    );
+    for (const [relative, content] of configurations.flat()) {
+      sources.set(relative, content);
+    }
   }
   const result: BaselineResult = {
     created: [],

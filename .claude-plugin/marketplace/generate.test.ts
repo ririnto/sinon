@@ -68,7 +68,7 @@ const localEntry = (name: string, source = `./plugins/${name}`) => ({
 
 const catalog = (plugins: unknown[]) => ({ name: "sinon", plugins });
 
-test("maps local packages and preserves external URL selectors", async () => {
+test("maps local packages and keeps external URL sources unpinned", async () => {
   const root = makeRoot();
   writePlugin(root, "helper");
   const result = await createCodexMarketplace(
@@ -79,11 +79,9 @@ test("maps local packages and preserves external URL selectors", async () => {
         description: "External plugin marketplace description.",
         name: "workgraph",
         source: {
-          ref: "main",
           source: "url",
           url: "https://github.com/ririnto/workgraph.git"
-        },
-        version: "1.0.0"
+        }
       }
     ]),
     root
@@ -103,7 +101,6 @@ test("maps local packages and preserves external URL selectors", async () => {
         name: "workgraph",
         policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
         source: {
-          ref: "main",
           source: "url",
           url: "https://github.com/ririnto/workgraph.git"
         }
@@ -152,29 +149,58 @@ test.each([
   }
 );
 
-test.each([
-  { path: "pstack", ref: "main" },
-  { path: "tools/pstack" },
-  { path: "./tools/pstack", sha: "a".repeat(40) }
-])("preserves a Git subdirectory source with $path", async (selector) => {
-  const source = {
-    ...selector,
-    source: "git-subdir",
-    url: "https://github.com/cursor/plugins.git"
-  };
-  const result = await createCodexMarketplace(
-    catalog([{ ...localEntry("pstack"), source }]),
-    makeRoot()
-  );
-  expect(result.plugins).toEqual([
-    {
-      category: "Development",
-      name: "pstack",
-      policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
-      source
-    }
-  ]);
-});
+test.each(["pstack", "tools/pstack", "./tools/pstack"])(
+  "preserves an unpinned Git subdirectory source with %s",
+  async (subdirectory) => {
+    const source = {
+      path: subdirectory,
+      source: "git-subdir",
+      url: "https://github.com/cursor/plugins.git"
+    };
+    const result = await createCodexMarketplace(
+      catalog([{ ...localEntry("pstack"), source }]),
+      makeRoot()
+    );
+    expect(result.plugins).toEqual([
+      {
+        category: "Development",
+        name: "pstack",
+        policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
+        source
+      }
+    ]);
+  }
+);
+
+test.each(
+  ["url", "git-subdir"].flatMap((source) =>
+    [{ ref: "main" }, { ref: "v1.0.0" }, { sha: "a".repeat(40) }].map(
+      (selector) => ({ selector, source })
+    )
+  )
+)(
+  "rejects revision selectors in external plugin sources: %j",
+  async ({ selector, source }) => {
+    await expect(
+      createCodexMarketplace(
+        catalog([
+          {
+            name: "external",
+            source: {
+              ...(source === "git-subdir" ? { path: "plugin" } : {}),
+              ...selector,
+              source,
+              url: "https://github.com/example/plugins.git"
+            }
+          }
+        ]),
+        makeRoot()
+      )
+    ).rejects.toThrow(
+      `Unsupported ${source} source fields for external: ${Object.keys(selector).join(", ")}`
+    );
+  }
+);
 
 test.each([
   { path: undefined },
@@ -194,9 +220,6 @@ test.each([
   { path: "./" },
   { url: undefined },
   { url: "" },
-  { ref: 7 },
-  { sha: 7 },
-  { ref: "main", sha: "a".repeat(40) },
   { directory: "pstack" }
 ])("rejects a malformed Git subdirectory source: %j", async (overrides) => {
   await expect(

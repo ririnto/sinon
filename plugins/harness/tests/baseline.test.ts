@@ -225,6 +225,27 @@ describe("fresh-root baseline", () => {
           )
         );
       }
+      if (profile === "rust") {
+        await Promise.all(
+          [
+            ".editorconfig",
+            "rustfmt.toml",
+            "clippy.toml",
+            "rust-toolchain.toml"
+          ].map(async (file) => {
+            const [materialized, source] = await Promise.all([
+              readFile(path.join(directory, file), "utf-8"),
+              readFile(
+                path.join(repositoryRoot, "plugins/harness/tooling/rust", file),
+                "utf-8"
+              )
+            ]);
+            expect(first.created).toContain(file);
+            expect(materialized).toBe(source);
+          })
+        );
+        expect(await readdir(directory)).not.toContain("Cargo.toml");
+      }
       if (profile === "node" || profile === "frontend" || profile === "react") {
         expect(manifest.scripts).toMatchObject({
           "check:ultracite": "run-p --continue-on-error ultracite:check:**",
@@ -380,20 +401,23 @@ describe("fresh-root baseline", () => {
     }
   );
 
-  test("a conflicting package blocks all writes", async () => {
-    const directory = await targetDirectory();
-    await writeFile(
-      path.join(directory, "package.json"),
-      '{"name":"existing-owner"}\n'
-    );
-    await expect(
-      configureBaseline(directory, "gradle", "eligible")
-    ).rejects.toThrow("Conflict at package.json");
-    expect(await readdir(directory)).toEqual(["package.json"]);
-    expect(await readFile(path.join(directory, "package.json"), "utf-8")).toBe(
-      '{"name":"existing-owner"}\n'
-    );
-  });
+  test.each(["gradle", "rust"] as const)(
+    "a conflicting %s package blocks all writes",
+    async (profile) => {
+      const directory = await targetDirectory();
+      await writeFile(
+        path.join(directory, "package.json"),
+        '{"name":"existing-owner"}\n'
+      );
+      await expect(
+        configureBaseline(directory, profile, "eligible")
+      ).rejects.toThrow("Conflict at package.json");
+      expect(await readdir(directory)).toEqual(["package.json"]);
+      expect(
+        await readFile(path.join(directory, "package.json"), "utf-8")
+      ).toBe('{"name":"existing-owner"}\n');
+    }
+  );
 
   test("a symlink ancestor blocks all writes", async () => {
     const directory = await targetDirectory();
@@ -416,6 +440,90 @@ describe("fresh-root baseline", () => {
     expect(
       await readFile(path.join(directory, "gradle/libs.versions.toml"), "utf-8")
     ).toBe(catalog);
+  });
+
+  test.each([
+    ["rustfmt.toml", "rustfmt.toml", "max_width = 88\n"],
+    [".rustfmt.toml", "rustfmt.toml", "max_width = 88\n"],
+    ["clippy.toml", "clippy.toml", "cognitive-complexity-threshold = 15\n"],
+    [".clippy.toml", "clippy.toml", "cognitive-complexity-threshold = 15\n"],
+    [
+      "rust-toolchain.toml",
+      "rust-toolchain.toml",
+      '[toolchain]\nchannel = "1.85.0"\n'
+    ],
+    ["rust-toolchain", "rust-toolchain.toml", "1.85.0\n"],
+    [".editorconfig", ".editorconfig", "root = true\n[*.rs]\nindent_size = 2\n"]
+  ])(
+    "Rust retains target-owned %s without creating a competing file",
+    async (relative, canonical, content) => {
+      const directory = await targetDirectory();
+      const cargo =
+        '[package]\nname = "existing-crate"\nversion = "0.1.0"\nedition = "2021"\nrust-version = "1.85"\n';
+      await writeFile(path.join(directory, "Cargo.toml"), cargo);
+      await writeFile(path.join(directory, relative), content);
+      const first = await configureBaseline(directory, "rust", "eligible");
+      expect(first.kept).toContain(relative);
+      expect(first.created).not.toContain(canonical);
+      expect(await readFile(path.join(directory, relative), "utf-8")).toBe(
+        content
+      );
+      expect(await readFile(path.join(directory, "Cargo.toml"), "utf-8")).toBe(
+        cargo
+      );
+      if (relative !== canonical) {
+        expect(await readdir(directory)).not.toContain(canonical);
+      }
+      const second = await configureBaseline(directory, "rust", "eligible");
+      expect(second.created).toEqual([]);
+      expect(second.kept).toContain(relative);
+      expect(await readFile(path.join(directory, relative), "utf-8")).toBe(
+        content
+      );
+    }
+  );
+
+  test("Rust retains both existing formatter filenames", async () => {
+    const directory = await targetDirectory();
+    await writeFile(path.join(directory, "rustfmt.toml"), "max_width = 88\n");
+    await writeFile(path.join(directory, ".rustfmt.toml"), "max_width = 92\n");
+    const result = await configureBaseline(directory, "rust", "eligible");
+    expect(result.kept.toSorted()).toEqual([".rustfmt.toml", "rustfmt.toml"]);
+    expect(await readFile(path.join(directory, "rustfmt.toml"), "utf-8")).toBe(
+      "max_width = 88\n"
+    );
+    expect(await readFile(path.join(directory, ".rustfmt.toml"), "utf-8")).toBe(
+      "max_width = 92\n"
+    );
+  });
+
+  test.each([
+    ".editorconfig",
+    "rustfmt.toml",
+    ".rustfmt.toml",
+    "clippy.toml",
+    ".clippy.toml",
+    "rust-toolchain.toml",
+    "rust-toolchain"
+  ])("an unsafe Rust destination %s blocks all writes", async (relative) => {
+    const directory = await targetDirectory();
+    const outside = await targetDirectory();
+    await writeFile(path.join(outside, "config"), "target-owned\n");
+    await symlink(path.join(outside, "config"), path.join(directory, relative));
+    await expect(
+      configureBaseline(directory, "rust", "eligible")
+    ).rejects.toThrow(`Unsafe destination ${relative}`);
+    expect(await readdir(directory)).toEqual([relative]);
+    expect(await readFile(path.join(outside, "config"), "utf-8")).toBe(
+      "target-owned\n"
+    );
+    await rm(path.join(directory, relative));
+    await mkdir(path.join(directory, relative));
+    await expect(
+      configureBaseline(directory, "rust", "eligible")
+    ).rejects.toThrow(`Unsafe destination ${relative}`);
+    expect(await readdir(directory)).toEqual([relative]);
+    expect(await readdir(path.join(directory, relative))).toEqual([]);
   });
 
   test("the native Node CLI validates choices and configures the selected profile", async () => {

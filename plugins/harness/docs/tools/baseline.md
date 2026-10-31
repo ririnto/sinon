@@ -30,6 +30,7 @@ Identical files remain unchanged on a repeat run.
 A conflicting baseline file stops the operation before writes.
 Repeat configuration and confirm no new files or changed bytes before modifying generated files.
 An existing native Gradle version catalog remains target-owned.
+Rust formatter, Clippy, toolchain and EditorConfig files also remain target-owned, including hidden formatter/linter names and the legacy toolchain filename.
 For an existing configured root or a polyglot root, use the profile's bounded merges rather than overwriting its manifest or applying competing installers.
 
 | Profile | Native selection | Canonical manifest source |
@@ -51,6 +52,8 @@ The pnpm script entrypoints and Git invoke those same configurations.
 Gradle and Kotlin roots create `gradle/libs.versions.toml` only when missing.
 Use that catalog as the root's single native version source when integrating its build.
 Keep each independent Gradle root's catalog separate.
+Rust roots create missing native configuration according to the [Rust profile's filename and preservation rules](rust.md#native-configuration-sources).
+The configurator leaves the Cargo manifest, crate identity, edition and minimum compiler unchanged.
 Node, frontend, and React roots receive the canonical base Oxc configuration, three independent style configurations, Oxfmt configuration, and flat plugin modules.
 The runtime fragment pins the supported Node 26 LTS line.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
