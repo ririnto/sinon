@@ -10,7 +10,8 @@
     "rust:check": "run-s rust:format rust:lint rust:test",
     "rust:format": "cargo fmt --all -- --check",
     "rust:lint": "cargo clippy --workspace --all-targets --all-features -- -D clippy::cognitive_complexity -D warnings",
-    "rust:test": "cargo test --workspace"
+    "rust:test": "cargo test --workspace",
+    "rust:doc": "RUSTDOCFLAGS=\"${RUSTDOCFLAGS:+$RUSTDOCFLAGS }-D warnings\" cargo doc --workspace --no-deps"
   },
   "devDependencies": {
     "husky": "catalog:",

@@ -246,6 +246,15 @@ describe("fresh-root baseline", () => {
         );
         expect(await readdir(directory)).not.toContain("Cargo.toml");
       }
+      if (profile === "node") {
+        expect(manifest.scripts["api:docs"]).toBe("typedoc");
+        expect(manifest.devDependencies.typedoc).toBe("catalog:");
+        expect(first.created).toContain("typedoc.json");
+      }
+      if (profile === "uv") {
+        expect(first.created).toContain("docs/conf.py");
+        expect(first.created).toContain("docs/index.rst");
+      }
       if (profile === "node" || profile === "frontend" || profile === "react") {
         expect(manifest.scripts).toMatchObject({
           "check:ultracite": "run-p --continue-on-error ultracite:check:**",
@@ -428,6 +437,19 @@ describe("fresh-root baseline", () => {
     ).rejects.toThrow("Unsafe destination ancestor");
     expect(await readdir(directory)).toEqual([".husky"]);
     expect(await readdir(outside)).toEqual([]);
+  });
+
+  test("a conflicting Python documentation configuration blocks all writes", async () => {
+    const directory = await targetDirectory();
+    await mkdir(path.join(directory, "docs"));
+    await writeFile(
+      path.join(directory, "docs/conf.py"),
+      "project = 'Existing'\n"
+    );
+    await expect(
+      configureBaseline(directory, "uv", "eligible")
+    ).rejects.toThrow("Conflict at docs/conf.py");
+    expect(await readdir(directory)).toEqual(["docs"]);
   });
 
   test("an existing Gradle version catalog retains its own versions", async () => {
@@ -643,7 +665,7 @@ describe("fresh-root baseline", () => {
       ).toBe(0);
       await writeFile(
         path.join(directory, "bad.ts"),
-        "export const undocumented = true;\n"
+        "export function undocumented(): boolean {\n  return true;\n}\n"
       );
       expect(git("add", "bad.ts").status).toBe(0);
       expect(

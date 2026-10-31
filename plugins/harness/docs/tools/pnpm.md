@@ -8,6 +8,11 @@ metadata:
         - https://pnpm.io/installation
         - https://pnpm.io/catalogs
         - https://pnpm.io/cli/install
+    TypeDoc:
+      version: 0.28.20
+      url:
+        - https://typedoc.org/documents/Options.Input.html
+        - https://typedoc.org/documents/Options.Validation.html
     pnpm setup:
       version: 3.1.2
       url: https://raw.githubusercontent.com/pnpm/setup/v3.1.2/README.md
@@ -119,6 +124,24 @@ Add `npm-run-all2` only when the merged scripts use `run-p` or `run-s`.
 Add `@oxc-project/types` only when the target keeps TypeScript custom plugins and the target's Oxc version requires its declarations.
 Use the [Git hook integration](#git-hook-integration) for the script surface.
 
+## API Documentation
+
+For a library with public JavaScript or TypeScript exports, merge `tooling/pnpm/api-docs.package.fragment.json` and `tooling/pnpm/api-docs.pnpm-workspace.fragment.yaml` into the target manifest and catalog.
+Use a TypeDoc version compatible with the target's TypeScript version and Node runtime.
+TypeDoc 0.28.20 accepts TypeScript 5.0 through 6.0; preserve a compatible target pin.
+Copy `tooling/pnpm/typedoc.json` to the project root when no TypeDoc configuration exists, or merge its settings without replacing the target's entry points or other options.
+The configuration writes HTML to `build/api-docs` and makes warnings fail the command.
+Ignore that generated directory in version control.
+
+TypeDoc discovers entry points from `exports` or `main` in `package.json` when those resolve to the source.
+Otherwise set `entryPoints` in the target's `typedoc.json`, or pass the actual public entry points after `pnpm exec typedoc`.
+For JavaScript, configure TypeScript's `allowJs` and include the source in the target's `tsconfig.json`.
+For a monorepo, choose the package entry points or TypeDoc's packages strategy according to the target's exports.
+Run `pnpm run api:docs` after installing dependencies and inspecting the selected entry points.
+Fix invalid links and other emitted warnings in the source or target configuration.
+Do not enable blanket missing-comment diagnostics that require text on every trivial symbol.
+The generated site reflects only the selected public entry points; review the output for missing public modules.
+
 ## Git Hook Integration
 
 Add the compatible Husky catalog entry and development dependency when installing this script surface.
@@ -152,10 +175,12 @@ Global names, namespace calls, unknown factories, shadowed bindings, ordinary ca
 Required directives between registrations stay intact because moving them can change their target.
 The built-in test-padding rule supplies padding around test calls but does not express this exact sibling lifecycle and proven-binding contract, so the AST-aware diagnostic handles it without an automatic fix.
 The inline-comment pass exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
-The TSDoc plugin enforces the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
+The TSDoc plugin checks the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
 Read those requirements when configuring TypeScript documentation checks.
 Protected, private, and `#private` members and constructors are exempt.
 It reports missing documentation separately from invalid delimiter placement.
+For local identifiers exported indirectly, a declaration or export comment satisfies the check.
+External re-exports and non-identifier default or assignment expressions are not checked.
 The JavaScript override retains the JSDoc parameter and return checks while allowing return descriptions.
 The custom plugin API is alpha and must be checked against the target Oxlint version before updates.
 Markdownlint support is a common shared capability installed at the target project root.

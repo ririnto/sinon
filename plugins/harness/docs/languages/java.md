@@ -19,7 +19,9 @@ The [Gradle tool reference](../tools/gradle.md) and the [Maven tool reference](.
 
 ## Public declarations
 
-Document public classes, interfaces, enums, annotations, methods, constructors, and fields with Javadoc.
+Document public and protected types and callable contracts with Javadoc.
+Document fields when their meaning or constraints are not evident from the declaration.
+Describe parameters, results, errors, and links when they clarify the contract.
 Write declaration documentation in English and state the contract, constraints, or reason.
 Keep documentation at declaration level instead of placing explanatory comments inside method bodies.
 
@@ -61,7 +63,7 @@ The Java profile maps rules to Java syntax and uses Checkstyle with Spotless.
 `tooling/java/.editorconfig` preserves UTF-8, LF endings, four-space indentation, a final newline, and trimmed trailing whitespace.
 Spotless supplies Palantir Java Format and removes unused imports.
 Its Java layout is not a byte-for-byte port of ktlint's Kotlin style.
-Checkstyle enforces braces, method and constructor separation, public and protected Javadoc presence, naming, line length, and array or enum comma rules.
+Checkstyle enforces braces, method and constructor separation, public and protected type and callable Javadoc presence, naming, line length, and array or enum comma rules.
 The mappings below record where Java has a safe language or tool equivalent.
 
 | Kotlin rule | Java profile behavior |
@@ -78,7 +80,7 @@ The mappings below record where Java has a safe language or tool equivalent.
 | | - Palantir formats Java branches according to its Java style rather than ktlint's Kotlin-specific layout. |
 | `explicit-function-return-type`, `explicit-property-type` | Java requires declared return types and field types in these positions. |
 | | - Local `var` remains valid. |
-| `public-declaration-doc-comment`, `multiline-kdoc` | Checkstyle requires Javadoc on public and protected types, methods, constructors, and fields. |
+| `public-declaration-doc-comment`, `multiline-kdoc` | Checkstyle requires Javadoc on public and protected types, methods, and constructors, with an exception for property accessors. |
 | | - Checkstyle does not enforce multiline delimiters or English contract quality. |
 | `leading-underscore` | Checkstyle name checks enforce lower camel case for Java bindings, upper camel case for types and type parameters, and standard camel or upper-snake case for constants. |
 | | - `_` remains allowed for unnamed lambda, local, catch, pattern, or parameter bindings. |

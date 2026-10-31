@@ -6,6 +6,10 @@ metadata:
       url: https://google.github.io/styleguide/rustguide.html
     Rustfmt configuration:
       url: https://raw.githubusercontent.com/rust-lang/rustfmt/master/Configurations.md
+    Rustdoc:
+      url:
+        - https://doc.rust-lang.org/cargo/commands/cargo-doc.html
+        - https://doc.rust-lang.org/rustdoc/lints.html
     Cargo validation:
       url:
         - https://doc.rust-lang.org/cargo/commands/cargo-test.html
@@ -103,6 +107,7 @@ Run inside the workspace root:
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D clippy::cognitive_complexity -D warnings
 cargo test --workspace
+RUSTDOCFLAGS="${RUSTDOCFLAGS:+$RUSTDOCFLAGS }-D warnings" cargo doc --workspace --no-deps
 ```
 
 `cargo fmt --all` applies formatting.
@@ -113,6 +118,10 @@ Never use `--broken-code`.
 The `--all-targets --all-features -- -D clippy::cognitive_complexity -D warnings` lint strictness and the `--workspace` test scope are project choices, not universal defaults.
 Match the target's own documented gate when it differs.
 When feature combinations are mutually exclusive, use the target's supported feature matrix while retaining its lint strictness.
+`cargo doc` generates workspace API HTML under `target/doc` and denies emitted warnings, including broken intra-doc links.
+Fix warnings instead of suppressing them.
+The `rust:doc` script runs this command independently of the existing Git gates.
+The command appends warning denial to any existing `RUSTDOCFLAGS`.
 `cargo test --workspace` includes documentation tests by default.
 If a target uses `cargo test --workspace --all-targets`, run its separate documentation-test gate because `--all-targets` does not include doctests.
 

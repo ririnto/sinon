@@ -62,7 +62,9 @@ The [Gradle tool reference](../tools/gradle.md) owns commands and configuration.
 Treat a declaration as public when it is visible outside its module.
 Account for enclosing scopes.
 An `internal` or `private` scope limits declarations inside it.
-Every effective public or protected declaration carries a KDoc comment.
+Document effective public or protected types and callable contracts with KDoc.
+Document properties when their meaning or constraints are not evident from the declaration.
+Describe parameters, results, errors, and links when they clarify the contract.
 Write KDoc in English with multiple lines.
 Put the opening `/**` and closing `*/` delimiters on separate lines, including for one-sentence KDoc.
 Write meaningful English sentences on lines beginning with `*`.
@@ -70,10 +72,9 @@ Use ASCII tree markers in KDoc instead of Unicode box-drawing characters.
 The `harness:multiline-kdoc` rule reports the first box-drawing character on each KDoc line without an automatic fix.
 Concise KDoc states the contract, not a restatement of the name.
 A purely private helper needs no KDoc.
-The `harness:public-declaration-doc-comment` rule is on by default and reports effective public declarations without KDoc.
-It skips `override` functions and properties.
-It accepts a public primary-constructor `val` or `var` parameter that has its own KDoc or an `@property` tag in the class KDoc.
-A `private` primary constructor does not hide its properties.
+The `harness:public-declaration-doc-comment` rule is on by default and reports effective public classes, interfaces, named objects, and functions without KDoc.
+It skips `override` functions.
+It does not require a separate comment on properties or primary-constructor properties.
 
 ## Function Bodies And Comments
 

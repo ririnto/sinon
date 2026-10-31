@@ -1,0 +1,16 @@
+<!-- Merge the property and plugin only into an existing Kotlin Maven build. -->
+<fragment>
+  <properties>
+    <dokka.version>2.2.0</dokka.version>
+  </properties>
+  <plugins>
+    <plugin>
+      <groupId>org.jetbrains.dokka</groupId>
+      <artifactId>dokka-maven-plugin</artifactId>
+      <version>${dokka.version}</version>
+      <configuration>
+        <failOnWarning>true</failOnWarning>
+      </configuration>
+    </plugin>
+  </plugins>
+</fragment>

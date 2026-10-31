@@ -5,6 +5,7 @@
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "go:check": "run-s go:lint go:format go:nilaway go:test",
+    "go:docs": "pkgsite -list=false",
     "go:format": "golangci-lint fmt --diff",
     "go:lint": "golangci-lint run",
     "go:nilaway": "nilaway -include-pkgs=\"$(go list -m)\" ./...",

@@ -9,7 +9,8 @@
     "prepare": "husky",
     "uv:check": "run-s uv:lint uv:format",
     "uv:format": "uv run ruff format --check .",
-    "uv:lint": "uv run ruff check ."
+    "uv:lint": "uv run ruff check .",
+    "uv:doc": "uv run --group docs sphinx-build -n -W -b html docs build/api-docs"
   },
   "devDependencies": {
     "husky": "catalog:",

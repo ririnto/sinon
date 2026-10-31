@@ -51,7 +51,9 @@ Use `slices` and `maps` packages over hand-written loops for standard operations
 
 ## Documentation
 
-Every exported identifier carries a doc comment starting with its name.
+Document exported contracts when the declaration alone does not explain their behavior.
+Explain constraints, results, errors, and relevant links when callers need them.
+Start a declaration's doc comment with its name.
 Package comments state the package's single responsibility.
 Comments stay grammatical English prose with no restatement of the signature.
 Go doc syntax owns the format.

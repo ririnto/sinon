@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "api:docs": "typedoc"
+  },
+  "devDependencies": {
+    "typedoc": "catalog:",
+    "typescript": "catalog:"
+  }
+}

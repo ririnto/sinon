@@ -33,9 +33,6 @@
       <property name="scope" value="protected" />
       <property name="allowMissingPropertyJavadoc" value="true" />
     </module>
-    <module name="JavadocVariable">
-      <property name="accessModifiers" value="public,protected" />
-    </module>
     <module name="TypeName">
       <property name="format" value="^(?!_)[A-Z][a-zA-Z0-9]*$" />
     </module>

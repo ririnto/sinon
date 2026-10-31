@@ -1,0 +1,12 @@
+[project]
+description = "A café label lookup."
+name = "sample-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[dependency-groups]
+docs = ["sphinx>=9.1.1,<10", "tomli; python_version < '3.11'"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

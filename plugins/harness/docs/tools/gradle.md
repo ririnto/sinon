@@ -45,6 +45,13 @@ metadata:
       url: https://docs.gradle.org/current/userguide/checkstyle_plugin.html
     Checkstyle Checks:
       url: https://checkstyle.org/checks.html
+    Dokka Gradle:
+      version: 2.2.0
+      url:
+        - https://kotlinlang.org/docs/dokka-gradle.html
+        - https://kotlinlang.org/docs/dokka-gradle-configuration-options.html
+    Javadoc:
+      url: https://docs.oracle.com/en/java/javase/21/docs/specs/man/javadoc.html
     Dependabot:
       tag: v0.399.0
       url: https://raw.githubusercontent.com/dependabot/dependabot-core/v0.399.0/gradle/lib/dependabot/gradle/file_parser.rb
@@ -106,20 +113,37 @@ Set the Checkstyle engine to `14.3.0` through the target's existing Gradle confi
 Apply the `checkstyle` plugin in the same target build before using the `checkstyle` block.
 Gradle's Java plugin wires `checkstyleMain` and `checkstyleTest` into `check`.
 
-The native source fragment enforces braces, unused-import hygiene, public Javadoc, Java naming, line length, and prohibited direct standard streams.
+The native source fragment enforces braces, unused-import hygiene, public type and callable Javadoc, Java naming, line length, and prohibited direct standard streams.
 It does not invent package names, coordinates, source roots, or toolchain versions.
+
+Merge `javadoc.gradle.kts.fragment` into the Java project build and run `./gradlew javadoc` to generate Java API documentation in `build/docs/javadoc`.
+DocLint validates documentation comments and reports missing comments or tags as warnings as well as malformed markup and references.
+Review and address the warnings in the context of the public contract.
+Gradle's task fails on Javadoc errors, while warnings alone do not fail the build.
+DocLint also warns about undocumented trivial public fields, so assess those warnings rather than adding text that merely repeats a field name.
 
 ## Existing target merge
 
 Inspect `settings.gradle*`, `build.gradle*`, `gradle/libs.versions.toml`, `buildSrc`, and `build-logic` before editing.
 Prefer the target's version catalog or convention plugin for plugin and dependency versions.
 If the target already owns Spotless, Checkstyle, or an equivalent formatter, keep that owner and report the overlap.
-Merge only the `spotless` block, Checkstyle configuration, and required plugin or catalog entries.
+Merge the selected formatter, checker, and documentation configuration and required plugin or catalog entries.
 Do not overwrite a whole build script, version catalog, `buildSrc`, or `build-logic` directory.
 Keep existing `check`, test, publication, repository, module, and toolchain configuration.
 
 A Kotlin Gradle target may also select the Kotlin profile and the canonical Kotlin ruleset at `tooling/kotlin/`.
 The Kotlin ruleset remains a separate native integration and must not be replaced by Java formatting.
+
+## Kotlin API documentation
+
+For a Kotlin Gradle project, add `alias(libs.plugins.dokka)` to its existing `plugins` block and merge `dokka.gradle.kts.fragment` into the project build.
+The catalog fragment supplies Dokka `2.2.0`.
+Use a compatible existing catalog alias or version when the target already manages Dokka.
+Dokka requires Gradle 7.6 or newer and Kotlin Gradle plugin 1.9 or newer.
+Apply Dokka to each project whose API should be documented.
+Run `./gradlew dokkaGenerate` to generate HTML in `build/dokka/html`.
+The supplied configuration fails generation on Dokka warnings.
+Dokka does not report every undocumented declaration by default, so review KDoc for useful contract descriptions alongside generation.
 
 ## Kotlin Ruleset Integration
 

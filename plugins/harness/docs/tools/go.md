@@ -11,6 +11,9 @@ metadata:
       url: https://github.com/uber-go/nilaway
     Go tool dependencies:
       url: https://go.dev/doc/modules/managing-dependencies#tools
+    Go package documentation server:
+      version: v0.6.0
+      url: https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite
 ---
 
 This document owns the `go` profile commands, dependencies, and target integration rules for Go module targets.
@@ -32,6 +35,7 @@ Golangci-lint and NilAway are project-local tools installed into a build-local d
   Install a matching toolchain when missing.
 - golangci-lint: v2.15.0.
 - NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
+- pkgsite: v0.6.0 for local API documentation, built with Go 1.26 or newer.
 - Task: not required.
   This profile adds no Task dependency.
 
@@ -56,9 +60,9 @@ The source profile enables `errcheck` for ignored errors, including blank assign
 The empty exclusion presets also prevent golangci-lint's standard error-handling exclusions from hiding these diagnostics.
 Keep target-owned exclusions when merging.
 
-`godoclint` starts from `default: none` and enables five explicit documentation rules.
+`godoclint` starts from `default: none` and checks package comments, declaration comment openings, and unused documentation links.
 Read the [Go documentation requirements](../languages/go.md#documentation) when configuring these checks.
-The profile also checks that package comments are valid and unique.
+It does not require a separate comment for every trivial declaration.
 `containedctx` enforces the [Go context placement rule](../languages/go.md#context-and-concurrency).
 These checks enforce Go-specific contracts rather than multiline comment delimiters.
 
@@ -93,6 +97,22 @@ export PATH="${GOBIN}:${PATH}"
 
 `GOTOOLCHAIN=auto` applies only to the NilAway install.
 Analysis and project commands use the target's declared Go toolchain.
+
+## API Documentation
+
+Install the official documentation server into the same project-local binary directory:
+
+```sh
+GOBIN="$(pwd)/.bin" go install golang.org/x/pkgsite/cmd/pkgsite@v0.6.0
+```
+
+Build this tool with Go 1.26 or newer, independently of the target's supported Go version.
+Run `pnpm go:docs` from the module root with `.bin` on `PATH`, then open the local address printed by pkgsite.
+The command generates and serves the module's documentation as HTML and does not publish it.
+`-list=false` disables serving required dependency modules.
+Use `go doc -all <package>` to print one package's documentation as text without pkgsite.
+Run `golangci-lint run` to validate documentation comments and fix its findings.
+The documentation server does not report every missing or unclear contract, so review the rendered API for useful descriptions and links.
 
 ## CI Behavior
 

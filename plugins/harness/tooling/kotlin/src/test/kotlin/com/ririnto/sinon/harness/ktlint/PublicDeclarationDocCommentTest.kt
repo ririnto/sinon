@@ -10,7 +10,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 /**
- * Verifies that public declarations require KDoc without extra configuration.
+ * Verifies KDoc requirements on public types and functions.
  */
 class PublicDeclarationDocCommentTest :
     FunSpec({
@@ -179,11 +179,9 @@ class PublicDeclarationDocCommentTest :
             }
         }
 
-        test("requires documentation on public primary constructor properties") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
+        test("does not require boilerplate on properties") {
+            val source =
+                """
                     /**
                      * Identity.
                      */
@@ -193,19 +191,15 @@ class PublicDeclarationDocCommentTest :
                         protected val owner: String,
                         private val secret: String,
                         plain: String
-                    )
-                    """.trimIndent() + "\n"
-                )
-            ) {
+                    ) {
+                        val display: String = label
+                    }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 assertSoftly(diagnostics) {
-                    shouldContainExactlyInAnyOrder(
-                        listOf(
-                            KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false),
-                            KtLintRuleTestEngine.Diagnostic(6, 9, "harness:public-declaration-doc-comment", false),
-                            KtLintRuleTestEngine.Diagnostic(7, 19, "harness:public-declaration-doc-comment", false)
-                        )
-                    )
+                    shouldContainExactlyInAnyOrder(emptyList())
                 }
+                formattedCode shouldBe source
             }
         }
 
@@ -230,28 +224,6 @@ class PublicDeclarationDocCommentTest :
                     shouldContainExactlyInAnyOrder(emptyList())
                 }
                 formattedCode shouldBe source
-            }
-        }
-
-        test("treats a private constructor as public for its properties") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    /**
-                     * Identity.
-                     */
-                    class Identity private constructor(
-                        val id: Int
-                    )
-                    """.trimIndent() + "\n"
-                )
-            ) {
-                assertSoftly(diagnostics) {
-                    shouldContainExactlyInAnyOrder(
-                        listOf(KtLintRuleTestEngine.Diagnostic(5, 9, "harness:public-declaration-doc-comment", false))
-                    )
-                }
             }
         }
 
