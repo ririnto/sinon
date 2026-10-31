@@ -58,7 +58,7 @@ Node, frontend, and React roots receive the canonical base Oxc configuration, th
 Node API roots also receive TypeDoc configuration and a compatible TypeScript peer in the pnpm catalog.
 uv roots receive Sphinx configuration under `docs/` for the target's public package.
 Complete each selected profile's native documentation integration for its actual public entry points before running generation.
-The runtime fragment pins the supported Node 26 LTS line.
+The runtime fragment supplies the source profile's Node.js engine range.
 Verify current compatible releases before installing dependencies, preserving compatible target pins during bounded merges.
 Set the selected pnpm version in the target root's `packageManager` field before installing dependencies or using the CI catalog.
 
