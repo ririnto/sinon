@@ -1,0 +1,82 @@
+version: "3"
+
+env:
+  TOOLS_DIR: "{{.ROOT_DIR}}/tools"
+
+tasks:
+  check:
+    cmds:
+      - task: lint
+      - task: format
+      - task: nilaway
+      - task: test
+
+  lint:
+    cmds:
+      - task: modules
+        vars: { CHECK: lint }
+
+  format:
+    cmds:
+      - task: modules
+        vars: { CHECK: format }
+
+  nilaway:
+    cmds:
+      - task: modules
+        vars: { CHECK: nilaway }
+
+  test:
+    cmds:
+      - task: modules
+        vars: { CHECK: test }
+
+  docs:
+    vars:
+      PKGSITE:
+        sh: GOWORK=off go -C "$TOOLS_DIR" tool -n pkgsite
+    cmds:
+      - 'GOWORK="${HARNESS_GOWORK-${GOWORK-}}" "{{.PKGSITE}}" -list=false {{.CLI_ARGS}}'
+
+  modules:
+    internal: true
+    vars:
+      MODULES:
+        sh: GOWORK="${HARNESS_GOWORK-${GOWORK-}}" go list -m -f '{{`{{.Dir}}`}}'
+    cmds:
+      - for: { var: MODULES, split: "\n" }
+        task: "{{.CHECK}}-module"
+        vars: { MODULE: "{{.ITEM}}" }
+
+  lint-module:
+    internal: true
+    dir: "{{.MODULE}}"
+    vars:
+      GOLANGCI:
+        sh: GOWORK=off go -C "$TOOLS_DIR" tool -n golangci-lint
+    cmds:
+      - 'GOWORK="${HARNESS_GOWORK-${GOWORK-}}" "{{.GOLANGCI}}" run ./...'
+
+  format-module:
+    internal: true
+    dir: "{{.MODULE}}"
+    vars:
+      GOLANGCI:
+        sh: GOWORK=off go -C "$TOOLS_DIR" tool -n golangci-lint
+    cmds:
+      - 'GOWORK="${HARNESS_GOWORK-${GOWORK-}}" "{{.GOLANGCI}}" fmt --diff ./...'
+
+  nilaway-module:
+    internal: true
+    dir: "{{.MODULE}}"
+    vars:
+      NILAWAY:
+        sh: GOWORK=off go -C "$TOOLS_DIR" tool -n nilaway
+    cmds:
+      - 'GOWORK="${HARNESS_GOWORK-${GOWORK-}}" "{{.NILAWAY}}" -include-pkgs="$(GOWORK=off go list -m)" ./...'
+
+  test-module:
+    internal: true
+    dir: "{{.MODULE}}"
+    cmds:
+      - GOWORK="${HARNESS_GOWORK-${GOWORK-}}" go test -race -shuffle=on -count=1 ./...

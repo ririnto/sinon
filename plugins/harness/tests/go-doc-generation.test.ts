@@ -54,17 +54,17 @@ test.skipIf(!process.env.HARNESS_GO_DOCS_TEST)(
       "sh",
       [
         "-c",
-        `exec ${manifest.scripts["go:docs"]} -http=127.0.0.1:${address.port}`
+        `exec env ${manifest.scripts["go:docs"]} -http=127.0.0.1:${address.port}`
       ],
-      { cwd: directory, stdio: "pipe" }
+      { cwd: directory, detached: true, stdio: "pipe" }
     );
     let output = "";
     child.stderr.on("data", (chunk: Buffer) => {
       output += chunk.toString();
     });
     onTestFinished(async () => {
-      if (child.exitCode === null) {
-        child.kill("SIGTERM");
+      if (child.exitCode === null && child.pid) {
+        process.kill(-child.pid, "SIGTERM");
         await once(child, "exit");
       }
     });
@@ -90,8 +90,20 @@ test.skipIf(!process.env.HARNESS_GO_DOCS_TEST)(
       import.meta.dirname,
       "../tooling/go/.golangci.yaml"
     );
+    const tool = spawnSync(
+      "go",
+      [
+        "-C",
+        path.join(import.meta.dirname, "../tooling/go/tools"),
+        "tool",
+        "-n",
+        "golangci-lint"
+      ],
+      { encoding: "utf-8", env: { ...process.env, GOWORK: "off" } }
+    );
+    expect(tool.status, tool.stderr).toBe(0);
     const lint = () =>
-      spawnSync("golangci-lint", ["run", "-c", configuration, "./..."], {
+      spawnSync(tool.stdout.trim(), ["run", "-c", configuration, "./..."], {
         cwd: directory,
         encoding: "utf-8"
       });

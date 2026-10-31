@@ -1,0 +1,11 @@
+stages:
+  - validate
+
+pnpm:
+  stage: validate
+  image: node:26
+  before_script:
+    - npm install --global "$(node --print 'require("./package.json").packageManager')"
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm run check

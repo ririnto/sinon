@@ -1,0 +1,19 @@
+name: ruff
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ruff:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run --package workspace-greeter python -m unittest discover -s apps/greeter/tests
+      - run: uv build --all-packages
+
+permissions:
+  contents: read

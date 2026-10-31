@@ -117,6 +117,16 @@ const addDirectory = async (
   }
 };
 
+const addProfileSources = async (
+  sources: Map<string, string>,
+  profile: BaselineProfile
+): Promise<void> => {
+  if (profile === "go") {
+    sources.set("Taskfile.yaml", await readSource("go/Taskfile.yaml"));
+    await addDirectory(sources, "go/tools", "tools");
+  }
+};
+
 const assertAncestors = async (
   root: string,
   relative: string
@@ -261,6 +271,7 @@ export const configureBaseline = async (
     ".husky"
   );
   sources.set(".husky/.gitignore", await readSource("pnpm/.husky/.gitignore"));
+  await addProfileSources(sources, profile);
   if (profile === "node" || profile === "frontend" || profile === "react") {
     sources.set("oxlint.config.ts", await readSource("pnpm/oxlint.config.ts"));
     sources.set(

@@ -712,15 +712,13 @@ describe("Maven and Go hook entrypoints", () => {
           valid: true
         },
         {
-          calls:
-            "golangci-lint run\ngolangci-lint fmt --diff\ngo list -m\nnilaway -include-pkgs=example.invalid/module ./...\n",
+          calls: "go task lint\ngo task format\ngo task nilaway\n",
           hook: "pre-commit",
           profile: "go",
           valid: true
         },
         {
-          calls:
-            "golangci-lint run\ngolangci-lint fmt --diff\ngo list -m\nnilaway -include-pkgs=example.invalid/module ./...\ngo test -race -shuffle=on -count=1 ./...\n",
+          calls: "go task check\n",
           hook: "pre-push",
           profile: "go",
           valid: true
@@ -768,13 +766,14 @@ describe("Maven and Go hook entrypoints", () => {
       expect(git("remote", "add", "origin", remote).status).toBe(0);
       await configureBaseline(directory, profile, "eligible");
       await mkdir(path.join(directory, ".bin"));
-      const stubs =
-        profile === "maven" ? ["mvnw"] : ["go", "golangci-lint", "nilaway"];
+      const stubs = profile === "maven" ? ["mvnw"] : ["go"];
       await Promise.all(
         stubs.map((name) =>
           writeFile(
             path.join(directory, name === "mvnw" ? name : `.bin/${name}`),
-            `#!/usr/bin/env sh\nset -e\nprintf '%s\\n' '${name} '"$*" >> '${path.join(directory, "native-calls.txt")}'\n${name === "go" ? 'if [ "$*" = "list -m" ]; then printf "%s\\n" example.invalid/module; fi\n' : ""}`,
+            name === "go"
+              ? `#!/usr/bin/env sh\nif [ "$1" = env ]; then echo off; else printf 'go task %s\\n' "$7" >> '${path.join(directory, "native-calls.txt")}'; fi\n`
+              : `#!/usr/bin/env sh\nprintf 'mvnw %s\\n' "$*" >> '${path.join(directory, "native-calls.txt")}'\n`,
             { mode: 0o755 }
           )
         )

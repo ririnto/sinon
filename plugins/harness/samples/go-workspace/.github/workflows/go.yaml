@@ -1,0 +1,25 @@
+name: Go checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  go:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: ${{ hashFiles('go.work') != '' && 'go.work' || 'go.mod' }}
+          cache: true
+          cache-dependency-path: |-
+            **/go.mod
+            **/go.sum
+            go.work
+            go.work.sum
+      - run: |-
+          HARNESS_GOWORK="$(go env GOWORK)" GOWORK=off go -C tools tool task --dir .. check
+
+permissions:
+  contents: read
