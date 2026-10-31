@@ -121,6 +121,9 @@ Use an official `llms.txt` or documentation index to find a page when its format
 Cite the specific page rather than replacing it with the discovery index.
 Verify the response body and preserve the topic, version, and meaningful fragment when changing a source URL.
 Use upstream raw-file URLs for source citations when the exact file and ref are verified.
+Prefer branch-based source references and use a tag when a claim depends on a specific release.
+Do not pin source references to commit, file, or content hashes.
+For branch references, state the source basis as `YYYY-MM-DD <branch> branch`, such as `2026-10-31 main branch`.
 Retain authoritative HTML pages when no equivalent text page exists.
 Keep schemas, package artifacts, registry endpoints, and executable URLs in their native formats.
 Keep authoritative citations out of body prose.
@@ -132,7 +135,7 @@ Record its version, tag, or other appropriate identifier in a separate field whe
 Do not repeat the source name in a version value unless it belongs to the official version label.
 Use a list of mappings under one source name when distinct versions have distinct URLs.
 Keep each `version` or `tag` and its corresponding `url` in the same mapping.
-Do not add a read date.
+Do not add a read date to tag, release, or other non-branch references.
 Use `url` with a scalar for one source page or a list for multiple pages of the same source version.
 Never fabricate a commit or version.
 Keep the original content faithful within the license and copyright of the source, and preserve its licensing and attribution.
