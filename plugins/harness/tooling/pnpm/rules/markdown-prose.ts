@@ -114,18 +114,11 @@ export const rebuildLine = (segments: readonly Segment[]): string => {
 
 /**
  * Masks literal quotations while preserving source coordinates.
- * A quotation's final terminator can still separate surrounding prose sentences.
  */
 export const protectText = (text: string): string =>
-  text.replaceAll(protectedTextPattern, (match) => {
-    const ending = /(?<ending>[.!?]["'”’])$/u.exec(match)?.groups?.ending ?? "";
-    const masked = match.replaceAll(/[^\r\n]/gu, (character) =>
-      " ".repeat(character.length)
-    );
-    return ending === ""
-      ? `${masked.slice(0, -1)}_`
-      : `${masked.slice(0, -ending.length - 1)}_${ending}`;
-  });
+  text.replaceAll(protectedTextPattern, (match) =>
+    match.replaceAll(/[^\r\n]/gu, (character) => " ".repeat(character.length))
+  );
 
 /**
  * Identifies license files and generated documents before inspecting their prose.

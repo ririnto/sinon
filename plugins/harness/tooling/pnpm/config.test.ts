@@ -643,7 +643,6 @@ describe("pnpm profile configuration", () => {
         "no-em-dash.ts",
         "no-relative-skill-links.ts",
         "no-sensitive-content.mjs",
-        "sentence-per-line.ts",
         "table-separators.ts"
       ]);
       await mkdir(path.join(directory, "nested"));
@@ -654,6 +653,10 @@ describe("pnpm profile configuration", () => {
       await writeFile(
         path.join(directory, "nested/ignored.md"),
         "# First\n\n# Second\n"
+      );
+      await writeFile(
+        path.join(directory, "sample.md"),
+        "# Sample\n\nFirst sentence. Second sentence.\n"
       );
       const ignored = spawnSync(process.execPath, [markdownlintBin], {
         cwd: directory
@@ -668,7 +671,7 @@ describe("pnpm profile configuration", () => {
       });
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status).toBe(1);
-      expect(output).toContain("docs/sentence-per-line");
+      expect(output).not.toContain("docs/sentence-per-line");
       expect(output).toContain("docs/no-em-dash");
       expect(output).toContain("docs/no-relative-skill-links");
       expect(output).toContain("docs/table-separators");

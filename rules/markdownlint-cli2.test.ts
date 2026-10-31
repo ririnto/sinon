@@ -63,7 +63,7 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     );
     await writeFile(
       path.join(directory, "included.md"),
-      "# Included\n\nOne sentence.\n"
+      "# Included\n\nFirst sentence. Second sentence.\n"
     );
     const ignored = runMarkdownlint(directory, "**/*.md");
     expect(ignored.status).toBe(0);
@@ -97,13 +97,10 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     ]);
     const generalRules = runMarkdownlint(directory, "plugins/harness/rules.md");
     expect(generalRules.status).toBe(1);
-    for (const rule of [
-      "search-replace",
-      "docs/sentence-per-line",
-      "docs/table-separators"
-    ]) {
+    for (const rule of ["search-replace", "docs/table-separators"]) {
       expect(generalRules.output).toContain(rule);
     }
+    expect(generalRules.output).not.toContain("docs/sentence-per-line");
     await rm(path.join(harnessDirectory, "rules.md"));
     const harnessScope = runMarkdownlint(
       directory,

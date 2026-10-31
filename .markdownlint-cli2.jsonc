@@ -10,7 +10,6 @@
     "docs/no-relative-skill-links": {
       "paths": ["plugins/harness/"]
     },
-    "docs/sentence-per-line": true,
     "docs/table-separators": true,
     "line-length": false,
     "no-duplicate-heading": {
@@ -40,7 +39,6 @@
     "markdownlint-rule-search-replace",
     "rules/no-em-dash.ts",
     "rules/no-relative-skill-links.ts",
-    "rules/sentence-per-line.ts",
     "rules/table-separators.ts"
   ],
   "gitignore": true

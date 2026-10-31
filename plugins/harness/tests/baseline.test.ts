@@ -189,7 +189,6 @@ describe("fresh-root baseline", () => {
         "no-em-dash.ts",
         "no-relative-skill-links.ts",
         "no-sensitive-content.mjs",
-        "sentence-per-line.ts",
         "table-separators.ts"
       ]);
       expect(configuration.config["sensitive-content"]).toBeUndefined();
