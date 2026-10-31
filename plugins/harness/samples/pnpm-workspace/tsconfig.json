@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "nodenext",
+    "noEmit": true,
+    "target": "esnext",
+    "types": ["node"]
+  },
+  "include": [
+    "packages/**/*.js",
+    "plugins/**/*.ts",
+    "rules/**/*.ts",
+    "*.config.ts"
+  ]
+}

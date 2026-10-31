@@ -1,0 +1,17 @@
+{
+  "name": "@sample/invoice",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/cli.js --bundle --platform=node --format=esm --outfile=dist/invoice.js",
+    "test": "node --test src/*.test.js"
+  },
+  "dependencies": {
+    "@sample/money": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "esbuild": "catalog:"
+  }
+}

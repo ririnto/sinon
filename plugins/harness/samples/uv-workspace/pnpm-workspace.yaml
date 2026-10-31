@@ -1,0 +1,6 @@
+catalog:
+  husky: ^9.1.7
+  markdownlint: ^0.42.0
+  markdownlint-cli2: ^0.24.0
+  markdownlint-rule-search-replace: ^1.2.0
+  npm-run-all2: ^9.0.4

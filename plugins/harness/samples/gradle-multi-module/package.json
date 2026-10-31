@@ -1,0 +1,27 @@
+{
+  "name": "gradle-workspace-sample",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "run-p check:*",
+    "check:markdownlint-cli2": "markdownlint-cli2",
+    "fix": "run-p fix:*",
+    "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
+    "gradle:check": "./gradlew check",
+    "gradle:ktlintCheck": "./gradlew ktlintCheck",
+    "pre-commit": "run-s check gradle:ktlintCheck",
+    "pre-push": "run-s check gradle:check",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "catalog:",
+    "markdownlint": "catalog:",
+    "markdownlint-cli2": "catalog:",
+    "markdownlint-rule-search-replace": "catalog:",
+    "npm-run-all2": "catalog:"
+  },
+  "engines": {
+    "node": "^26.13.0"
+  },
+  "packageManager": "pnpm@12.16.1"
+}

@@ -16,16 +16,16 @@ metadata:
       url: https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite
 ---
 
-This document owns the `go` profile commands, dependencies, and target integration rules for Go module targets.
+This document owns the `go` profile commands, dependencies, and target integration rules for Go module and workspace targets.
 It accompanies the [Go language rules](../languages/go.md) and [shared rules](../rules.md).
 Native configuration sources live under `tooling/go/`.
 
 ## Scope And Detection
 
-Select the `go` profile for a root that has a `go.mod` file.
+Select the `go` profile for a root that has a `go.mod` or `go.work` file.
 The module path, Go version line, and dependency list stay target-owned.
-This profile never creates or edits a `go.mod`.
-In a multi-module repository, install and validate per module root.
+This profile never creates or edits a `go.mod` or `go.work`.
+The target owns module requirements and replacements, including those needed with `GOWORK=off`.
 The `go` toolchain in `PATH` provides build and test support.
 Golangci-lint and NilAway are project-local tools installed into a build-local directory, never globally.
 
@@ -50,6 +50,7 @@ Review the current upstream commit and target Go compatibility before proposing 
 | --- | --- | --- |
 | `tooling/go/.golangci.yaml` | `.golangci.yaml` at the module root | create; merge `linters` and `formatters` entries when a config already exists |
 | `tooling/go/.editorconfig` | merge into existing `.editorconfig` | merge only missing sections and keys |
+| `tooling/go/scripts/go-check.sh` | `scripts/go-check.sh` | create |
 
 The configuration is a real curated v2 config, not a starter.
 When the target already runs golangci-lint, keep its existing `version`, linter set, and thresholds, and merge only missing Harness invariants.
@@ -73,14 +74,19 @@ The hooks in `tooling/go/.husky/` run the shared check before native lint, forma
 On push it also runs the race-enabled test gate.
 Install the native tools below and expose their project-local binaries on the hook's `PATH` before activation.
 
-Run inside the module root:
+Run at the module or workspace root:
 
 ```sh
-golangci-lint run
-golangci-lint fmt --diff
-nilaway -include-pkgs="$(go list -m)" ./...
-go test -race -shuffle=on -count=1 ./...
+sh scripts/go-check.sh lint
+sh scripts/go-check.sh format
+sh scripts/go-check.sh nilaway
+sh scripts/go-check.sh test
 ```
+
+The script enumerates the active main modules and runs each check from its module root.
+NilAway receives each module's own path while analysis retains workspace dependency selection.
+Place a golangci-lint configuration where each module can discover it, including modules outside the workspace root.
+Test each module with `GOWORK=off` as well to detect dependencies supplied only by the workspace.
 
 `golangci-lint fmt` applies formatting.
 `golangci-lint run --fix` applies safe lint fixes.
@@ -122,8 +128,8 @@ Before adopting the catalog's `golang:1.27` image or GitHub actions, check their
 Keep compatible target pins.
 The GitLab job declares `stage: validate`.
 Add that stage to the target's pipeline stages when it does not exist.
-A working-directory adjustment is required when the module is not at the repository root.
-Set the job's working directory to the module root instead of changing the commands.
+A working-directory adjustment is required when the workspace or single module is not at the repository root.
+Set the job's working directory to that root instead of changing the commands.
 
 ## Known Limitations
 

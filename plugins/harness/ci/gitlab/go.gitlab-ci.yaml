@@ -10,7 +10,7 @@ golangci-lint:
       GOTOOLCHAIN=auto go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260918162853-acb8859b9031
   script:
     - export PATH="${CI_PROJECT_DIR}/.bin:${PATH}"
-    - golangci-lint run
-    - golangci-lint fmt --diff
-    - nilaway -include-pkgs="$(go list -m)" ./...
-    - go test -race -shuffle=on -count=1 ./...
+    - sh scripts/go-check.sh lint
+    - sh scripts/go-check.sh format
+    - sh scripts/go-check.sh nilaway
+    - sh scripts/go-check.sh test

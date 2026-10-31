@@ -1,0 +1,7 @@
+[package]
+name = "greeter"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+greeting.workspace = true
