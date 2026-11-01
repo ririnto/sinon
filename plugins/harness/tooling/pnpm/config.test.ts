@@ -180,7 +180,7 @@ describe("pnpm profile configuration", () => {
         await mkdir(path.join(directory, ".bin"));
         await writeFile(
           path.join(directory, ".bin/pnpm"),
-          '#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\nprintf \'%s\\n\' "$@" > "$HARNESS_FIXTURE_TRACE"\nexit "$HARNESS_FIXTURE_EXIT"\n',
+          '#!/usr/bin/env sh\n# vim: set fileencoding=utf-8 :\nset -e\nprintf \'%s\\n\' "$@" > "$HARNESS_FIXTURE_TRACE"\nexit "$HARNESS_FIXTURE_EXIT"\n',
           { mode: 0o755 }
         );
         await Promise.all(

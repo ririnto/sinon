@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# -*- coding: utf-8 -*-
+# vim: set fileencoding=utf-8 :
 set -e
 
 script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
