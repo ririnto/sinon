@@ -16,7 +16,10 @@ import { describe, expect, onTestFinished, test } from "vitest";
 import { parseDocument } from "yaml";
 
 import { configureBaseline } from "../scripts/configure.js";
-import type { BaselineProfile } from "../scripts/configure.js";
+import type {
+  BaselineProfile,
+  TypeScriptProfile
+} from "../scripts/configure.js";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const profiles: BaselineProfile[] = [
@@ -69,6 +72,71 @@ const assertSortedKeys = (value: unknown): void => {
 };
 
 describe("fresh-root baseline", () => {
+  test.each([
+    ["node", "@tsconfig/node-lts/tsconfig.json", "@tsconfig/node-lts"],
+    [
+      "vite-react",
+      "@tsconfig/vite-react/tsconfig.json",
+      "@tsconfig/vite-react"
+    ],
+    ["vue", "@vue/tsconfig/tsconfig.dom.json", "@vue/tsconfig"],
+    [
+      "react-native",
+      "@tsconfig/react-native/tsconfig.json",
+      "@tsconfig/react-native"
+    ],
+    ["next", "@tsconfig/next/tsconfig.json", "@tsconfig/next"]
+  ] as [TypeScriptProfile, string, string][])(
+    "materializes the %s TypeScript profile with target-owned dependencies",
+    async (selected, config, dependency) => {
+      const directory = await targetDirectory();
+      await configureBaseline(directory, "frontend", "eligible", selected);
+      const tsconfig = JSON.parse(
+        await readFile(path.join(directory, "tsconfig.json"), "utf-8")
+      );
+      const manifest = JSON.parse(
+        await readFile(path.join(directory, "package.json"), "utf-8")
+      );
+      const workspace = parseDocument(
+        await readFile(path.join(directory, "pnpm-workspace.yaml"), "utf-8")
+      );
+      expect(tsconfig.extends).toBe(config);
+      expect(tsconfig.compilerOptions.noUncheckedIndexedAccess).toBe(true);
+      expect(manifest.devDependencies[dependency]).toBe("catalog:");
+      expect(workspace.getIn(["catalog", dependency])).toBeTruthy();
+      if (selected === "vue") {
+        expect(manifest.devDependencies.typescript).toBe("catalog:vue");
+        expect(workspace.getIn(["catalogs", "vue", "typescript"])).toBe(
+          "^6.0.3"
+        );
+      }
+      if (selected === "next") {
+        expect(tsconfig.include).toContain(".next/types/**/*.ts");
+      }
+      if (selected === "vite-react") {
+        expect(tsconfig.compilerOptions.tsBuildInfoFile).toBe(
+          "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
+        );
+      }
+      const second = await configureBaseline(
+        directory,
+        "frontend",
+        "eligible",
+        selected
+      );
+      expect(second.created).toEqual([]);
+    }
+  );
+
+  test("rejects a conflicting TypeScript configuration before writing", async () => {
+    const directory = await targetDirectory();
+    await writeFile(path.join(directory, "tsconfig.json"), "{}\n");
+    await expect(
+      configureBaseline(directory, "node", "eligible", "node")
+    ).rejects.toThrow("Conflict at tsconfig.json");
+    expect(await readdir(directory)).toEqual(["tsconfig.json"]);
+  });
+
   test.each([
     ["GitLab", "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", 0],
     ["GitLab", "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", 7],
