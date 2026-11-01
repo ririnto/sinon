@@ -32,10 +32,10 @@
     "prepare": "husky",
     "test:promtool": "tsx plugins/observability-assets/tests/promtool/run.ts",
     "ultracite:check": "ultracite check --config oxlint.config.ts",
-    "ultracite:check:harness": "ultracite check --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm",
+    "ultracite:check:harness": "ultracite check --type-aware --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm",
     "ultracite:check:marketplace": "ultracite check .claude-plugin/marketplace",
     "ultracite:fix": "ultracite fix --config oxlint.config.ts",
-    "ultracite:fix:harness": "ultracite fix --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm"
+    "ultracite:fix:harness": "ultracite fix --type-aware --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm"
   },
   "devDependencies": {
     "@google/design.md": "catalog:",

@@ -10,10 +10,10 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { expect, test } from "vitest";
 
+import plugin from "../../../../no-direct-use-effect.js";
 import { configureBaseline } from "../../../scripts/configure.js";
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
 
@@ -155,9 +155,9 @@ test.each(pluginSources)(
         })
       );
       await Promise.all(
-        cases.map(([filename, text]) =>
-          writeFile(path.join(directory, filename), `${text}\n`)
-        )
+        cases.map(async ([filename, text]) => {
+          await writeFile(path.join(directory, filename), `${text}\n`);
+        })
       );
       const result = runUltracite(directory, ".");
       expect(result.status).toBe(1);
@@ -288,9 +288,9 @@ test.each([
         result.diagnostics.filter(
           ({ filename, code }) =>
             filename === "valid.tsx" &&
-            (code?.startsWith("react(") ||
-              code?.startsWith("react-hooks-js(") ||
-              code?.startsWith("react-effects(") ||
+            (code?.startsWith("react(") === true ||
+              code?.startsWith("react-hooks-js(") === true ||
+              code?.startsWith("react-effects(") === true ||
               code === "oxc(no-accumulating-spread)")
         )
       ).toEqual([]);
@@ -310,24 +310,20 @@ test("Harness materializes the React policy dependency and package-script execut
       path.join(directory, "node_modules"),
       "dir"
     );
-    const manifest = JSON.parse(
-      await readFile(path.join(directory, "package.json"), "utf-8")
-    ) as {
-      devDependencies: Record<string, string>;
-      scripts: Record<string, string>;
-    };
-    expect(manifest.devDependencies).toMatchObject({
-      "@oxc-project/types": "catalog:",
-      "eslint-plugin-react-hooks": "catalog:",
-      oxlint: "catalog:",
-      ultracite: "catalog:"
+    expect(
+      JSON.parse(await readFile(path.join(directory, "package.json"), "utf-8"))
+    ).toMatchObject({
+      devDependencies: {
+        "@oxc-project/types": "catalog:",
+        "eslint-plugin-react-hooks": "catalog:",
+        oxlint: "catalog:",
+        ultracite: "catalog:"
+      },
+      scripts: {
+        "check:ultracite": "run-p --continue-on-error ultracite:check:**",
+        "ultracite:check:base": "ultracite check --type-aware"
+      }
     });
-    expect(manifest.scripts["check:ultracite"]).toBe(
-      "run-p --continue-on-error ultracite:check:**"
-    );
-    expect(manifest.scripts["ultracite:check:base"]).toBe(
-      "ultracite check --type-aware"
-    );
     await writeFile(
       path.join(directory, "sample.ts"),
       'import { useEffect } from "react"; useEffect(() => {});\n'
@@ -349,11 +345,10 @@ test("Harness materializes the React policy dependency and package-script execut
 
 test("standalone and Harness copies preserve one canonical plugin without local imports", async () => {
   const [standalone, harness] = await Promise.all(
-    pluginSources.map((source) => readFile(source, "utf-8"))
+    pluginSources.map(async (source) => await readFile(source, "utf-8"))
   );
   expect(standalone).toBe(harness);
   expect(standalone).not.toMatch(/from\s*["']\./u);
-  const { default: plugin } = await import(fileURLToPath(pluginSources[0]));
   expect(plugin.meta.name).toBe("react-effects");
   expect(Object.keys(plugin.rules)).toEqual(["no-direct-use-effect"]);
   expect(plugin.rules["no-direct-use-effect"].meta).not.toHaveProperty(
