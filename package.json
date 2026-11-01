@@ -40,7 +40,7 @@
   "devDependencies": {
     "@google/design.md": "catalog:",
     "@oxc-project/types": "catalog:",
-    "@tsconfig/node26": "catalog:",
+    "@tsconfig/node-lts": "catalog:",
     "@types/node": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "husky": "catalog:",
