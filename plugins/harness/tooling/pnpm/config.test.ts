@@ -18,8 +18,10 @@ import { lint } from "markdownlint/sync";
 import { describe, expect, test } from "vitest";
 import { parseDocument } from "yaml";
 
+import rootManifest from "../../../../package.json" with { type: "json" };
 import { configureBaseline } from "../../scripts/configure.js";
 import { runUltracite } from "../../tests/ultracite-fixture.js";
+import tsconfig from "./tsconfig.fragment.json" with { type: "json" };
 
 const profileDirectory = import.meta.dirname;
 const resolvePackage = createRequire(import.meta.url).resolve;
@@ -116,10 +118,10 @@ const runPackageScript = (directory: string, script: string) =>
 const markdownFiles = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = await Promise.all(
-    entries.map((entry) =>
+    entries.map(async (entry) =>
       entry.isDirectory()
-        ? markdownFiles(path.join(directory, entry.name))
-        : Promise.resolve([path.join(directory, entry.name)])
+        ? await markdownFiles(path.join(directory, entry.name))
+        : [path.join(directory, entry.name)]
     )
   );
   return files.flat().filter((file) => file.endsWith(".md"));
@@ -158,15 +160,18 @@ describe("pnpm profile configuration", () => {
   ])(
     "%s owns its hook sequences and receives hook delegation",
     async (manifestFile, preCommit, prePush) => {
-      const { scripts } = JSON.parse(
-        await readFile(path.resolve(profileDirectory, manifestFile), "utf-8")
-      );
-      expect(scripts).toMatchObject({
-        check: "run-p check:*",
-        fix: "run-p fix:*",
-        "pre-commit": preCommit,
-        "pre-push": prePush,
-        prepare: "husky"
+      expect(
+        JSON.parse(
+          await readFile(path.resolve(profileDirectory, manifestFile), "utf-8")
+        )
+      ).toMatchObject({
+        scripts: {
+          check: "run-p check:*",
+          fix: "run-p fix:*",
+          "pre-commit": preCommit,
+          "pre-push": prePush,
+          prepare: "husky"
+        }
       });
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-hook-direction-")
@@ -226,7 +231,7 @@ describe("pnpm profile configuration", () => {
       {
         commands: [
           "ultracite check --config oxlint.config.ts",
-          "ultracite check --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm",
+          "ultracite check --type-aware --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm",
           "ultracite check .claude-plugin/marketplace"
         ],
         gate: "check:ultracite"
@@ -240,12 +245,7 @@ describe("pnpm profile configuration", () => {
   )(
     "$gate preserves tool order with failure $failure",
     async ({ commands, failure, gate }) => {
-      const { scripts }: { scripts: Record<string, string> } = JSON.parse(
-        await readFile(
-          path.resolve(profileDirectory, "../../../../package.json"),
-          "utf-8"
-        )
-      );
+      const scripts: Record<string, string> = rootManifest.scripts;
       const [runner, ...tasks] = scripts[gate].split(" ");
       expect(runner).toBe("run-s");
       expect(tasks.map((task) => scripts[task])).toEqual(commands);
@@ -316,11 +316,10 @@ describe("pnpm profile configuration", () => {
         );
         const block = frontmatter?.groups?.block;
         const source = frontmatter?.groups?.source;
-        if (block && source) {
+        if (block !== undefined && source !== undefined) {
           const document = parseDocument(source, { uniqueKeys: true });
           expect(document.errors, file).toEqual([]);
-          expect(document.toJS().title, file).toBeTypeOf("string");
-          expect(document.toJS().title.trim(), file).not.toBe("");
+          expect(document.get("title"), file).toMatch(/\S/u);
           expect(/^# /mu.test(text.slice(block.length)), file).toBe(false);
         } else {
           expect(/^# /mu.test(text), file).toBe(true);
@@ -333,7 +332,11 @@ describe("pnpm profile configuration", () => {
     path.resolve(profileDirectory, "../../../..", ".markdownlint-cli2.jsonc"),
     path.join(profileDirectory, ".markdownlint-cli2.jsonc")
   ])("Markdownlint title policy in %s", async (configurationPath) => {
-    const { config, gitignore } = JSON.parse(
+    const parseConfiguration: (text: string) => {
+      config: NonNullable<Parameters<typeof lint>[0]>["config"];
+      gitignore: boolean;
+    } = JSON.parse;
+    const { config, gitignore } = parseConfiguration(
       await readFile(configurationPath, "utf-8")
     );
     expect(gitignore).toBe(true);
@@ -352,7 +355,7 @@ describe("pnpm profile configuration", () => {
     for (const { text, rule } of cases) {
       const errors = lint({ config, strings: { sample: text } }).sample;
       expect(errors.map(({ ruleNames }) => ruleNames[0])).toEqual(
-        rule ? [rule] : []
+        rule === undefined ? [] : [rule]
       );
     }
   });
@@ -382,7 +385,7 @@ describe("pnpm profile configuration", () => {
         "tsdoc(require-export-tsdoc)"
       );
       expect(
-        diagnostics.filter(({ code }) => code?.startsWith("style("))
+        diagnostics.filter(({ code }) => code?.startsWith("style(") === true)
       ).toEqual([]);
     } finally {
       await rm(directory, { force: true, recursive: true });
@@ -445,9 +448,9 @@ describe("pnpm profile configuration", () => {
         await Promise.all(
           stylePasses
             .filter(({ pluginFile }) => pluginFile !== stylePass.pluginFile)
-            .map(({ pluginFile }) =>
-              rm(path.join(directory, "plugins", pluginFile))
-            )
+            .map(async ({ pluginFile }) => {
+              await rm(path.join(directory, "plugins", pluginFile));
+            })
         );
         await rm(path.join(directory, "plugins/no-direct-use-effect.ts"));
         const pluginFiles = await readdir(path.join(directory, "plugins"));
@@ -463,7 +466,7 @@ describe("pnpm profile configuration", () => {
         );
         expect(status).toBe(1);
         expect(
-          diagnostics.filter(({ code }) => code?.startsWith("style("))
+          diagnostics.filter(({ code }) => code?.startsWith("style(") === true)
         ).toEqual([
           expect.objectContaining({
             code: stylePass.ruleCode,
@@ -624,12 +627,16 @@ describe("pnpm profile configuration", () => {
           "schema/markdownlint-cli2-config-schema.json"
         )
       );
+      const parseConfiguration: (text: string) => { $schema: string } =
+        JSON.parse;
       await Promise.all(
         [
           path.join(profileDirectory, ".markdownlint-cli2.jsonc"),
           path.join(directory, ".markdownlint-cli2.jsonc")
         ].map(async (configPath) => {
-          const configuration = JSON.parse(await readFile(configPath, "utf-8"));
+          const configuration = parseConfiguration(
+            await readFile(configPath, "utf-8")
+          );
           expect(
             await realpath(
               new URL(configuration.$schema, pathToFileURL(configPath))
@@ -684,17 +691,11 @@ describe("pnpm profile configuration", () => {
   test("tsconfig fragment options compile under the installed TypeScript", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-ts-"));
     try {
-      const { compilerOptions } = JSON.parse(
-        await readFile(
-          path.join(profileDirectory, "tsconfig.fragment.json"),
-          "utf-8"
-        )
-      );
       await writeFile(
         path.join(directory, "tsconfig.json"),
         JSON.stringify({
           compilerOptions: {
-            ...compilerOptions,
+            ...tsconfig.compilerOptions,
             module: "esnext",
             noEmit: true,
             strict: true,

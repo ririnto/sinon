@@ -18,11 +18,8 @@ import { describe, expect, test } from "vitest";
 
 import noEmDash from "./no-em-dash.js";
 import noRelativeSkillLinks from "./no-relative-skill-links.js";
+import sensitiveContent from "./no-sensitive-content.mjs";
 import tableSeparators from "./table-separators.js";
-
-const { default: sensitiveContent }: { default: Rule } = await import(
-  new URL("no-sensitive-content.mjs", import.meta.url).href
-);
 
 interface Violation {
   readonly detail: string | null;
@@ -256,8 +253,9 @@ describe("sensitive-content package loading", () => {
     expect(resolved).toBe(
       path.join(import.meta.dirname, "no-sensitive-content.mjs")
     );
-    const loaded = await import(resolved);
-    expect(loaded.default).toBe(sensitiveContent);
+    expect(await import(resolved)).toBe(
+      await import("./no-sensitive-content.mjs")
+    );
     expect(() =>
       createRequire(import.meta.url).resolve("sinon/rules/missing")
     ).toThrow();
