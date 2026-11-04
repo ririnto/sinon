@@ -182,18 +182,18 @@ class PublicDeclarationDocCommentTest :
         test("does not require boilerplate on properties") {
             val source =
                 """
-                    /**
-                     * Identity.
-                     */
-                    data class Identity(
-                        val id: Int,
-                        var label: String,
-                        protected val owner: String,
-                        private val secret: String,
-                        plain: String
-                    ) {
-                        val display: String = label
-                    }
+                /**
+                 * Identity.
+                 */
+                data class Identity(
+                    val id: Int,
+                    var label: String,
+                    protected val owner: String,
+                    private val secret: String,
+                    plain: String
+                ) {
+                    val display: String = label
+                }
                 """.trimIndent() + "\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 assertSoftly(diagnostics) {
