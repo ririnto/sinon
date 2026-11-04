@@ -169,6 +169,16 @@ Make the consumer's `ktlintCheck` depend on the ruleset module's `jar` task when
 A composite build can expose the module project, but the consumer still needs the explicit `ktlintRuleset(...)` dependency because buildSrc classes are not a ktlint runtime ruleset.
 For an included build, use the module's coordinates in `ktlintRuleset("com.ririnto.sinon.harness:harness-kotlin:1.0.0")` and add `includeBuild("tooling/kotlin")` in `settings.gradle.kts`.
 The included module's `jar` task is then part of dependency resolution and runs before the consumer's ktlint task.
+Wire the included build's `check` task into the existing root `check` so normal verification also runs ruleset tests and lint:
+
+```kotlin
+tasks.named("check") {
+    dependsOn(gradle.includedBuild("kotlin").task(":check"))
+}
+```
+
+Use the actual included-build name when it differs from `kotlin`.
+Retain existing root `check` dependencies.
 Dependabot can scan a target-owned copy through the Gradle ecosystem when its `directory` points to the module root containing `gradle/libs.versions.toml`.
 Keep Kotlin, the ktlint Gradle plugin, and ktlint engine updates in one reviewed change because the module's compiler and runtime API contracts are coupled.
 For a target that keeps a direct local JAR path instead, add an explicit task dependency from the consumer lint task to the module `jar` task through the target's existing Gradle orchestration.

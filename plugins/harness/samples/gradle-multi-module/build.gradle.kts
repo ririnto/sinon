@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.named("check") {
-    dependsOn(":app:check", ":library:check")
+    dependsOn(":app:check", ":library:check", gradle.includedBuild("kotlin").task(":check"))
 }
 
 tasks.register("ktlintCheck") {

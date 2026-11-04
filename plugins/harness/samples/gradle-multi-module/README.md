@@ -2,7 +2,8 @@
 
 This standalone Kotlin project has an application and a library.
 The application calls the library, and each module owns executable tests.
-The root `check` and `ktlintCheck` tasks include both modules.
+The root `check` task includes both modules and the included ruleset build.
+The root `ktlintCheck` task includes both application modules.
 Versions live in the project's Gradle and pnpm catalogs.
 Generate this sample with the materializer before running it.
 The generated `tooling/kotlin` build supplies the custom ktlint rules to both modules.
