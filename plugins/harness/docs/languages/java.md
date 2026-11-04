@@ -19,10 +19,10 @@ The [Gradle tool reference](../tools/gradle.md) and the [Maven tool reference](.
 
 ## Public declarations
 
-Document public and protected types and callable contracts with Javadoc.
+Document public contracts and non-obvious behavior using the target project's documentation conventions.
 Document fields when their meaning or constraints are not evident from the declaration.
 Describe parameters, results, errors, and links when they clarify the contract.
-Write declaration documentation in English and state the contract, constraints, or reason.
+Follow the target's documentation language and state the contract, constraints, or reason.
 Keep documentation at declaration level instead of placing explanatory comments inside method bodies.
 
 ## Structure
