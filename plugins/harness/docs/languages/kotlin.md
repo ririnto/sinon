@@ -148,7 +148,9 @@ In production code, prefer `requireNotNull` for required arguments and `checkNot
 Keep the original exception type, message, evaluation order, wrapper contract, and `Unit` return type for production guards.
 `requireNotNull` throws `IllegalArgumentException`, while `checkNotNull` throws `IllegalStateException` for null values.
 
-Name every lambda parameter explicitly for its role instead of the implicit `it`, with no exception for short lambdas.
+Follow the target project's lambda naming conventions.
+Name lambda parameters when doing so clarifies their role or avoids ambiguity.
+When active, the `harness:implicit-lambda-it` rule reports uses of implicit `it`.
 Use `_` only for a genuinely unused parameter.
 Do not confuse the Kotest DSL form `it("description")` with an implicit lambda parameter.
 Use extension functions when ownership or the call site benefits.
@@ -228,8 +230,8 @@ Follow the [common early-exit policy](../rules.md#code-rules-common-to-all-langu
 
 ## Member Properties And Tests
 
-Declare explicit types on every class, object, and companion object property, including private test helpers.
-The `harness:explicit-property-type` rule applies to these members.
+Follow the target project's property type declaration conventions.
+The `harness:explicit-property-type` rule requires explicit types on class, object, and companion object properties, including private test helpers, when the rule is active.
 The rule also reports top-level properties, whatever their visibility.
 Local variables keep inference.
 It fixes literal initializers automatically and reports other initializers without a correction.

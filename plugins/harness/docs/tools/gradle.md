@@ -192,7 +192,9 @@ Do not use a machine-specific `systemPath` or require a registry publication for
 
 ### Node-Side Markdown And Hook Scripts
 
-Use pnpm for the Node-side tooling at each selected Gradle root.
+Use the target's package manager and dependency conventions for Node-side tooling at each selected Gradle root.
+The following pnpm-specific merge and hook instructions apply when the target uses pnpm.
+For another package manager, adapt the dependencies and scripts to its conventions while preserving the target's existing configuration.
 `tooling/gradle/package.json` is script and dependency merge guidance, following the pnpm profile's `package.fragment.json` convention.
 Merge its entries into the target manifest.
 Preserve existing identity, commands, dependencies, workspaces, and package-manager settings.
@@ -217,12 +219,13 @@ The pre-commit gate requires a real target-owned `ktlintCheck` task.
 If that task is missing, report the integration gap and resolve the Kotlin integration before activating this exact script surface.
 Do not silently substitute `check` for `ktlintCheck`.
 The package scripts finish Node-side checks successfully before invoking Gradle.
-Install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git hooks delegate to the matching pnpm scripts.
+For pnpm targets, install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git hooks delegate to the matching pnpm scripts.
+For other package managers, adapt hook commands to invoke the corresponding target scripts.
 Keep the checked-in wrapper at the selected root and preserve its task graph.
 
 Install the canonical Markdownlint configuration and `rules/` from `tooling/pnpm/`, omitting `*.test.ts` files.
-Use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the four development dependencies in this manifest.
-Resolve their catalog references in the target's `pnpm-workspace.yaml` before running `pnpm install`.
+For pnpm targets, use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the four development dependencies in this manifest.
+For pnpm targets, resolve catalog references in the target's `pnpm-workspace.yaml` before running `pnpm install`.
 Use missing entries from `pnpm-workspace.fragment.yaml` as merge guidance, preserving compatible target versions and unrelated workspace settings.
 Verify supported dependency versions through the npm registry before adding or upgrading them in a target.
 Do not select the Oxc or TypeScript profile solely to obtain Markdownlint.
