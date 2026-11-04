@@ -106,8 +106,9 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |
 
 Use the `pnpm` hook source for Node, frontend, and React, and `gradle` for Kotlin.
+For Gradle targets using another package manager, adapt the source hook commands to invoke the corresponding target scripts with that manager.
 Read the two skills, common rules, and selected language and tool references before composing their target files.
-Preserve canonical content except for these location changes and an explicitly filtered reference index:
+Preserve canonical content except for these location changes, the package-manager hook adaptation above, and an explicitly filtered reference index:
 
 - In both copied skills, rewrite the published `../../docs/rules.md` link to `../docs/rules.md`.
 - In the target Markdownlint configuration, rewrite only the `$schema` path to `./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json`.
@@ -158,6 +159,7 @@ The pnpm profile owns the canonical Markdownlint configuration and rules, includ
 Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
 For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md).
 Reuse the shared Markdown sources and select each profile's own Husky configurations.
+For Gradle targets that do not use pnpm, adapt the Gradle hook commands to the target's package manager and preserve existing hooks and their owner.
 This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.

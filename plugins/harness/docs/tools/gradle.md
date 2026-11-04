@@ -224,7 +224,7 @@ For other package managers, adapt hook commands to invoke the corresponding targ
 Keep the checked-in wrapper at the selected root and preserve its task graph.
 
 Install the canonical Markdownlint configuration and `rules/` from `tooling/pnpm/`, omitting `*.test.ts` files.
-For pnpm targets, use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the four development dependencies in this manifest.
+For pnpm targets, use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the development dependencies in this manifest.
 For pnpm targets, resolve catalog references in the target's `pnpm-workspace.yaml` before running `pnpm install`.
 Use missing entries from `pnpm-workspace.fragment.yaml` as merge guidance, preserving compatible target versions and unrelated workspace settings.
 Verify supported dependency versions through the npm registry before adding or upgrading them in a target.
