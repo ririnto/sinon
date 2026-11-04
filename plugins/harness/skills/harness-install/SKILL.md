@@ -159,7 +159,8 @@ The pnpm profile owns the canonical Markdownlint configuration and rules, includ
 Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
 For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md).
 Reuse the shared Markdown sources and select each profile's own Husky configurations.
-For Gradle targets that do not use pnpm, adapt the Gradle hook commands to the target's package manager and preserve existing hooks and their owner.
+For existing Gradle targets that do not use pnpm, adapt the Gradle hook commands to the target's package manager and preserve existing hooks and their owner.
+Run the baseline's install, prepare, check, and hook proof using the corresponding target package-manager commands and adapted hooks instead of its pnpm commands.
 This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.
