@@ -152,6 +152,9 @@ Sinon selects external plugins through its marketplace catalog.
 - [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the MCP runtime, thread-control skill, monitor, checks, and release version.
   Install it as `codex-app-server@sinon` in either host.
+- [stop-slop](https://github.com/hardikpandya/stop-slop): the Sinon catalog follows the upstream default branch.
+  The upstream repository owns the prose skill, its MIT license, and its version.
+  Install it as `stop-slop@sinon` in either host.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the runtime, Skills, and version.
 
