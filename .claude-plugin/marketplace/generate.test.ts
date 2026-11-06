@@ -109,6 +109,64 @@ test("maps local packages and keeps external URL sources unpinned", async () => 
   });
 });
 
+test("preserves explicit external skill roots", async () => {
+  const source = { source: "url", url: "https://example.com/plugin.git" };
+  const result = await createCodexMarketplace(
+    catalog([
+      { name: "external", skills: ["./.", "./skills/writing"], source }
+    ]),
+    makeRoot()
+  );
+  expect(result.plugins).toEqual([
+    {
+      category: "Development",
+      name: "external",
+      policy: { authentication: "ON_INSTALL", installation: "AVAILABLE" },
+      skills: ["./.", "./skills/writing"],
+      source
+    }
+  ]);
+});
+
+test("preserves a single external skill root", async () => {
+  const source = { source: "url", url: "https://example.com/plugin.git" };
+  const result = await createCodexMarketplace(
+    catalog([{ name: "external", skills: "./.", source }]),
+    makeRoot()
+  );
+  expect(result.plugins[0]?.skills).toEqual("./.");
+});
+
+test.each(
+  [
+    null,
+    7,
+    [],
+    [""],
+    ["."],
+    ["./"],
+    ["/tmp"],
+    ["../escape"],
+    ["./../escape"],
+    ["./C:/escape"],
+    ["./foo\\bar"],
+    [7]
+  ].map((skills) => ({ skills }))
+)("rejects unsafe external skill roots: %j", async ({ skills }) => {
+  await expect(
+    createCodexMarketplace(
+      catalog([
+        {
+          name: "external",
+          skills,
+          source: { source: "url", url: "https://example.com/plugin.git" }
+        }
+      ]),
+      makeRoot()
+    )
+  ).rejects.toThrow(Error);
+});
+
 test("maps Herdr from its direct upstream GitHub source", async () => {
   const result = await createCodexMarketplace(
     catalog([

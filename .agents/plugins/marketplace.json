@@ -215,6 +215,7 @@
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
       },
+      "skills": "./.",
       "source": {
         "source": "url",
         "url": "https://github.com/hardikpandya/stop-slop.git"

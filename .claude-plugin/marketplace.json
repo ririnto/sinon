@@ -333,6 +333,7 @@
       "description": "Prose skill that removes predictable AI writing patterns from drafting, editing, and review.",
       "license": "MIT",
       "name": "stop-slop",
+      "skills": "./.",
       "source": {
         "source": "url",
         "url": "https://github.com/hardikpandya/stop-slop.git"
