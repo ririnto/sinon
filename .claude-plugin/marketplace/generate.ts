@@ -19,6 +19,7 @@ interface CatalogPlugin {
   readonly description?: string;
   readonly license?: string;
   readonly name: string;
+  readonly skills?: string | readonly string[];
   readonly source: unknown;
   readonly version?: string;
 }
@@ -54,6 +55,7 @@ interface NativePlugin {
     readonly authentication: "ON_INSTALL";
   };
   readonly category: string;
+  readonly skills?: string | readonly string[];
 }
 
 interface NativeMarketplace {
@@ -75,6 +77,38 @@ const requiredString = (value: unknown, label: string): string => {
     throw new Error(`${label} must be a non-empty string`);
   }
   return value;
+};
+
+const skillRoots = (
+  value: unknown,
+  label: string
+): string | readonly string[] => {
+  const roots = typeof value === "string" ? [value] : value;
+  if (
+    !Array.isArray(roots) ||
+    roots.length === 0 ||
+    roots.some((root) => {
+      if (
+        typeof root !== "string" ||
+        !root.startsWith("./") ||
+        root.includes("\\")
+      ) {
+        return true;
+      }
+      const relative = root.slice(2);
+      return (
+        relative.length === 0 ||
+        /^[A-Za-z]:/u.test(relative) ||
+        (relative !== "." &&
+          relative
+            .split("/")
+            .some((part) => part === "" || part === "." || part === ".."))
+      );
+    })
+  ) {
+    throw new Error(`${label} must contain safe relative skill paths`);
+  }
+  return typeof value === "string" ? value : roots;
 };
 
 const parseCatalog = (value: unknown): SourceCatalog => {
@@ -120,6 +154,10 @@ const parseCatalog = (value: unknown): SourceCatalog => {
         plugin.name,
         `Marketplace plugin at index ${index} name`
       ),
+      skills:
+        plugin.skills === undefined
+          ? undefined
+          : skillRoots(plugin.skills, `Skills for ${String(plugin.name)}`),
       source: plugin.source,
       version:
         plugin.version === undefined
@@ -557,6 +595,7 @@ export const createCodexMarketplace = async (
                 authentication: "ON_INSTALL",
                 installation: "AVAILABLE"
               },
+              ...(plugin.skills === undefined ? {} : { skills: plugin.skills }),
               source
             }
           ]

@@ -210,6 +210,19 @@
     },
     {
       "category": "Development",
+      "name": "stop-slop",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "skills": "./.",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/hardikpandya/stop-slop.git"
+      }
+    },
+    {
+      "category": "Development",
       "name": "workgraph",
       "policy": {
         "authentication": "ON_INSTALL",
