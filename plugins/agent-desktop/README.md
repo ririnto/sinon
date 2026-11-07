@@ -29,7 +29,8 @@ Each tool mirrors one CLI command and returns the command's JSON envelope.
 The plugin runs the published `agent-desktop` npm package through `bunx`.
 The runtime requires `bun` on `PATH`.
 The package bundles native binaries for macOS, Windows, and Linux.
-Bun's default policy blocks package lifecycle scripts, so the server starts through the package's Node launcher.
+Bun's default policy blocks package lifecycle scripts, so the server starts through the package's `node`-shebang launcher, which Bun executes with its own runtime.
+A separate Node.js installation is not required.
 `bunx` reuses its cached package installation between launches.
 Run `bun pm cache rm` when you want `bunx` to resolve the package version again.
 
