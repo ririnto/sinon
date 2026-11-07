@@ -51,8 +51,8 @@ On first use, npm prepares CodeGraph automatically with its standard cache and u
 The command uses the unversioned `@colbymchenry/codegraph` package.
 Npm may reuse a project-local installation and otherwise resolves the package from the registry.
 The MCP server and lifecycle hooks use the same `npx` package command.
-Claude Code loads CodeGraph tools upfront through `alwaysLoad: true`.
-That Claude-specific field is outside the portable MCP schema, so `.mcp.json` does not declare that schema.
+Claude Code loads CodeGraph tools upfront through `alwaysLoad: true` in `.claude-plugin/plugin.json`.
+That Claude-specific field is outside the portable MCP schema, so `.codex-plugin/mcp.json` does not declare that schema.
 The preparation handler resolves the Git checkout root and runs `codegraph init --yes` there.
 Initialization builds the first index, and the MCP server then synchronizes changes automatically.
 The lifecycle hooks do not run a separate full index command.
@@ -97,10 +97,10 @@ npx --yes @colbymchenry/codegraph status
 
 ## Package Contents
 
-- The Sinon Claude marketplace entry declares the plugin metadata.
+- The Sinon Claude marketplace entry declares the authoritative plugin metadata.
+- `.claude-plugin/plugin.json` declares the Claude plugin with its inline MCP servers.
 - `.codex-plugin/plugin.json` declares the Codex plugin and its startup hooks.
-- `.mcp.json` registers CodeGraph's MCP server.
-- `mcp.json` registers the portable MCP server configuration.
+- `.codex-plugin/mcp.json` registers the portable MCP server configuration.
 - `hooks/hooks.json` runs repository preparation at Claude Code startup and after `EnterWorktree`.
 - `hooks/codex-hooks.json` runs repository preparation at Codex startup.
 

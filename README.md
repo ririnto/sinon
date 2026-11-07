@@ -52,7 +52,7 @@ The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
 Each local plugin that Codex should list provides a native Codex manifest, and a local plugin without one stays Claude-only.
 A package with a native manifest that the Claude catalog omits is listed only in the Codex catalog, as `claude-agents` is, because Claude Code reserves the `claude-` name prefix.
-Claude Code uses each plugin's marketplace entry as its manifest.
+Claude Code uses a local `.claude-plugin/plugin.json` manifest when a package provides one and otherwise its marketplace entry.
 
 ## Repository Structure
 
@@ -75,11 +75,12 @@ Claude Code uses each plugin's marketplace entry as its manifest.
 Each host reads its own plugin metadata:
 
 - `.codex-plugin/plugin.json`: native Codex plugin manifest.
+- `.claude-plugin/plugin.json`: native Claude plugin manifest with inline MCP servers.
 - `.claude-plugin/marketplace.json`: Claude plugin entries and metadata.
 
 Codex discovers shared skills from `skills/` and loads MCP files declared by its manifest.
 Root `plugin.json` files are excluded because recognized Agent Plugin manifests shadow native manifests and skip hooks in the Codex main branch as of 2026-10-31.
-Claude Code uses `.mcp.json` for its MCP servers.
+Claude Code reads inline MCP servers declared by `.claude-plugin/plugin.json`.
 Claude Code discovers shared skills, agents, LSP configuration, and hooks from their default package paths.
 Claude-specific agents and LSP configuration retain their host contracts.
 
@@ -90,7 +91,6 @@ Common plugin assets include:
 - `skills/`.
 - `agents/`.
 - `hooks/`.
-- `.mcp.json`.
 - `settings.json`.
 - Executable `bin/`.
 
@@ -358,13 +358,14 @@ Publishers must increase a declared release version when the packaged content ch
 
 Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
 Keep each local package's Codex identity aligned with its Claude marketplace entry.
+Keep a local `.claude-plugin/plugin.json` manifest's identity fields aligned with its marketplace entry.
 The marketplace catalog owns its generator and regression suite under `.claude-plugin/marketplace/`.
 Generate the native Codex view with `pnpm run marketplace:generate`.
 External `git-subdir` sources preserve their URL and subdirectory in the generated view.
 Omit Git revision selectors from external sources, including `ref` values such as `main` and `sha` commit pins.
 The generator rejects revision-selector fields instead of copying them into the Codex catalog.
 Keep external release metadata in the upstream plugin manifest.
-Keep each local plugin's release version aligned between its Claude catalog entry and native Codex manifest.
+Keep each local plugin's release version aligned between its Claude catalog entry and native manifests.
 Commit the generated catalog with its source changes.
 The repository checks reject stale catalogs and invalid local package mappings.
 

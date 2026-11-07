@@ -1,10 +1,10 @@
 {
   "name": "agent-desktop",
-  "version": "2026.11.07.01",
+  "version": "2026.11.07.02",
   "description": "Desktop observation and automation MCP tools driven by native accessibility trees.",
   "author": {
     "name": "ririnto"
   },
   "license": "MIT",
-  "mcpServers": "./mcp.json"
+  "mcpServers": "./.codex-plugin/mcp.json"
 }

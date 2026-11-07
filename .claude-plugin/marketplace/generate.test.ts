@@ -34,6 +34,7 @@ const writePlugin = (
   root: string,
   directory: string,
   overrides: {
+    claude?: Record<string, unknown>;
     native?: Record<string, unknown>;
   } = {}
 ): void => {
@@ -53,6 +54,17 @@ const writePlugin = (
   writeFileSync(
     path.join(pluginRoot, ".codex-plugin/plugin.json"),
     `${JSON.stringify(nativeManifest, null, 2)}\n`
+  );
+  const claudeManifest = {
+    $schema: "https://json.schemastore.org/claude-code-plugin-manifest.json",
+    ...baseManifest,
+    description: "Claude plugin description can differ from the catalog.",
+    ...overrides.claude
+  };
+  mkdirSync(path.join(pluginRoot, ".claude-plugin"), { recursive: true });
+  writeFileSync(
+    path.join(pluginRoot, ".claude-plugin/plugin.json"),
+    `${JSON.stringify(claudeManifest, null, 2)}\n`
   );
 };
 
@@ -409,20 +421,36 @@ test("rejects package identity and metadata disagreement", async () => {
   ).rejects.toThrow(Error);
 });
 
-test("accepts an absent Claude manifest and rejects one when present", async () => {
+test("accepts an absent Claude manifest and rejects identity mismatches when present", async () => {
   const root = makeRoot();
   writePlugin(root, "helper");
+  rmSync(path.join(root, "plugins/helper/.claude-plugin/plugin.json"));
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).resolves.toMatchObject({
     plugins: [{ name: "helper" }]
   });
-  const claudePluginDirectory = path.join(
-    root,
-    "plugins/helper/.claude-plugin"
-  );
-  mkdirSync(claudePluginDirectory, { recursive: true });
-  writeFileSync(path.join(claudePluginDirectory, "plugin.json"), "{}\n");
+  writePlugin(root, "helper");
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).resolves.toMatchObject({ plugins: [{ name: "helper" }] });
+  writePlugin(root, "helper", { claude: { name: "different" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(Error);
+  writePlugin(root, "helper", { claude: { version: undefined } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(Error);
+  writePlugin(root, "helper", { claude: { version: "2.0.0" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(Error);
+  writePlugin(root, "helper", { claude: { license: "Apache-2.0" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(Error);
+  writePlugin(root, "helper", { claude: { author: { name: "Other" } } });
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow(Error);
@@ -475,6 +503,14 @@ test("adds Codex-only packages that the catalog does not list", async () => {
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow(Error);
   writePlugin(root, "codex-only", { native: { license: "" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(Error);
+  writePlugin(root, "codex-only", { claude: { name: "claude-renamed" } });
+  await expect(
+    createCodexMarketplace(catalog([localEntry("helper")]), root)
+  ).rejects.toThrow(Error);
+  writePlugin(root, "codex-only", { claude: { version: undefined } });
   await expect(
     createCodexMarketplace(catalog([localEntry("helper")]), root)
   ).rejects.toThrow(Error);

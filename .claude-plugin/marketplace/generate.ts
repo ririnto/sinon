@@ -247,17 +247,16 @@ const isWithin = (rootPath: string, targetPath: string): boolean => {
 
 const readNativeManifest = async (
   pluginPath: string,
+  manifestPath: string,
   label: string
 ): Promise<Record<string, unknown>> => {
   let manifest: unknown;
   try {
-    const manifestPath = await realpath(
-      path.resolve(pluginPath, ".codex-plugin/plugin.json")
-    );
-    if (!isWithin(pluginPath, manifestPath)) {
+    const resolvedPath = await realpath(path.resolve(pluginPath, manifestPath));
+    if (!isWithin(pluginPath, resolvedPath)) {
       throw new Error(`${label} resolves outside the plugin root`);
     }
-    manifest = JSON.parse(await readFile(manifestPath, "utf-8")) as unknown;
+    manifest = JSON.parse(await readFile(resolvedPath, "utf-8")) as unknown;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error(`Cannot read ${label}: ${reason}`, { cause: error });
@@ -287,7 +286,8 @@ const assertManifestFieldMatches = (
 
 const validateCatalogMetadata = (
   plugin: CatalogPlugin,
-  manifest: Record<string, unknown>
+  manifest: Record<string, unknown>,
+  manifestLabel: string
 ): void => {
   for (const field of ["name", "version"] as const) {
     assertManifestFieldMatches(
@@ -296,7 +296,7 @@ const validateCatalogMetadata = (
       plugin[field],
       manifest[field],
       "Source marketplace",
-      "native manifest"
+      manifestLabel
     );
   }
   if (plugin.license !== undefined) {
@@ -306,13 +306,13 @@ const validateCatalogMetadata = (
       plugin.license,
       manifest.license,
       "Source marketplace",
-      "native manifest"
+      manifestLabel
     );
   }
   if (plugin.author?.name !== undefined) {
     if (!isRecord(manifest.author)) {
       throw new Error(
-        `Native manifest for ${plugin.name} is missing its author`
+        `${manifestLabel} for ${plugin.name} is missing its author`
       );
     }
     assertManifestFieldMatches(
@@ -321,7 +321,7 @@ const validateCatalogMetadata = (
       plugin.author.name,
       manifest.author.name,
       "Source marketplace",
-      "native manifest"
+      manifestLabel
     );
   }
 };
@@ -384,7 +384,10 @@ const pathExists = async (targetPath: string): Promise<boolean> => {
 const nativeManifestPath = (pluginPath: string): string =>
   path.resolve(pluginPath, ".codex-plugin/plugin.json");
 
-const assertShadowManifestsAbsent = async (
+const claudeManifestPath = (pluginPath: string): string =>
+  path.resolve(pluginPath, ".claude-plugin/plugin.json");
+
+const assertRootManifestAbsent = async (
   pluginName: string,
   pluginPath: string
 ): Promise<void> => {
@@ -393,11 +396,22 @@ const assertShadowManifestsAbsent = async (
     pluginName,
     `Root plugin.json is not allowed for ${pluginName}; use .codex-plugin/plugin.json`
   );
-  await assertManifestAbsent(
-    path.resolve(pluginPath, ".claude-plugin/plugin.json"),
-    pluginName,
-    `Claude plugin manifest for ${pluginName} is not allowed; keep metadata in the marketplace catalog`
+};
+
+const validateClaudeManifest = async (
+  plugin: CatalogPlugin,
+  pluginPath: string
+): Promise<void> => {
+  await assertRootManifestAbsent(plugin.name, pluginPath);
+  if (!(await pathExists(claudeManifestPath(pluginPath)))) {
+    return;
+  }
+  const manifest = await readNativeManifest(
+    pluginPath,
+    ".claude-plugin/plugin.json",
+    `Claude manifest for ${plugin.name}`
   );
+  validateCatalogMetadata(plugin, manifest, "Claude manifest");
 };
 
 /**
@@ -408,19 +422,20 @@ const validateLocalPlugin = async (
   plugin: CatalogPlugin,
   pluginPath: string
 ): Promise<boolean> => {
-  await assertShadowManifestsAbsent(plugin.name, pluginPath);
+  await validateClaudeManifest(plugin, pluginPath);
   if (!(await pathExists(nativeManifestPath(pluginPath)))) {
     return false;
   }
   const manifest = await readNativeManifest(
     pluginPath,
+    ".codex-plugin/plugin.json",
     `native manifest for ${plugin.name}`
   );
   requiredString(
     manifest.description,
     `Native manifest for ${plugin.name} description`
   );
-  validateCatalogMetadata(plugin, manifest);
+  validateCatalogMetadata(plugin, manifest, "native manifest");
   return true;
 };
 
@@ -436,6 +451,7 @@ const validateCodexOnlyPlugin = async (
 ): Promise<NativePlugin> => {
   const manifest = await readNativeManifest(
     pluginPath,
+    ".codex-plugin/plugin.json",
     `native manifest for ${directory}`
   );
   const name = requiredString(
@@ -453,7 +469,27 @@ const validateCodexOnlyPlugin = async (
   for (const field of ["description", "license", "version"] as const) {
     requiredString(manifest[field], `Native manifest for ${name} ${field}`);
   }
-  await assertShadowManifestsAbsent(name, pluginPath);
+  await assertRootManifestAbsent(name, pluginPath);
+  if (await pathExists(claudeManifestPath(pluginPath))) {
+    const claudeManifest = await readNativeManifest(
+      pluginPath,
+      ".claude-plugin/plugin.json",
+      `Claude manifest for ${name}`
+    );
+    const claudeName = requiredString(
+      claudeManifest.name,
+      `Claude manifest for ${name} name`
+    );
+    if (claudeName !== directory) {
+      throw new Error(
+        `Claude manifest name for ${directory} does not match its directory`
+      );
+    }
+    requiredString(
+      claudeManifest.version,
+      `Claude manifest for ${name} version`
+    );
+  }
   return {
     category: categoryLabel(),
     name,
