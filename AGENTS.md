@@ -58,6 +58,8 @@ Reuse passing evidence for unaffected checks.
 Run `pnpm install` after authorized dependency changes.
 The repository-wide check is `pnpm run check`.
 Its named `check:*` commands support narrower validation.
+The pre-commit hook runs only the checks selected for the staged paths by `.github/scripts/pre-commit-scope.ts`.
+The pre-push hook runs the full repository check, so every push leaves the machine fully verified.
 Report exact commands, exit codes, and any required check that could not run.
 
 ## Authority And Publication
