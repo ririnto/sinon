@@ -125,6 +125,7 @@ That component verifies and runs the official release executable without a separ
 The following local plugins are listed in both marketplace catalogs, except where a package README names a single host.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
+- [agent-desktop](./plugins/agent-desktop/README.md)
 - [codegraph](./plugins/codegraph/README.md)
 - [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)

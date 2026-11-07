@@ -115,16 +115,23 @@ const runPackageScript = (directory: string, script: string) =>
     }
   });
 
-const markdownFiles = async (directory: string): Promise<string[]> => {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const files = await Promise.all(
-    entries.map(async (entry) =>
-      entry.isDirectory()
-        ? await markdownFiles(path.join(directory, entry.name))
-        : [path.join(directory, entry.name)]
-    )
-  );
-  return files.flat().filter((file) => file.endsWith(".md"));
+const trackedMarkdownFiles = (
+  directory: string,
+  pathspecs: readonly string[]
+): string[] => {
+  const tracked = spawnSync("git", ["ls-files", "--", ...pathspecs], {
+    cwd: directory,
+    encoding: "utf-8"
+  });
+  if (tracked.status !== 0 || tracked.stdout === null) {
+    throw new Error(
+      `git ls-files failed in ${directory} with status ${tracked.status}: ${tracked.stderr}`
+    );
+  }
+  return tracked.stdout
+    .split("\n")
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => path.join(directory, file));
 };
 
 describe("pnpm profile configuration", () => {
@@ -298,15 +305,11 @@ describe("pnpm profile configuration", () => {
 
   test("Harness guidance parses and follows the frontmatter title policy", async () => {
     const harnessRoot = path.resolve(profileDirectory, "../..");
-    const [documents, skills] = await Promise.all([
-      markdownFiles(path.join(harnessRoot, "docs")),
-      markdownFiles(path.join(harnessRoot, "skills"))
+    const files = trackedMarkdownFiles(harnessRoot, [
+      "README.md",
+      "docs",
+      "skills"
     ]);
-    const files = [
-      path.join(harnessRoot, "README.md"),
-      ...documents,
-      ...skills
-    ];
     expect(files.length).toBeGreaterThan(0);
     await Promise.all(
       files.map(async (file) => {

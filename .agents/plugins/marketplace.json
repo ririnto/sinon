@@ -6,6 +6,18 @@
   "plugins": [
     {
       "category": "Development",
+      "name": "agent-desktop",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/agent-desktop",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
       "name": "claude-agents",
       "policy": {
         "authentication": "ON_INSTALL",

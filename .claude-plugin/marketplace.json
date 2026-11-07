@@ -2,12 +2,32 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "description": "Claude catalog view for the Sinon marketplace.",
   "name": "sinon",
-  "version": "2026.11.06.01",
+  "version": "2026.11.07.01",
   "owner": {
     "email": "ririnto@kakao.com",
     "name": "ririnto"
   },
   "plugins": [
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
+      "description": "Desktop observation and automation MCP tools driven by native accessibility trees.",
+      "license": "MIT",
+      "name": "agent-desktop",
+      "source": "./plugins/agent-desktop",
+      "version": "2026.11.07.01",
+      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/agent-desktop",
+      "keywords": [
+        "agent-desktop",
+        "computer-use",
+        "desktop-automation",
+        "mcp",
+        "accessibility"
+      ],
+      "repository": "https://github.com/ririnto/sinon"
+    },
     {
       "author": {
         "name": "ririnto"
