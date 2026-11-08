@@ -12,8 +12,8 @@
         "installation": "AVAILABLE"
       },
       "source": {
-        "path": "./plugins/agent-desktop",
-        "source": "local"
+        "source": "url",
+        "url": "https://github.com/ririnto/agent-desktop-plugin.git"
       }
     },
     {

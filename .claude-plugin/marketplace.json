@@ -16,9 +16,11 @@
       "description": "Desktop observation and automation MCP tools driven by native accessibility trees.",
       "license": "MIT",
       "name": "agent-desktop",
-      "source": "./plugins/agent-desktop",
-      "version": "2026.11.07.02",
-      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/agent-desktop",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/agent-desktop-plugin.git"
+      },
+      "homepage": "https://github.com/ririnto/agent-desktop-plugin",
       "keywords": [
         "agent-desktop",
         "computer-use",
@@ -26,7 +28,7 @@
         "mcp",
         "accessibility"
       ],
-      "repository": "https://github.com/ririnto/sinon"
+      "repository": "https://github.com/ririnto/agent-desktop-plugin"
     },
     {
       "author": {

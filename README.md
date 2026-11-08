@@ -125,7 +125,6 @@ That component verifies and runs the official release executable without a separ
 The following local plugins are listed in both marketplace catalogs, except where a package README names a single host.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
-- [agent-desktop](./plugins/agent-desktop/README.md)
 - [codegraph](./plugins/codegraph/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
@@ -143,6 +142,9 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 Sinon selects external plugins through its marketplace catalog.
 
+- [agent-desktop](https://github.com/ririnto/agent-desktop-plugin): the Sinon catalog follows the upstream default branch.
+  The upstream repository owns the desktop automation MCP tools and their version.
+  Install it as `agent-desktop@sinon` in either host.
 - [clear-writing](https://github.com/ririnto/clear-writing): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the writing skill and version.
   Install it as `clear-writing@sinon` in either host.
