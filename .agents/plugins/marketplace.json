@@ -30,14 +30,14 @@
     },
     {
       "category": "Development",
-      "name": "codegraph",
+      "name": "codegraph-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
       },
       "source": {
-        "path": "./plugins/codegraph",
-        "source": "local"
+        "source": "url",
+        "url": "https://github.com/ririnto/codegraph-plugin.git"
       }
     },
     {

@@ -52,12 +52,14 @@
       "category": "development",
       "description": "CodeGraph CLI and MCP tools with automatic project initialization, indexing, and local Git exclusion.",
       "license": "MIT",
-      "name": "codegraph",
-      "source": "./plugins/codegraph",
-      "version": "2026.11.07.01",
-      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/codegraph",
+      "name": "codegraph-plugin",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/codegraph-plugin.git"
+      },
+      "homepage": "https://github.com/ririnto/codegraph-plugin",
       "keywords": ["codegraph", "code-index", "mcp", "repository-search"],
-      "repository": "https://github.com/ririnto/sinon"
+      "repository": "https://github.com/ririnto/codegraph-plugin"
     },
     {
       "author": {

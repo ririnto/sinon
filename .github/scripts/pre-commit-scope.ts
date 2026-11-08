@@ -33,10 +33,6 @@ const triggeredChecks: readonly {
     ]
   },
   {
-    check: "check:codegraph",
-    patterns: [/^plugins\/codegraph\//u]
-  },
-  {
     check: "check:java",
     patterns: [/^plugins\/java\//u]
   },

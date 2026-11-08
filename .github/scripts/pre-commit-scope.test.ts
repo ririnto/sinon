@@ -37,10 +37,6 @@ test("harness and root configuration paths add the lint-rules suite", () => {
 });
 
 test("each plugin suite is added only by its own plugin paths", () => {
-  expect(selectChecks(["plugins/codegraph/tests/runtime.test.ts"])).toEqual([
-    ...alwaysRunChecks,
-    "check:codegraph"
-  ]);
   expect(selectChecks(["plugins/java/skills/junit/SKILL.md"])).toEqual([
     ...alwaysRunChecks,
     "check:java"
