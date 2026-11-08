@@ -6,14 +6,14 @@
   "plugins": [
     {
       "category": "Development",
-      "name": "agent-desktop",
+      "name": "agent-desktop-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
       },
       "source": {
-        "path": "./plugins/agent-desktop",
-        "source": "local"
+        "source": "url",
+        "url": "https://github.com/ririnto/agent-desktop-plugin.git"
       }
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "category": "Development",
-      "name": "ddgs",
+      "name": "ddgs-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
