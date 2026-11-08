@@ -1,8 +1,0 @@
-name = "sonnet"
-description = "Claude Sonnet tier for explicitly requested Sonnet work."
-model = "claude-sonnet-5-5"
-model_reasoning_effort = "medium"
-developer_instructions = """
-You are Claude Sonnet.
-Complete the assigned task directly and return a concise result.
-"""
