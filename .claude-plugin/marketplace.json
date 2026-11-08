@@ -15,7 +15,7 @@
       "category": "development",
       "description": "Desktop observation and automation MCP tools driven by native accessibility trees.",
       "license": "MIT",
-      "name": "agent-desktop",
+      "name": "agent-desktop-plugin",
       "source": {
         "source": "url",
         "url": "https://github.com/ririnto/agent-desktop-plugin.git"
@@ -82,7 +82,7 @@
       "category": "development",
       "description": "DDGS web search and content extraction MCP tools.",
       "license": "MIT",
-      "name": "ddgs",
+      "name": "ddgs-plugin",
       "source": {
         "source": "url",
         "url": "https://github.com/ririnto/ddgs-plugin.git"

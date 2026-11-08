@@ -144,7 +144,7 @@ Sinon selects external plugins through its marketplace catalog.
 
 - [agent-desktop](https://github.com/ririnto/agent-desktop-plugin): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the desktop automation MCP tools and their version.
-  Install it as `agent-desktop@sinon` in either host.
+  Install it with `claude plugin install agent-desktop-plugin@sinon`.
 - [clear-writing](https://github.com/ririnto/clear-writing): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the writing skill and version.
   Install it as `clear-writing@sinon` in either host.
@@ -153,7 +153,7 @@ Sinon selects external plugins through its marketplace catalog.
   Install it as `codex-app-server@sinon` in either host.
 - [ddgs](https://github.com/ririnto/ddgs-plugin): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the DDGS web search and content extraction MCP tools and their version.
-  Install it as `ddgs@sinon` in either host.
+  Install it with `claude plugin install ddgs-plugin@sinon`.
 - [stop-slop](https://github.com/hardikpandya/stop-slop): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the prose skill, its MIT license, and its version.
   Install it as `stop-slop@sinon` in either host.
@@ -213,7 +213,6 @@ Examples:
 
 ```sh
 claude plugin install document-creator@sinon
-claude plugin install codegraph@sinon
 claude plugin install harness@sinon
 claude plugin install workgraph@sinon
 claude plugin install java@sinon
@@ -293,7 +292,7 @@ Add the repository marketplace and install a plugin with the supported Codex CLI
 ```sh
 codex plugin marketplace add ririnto/sinon
 codex plugin list --available --marketplace sinon
-codex plugin add ddgs@sinon
+codex plugin add java@sinon
 ```
 
 For a local checkout, use `codex plugin marketplace add /path/to/sinon`.

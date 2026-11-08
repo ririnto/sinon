@@ -6,7 +6,7 @@
   "plugins": [
     {
       "category": "Development",
-      "name": "agent-desktop",
+      "name": "agent-desktop-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
@@ -54,7 +54,7 @@
     },
     {
       "category": "Development",
-      "name": "ddgs",
+      "name": "ddgs-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
