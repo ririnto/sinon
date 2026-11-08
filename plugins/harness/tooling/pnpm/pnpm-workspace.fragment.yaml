@@ -1,6 +1,6 @@
 catalog:
   "@google/design.md": ^0.4.0
-  "@oxc-project/types": ^0.156.0
+  "@oxc-project/types": ^0.157.0
   "@tsconfig/next": ^2.0.6
   "@tsconfig/node-lts": ^24.0.1
   "@tsconfig/react-native": ^3.0.9
@@ -13,8 +13,8 @@ catalog:
   markdownlint-cli2: ^0.24.0
   markdownlint-rule-search-replace: ^1.2.0
   npm-run-all2: ^9.0.4
-  oxfmt: ^0.75.0
-  oxlint: ^1.90.0
+  oxfmt: ^0.76.0
+  oxlint: ^1.91.0
   oxlint-tsgolint: ^7.0.2005
   ultracite: ^8.1.1
   vitest: ^5.1.0
