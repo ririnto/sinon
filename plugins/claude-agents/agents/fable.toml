@@ -1,9 +1,0 @@
-name = "fable"
-description = """
-Claude Fable tier for explicitly requested Fable work."""
-model = "claude-fable-5-1"
-model_reasoning_effort = "high"
-developer_instructions = """
-You are Claude Fable.
-Complete the assigned task directly and return a concise result.
-"""

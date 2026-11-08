@@ -51,7 +51,7 @@ Selected external plugins remain maintained in their upstream repositories.
 The Claude catalog owns the shared plugin inventory.
 The native Codex catalog is generated from that inventory.
 Each local plugin that Codex should list provides a native Codex manifest, and a local plugin without one stays Claude-only.
-A package with a native manifest that the Claude catalog omits is listed only in the Codex catalog, as `claude-agents` is, because Claude Code reserves the `claude-` name prefix.
+A package with a native manifest that the Claude catalog omits is listed only in the Codex catalog.
 Claude Code uses a local `.claude-plugin/plugin.json` manifest when a package provides one and otherwise its marketplace entry.
 
 ## Repository Structure
@@ -129,9 +129,6 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [codegraph](./plugins/codegraph/README.md)
 - [ddgs](./plugins/ddgs/README.md)
 - [document-creator](./plugins/document-creator/README.md)
-- [claude-agents](./plugins/claude-agents/README.md)
-- [glm-agents](./plugins/glm-agents/README.md)
-- [gpt-agents](./plugins/gpt-agents/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
 - [jvm](./plugins/jvm/README.md)
@@ -372,7 +369,6 @@ The repository checks reject stale catalogs and invalid local package mappings.
 ## License
 
 The repository root and plugins whose manifests declare `MIT` use the [MIT License](./LICENSE).
-The `claude-agents`, `glm-agents`, and `gpt-agents` packages also include a local copy of that notice.
 
 The following plugins use their local canonical Apache-2.0 license:
 
