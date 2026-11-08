@@ -149,7 +149,7 @@ Sinon selects external plugins through its marketplace catalog.
 - [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the MCP runtime, thread-control skill, monitor, checks, and release version.
   Install it as `codex-app-server@sinon` in either host.
-- [ddgs](https://github.com/ririnto/ddgs-mcp): the Sinon catalog follows the upstream default branch.
+- [ddgs](https://github.com/ririnto/ddgs-plugin): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the DDGS web search and content extraction MCP tools and their version.
   Install it as `ddgs@sinon` in either host.
 - [stop-slop](https://github.com/hardikpandya/stop-slop): the Sinon catalog follows the upstream default branch.

@@ -83,11 +83,11 @@
       "name": "ddgs",
       "source": {
         "source": "url",
-        "url": "https://github.com/ririnto/ddgs-mcp.git"
+        "url": "https://github.com/ririnto/ddgs-plugin.git"
       },
-      "homepage": "https://github.com/ririnto/ddgs-mcp",
+      "homepage": "https://github.com/ririnto/ddgs-plugin",
       "keywords": ["ddgs", "web-search", "mcp", "content-extraction"],
-      "repository": "https://github.com/ririnto/ddgs-mcp"
+      "repository": "https://github.com/ririnto/ddgs-plugin"
     },
     {
       "author": {
