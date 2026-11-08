@@ -125,7 +125,6 @@ That component verifies and runs the official release executable without a separ
 The following local plugins are listed in both marketplace catalogs, except where a package README names a single host.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
-- [codegraph](./plugins/codegraph/README.md)
 - [document-creator](./plugins/document-creator/README.md)
 - [harness](./plugins/harness/README.md)
 - [java](./plugins/java/README.md)
@@ -148,6 +147,9 @@ Sinon selects external plugins through its marketplace catalog.
 - [clear-writing](https://github.com/ririnto/clear-writing): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the writing skill and version.
   Install it as `clear-writing@sinon` in either host.
+- [codegraph](https://github.com/ririnto/codegraph-plugin): the Sinon catalog follows the upstream default branch.
+  The upstream repository owns the CodeGraph integration, hooks, tests, and version.
+  Install it with `claude plugin install codegraph-plugin@sinon`.
 - [codex-app-server](https://github.com/ririnto/codex-app-server): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the MCP runtime, thread-control skill, monitor, checks, and release version.
   Install it as `codex-app-server@sinon` in either host.

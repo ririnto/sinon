@@ -30,7 +30,6 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Changed surface | Command | Observable evidence |
 | --- | --- | --- |
 | Marketplace generation and package identity | `pnpm run check:marketplace` | The checked-in Codex catalog matches its inputs, and generator fixtures exercise metadata, path boundaries, and output protection. |
-| CodeGraph startup and worktree hooks | `pnpm run check:codegraph` | Shell hooks run against real Git fixtures with a substituted `npx` executable. |
 | Java launcher and Lombok discovery | `pnpm run check:java` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
 | Harness installation, profiles, and custom lint rules | `pnpm run check:lint-rules` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
 | Specification commands | `pnpm run check:sdd` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
@@ -87,7 +86,6 @@ claude plugin validate .
 ```
 
 These checks establish source and package behavior within their fixtures.
-CodeGraph tests substitute the package runner, so they do not establish upstream indexing or MCP availability.
 Harness tests substitute native build commands where needed, so they do not establish a target application's Gradle, Maven, or Go build.
 Markdown checks do not establish skill selection or model adherence.
 For those outcomes, use the affected package's runtime instructions and observe the requested behavior in the target host or application.

@@ -8,7 +8,6 @@
   },
   "scripts": {
     "check": "run-p check:*",
-    "check:codegraph": "vitest run plugins/codegraph/tests",
     "check:hook-scope": "vitest run .github/scripts/pre-commit-scope.test.ts",
     "check:java": "vitest run plugins/java/tests",
     "check:lint-rules": "vitest run rules plugins/harness/tooling/pnpm plugins/harness/tests",
