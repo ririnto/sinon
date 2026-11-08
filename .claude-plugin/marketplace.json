@@ -77,15 +77,17 @@
       "author": {
         "name": "ririnto"
       },
+      "category": "development",
       "description": "DDGS web search and content extraction MCP tools.",
       "license": "MIT",
       "name": "ddgs",
-      "version": "2026.11.07.01",
-      "category": "development",
-      "source": "./plugins/ddgs",
-      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/ddgs",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/ddgs-mcp.git"
+      },
+      "homepage": "https://github.com/ririnto/ddgs-mcp",
       "keywords": ["ddgs", "web-search", "mcp", "content-extraction"],
-      "repository": "https://github.com/ririnto/sinon"
+      "repository": "https://github.com/ririnto/ddgs-mcp"
     },
     {
       "author": {
