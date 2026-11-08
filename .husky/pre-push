@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 # vim: set fileencoding=utf-8 :
 set -e
+unset GIT_DIR
 pnpm run pre-push
