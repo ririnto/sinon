@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "ddgs",
+  "version": "2026.11.07.01",
+  "description": "DDGS web search and content extraction MCP tools.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT",
+  "mcpServers": {
+    "ddgs": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "ddgs[mcp]",
+        "--with",
+        "pip-system-certs",
+        "ddgs",
+        "mcp"
+      ],
+      "type": "stdio"
+    }
+  }
+}

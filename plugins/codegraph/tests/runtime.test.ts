@@ -203,21 +203,49 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
   }
   expect(claudeHooks.hooks.PostToolUse[0]?.hooks).toHaveLength(1);
   expectPreparation(claudeHooks.hooks.PostToolUse[0]?.hooks[0]);
-  const claudeMcp = JSON.parse(
-    readFileSync(path.join(pluginRoot, ".mcp.json"), "utf-8")
+  const claudeCatalog = JSON.parse(
+    readFileSync(
+      path.join(repositoryRoot, ".claude-plugin/marketplace.json"),
+      "utf-8"
+    )
   ) as {
-    $schema?: string;
+    plugins: {
+      author?: { name: string };
+      license?: string;
+      name: string;
+      version?: string;
+    }[];
+  };
+  const catalogEntry = claudeCatalog.plugins.find(
+    (plugin) => plugin.name === "codegraph"
+  );
+  const claudeManifest = JSON.parse(
+    readFileSync(path.join(pluginRoot, ".claude-plugin/plugin.json"), "utf-8")
+  ) as {
+    $schema: string;
+    author: { name: string };
+    license: string;
     mcpServers: {
       codegraph: {
         alwaysLoad: boolean;
         args: string[];
         command: string;
+        env: { NODE_USE_SYSTEM_CA: string };
         type: string;
       };
     };
+    name: string;
+    version: string;
   };
-  expect(claudeMcp.$schema).toBeUndefined();
-  expect(claudeMcp.mcpServers.codegraph).toEqual({
+  expect(catalogEntry).toBeDefined();
+  expect(claudeManifest.$schema).toBe(
+    "https://json.schemastore.org/claude-code-plugin-manifest.json"
+  );
+  expect(claudeManifest.name).toBe(catalogEntry?.name);
+  expect(claudeManifest.version).toBe(catalogEntry?.version);
+  expect(claudeManifest.license).toBe(catalogEntry?.license);
+  expect(claudeManifest.author).toEqual(catalogEntry?.author);
+  expect(claudeManifest.mcpServers.codegraph).toEqual({
     alwaysLoad: true,
     args: ["--yes", "@colbymchenry/codegraph", "serve", "--mcp"],
     command: "npx",
@@ -228,14 +256,14 @@ test("Claude and Codex configs register startup preparation and direct MCP comma
     readFileSync(path.join(pluginRoot, ".codex-plugin/plugin.json"), "utf-8")
   ) as { hooks: string; mcpServers: string };
   expect(plugin.hooks).toBe("./hooks/codex-hooks.json");
-  expect(plugin.mcpServers).toBe("./mcp.json");
+  expect(plugin.mcpServers).toBe("./.codex-plugin/mcp.json");
   const codexHooks = readCodexHooks();
   expect(codexHooks.hooks.SessionStart.map((entry) => entry.matcher)).toEqual([
     "^startup$"
   ]);
   expectHookPair(codexHooks.hooks.SessionStart[0]?.hooks ?? []);
   const codexMcp = JSON.parse(
-    readFileSync(path.join(pluginRoot, "mcp.json"), "utf-8")
+    readFileSync(path.join(pluginRoot, ".codex-plugin/mcp.json"), "utf-8")
   ) as {
     $schema: string;
     mcpServers: {

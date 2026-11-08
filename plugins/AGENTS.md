@@ -9,9 +9,9 @@ Keep the marketplace manifest aligned with package roots.
 Keep manifests schema-valid, use object-form authors, and keep declared paths inside the package root.
 Declare Codex identity in `.codex-plugin/plugin.json` and Claude Code identity in the authoritative marketplace entry.
 Keep Codex identity metadata aligned with the authoritative catalog.
-Do not add local `.claude-plugin/plugin.json` files because they override marketplace metadata.
+Keep a local `.claude-plugin/plugin.json` manifest's identity fields aligned with its marketplace entry.
 Do not add root `plugin.json` files because they shadow native Codex manifests.
-Use `mcp.json` and Claude `.mcp.json` for their respective MCP consumers.
+Declare Claude MCP servers inline in `.claude-plugin/plugin.json` and Codex MCP servers in `.codex-plugin/mcp.json`.
 Declare each MCP transport explicitly and use a schema that matches its configuration.
 Declare Codex MCP and custom hook paths with native `mcpServers` and `hooks` fields.
 Keep default runtime locations undeclared unless a custom location is required.
