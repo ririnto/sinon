@@ -6,5 +6,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["**/*.ts", ".claude-plugin/marketplace/**/*.ts"]
+  "include": ["**/*.ts"]
 }

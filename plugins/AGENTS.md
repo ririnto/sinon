@@ -7,8 +7,8 @@ The package root is the containment boundary for declared paths and packaged con
 
 Keep the marketplace manifest aligned with package roots.
 Keep manifests schema-valid, use object-form authors, and keep declared paths inside the package root.
-Declare Codex identity in `.codex-plugin/plugin.json` and Claude Code identity in the authoritative marketplace entry.
-Keep Codex identity metadata aligned with the authoritative catalog.
+Declare Codex identity in `.codex-plugin/plugin.json` and Claude Code identity in its marketplace entry.
+Keep shared identity metadata aligned across both host catalogs and local manifests.
 Keep a local `.claude-plugin/plugin.json` manifest's identity fields aligned with its marketplace entry.
 Do not add root `plugin.json` files because they shadow native Codex manifests.
 Declare Claude MCP servers inline in `.claude-plugin/plugin.json` and Codex MCP servers in `.codex-plugin/mcp.json`.

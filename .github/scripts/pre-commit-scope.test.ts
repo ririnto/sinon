@@ -4,7 +4,6 @@ import { selectChecks } from "./pre-commit-scope";
 
 const alwaysRunChecks = [
   "check:markdownlint-cli2",
-  "check:marketplace",
   "check:typescript",
   "check:ultracite",
   "check:versions"

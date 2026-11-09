@@ -17,7 +17,7 @@ The API documentation profile uses the named catalog for its compatible TypeScri
 The separately distributed specification plugin owns its standalone catalog and lockfile.
 
 The root has no separate `build` or `test` script.
-Its `check:*` scripts compose the component tests, TypeScript check, lint, formatting, and catalog validation.
+Its `check:*` scripts compose the component tests, TypeScript check, lint, and formatting.
 The Promtool fixture runner requires a separate command and network access.
 
 Harness fixtures use the profile's own pnpm version, which can differ from the root version.
@@ -29,14 +29,13 @@ Start with the row matching the changed behavior, then run the complete gate bef
 
 | Changed surface | Command | Observable evidence |
 | --- | --- | --- |
-| Marketplace generation and package identity | `pnpm run check:marketplace` | The checked-in Codex catalog matches its inputs, and generator fixtures exercise metadata, path boundaries, and output protection. |
 | Java launcher and Lombok discovery | `pnpm run check:java` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
 | Harness installation, profiles, and custom lint rules | `pnpm run check:lint-rules` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
 | Specification commands | `pnpm run check:sdd` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
 | Promtool release verification and process handling | `pnpm run check:promtool-release` | Local archive and process fixtures test integrity checks and child-process behavior. |
 | Prometheus rule examples | `pnpm run test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
-| Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and the hidden marketplace tooling pass their configured lint and formatting checks, including the React effect policy. |
+| Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and Harness tooling pass their configured lint and formatting checks, including the React effect policy. |
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |
 
 The root [package scripts](../package.json) own command composition.
@@ -44,11 +43,10 @@ The [Harness pnpm reference](../plugins/harness/docs/tools/pnpm.md) explains dif
 
 ## Exercise The Consumer
 
-After catalog edits, regenerate the Codex view and check it before committing both catalog files:
+After catalog edits, validate the Claude marketplace:
 
 ```sh
-pnpm run marketplace:generate
-pnpm run check:marketplace
+claude plugin validate .
 ```
 
 For specification tooling, exercise the bundled valid tree through the shipped CLI:

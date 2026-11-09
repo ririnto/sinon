@@ -1,16 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 
-import { sort } from "fast-sort";
-
 import { extractFrontmatterFromText } from "./frontmatter.js";
 import { isRecord, parseYamlRecord } from "./infrastructure.js";
 import { extractCallPath, extractLinkTargets } from "./links.js";
-import {
-  CHANGELOG_ENTRY_RE,
-  ISO_DATE_RE,
-  RELATIVE_SPEC_LINK_RE,
-  SPEC_STATUSES
-} from "./shared.js";
+import { ISO_DATE_RE, RELATIVE_SPEC_LINK_RE, SPEC_STATUSES } from "./shared.js";
 import type {
   FrontmatterBlock,
   JsonRecord,
@@ -205,29 +198,5 @@ export const validateDocument = (
     ...validateFrontmatterShape(filePath, kind, data),
     ...(kind === "spec" ? validateSpecLinks(filePath, data) : [])
   );
-  return { errors, passed: errors.length === 0 };
-};
-
-/**
- * Validates that a changelog contains dated entries sorted newest first.
- */
-export const validateChangelogFile = (filePath: string): ValidationResult => {
-  const text = readFileSync(filePath, "utf-8");
-  const errors: string[] = [];
-  const dates = [...text.matchAll(CHANGELOG_ENTRY_RE)].map(
-    (match) => match.groups?.date ?? ""
-  );
-  if (dates.length === 0) {
-    errors.push(`FAIL [${filePath}]: CHANGELOG.md must include dated entries`);
-  }
-  const sorted = sort(dates).by({
-    asc: true,
-    comparer: (left: string, right: string) => right.localeCompare(left)
-  });
-  if (dates.some((date, index) => date !== sorted[index])) {
-    errors.push(
-      `FAIL [${filePath}]: CHANGELOG.md entries must be newest first`
-    );
-  }
   return { errors, passed: errors.length === 0 };
 };

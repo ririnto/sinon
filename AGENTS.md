@@ -16,9 +16,8 @@ Sinon publishes Claude Code and Codex plugins with portable Agent Skills.
 ## Project Structure
 
 - `plugins/` contains Sinon-maintained plugins.
-- `.claude-plugin/marketplace.json` owns local package roots and external catalog registrations.
-- `.claude-plugin/marketplace/` owns catalog generation and validation.
-- `.agents/plugins/marketplace.json` is the generated Codex view of that inventory.
+- `.claude-plugin/marketplace.json` contains Claude package roots and external catalog registrations.
+- `.agents/plugins/marketplace.json` is the independently maintained Codex catalog.
 - `docs/agent-references/` contains repository authoring conventions.
 - The root `package.json` composes repository checks and owns shared development tools.
 - Each plugin owns its test suites under `plugins/<plugin>/tests/`.

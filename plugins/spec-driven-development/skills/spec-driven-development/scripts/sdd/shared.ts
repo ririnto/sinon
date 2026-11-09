@@ -130,9 +130,3 @@ export const URL_SCHEME_RE = /^[a-zA-Z][a-zA-Z0-9+.-]*:/u;
  */
 export const RELATIVE_SPEC_LINK_RE =
   /^(?![a-zA-Z][a-zA-Z0-9+.-]*:)(?!\/)(?![A-Za-z]:[\\/])(?:\.\/|\.\.\/|[^/][^/]*\/)*SPEC\.md(?:#[^\s]+)?$/u;
-
-/**
- * Matches dated changelog headings and captures the date.
- */
-export const CHANGELOG_ENTRY_RE =
-  /^[ \t]{0,3}##[ \t]+(?<date>\d{4}-\d{2}-\d{2})[ \t]+-[ \t]+\S.*$/gmu;

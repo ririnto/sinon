@@ -1,11 +1,10 @@
 import { existsSync, statSync } from "node:fs";
-import path from "node:path";
 
 import { commandSpecPath } from "../args.js";
 import { fail, listByBasename } from "../infrastructure.js";
 import { resolveValidationRoots } from "../links.js";
 import type { ParsedArgs, ValidationResult } from "../shared.js";
-import { validateChangelogFile, validateDocument } from "../validation.js";
+import { validateDocument } from "../validation.js";
 
 /**
  * Runs the document validation command and returns the process exit code.
@@ -26,7 +25,7 @@ export const cmdValidate = (args: ParsedArgs): number => {
     );
     return 1;
   }
-  const [specRoot, scanRoot] = roots;
+  const [, scanRoot] = roots;
   const specFiles = listByBasename(scanRoot, "SPEC.md");
   const researchFiles = listByBasename(scanRoot, "RESEARCH.md");
   const contractFiles = listByBasename(scanRoot, "CONTRACT.md");
@@ -43,7 +42,6 @@ export const cmdValidate = (args: ParsedArgs): number => {
   let total = 0;
   let passed = 0;
   let failed = 0;
-  let changelogLayoutFailures = 0;
   const apply = (result: ValidationResult): void => {
     total += 1;
     for (const error of result.errors) {
@@ -64,19 +62,10 @@ export const cmdValidate = (args: ParsedArgs): number => {
   for (const filePath of contractFiles) {
     apply(validateDocument(filePath, "contract"));
   }
-  const changelogPath = path.join(specRoot, "CHANGELOG.md");
-  if (existsSync(changelogPath)) {
-    const result = validateChangelogFile(changelogPath);
-    if (!result.passed) {
-      changelogLayoutFailures += 1;
-    }
-    apply(result);
-  }
   console.log("Validation Summary");
   console.log(`- Total checks: ${total}`);
   console.log(`- Passed: ${passed}`);
   console.log(`- Failed: ${failed}`);
-  console.log(`- Changelog layout failures: ${changelogLayoutFailures}`);
   if (failed === 0) {
     console.log(`OK: Validation complete for ${scanRoot}`);
     return 0;
