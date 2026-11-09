@@ -88,9 +88,9 @@ Use double quotes only when the actual consumer requires the exact string type o
 
 ## Markdown Authoring
 
-Prefer a body H1 unless the document relies on frontmatter for its title.
-For Harness guidance and documents with a frontmatter title, keep the title only in frontmatter.
-Do not add frontmatter only to replace a body H1.
+Put prose document titles in a body H1 and omit the frontmatter `title` field.
+Keep frontmatter titles in form templates because the platform uses them as form metadata.
+Keep frontmatter titles in schema-bound example records because validation and graph labels consume them as data.
 
 Follow the [documentation rules](../../CONTRIBUTING.md#documentation), including sentence-per-line formatting for nested-list continuation lines.
 Indent nested-list continuation lines to align under their item text.
