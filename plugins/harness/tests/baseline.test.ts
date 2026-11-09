@@ -374,6 +374,7 @@ describe("fresh-root baseline", () => {
         const configurationFiles = [
           "oxlint.config.ts",
           "oxlint.style-no-blank-lines-in-functions.config.ts",
+          "oxlint.style-no-em-dash.config.ts",
           "oxlint.style-no-inline-comments-in-functions.config.ts",
           "oxlint.style-sibling-test-spacing.config.ts"
         ];
@@ -393,6 +394,7 @@ describe("fresh-root baseline", () => {
         expect(pluginFiles.toSorted()).toEqual([
           "no-blank-lines-in-functions.ts",
           "no-direct-use-effect.ts",
+          "no-em-dash.ts",
           "no-inline-comments-in-functions.ts",
           "sibling-test-spacing.ts",
           "tsdoc-plugin.ts"
@@ -727,21 +729,24 @@ describe("fresh-root baseline", () => {
       ).toBe(0);
       await writeFile(
         path.join(directory, "bad.ts"),
-        "export function undocumented(): boolean {\n  return true;\n}\n"
+        "// Bad \u2014 prose\nexport function undocumented(): boolean {\n  return true;\n}\n"
       );
       expect(git("add", "bad.ts").status).toBe(0);
-      expect(
-        (entrypoint === "pnpm"
+      const rejectedCommit =
+        entrypoint === "pnpm"
           ? spawnSync("pnpm", ["run", "pre-commit"], options)
-          : git("commit", "-m", "Invalid source")
-        ).status
-      ).toBe(1);
-      expect(
-        (entrypoint === "pnpm"
+          : git("commit", "-m", "Invalid source");
+      const rejectedPush =
+        entrypoint === "pnpm"
           ? spawnSync("pnpm", ["run", "pre-push"], options)
-          : git("push", "origin", "main")
-        ).status
-      ).toBe(1);
+          : git("push", "origin", "main");
+      for (const result of [rejectedCommit, rejectedPush]) {
+        const output = result.stderr.toString() + result.stdout.toString();
+        expect(result.status, output).toBe(1);
+        expect(output).toContain(
+          "Replace the em dash with a comma, colon, or a separate sentence."
+        );
+      }
       expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
         entrypoint === "pnpm" ? "Initial fixture" : "Configure Node baseline"
       );

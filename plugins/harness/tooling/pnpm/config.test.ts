@@ -40,6 +40,11 @@ const stylePasses = [
     ruleCode: "style(no-blank-lines-in-functions)"
   },
   {
+    configurationFile: "oxlint.style-no-em-dash.config.ts",
+    pluginFile: "no-em-dash.ts",
+    ruleCode: "style(no-em-dash)"
+  },
+  {
     configurationFile: "oxlint.style-no-inline-comments-in-functions.config.ts",
     pluginFile: "no-inline-comments-in-functions.ts",
     ruleCode: "style(no-inline-comments-in-functions)"
@@ -54,6 +59,7 @@ const nodeModulesDirectory = path.resolve(
   profileDirectory,
   "../../../../node_modules"
 );
+const emDash = "\u2014";
 const packageStyleFixture = [
   'import { describe, expect, test } from "vitest";',
   "",
@@ -73,8 +79,9 @@ const packageStyleFixture = [
   "}",
   "",
   "function withComment() {",
-  "  // Explain the return value",
-  "  return withBlankLine();",
+  `  // Explain the return value ${emDash} across ranges`,
+  `  const glyph = "${emDash}";`,
+  "  return withBlankLine() + glyph.length;",
   "}",
   "",
   "withComment();"
@@ -513,6 +520,9 @@ describe("pnpm profile configuration", () => {
       expect(output).toContain("src/nested/style-fixture.ts");
       expect(output).toContain("Remove blank lines from function bodies.");
       expect(output).toContain(
+        "Replace the em dash with a comma, colon, or a separate sentence."
+      );
+      expect(output).toContain(
         "Use declaration documentation instead of explanatory comments."
       );
       expect(output).toContain(
@@ -554,6 +564,7 @@ describe("pnpm profile configuration", () => {
       const formatterPosition = output.indexOf("ultracite fix --type-aware");
       const diagnosticPositions = [
         "Remove blank lines from function bodies.",
+        "Replace the em dash with a comma, colon, or a separate sentence.",
         "Use declaration documentation instead of explanatory comments.",
         "Separate sibling tests and lifecycle registrations with one blank line."
       ].map((message) => output.indexOf(message));
@@ -678,7 +689,7 @@ describe("pnpm profile configuration", () => {
       expect(ignored.status).toBe(0);
       await writeFile(
         path.join(directory, "sample.md"),
-        "# Sample\n\nFirst sentence. Second sentence.\n\nAvoid — punctuation and [relative skills](../SKILL.md).\n\n| A |\n| -- |\n| 1 |\n\n──\n"
+        "# Sample\n\nFirst sentence. Second sentence.\n\nAvoid – punctuation and [relative skills](../SKILL.md).\n\n| A |\n| -- |\n| 1 |\n\n──\n"
       );
       const result = spawnSync(process.execPath, [markdownlintBin], {
         cwd: directory
@@ -686,7 +697,6 @@ describe("pnpm profile configuration", () => {
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status).toBe(1);
       expect(output).not.toContain("docs/sentence-per-line");
-      expect(output).toContain("docs/no-em-dash");
       expect(output).toContain("docs/no-relative-skill-links");
       expect(output).toContain("docs/table-separators");
       expect(output).toContain("search-replace");

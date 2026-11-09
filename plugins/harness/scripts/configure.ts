@@ -397,6 +397,10 @@ export const configureBaseline = async (
       )
     );
     sources.set(
+      "oxlint.style-no-em-dash.config.ts",
+      await readSource("pnpm/oxlint.style-no-em-dash.config.ts")
+    );
+    sources.set(
       "oxlint.style-no-inline-comments-in-functions.config.ts",
       await readSource(
         "pnpm/oxlint.style-no-inline-comments-in-functions.config.ts"

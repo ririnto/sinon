@@ -23,6 +23,55 @@ const writeRuleConfiguration = async (
   );
 };
 
+test("em-dash checks report prose and preserve standalone glyphs", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "sinon-em-dash-"));
+  const dash = "\u2014";
+  try {
+    await writeRuleConfiguration(
+      directory,
+      "no-em-dash.ts",
+      "style/no-em-dash"
+    );
+    await writeFile(
+      path.join(directory, "valid.tsx"),
+      [
+        `const glyph = "${dash}";`,
+        `const template = \`${dash}\`;`,
+        `const escaped = \`\\u2014\`;`,
+        `const view = <div> ${dash} </div>;`,
+        "export { glyph, template, escaped, view };"
+      ].join("\n")
+    );
+    await writeFile(
+      path.join(directory, "invalid.tsx"),
+      [
+        `// before ${dash} after`,
+        `const prose = "before ${dash} after";`,
+        `const template = \`before ${dash} after\`;`,
+        `const interpolated = \`${dash}\${prose}\`;`,
+        `const view = <div>before ${dash} after</div>;`,
+        "export { prose, template, interpolated, view };"
+      ].join("\n")
+    );
+    expect(runUltracite(directory, "valid.tsx", "fix").status).toBe(0);
+    const valid = runUltracite(directory, "valid.tsx");
+    expect(valid.status).toBe(0);
+    expect(
+      valid.diagnostics.filter(({ code }) => code === "style(no-em-dash)")
+    ).toEqual([]);
+    const invalid = runUltracite(directory, "invalid.tsx");
+    expect(invalid.status).toBe(1);
+    expect(
+      invalid.diagnostics.filter(({ code }) => code === "style(no-em-dash)")
+    ).toHaveLength(5);
+    runUltracite(directory, "invalid.tsx", "fix");
+    const fixed = await readFile(path.join(directory, "invalid.tsx"), "utf-8");
+    expect(fixed.match(new RegExp(dash, "gu"))).toHaveLength(5);
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+}, 30_000);
+
 test("blank-line checks preserve directive, comment, and literal gaps", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-blank-lines-"));
   try {
