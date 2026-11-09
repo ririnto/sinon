@@ -11,6 +11,7 @@
     "prepare": "husky",
     "ultracite:check:base": "ultracite check --type-aware",
     "ultracite:check:style:no-blank-lines-in-functions": "ultracite check --type-aware --config oxlint.style-no-blank-lines-in-functions.config.ts",
+    "ultracite:check:style:no-em-dash": "ultracite check --type-aware --config oxlint.style-no-em-dash.config.ts",
     "ultracite:check:style:no-inline-comments-in-functions": "ultracite check --type-aware --config oxlint.style-no-inline-comments-in-functions.config.ts",
     "ultracite:check:style:sibling-test-spacing": "ultracite check --type-aware --config oxlint.style-sibling-test-spacing.config.ts",
     "ultracite:fix:base": "ultracite fix --type-aware"
