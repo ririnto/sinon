@@ -158,7 +158,7 @@ Keep the target's wrapper version within that range when using this module.
 The registered rules are exposed by `com.ririnto.sinon.harness.ktlint.RuleSetProvider` through the `RuleSetProviderV3` service descriptor.
 
 Include the target-owned module as a composite build with `includeBuild("tooling/kotlin")` in `settings.gradle.kts`.
-Add the module to the ktlint runtime after applying the target's Kotlin and ktlint plugins:
+In every Kotlin consumer project, apply the Kotlin and ktlint plugins and add the module to that project's ktlint runtime:
 
 ```kotlin
 dependencies {
@@ -167,6 +167,7 @@ dependencies {
 ```
 
 Dependency resolution builds the included module's JAR before ktlint runs.
+Each project has its own ktlint runtime configuration, so a root dependency does not configure its subprojects.
 The service descriptor makes its provider discoverable once the JAR is on the runtime classpath.
 Wire the included build's `check` task into the existing root `check` so normal verification also runs ruleset tests and lint:
 
