@@ -88,5 +88,5 @@ The installer reads current canonical inputs and writes only mapped target paths
 It manages only `implement` and `review` skills and their supporting documents, preserving other target skills.
 Its preview separates safe creates and unchanged files from conflicts that require explicit replacement authority.
 For Kotlin, it also materializes the complete target-owned `tooling/kotlin/` Gradle module when the Kotlin profile is selected.
-Each Kotlin consumer project must attach its produced JAR to the ktlint runtime with `add("ktlint", "com.ririnto.sinon.harness:harness-kotlin:1.0.0")`.
-The JAR's service descriptor makes its ruleset provider discoverable.
+For Gradle, merge the module's sources, resources, and tests into `buildSrc` as described in the [Gradle profile](docs/tools/gradle.md#kotlin-ruleset-integration).
+Each Kotlin consumer project must add the `buildSrc` JAR to its ktlint runtime so its service descriptor can expose the ruleset provider.
