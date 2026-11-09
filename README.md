@@ -48,8 +48,7 @@ It publishes curated local plugins and selected external plugins.
 
 Plugins under `plugins/` are maintained by Sinon.
 Selected external plugins remain maintained in their upstream repositories.
-The Claude catalog owns the shared plugin inventory.
-The native Codex catalog is generated from that inventory.
+Maintain both host catalogs independently and keep their shared entries consistent.
 Each local plugin that Codex should list provides a native Codex manifest, and a local plugin without one stays Claude-only.
 A package with a native manifest that the Claude catalog omits is listed only in the Codex catalog.
 Claude Code uses a local `.claude-plugin/plugin.json` manifest when a package provides one and otherwise its marketplace entry.
@@ -59,10 +58,9 @@ Claude Code uses a local `.claude-plugin/plugin.json` manifest when a package pr
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
-- `.claude-plugin/marketplace.json`: authoritative plugin inventory and Claude marketplace catalog.
-- `.agents/plugins/marketplace.json`: generated Codex marketplace catalog.
+- `.claude-plugin/marketplace.json`: Claude marketplace catalog.
+- `.agents/plugins/marketplace.json`: Codex marketplace catalog.
 - `docs/agent-references/`: source and instruction authoring conventions.
-- `.claude-plugin/marketplace/`: catalog generation and validation.
 - `plugins/<plugin>/tests/`: each plugin's validation suites.
 - `package.json`: repository check commands and shared development tools.
 - `rules/`: root Markdownlint entry points that re-export the canonical implementations in `plugins/harness/tooling/pnpm/rules/`.
@@ -298,7 +296,7 @@ codex plugin add java@sinon
 ```
 
 For a local checkout, use `codex plugin marketplace add /path/to/sinon`.
-The generated Codex catalog at `.agents/plugins/marketplace.json` includes eligible local packages with a native Codex manifest, external sources, and Codex-only packages.
+The Codex catalog at `.agents/plugins/marketplace.json` includes eligible local packages with a native Codex manifest, external sources, and Codex-only packages.
 Herdr installs directly from its upstream GitHub repository in both hosts.
 Its local source paths are relative to the repository root.
 External Workgraph follows its upstream default branch.
@@ -358,18 +356,14 @@ Publishers must increase a declared release version when the packaged content ch
 
 ## Maintaining The Catalogs
 
-Edit `.claude-plugin/marketplace.json` to add, remove, or change a catalog entry.
+Edit both host catalogs to add, remove, or change a shared catalog entry.
 Keep each local package's Codex identity aligned with its Claude marketplace entry.
 Keep a local `.claude-plugin/plugin.json` manifest's identity fields aligned with its marketplace entry.
-The marketplace catalog owns its generator and regression suite under `.claude-plugin/marketplace/`.
-Generate the native Codex view with `pnpm run marketplace:generate`.
-External `git-subdir` sources preserve their URL and subdirectory in the generated view.
+External `git-subdir` sources use matching URLs and subdirectories in both catalogs.
 Omit Git revision selectors from external sources, including `ref` values such as `main` and `sha` commit pins.
-The generator rejects revision-selector fields instead of copying them into the Codex catalog.
 Keep external release metadata in the upstream plugin manifest.
 Keep each local plugin's release version aligned between its Claude catalog entry and native manifests.
-Commit the generated catalog with its source changes.
-The repository checks reject stale catalogs and invalid local package mappings.
+Validate the Claude catalog with `claude plugin validate .` after catalog edits.
 
 ## License
 

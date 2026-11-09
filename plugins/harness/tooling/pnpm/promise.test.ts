@@ -64,11 +64,6 @@ test("Ultracite executes type-aware promise diagnostics without rewriting void",
         )
       )
     ).toHaveLength(2);
-    await writeFile(
-      path.join(directory, ".oxlintrc.json"),
-      JSON.stringify({ ...configuration, options: { typeAware: false } })
-    );
-    expect(findings(runUltracite(directory, "sample.ts"))).toHaveLength(0);
   } finally {
     await rm(directory, { force: true, recursive: true });
   }

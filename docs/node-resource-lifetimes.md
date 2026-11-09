@@ -6,7 +6,6 @@ The review looked for persistent processes, timers, listeners, streams, servers,
 
 | Component | Assessment | Evidence |
 | --- | --- | --- |
-| `.claude-plugin/marketplace` generator and tests | No leak found. | The generator awaits filesystem operations and keeps maps and sets within each invocation. |
 | `plugins/spec-driven-development` scripts and tests | No leak found. | The scripts perform per-invocation filesystem traversals and keep local collections without persistent processes, timers, listeners, or watchers. |
 | `plugins/harness/tooling/pnpm` | Unverified liveness candidate; no leak confirmed. | Three test files use `spawnSync` without a timeout, so a hung tool can block its test; no hung child or retained process was observed. |
 | `plugins/observability-assets/tests/promtool` download | Confirmed medium-severity response-body leak; fixed. | A bounded local HTTP server reproduced open 200 and 503 response bodies after rejection, and separately reproduced an unread checksum body after archive consumption failed. |

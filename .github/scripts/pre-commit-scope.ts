@@ -4,7 +4,6 @@ import { pathToFileURL } from "node:url";
 
 const alwaysRunChecks = [
   "check:markdownlint-cli2",
-  "check:marketplace",
   "check:typescript",
   "check:ultracite",
   "check:versions"

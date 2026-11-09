@@ -17,7 +17,7 @@ metadata:
 
 # TypeScript Conventions
 
-Apply these rules to TypeScript source under `.claude-plugin/marketplace/`, `plugins/*/tests/`, skill-internal scripts, `rules/`, `plugins/harness/tooling/pnpm/plugins/`, and `plugins/harness/tooling/pnpm/rules/`.
+Apply these rules to TypeScript source under `plugins/*/tests/`, skill-internal scripts, `rules/`, `plugins/harness/tooling/pnpm/plugins/`, and `plugins/harness/tooling/pnpm/rules/`.
 Use [Source Changes](repository-conventions.md#source-changes) for shared source rules, including function-body spacing.
 
 ## Runtime And Tooling
