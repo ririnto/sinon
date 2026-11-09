@@ -88,9 +88,8 @@ Use double quotes only when the actual consumer requires the exact string type o
 
 ## Markdown Authoring
 
-Put prose document titles in a body H1 and omit the frontmatter `title` field.
-Keep frontmatter titles in form templates because the platform uses them as form metadata.
-Keep frontmatter titles in schema-bound example records because validation and graph labels consume them as data.
+Put document titles in a body H1 and omit the frontmatter `title` field.
+Derive specification record titles from the body H1 for validation and graph labels.
 
 Follow the [documentation rules](../../CONTRIBUTING.md#documentation), including sentence-per-line formatting for nested-list continuation lines.
 Indent nested-list continuation lines to align under their item text.

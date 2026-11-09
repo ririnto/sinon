@@ -4,13 +4,9 @@
   "title": "RESEARCH.md YAML Frontmatter",
   "description": "Schema for RESEARCH.md YAML frontmatter validation",
   "type": "object",
-  "required": ["title", "description", "last_updated", "subject", "tag"],
+  "not": { "required": ["title"] },
+  "required": ["description", "last_updated", "subject", "tag"],
   "properties": {
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Research title"
-    },
     "description": {
       "type": "string",
       "minLength": 1,

@@ -26,7 +26,10 @@ test.each([
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-record-"));
     onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
     const file = path.join(directory, "SPEC.md");
-    writeFileSync(file, `---\ntitle: Example\n${frontmatter}\n---\n`);
+    writeFileSync(
+      file,
+      `---\ndescription: Example\n${frontmatter}\n---\n\n# Example\n`
+    );
     const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
     const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
     onTestFinished(() => {
@@ -77,11 +80,11 @@ test.each([
   onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
   writeFileSync(
     path.join(directory, "SPEC.md"),
-    "---\ntitle: Ingest\nstatus: implemented\ntag: [ingest, domain]\ncategory: [api, ui]\n---\n"
+    "---\nstatus: implemented\ntag: [ingest, domain]\ncategory: [api, ui]\n---\n\n# Ingest\n"
   );
   writeFileSync(
     path.join(directory, "RESEARCH.md"),
-    '---\ntitle: Research\nstatus: draft\ntag: " domain "\ncategory: cli\n---\n'
+    '---\nstatus: draft\ntag: " domain "\ncategory: cli\n---\n\n# Research\n'
   );
   const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
   const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());

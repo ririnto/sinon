@@ -33,7 +33,7 @@ export const generateMermaid = (specRoot: string): string => {
       entries.set(filePath, entry);
     }
     const title = String(
-      entry?.data.title ?? path.basename(path.dirname(filePath))
+      entry?.record.title || path.basename(path.dirname(filePath))
     );
     ids.set(filePath, id);
     lines.push(`  ${id}["${title.replaceAll('"', "'")}"]`);

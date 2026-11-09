@@ -49,7 +49,7 @@ Authors SHOULD avoid prescribing language, framework, library, or code-style pol
 
 ## Workflow Timing
 
-1. During SPEC Setup, create the initial `SPEC.md` skeleton and fill frontmatter, Necessity, Role, and Overview.
+1. During SPEC Setup, create the initial `SPEC.md` skeleton and fill the body title, frontmatter, Necessity, Role, and Overview.
 2. Before Spec Review, complete Functional Requirements, Scenarios, Key Entities, and Constraints.
 3. During Implementation, update `status` and `last_updated` as work progresses.
 4. During Implementation Review, verify each requirement is implemented or justified and finalize lifecycle status.
@@ -58,7 +58,6 @@ Authors SHOULD avoid prescribing language, framework, library, or code-style pol
 
 Required fields:
 
-- `title`: Concise capability name.
 - `description`: Scope summary in 1-3 lines.
 - `last_updated`: ISO 8601 calendar date (`YYYY-MM-DD`).
 - `status`: One of `draft`, `review`, `approved`, `wip`, `implemented`, `deprecated`, `superseded`, `removed`.
@@ -83,6 +82,8 @@ Custom fields guidance:
 
 Frontmatter SHOULD be written first in `draft` status.
 `last_updated` SHOULD be refreshed for every meaningful content change.
+Use a single body H1 for the concise capability name.
+Do not add a `title` field to frontmatter.
 
 ## Section-by-Section Authoring
 

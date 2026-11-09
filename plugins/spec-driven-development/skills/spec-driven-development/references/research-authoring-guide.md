@@ -32,7 +32,6 @@ Authors MAY start by copying `../assets/templates/RESEARCH.md` into the canonica
 
 Required fields:
 
-- `title`: Investigation title.
 - `description`: Scope and question summary.
 - `last_updated`: ISO 8601 calendar date (for example, `2026-03-02`).
 - `subject.name`: Framework, library, or topic name.
@@ -46,6 +45,8 @@ Optional fields:
 
 Guidance:
 
+- Use a single body H1 for the investigation title.
+  Do not add a `title` field to frontmatter.
 - Concrete version values SHOULD be used (for example, `1.15.2`, `2025-11`, or `LTS-3`).
 - For a library version decision, check its package registry for the latest stable release compatible with the target's runtime, lockfile, BOM, or version catalog.
   Record the version investigated in `subject.version`.

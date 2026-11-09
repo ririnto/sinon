@@ -4,13 +4,9 @@
   "title": "CONTRACT.md YAML Frontmatter",
   "description": "Schema for CONTRACT.md YAML frontmatter validation. additionalProperties is true by design: CONTRACT documents are intended to support domain-specific extension fields beyond the required core properties.",
   "type": "object",
-  "required": ["title", "description", "last_updated"],
+  "not": { "required": ["title"] },
+  "required": ["description", "last_updated"],
   "properties": {
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Contract title"
-    },
     "description": {
       "type": "string",
       "minLength": 1,

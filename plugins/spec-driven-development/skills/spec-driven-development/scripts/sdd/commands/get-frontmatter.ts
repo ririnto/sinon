@@ -120,7 +120,10 @@ export const cmdGetFrontmatter = (args: ParsedArgs): number => {
     return 1;
   }
   const { entry } = result;
-  const outputData: MutableRecord = { ...entry.data };
+  const outputData: MutableRecord = {
+    ...entry.data,
+    title: entry.record.title
+  };
   if ("tag" in outputData || "tags" in outputData) {
     outputData.tag = normalizeTag(outputData.tag ?? outputData.tags);
   }

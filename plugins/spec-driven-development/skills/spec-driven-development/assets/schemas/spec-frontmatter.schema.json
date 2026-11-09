@@ -4,13 +4,9 @@
   "title": "SPEC.md YAML Frontmatter",
   "description": "Schema for SPEC.md YAML frontmatter validation",
   "type": "object",
-  "required": ["title", "description", "last_updated", "status", "call"],
+  "not": { "required": ["title"] },
+  "required": ["description", "last_updated", "status", "call"],
   "properties": {
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "description": "SPEC title"
-    },
     "description": {
       "type": "string",
       "minLength": 1,

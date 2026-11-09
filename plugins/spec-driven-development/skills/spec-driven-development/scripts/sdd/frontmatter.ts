@@ -35,6 +35,19 @@ export const extractFrontmatterFromText = (
 };
 
 /**
+ * Extracts the document title from its first nonblank body line.
+ */
+export const extractDocumentTitle = (text: string, endLine: number): string =>
+  /^#\s+(?<title>\S.*)\s*$/u
+    .exec(
+      text
+        .split(/\r?\n/u)
+        .slice(endLine)
+        .find((line) => line.trim().length > 0) ?? ""
+    )
+    ?.groups?.title?.trim() ?? "";
+
+/**
  * Extracts the YAML frontmatter block from a file's contents.
  */
 export const extractFrontmatterFromFile = (
@@ -120,7 +133,8 @@ export const matchesKind = (filePath: string, kind: string): boolean =>
 export const buildRecord = (
   filePath: string,
   data: MutableRecord,
-  endLine: number
+  endLine: number,
+  title: string
 ): MutableRecord => {
   const tags = normalizeTag(data.tag ?? data.tags);
   return {
@@ -133,7 +147,7 @@ export const buildRecord = (
     status: String(data.status ?? ""),
     subject: subjectString(data),
     tag: tags,
-    title: String(data.title ?? ""),
+    title,
     updated: String(data.updated ?? "")
   };
 };
@@ -144,7 +158,8 @@ export const buildRecord = (
  */
 export const loadFrontmatterEntry = (filePath: string): LoadEntryResult => {
   try {
-    const block = extractFrontmatterFromFile(filePath);
+    const text = readFileSync(filePath, "utf-8");
+    const block = extractFrontmatterFromText(text);
     if (!block) {
       return { kind: "missing" };
     }
@@ -156,7 +171,12 @@ export const loadFrontmatterEntry = (filePath: string): LoadEntryResult => {
       return { kind: "error", message: "Invalid YAML frontmatter" };
     }
     const tags = normalizeTag(data.tag ?? data.tags);
-    const record = buildRecord(filePath, data, block.endLine);
+    const record = buildRecord(
+      filePath,
+      data,
+      block.endLine,
+      extractDocumentTitle(text, block.endLine)
+    );
     return {
       entry: {
         data,

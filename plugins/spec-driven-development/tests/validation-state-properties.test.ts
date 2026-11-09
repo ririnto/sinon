@@ -34,7 +34,7 @@ test("mixed generated document trees report every failure in the aggregate", () 
       mkdirSync(directory, { recursive: true });
       writeFileSync(
         path.join(directory, filename),
-        `---\ntitle: Example\ndescription: ${index === 2 && Math.floor(mask / 2 ** index) % 2 === 1 ? "''" : "Example"}\nlast_updated: '2026-01-01'\n${Math.floor(mask / 2 ** index) % 2 === 1 ? invalid : valid}---\n`
+        `---\ndescription: ${index === 2 && Math.floor(mask / 2 ** index) % 2 === 1 ? "''" : "Example"}\nlast_updated: '2026-01-01'\n${Math.floor(mask / 2 ** index) % 2 === 1 ? invalid : valid}---\n\n# Example\n`
       );
     }
     output.mockClear();

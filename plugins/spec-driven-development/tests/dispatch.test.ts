@@ -29,11 +29,11 @@ test("diagram generation keeps colliding path IDs distinct", () => {
   mkdirSync(path.dirname(calleePath), { recursive: true });
   writeFileSync(
     callerPath,
-    '---\ntitle: Hyphen Caller\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: implemented\ncall:\n  - ../foo_bar/SPEC.md\n---\n'
+    '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: implemented\ncall:\n  - ../foo_bar/SPEC.md\n---\n\n# Hyphen Caller\n'
   );
   writeFileSync(
     calleePath,
-    '---\ntitle: Underscore Callee\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: implemented\ncall: []\n---\n'
+    '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: implemented\ncall: []\n---\n\n# Underscore Callee\n'
   );
   const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
   const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
@@ -184,7 +184,7 @@ test("validate reports an invalid status and exits nonzero", () => {
   const file = path.join(specDirectory, "SPEC.md");
   writeFileSync(
     file,
-    '---\ntitle: Status Example\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: unknown\ncall: []\n---\n'
+    '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: unknown\ncall: []\n---\n\n# Status Example\n'
   );
   const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
   onTestFinished(() => {

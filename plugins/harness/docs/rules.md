@@ -214,9 +214,7 @@ For a single Boolean condition in Kotlin, prefer a subject-taking `when (conditi
 
 ## Documentation Formatting
 
-Use a body H1 for ordinary Markdown titles.
-For documents that rely on frontmatter, use `title:` there and omit the duplicate body H1.
-Do not add frontmatter only to replace a body H1.
+Put Markdown document titles in a body H1 and omit the frontmatter `title` field.
 
 Put each complete Markdown sentence on its own source line.
 Do not join separate sentences with semicolons or substitute punctuation.
