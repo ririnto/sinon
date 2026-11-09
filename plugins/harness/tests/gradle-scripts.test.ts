@@ -139,8 +139,8 @@ describe("Gradle Node-side script integration", () => {
         );
         if (buildSrc) {
           scripts["gradle:check"] = "./gradlew :check :buildSrc:check";
-          scripts["gradle:ktlintCheck"] =
-            "./gradlew ktlintCheck :buildSrc:ktlintCheck";
+          scripts["pre-commit"] = "run-s check gradle:check";
+          delete scripts["gradle:ktlintCheck"];
         }
         await writeFile(
           path.join(directory, "package.json"),
@@ -222,9 +222,9 @@ describe("Gradle Node-side script integration", () => {
           expect(
             await readFile(path.join(directory, "gradle-calls.txt"), "utf-8")
           ).toBe(
-            hook === "pre-commit"
-              ? `ktlintCheck${buildSrc ? " :buildSrc:ktlintCheck" : ""}\n`
-              : `${buildSrc ? ":check :buildSrc:check" : "check"}\n`
+            buildSrc
+              ? ":check :buildSrc:check\n"
+              : `${hook === "pre-commit" ? "ktlintCheck" : "check"}\n`
           );
         } else {
           expect(result.status).toBe(1);
