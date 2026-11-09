@@ -148,59 +148,52 @@ Dokka does not report every undocumented declaration by default, so review KDoc 
 ## Kotlin Ruleset Integration
 
 Use this profile only when the target has Kotlin sources and a Gradle Kotlin integration.
-Copy the complete `tooling/kotlin/` module into a target-owned tooling directory, or include that directory as a Gradle composite build.
-Keep the complete module and its tests together instead of installing only its JAR or copying its source into `buildSrc`.
+Merge the sources, resources, and tests from `tooling/kotlin/` into the corresponding source sets in the target's `buildSrc`.
+Merge the module's compile and test dependencies, Kotlin and ktlint configuration, and test configuration into the existing `buildSrc` build.
+Add the `buildSrc` JAR to the ktlint runtime as shown below.
+Preserve the service descriptor and the target's existing build logic and repository policy.
 
-The module coordinates are `com.ririnto.sinon.harness:harness-kotlin:1.0.0`.
-It uses Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
+The source module uses Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
 Kotlin `2.4.21` is fully supported with Gradle `7.6.3` through `9.7.0`.
 Keep the target's wrapper version within that range when using this module.
 The registered rules are exposed by `com.ririnto.sinon.harness.ktlint.RuleSetProvider` through the `RuleSetProviderV3` service descriptor.
 
-Include the target-owned module as a composite build with `includeBuild("tooling/kotlin")` in `settings.gradle.kts`.
-In every Kotlin consumer project, apply the Kotlin and ktlint plugins and add the module to that project's ktlint runtime:
+In `buildSrc/build.gradle.kts`, add the build's JAR to its ktlint runtime:
 
 ```kotlin
 dependencies {
-    add("ktlint", "com.ririnto.sinon.harness:harness-kotlin:1.0.0")
+    add("ktlint", files(tasks.jar))
 }
 ```
 
-Dependency resolution builds the included module's JAR before ktlint runs.
-Each project has its own ktlint runtime configuration, so a root dependency does not configure its subprojects.
-The service descriptor makes its provider discoverable once the JAR is on the runtime classpath.
-Wire the included build's `check` task into the existing root `check` so normal verification also runs ruleset tests and lint:
+Apply the Kotlin and ktlint plugins in every Kotlin consumer project and add the `buildSrc` JAR to each project's ktlint runtime.
+For example, if `buildSrc` produces `buildSrc.jar`, add this dependency in each consumer build:
 
 ```kotlin
-tasks.named("check") {
-    dependsOn(gradle.includedBuild("kotlin").task(":check"))
+dependencies {
+    add("ktlint", files(rootProject.file("buildSrc/build/libs/buildSrc.jar")))
 }
 ```
 
-Use the actual included-build name when it differs from `kotlin`.
-Retain existing root `check` dependencies.
-For a target with `buildSrc`, include the same module in `buildSrc/settings.gradle.kts` with a path relative to `buildSrc`, such as `includeBuild("../tooling/kotlin")`.
-Configure plugin and dependency repositories there according to the target's repository policy.
-Apply the ktlint Gradle plugin in `buildSrc/build.gradle.kts`, select the compatible ktlint engine, and add the same coordinate to its `ktlint` runtime configuration.
-The root build's included-build declaration and ktlint runtime dependency do not configure `buildSrc`.
-Keep the module's source and tests in the module so both builds consume the same artifact and its own checks remain available.
-BuildSrc source can instead be packaged and registered as a ruleset JAR, but that is a different integration and does not preserve the complete standalone module as the shared owner.
+Use the actual JAR name when the target configures a different archive name.
+Gradle builds `buildSrc` before configuring the main build, and the task-backed file dependency builds its JAR for the `buildSrc` check.
+Each project has its own ktlint runtime configuration, so a root dependency does not configure its subprojects.
+The service descriptor makes the provider discoverable once the JAR is on each runtime classpath.
 
 The qualified root task `:check` does not select subproject checks by name.
 For a target with subprojects, add each check-bearing subproject's `check` to the root `check`, preserving its existing dependencies.
 For example, add `dependsOn(":child:check")` inside the root `tasks.named("check")` block for a subproject named `child`.
 Adapt the paths to the target and account for when its plugins register tasks.
-Verify that the resulting graph runs every existing root and subproject gate as well as the included ruleset module's `:check`.
-Dependabot can scan a target-owned copy through the Gradle ecosystem when its `directory` points to the module root containing `gradle/libs.versions.toml`.
+Verify that the resulting graph runs every existing root and subproject gate.
 Keep Kotlin, the ktlint Gradle plugin, and ktlint engine updates in one reviewed change because the module's compiler and runtime API contracts are coupled.
 The local JAR is target-owned build output, not a Maven publication or registry dependency.
-The standalone module tests each registered rule and provider registration.
+The copied tests cover each registered rule and provider registration.
 Its Kotest specs use constructor declarations and typed companion properties.
 The tests compare native ktlint rule-engine results with Kotest matchers.
 Kotest uses the JUnit Platform on the JVM.
 Verify that a disposable Kotlin violation fails the target's full check before accepting the integration.
 For a target with `buildSrc`, verify that a disposable violation there fails `./gradlew :check :buildSrc:check` and that a clean run passes every required check.
-The module's test count is reported from the Gradle test results rather than inferred from task names.
+Report the ruleset test count from the Gradle test results rather than inferring it from task names.
 
 Kotlin Maven support is conditional and separate from this Gradle path.
 The existing Maven profile does not claim arbitrary Maven Kotlin support.
@@ -220,7 +213,7 @@ Preserve existing identity, commands, dependencies, workspaces, and package-mana
 Create a minimal private target manifest only when none exists, keeping project identity target-owned.
 For an existing script name, retain its command and report the required composition before changing that owner.
 
-The supplied script surface is:
+The supplied script surface for a target without `buildSrc` is:
 
 | Script | Command |
 | --- | --- |
@@ -234,16 +227,21 @@ The supplied script surface is:
 | `pre-push` | `run-s check gradle:check` |
 | `prepare` | `husky` |
 
-For a target without `buildSrc`, the pre-commit gate requires a real target-owned `ktlintCheck` task.
-If that task is missing, report the integration gap and resolve the Kotlin integration before activating this script surface.
 The package scripts finish Node-side checks successfully before invoking Gradle.
 For pnpm targets, install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git hooks delegate to the matching pnpm scripts.
 For other package managers, adapt hook commands to invoke the corresponding target scripts.
 Keep the checked-in wrapper at the selected root and preserve its task graph.
 
-For a target with `buildSrc`, adapt `gradle:check` to `./gradlew :check :buildSrc:check` and change `pre-commit` to `run-s check gradle:check`.
-Keep `pre-push` invoking `gradle:check`.
-Ensure that both root and `buildSrc` checks include their existing ktlint gates before removing the separate `gradle:ktlintCheck` script.
+For a target with `buildSrc`, replace the Gradle scripts and hook commands with the following:
+
+| Script | Command |
+| --- | --- |
+| `gradle:check` | `./gradlew :check :buildSrc:check` |
+| `pre-commit` | `run-s check gradle:check` |
+| `pre-push` | `run-s check gradle:check` |
+
+Omit the separate lint script from this setup.
+Ensure that both root and `buildSrc` checks include their existing ktlint gates.
 Verify that both hooks retain the Node checks and run the exact two-task Gradle command.
 Retain existing target script commands when composing these gates.
 The generic manifest remains suitable for targets without `buildSrc`, where the explicit `:buildSrc` tasks do not exist.

@@ -7,6 +7,8 @@ The root `ktlintCheck` task includes both application modules.
 Versions live in the project's Gradle and pnpm catalogs.
 Generate this sample with the materializer before running it.
 The generated `tooling/kotlin` build supplies the custom ktlint rules to both modules.
+This sample demonstrates a composite build without `buildSrc`.
+For a buildSrc-only setup, follow the Gradle profile in the Harness documentation.
 
 Use JDK 25; the application modules target Java 21 and the included Kotlin ruleset builds with Java 25.
 Run `./gradlew check ktlintCheck` to build, test, and lint the modules.
