@@ -148,51 +148,31 @@ Dokka does not report every undocumented declaration by default, so review KDoc 
 ## Kotlin Ruleset Integration
 
 Use this profile only when the target has Kotlin sources and a Gradle Kotlin integration.
-Merge the sources, resources, and tests from `tooling/kotlin/` into the corresponding source sets in the target's `buildSrc`.
-Merge the module's compile and test dependencies, Kotlin and ktlint configuration, and test configuration into the existing `buildSrc` build.
-Add the `buildSrc` JAR to the ktlint runtime as shown below.
-Preserve the service descriptor and the target's existing build logic and repository policy.
-
-The source module uses Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
+Copy `tooling/kotlin/src/` into the target's `buildSrc/src/`, including the tests.
+Merge the provider line into `buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3`.
+Preserve existing entries and add `com.ririnto.sinon.harness.ktlint.RuleSetProvider` only if it is absent.
+Keep the descriptor target-owned and preserve its existing content and file mode.
+Merge the module's dependencies, Kotlin and ktlint plugin versions, test configuration, and toolchain into the existing `buildSrc/build.gradle.kts`.
+Merge its `.editorconfig` policy into `buildSrc/.editorconfig` and preserve the target's existing settings.
+The Gradle sample demonstrates this integration and pins Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
 Kotlin `2.4.21` is fully supported with Gradle `7.6.3` through `9.7.0`.
-Keep the target's wrapper version within that range when using this module.
-The registered rules are exposed by `com.ririnto.sinon.harness.ktlint.RuleSetProvider` through the `RuleSetProviderV3` service descriptor.
+Keep the target's wrapper within that range.
 
-In `buildSrc/build.gradle.kts`, add the build's JAR to its ktlint runtime:
-
-```kotlin
-dependencies {
-    add("ktlint", files(tasks.jar))
-}
-```
-
-Apply the Kotlin and ktlint plugins in every Kotlin consumer project and add the `buildSrc` JAR to each project's ktlint runtime.
-For example, if `buildSrc` produces `buildSrc.jar`, add this dependency in each consumer build:
-
-```kotlin
-dependencies {
-    add("ktlint", files(rootProject.file("buildSrc/build/libs/buildSrc.jar")))
-}
-```
-
-Use the actual JAR name when the target configures a different archive name.
-Gradle builds `buildSrc` before configuring the main build, and the task-backed file dependency builds its JAR for the `buildSrc` check.
-Each project has its own ktlint runtime configuration, so a root dependency does not configure its subprojects.
-The service descriptor makes the provider discoverable once the JAR is on each runtime classpath.
+The buildSrc JAR and its service descriptor make the rules available to the root build and Kotlin subprojects.
+Apply the ktlint plugin to each Kotlin project and select the compatible ktlint engine.
+Run the ruleset tests and buildSrc's own lint through `:buildSrc:check`.
+The buildSrc ktlint runtime does not load its own output automatically.
+To check buildSrc Kotlin sources with the custom rules, configure root ktlint to include `buildSrc/src/**/*.kt` as shown in the sample.
+Retain buildSrc's own ktlint checks for its scripts and standard formatting.
 
 The qualified root task `:check` does not select subproject checks by name.
-For a target with subprojects, add each check-bearing subproject's `check` to the root `check`, preserving its existing dependencies.
-For example, add `dependsOn(":child:check")` inside the root `tasks.named("check")` block for a subproject named `child`.
-Adapt the paths to the target and account for when its plugins register tasks.
-Verify that the resulting graph runs every existing root and subproject gate.
-Keep Kotlin, the ktlint Gradle plugin, and ktlint engine updates in one reviewed change because the module's compiler and runtime API contracts are coupled.
-The local JAR is target-owned build output, not a Maven publication or registry dependency.
+Ensure it aggregates the existing check-bearing subprojects while retaining all existing dependencies.
+The sample connects each Kotlin subproject's check to root check when its plugin is applied.
+Verify the actual task graph and test a disposable custom-rule violation in both a subproject and buildSrc.
+Run `./gradlew :check :buildSrc:check` and verify that a clean run passes every required check.
+Keep Kotlin, the ktlint Gradle plugin, and ktlint engine updates in one reviewed change because their compiler and runtime API contracts are coupled.
 The copied tests cover each registered rule and provider registration.
-Its Kotest specs use constructor declarations and typed companion properties.
-The tests compare native ktlint rule-engine results with Kotest matchers.
-Kotest uses the JUnit Platform on the JVM.
-Verify that a disposable Kotlin violation fails the target's full check before accepting the integration.
-For a target with `buildSrc`, verify that a disposable violation there fails `./gradlew :check :buildSrc:check` and that a clean run passes every required check.
+The tests compare native ktlint rule-engine results with Kotest matchers and run on the JUnit Platform.
 Report the ruleset test count from the Gradle test results rather than inferring it from task names.
 
 Kotlin Maven support is conditional and separate from this Gradle path.

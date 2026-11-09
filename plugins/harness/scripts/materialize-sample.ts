@@ -1,4 +1,11 @@
-import { cp, lstat, mkdir, readdir, realpath } from "node:fs/promises";
+import {
+  copyFile,
+  cp,
+  lstat,
+  mkdir,
+  readdir,
+  realpath
+} from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 
@@ -104,10 +111,14 @@ export const materializeSample = async (
     )
   );
   if (name === "gradle-multi-module") {
-    await mkdir(path.join(root, "tooling"), { recursive: true });
-    await cp(kotlin, path.join(root, "tooling/kotlin"), {
+    await mkdir(path.join(root, "buildSrc"), { recursive: true });
+    await copyFile(
+      path.join(kotlin, ".editorconfig"),
+      path.join(root, "buildSrc/.editorconfig")
+    );
+    await cp(path.join(kotlin, "src"), path.join(root, "buildSrc/src"), {
       errorOnExist: true,
-      filter: includeEntry.bind(null, kotlin),
+      filter: includeEntry.bind(null, path.join(kotlin, "src")),
       force: false,
       recursive: true
     });

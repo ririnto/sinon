@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "workspace-sample"
 include("app", "library")
-includeBuild("tooling/kotlin")

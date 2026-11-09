@@ -1,13 +1,24 @@
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
+
 plugins {
     base
-    alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktlint)
 }
 
-tasks.named("check") {
-    dependsOn(gradle.includedBuild("kotlin").task(":check"), ":app:check", ":library:check")
+subprojects {
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        val projectCheck = tasks.named("check")
+        rootProject.tasks.named("check") {
+            dependsOn(projectCheck)
+        }
+    }
 }
 
-tasks.register("ktlintCheck") {
-    dependsOn(":app:ktlintCheck", ":library:ktlintCheck")
+ktlint {
+    version.set(libs.versions.ktlint.engine)
+}
+
+tasks.named<KtLintCheckTask>("runKtlintCheckOverMainSourceSet") {
+    source(fileTree("buildSrc/src") { include("**/*.kt") })
 }

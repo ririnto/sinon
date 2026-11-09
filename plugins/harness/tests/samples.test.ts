@@ -46,9 +46,31 @@ test.each(samples)(
     expect(copied.isFile()).toBe(true);
     if (name === "gradle-multi-module") {
       const ruleset = await stat(
-        path.join(directory, "tooling/kotlin/build.gradle.kts")
+        path.join(
+          directory,
+          "buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"
+        )
       );
       expect(ruleset.isFile()).toBe(true);
+      expect(
+        await readFile(
+          path.join(
+            directory,
+            "buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"
+          ),
+          "utf-8"
+        )
+      ).toContain("com.ririnto.sinon.harness.ktlint.RuleSetProvider");
+      const tests = await readdir(
+        path.join(
+          directory,
+          "buildSrc/src/test/kotlin/com/ririnto/sinon/harness/ktlint"
+        )
+      );
+      expect(tests.length).toBeGreaterThan(0);
+      await expect(
+        stat(path.join(directory, "buildSrc/settings.gradle.kts"))
+      ).rejects.toThrow();
     }
   }
 );
