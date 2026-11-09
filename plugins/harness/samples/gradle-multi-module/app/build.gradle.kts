@@ -20,7 +20,7 @@ ktlint {
 }
 
 dependencies {
-    ktlintRuleset("com.ririnto.sinon.harness:harness-kotlin:1.0.0")
+    add("ktlint", "com.ririnto.sinon.harness:harness-kotlin:1.0.0")
     implementation(project(":library"))
     testImplementation(libs.kotlin.test.junit5)
     testRuntimeOnly(libs.junit.engine)
