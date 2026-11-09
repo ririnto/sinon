@@ -5,4 +5,4 @@ gradle-java:
   stage: validate
   image: gradle:9.8.2-jdk25-ubi10
   script:
-    - ./gradlew check
+    - ./gradlew :check :buildSrc:check

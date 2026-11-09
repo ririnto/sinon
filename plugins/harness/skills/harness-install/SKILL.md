@@ -103,7 +103,8 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
 | `<target-root>/typedoc.json` | `<plugin-root>/tooling/pnpm/typedoc.json` for a Node API profile |
 | `<target-root>/docs/conf.py` and `docs/index.rst` | `<plugin-root>/tooling/uv/docs/` when uv is selected |
-| `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` when Kotlin is selected |
+| `<target-root>/buildSrc/src/` | `<plugin-root>/tooling/kotlin/src/` for Kotlin Gradle targets |
+| `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` for supported Kotlin Maven targets |
 
 Use the `pnpm` hook source for Node, frontend, and React, and `gradle` for Kotlin.
 For Gradle targets using another package manager, adapt the source hook commands to invoke the corresponding target scripts with that manager.
@@ -123,14 +124,17 @@ Profile-native source and destination paths follow the selected tool reference a
 Read each existing destination and preview one status per selected guidance or native path:
 
 - `create`: destination does not exist.
-- `keep`: destination bytes match the composed current input.
+- `keep`: destination already satisfies the composed input or authorized merge.
+- `merge`: the selected profile permits a bounded change that preserves target-owned content.
 - `conflict`: destination differs and replacement is not authorized.
 - `replace`: an explicit grant covers replacing this conflicting Harness-owned file.
 
+For a merge, report target ownership and the proposed additions in the preview.
+The installation request authorizes only the bounded profile merge, not replacement of target-owned content.
 For a conflict, report ownership and a diff or concise change summary.
 Leave it unchanged until replacement is authorized.
 Compose destinations from the same current canonical input set on each run.
-Create missing files, leave matching files untouched, and replace only explicitly approved Harness-owned conflicts.
+Create missing files, apply authorized profile merges, leave satisfied files untouched, and replace only explicitly approved Harness-owned conflicts.
 Do not maintain a second target-specific implementation.
 Create parent directories only for mapped destinations.
 Reject symlink ancestors, paths outside the target root, and file-versus-directory mismatches before writing.
@@ -162,13 +166,14 @@ Reuse the shared Markdown sources and select each profile's own Husky configurat
 For existing Gradle targets that do not use pnpm, adapt the Gradle hook commands to the target's package manager and preserve existing hooks and their owner.
 Run the baseline's install, prepare, check, and hook proof using the corresponding target package-manager commands and adapted hooks instead of its pnpm commands.
 This selection does not enable the JavaScript or TypeScript lint profile.
-For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
-Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.
-Keep the complete module and its tests, and make its provider JAR available to the ktlint runtime.
-The native build graph must build the module before consumer lint runs.
+For Kotlin, retain the complete rule sources, resources, and tests.
+For Gradle, merge them into `buildSrc` and configure its dependencies and checks as described in the Gradle reference.
+For an existing target-owned service descriptor, preview a bounded merge that preserves its entries and adds the Harness provider only when absent.
+Keep its ownership and file mode, and report `keep` on a repeat when the provider is already present.
+For supported Maven targets, copy the complete native module and follow the Maven reference to attach its produced JAR to the actual ktlint runtime.
+Verify that the native build graph runs the rules and their tests.
 Otherwise report the integration gap.
-For targets with buildSrc, follow the Gradle reference to make the module available there and adapt the full and pre-commit gates.
-Do not install the module when Kotlin is unselected.
+Do not install the Kotlin rules when Kotlin is unselected.
 
 Install CI catalogs only when explicitly selected, retaining least-privilege read permissions.
 Adapt working directories, versions, stages, and test ownership to the target's existing jobs.
@@ -186,7 +191,7 @@ Verify written destinations with the native filesystem:
   Completed paths produce only `keep` statuses on the second pass.
 
 For changed native integrations, run the target's documented affected checks and profile-specific acceptance proof.
-A Kotlin integration needs the complete module, runtime registration, and consumer-lint proof required by its selected tool reference.
+A Kotlin integration needs the sources, tests, native configuration, and consumer-lint proof required by its selected tool reference.
 A pnpm integration must resolve its Markdownlint configuration at the selected project root.
 Do not invent check commands, add test infrastructure, or rerun unaffected profile checks for guidance-only refreshes.
 

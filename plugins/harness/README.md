@@ -87,6 +87,6 @@ References from language and tool documents to common rules stay `../rules.md` i
 The installer reads current canonical inputs and writes only mapped target paths.
 It manages only `implement` and `review` skills and their supporting documents, preserving other target skills.
 Its preview separates safe creates and unchanged files from conflicts that require explicit replacement authority.
-For Kotlin, it also materializes the complete target-owned `tooling/kotlin/` Gradle module when the Kotlin profile is selected.
-Each Kotlin consumer project must attach its produced JAR to the ktlint runtime with `add("ktlint", "com.ririnto.sinon.harness:harness-kotlin:1.0.0")`.
-The JAR's service descriptor makes its ruleset provider discoverable.
+For Kotlin Gradle targets, it merges the rule sources, resources, and tests into target-owned `buildSrc/`.
+Supported Maven targets retain the standalone Kotlin module.
+The service descriptor makes the ruleset provider discoverable.

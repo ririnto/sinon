@@ -2,14 +2,13 @@
 
 This standalone Kotlin project has an application and a library.
 The application calls the library, and each module owns executable tests.
-Running `./gradlew check` checks both modules and the included ruleset build.
-The root `ktlintCheck` task includes both application modules.
+Running `./gradlew :check :buildSrc:check` checks both modules and the ruleset.
 Versions live in the project's Gradle and pnpm catalogs.
 Generate this sample with the materializer before running it.
-The generated `tooling/kotlin` build supplies the custom ktlint rules to both modules.
+The generated `buildSrc` supplies the custom ktlint rules to both modules and the root check.
 
-Use JDK 25; the application modules target Java 21 and the included Kotlin ruleset builds with Java 25.
-Run `./gradlew check ktlintCheck` to build, test, and lint the modules.
+Use JDK 25; the application modules target Java 21 and the Kotlin ruleset builds with Java 25.
+Run `./gradlew :check :buildSrc:check` to build, test, and lint the modules.
 Run `./gradlew :app:run --args=Ada` to run the application.
 
 Use Node 26 and pnpm 12 to install the optional Markdown checks and Git hooks:
@@ -20,6 +19,5 @@ pnpm run pre-commit
 pnpm run pre-push
 ```
 
-The pre-commit hook runs Markdown and Kotlin lint checks.
-The pre-push hook runs Markdown and the root Gradle check.
-GitHub and GitLab configurations run the native Gradle check.
+Both hooks run Markdown and the full root and buildSrc checks.
+GitHub and GitLab configurations run the same Gradle checks.
