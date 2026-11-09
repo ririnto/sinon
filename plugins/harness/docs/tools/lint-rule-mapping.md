@@ -1,5 +1,4 @@
 ---
-title: Lint Rule Mapping
 metadata:
   reference:
     Oxlint:
@@ -52,6 +51,8 @@ metadata:
         - https://raw.githubusercontent.com/detekt/detekt/v1.23.8/detekt-rules-documentation/src/main/kotlin/io/gitlab/arturbosch/detekt/rules/documentation/UndocumentedPublicProperty.kt
         - https://raw.githubusercontent.com/detekt/detekt/v1.23.8/detekt-rules-style/src/main/kotlin/io/gitlab/arturbosch/detekt/rules/style/ForbiddenSuppress.kt
 ---
+
+# Lint Rule Mapping
 
 Prefer maintained upstream rules when their supported configuration preserves the required semantics.
 The tables record repository policy decisions against the reviewed candidates, not a claim about every available package.

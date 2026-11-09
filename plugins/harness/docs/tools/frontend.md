@@ -1,5 +1,4 @@
 ---
-title: Frontend Baseline
 metadata:
   reference:
     design.md:
@@ -18,6 +17,8 @@ metadata:
     Radix Primitives:
       url: https://www.radix-ui.com/primitives/docs/overview/getting-started
 ---
+
+# Frontend Baseline
 
 Select this guidance only for real frontend code.
 Use the [project baseline](baseline.md) and [pnpm profile](pnpm.md) for its shared configuration.

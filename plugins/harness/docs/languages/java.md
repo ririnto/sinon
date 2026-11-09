@@ -1,5 +1,4 @@
 ---
-title: Java
 metadata:
   reference:
     Palantir Java Format:
@@ -12,6 +11,8 @@ metadata:
       url:
         - https://docs.oracle.com/en/java/javase/25/language/java-language-changes.html
 ---
+
+# Java
 
 Use the target build's declared Java toolchain and release as the compatibility boundary.
 Keep source changes compatible with that release unless the project explicitly upgrades it.

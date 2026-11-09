@@ -1,5 +1,4 @@
 ---
-title: Kotlin Rules
 metadata:
   reference:
     Kotlin Coding Conventions:
@@ -51,6 +50,8 @@ metadata:
         - https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-rule-engine-core/src/main/kotlin/com/pinterest/ktlint/rule/engine/core/api/RuleAutocorrectApproveHandler.kt
         - https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
 ---
+
+# Kotlin Rules
 
 These rules extend the [common rules](../rules.md) for Kotlin files.
 Read them together with that document.

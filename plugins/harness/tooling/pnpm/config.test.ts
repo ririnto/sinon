@@ -296,7 +296,7 @@ describe("pnpm profile configuration", () => {
     }
   );
 
-  test("Harness guidance parses and follows the frontmatter title policy", async () => {
+  test("Harness guidance parses and uses body titles", async () => {
     const harnessRoot = path.resolve(profileDirectory, "../..");
     const files = trackedMarkdownFiles(harnessRoot, [
       "README.md",
@@ -315,8 +315,8 @@ describe("pnpm profile configuration", () => {
         if (block !== undefined && source !== undefined) {
           const document = parseDocument(source, { uniqueKeys: true });
           expect(document.errors, file).toEqual([]);
-          expect(document.get("title"), file).toMatch(/\S/u);
-          expect(/^# /mu.test(text.slice(block.length)), file).toBe(false);
+          expect(document.has("title"), file).toBe(false);
+          expect(/^# \S/mu.test(text.slice(block.length)), file).toBe(true);
         } else {
           expect(/^# /mu.test(text), file).toBe(true);
         }

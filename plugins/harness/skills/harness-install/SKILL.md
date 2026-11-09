@@ -1,5 +1,4 @@
 ---
-title: Harness Install
 name: harness-install
 description: Use when installing or refreshing Harness implement and review guidance in a target repository.
 metadata:
@@ -9,6 +8,8 @@ metadata:
     OpenAI skills:
       url: https://learn.chatgpt.com/docs/build-skills.md
 ---
+
+# Harness Install
 
 Install current Harness guidance as independent project files under the target host's skill root.
 This skill owns target mapping, conflicts, and installation proof.

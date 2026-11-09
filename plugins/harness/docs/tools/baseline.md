@@ -1,5 +1,4 @@
 ---
-title: Project Tooling Baseline
 metadata:
   reference:
     pnpm catalogs:
@@ -8,6 +7,8 @@ metadata:
       version: 9.1.7
       url: https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
 ---
+
+# Project Tooling Baseline
 
 Inspect the target and select a project type before configuring it.
 Preserve target-owned files and obtain authority for changes before writing.

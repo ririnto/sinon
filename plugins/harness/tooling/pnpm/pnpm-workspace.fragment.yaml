@@ -13,8 +13,8 @@ catalog:
   markdownlint-cli2: ^0.24.0
   markdownlint-rule-search-replace: ^1.2.0
   npm-run-all2: ^9.0.4
-  oxfmt: ^0.76.0
-  oxlint: ^1.91.0
-  oxlint-tsgolint: ^7.0.2005
+  oxfmt: ^0.77.0
+  oxlint: ^1.92.0
+  oxlint-tsgolint: ^7.0.2006
   ultracite: ^8.1.1
   vitest: ^5.1.0

@@ -1,5 +1,4 @@
 ---
-title: Engineering Rules
 metadata:
   reference:
     OpenAI skills:
@@ -20,6 +19,8 @@ metadata:
         - https://www.w3.org/TR/WCAG22/
         - https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 ---
+
+# Engineering Rules
 
 This document owns project-wide mandatory engineering rules for projects using Harness.
 Language and tool documents own their specific requirements.

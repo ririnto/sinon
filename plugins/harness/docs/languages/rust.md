@@ -1,5 +1,4 @@
 ---
-title: Rust Language Rules
 metadata:
   reference:
     Google Rust style guide:
@@ -9,6 +8,8 @@ metadata:
         - https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html
         - https://doc.rust-lang.org/std/clone/trait.Clone.html
 ---
+
+# Rust Language Rules
 
 This document owns Rust-specific rules for the `rust` profile.
 Apply it to Rust source, examples, and API decisions affected by Cargo or toolchain changes.
