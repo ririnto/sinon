@@ -22,6 +22,22 @@ test("relative skill destinations remain visible through generated prose context
   }
 });
 
+test("generated mixed contexts preserve diagnostics after skipped containers", () => {
+  for (const directory of ["guide", "nested/path", "../other"]) {
+    for (const suffix of ["", "?view=1", "#usage"]) {
+      const link = `[Read](${directory}/SKILL.md${suffix})`;
+      const input = `\`\`\`md\n${link}\n\`\`\`\n\n> ${link}\n\n> [!NOTE]\n> ${link}\n\n${link}\n`;
+      const errors =
+        lint({
+          config: { default: false, "docs/no-relative-skill-links": true },
+          customRules: [noRelativeSkillLinks],
+          strings: { input }
+        }).input ?? [];
+      expect(errors.map((error) => error.lineNumber)).toEqual([8, 10]);
+    }
+  }
+});
+
 test("generated external skill destinations never produce relative-link diagnostics", () => {
   for (const origin of ["https://example.org", "/absolute", "#section"]) {
     for (const directory of ["guide", "nested/path"]) {

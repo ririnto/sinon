@@ -9,7 +9,7 @@ stateDiagram-v2
     DocumentChecked --> Skipped: Generated, license, or outside selected paths
     DocumentChecked --> Walking: Eligible document
     Walking --> Walking: Visit ordinary child tokens
-    Walking --> SkippedContainer: Enter code, HTML, or ordinary quote
+    Walking --> SkippedContainer: Enter code, HTML flow, or ordinary quote
     SkippedContainer --> Walking: Continue with next token
     Walking --> DestinationChecked: Visit link or definition destination
     DestinationChecked --> Reported: Visible relative SKILL.md destination
@@ -21,8 +21,9 @@ stateDiagram-v2
 
 The rule strips query strings and fragments and decodes unreserved percent escapes before checking the filename.
 Absolute paths, URL schemes, and fragment-only links stay outside the diagnostic.
-Code, HTML, and ordinary block quotes are not traversed, while alert block quotes are traversed.
+Code, HTML flow containers, and ordinary block quotes are not traversed, while alert block quotes are traversed.
 Generated documents and license files are excluded before traversal.
 
 The generated-input properties in `plugins/harness/tests/skill-link-properties.test.ts` exercise the production rule through Markdownlint.
-They check that relative destinations remain visible across directory depths, suffixes, and preceding prose, and that external destinations do not produce relative-link diagnostics.
+They check relative destinations across directory depths, suffixes, preceding prose, skipped containers, and alert quotes.
+They also check that external destinations do not produce relative-link diagnostics.
