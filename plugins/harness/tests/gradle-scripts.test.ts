@@ -123,11 +123,13 @@ describe("Gradle Node-side script integration", () => {
       { hook: "pre-commit", valid: false },
       { hook: "pre-push", valid: false }
     ].flatMap((entry) =>
-      ["git", "pnpm"].map((entrypoint) => ({ ...entry, entrypoint }))
+      ["git", "pnpm"].flatMap((entrypoint) =>
+        [false, true].map((buildSrc) => ({ ...entry, buildSrc, entrypoint }))
+      )
     )
   )(
-    "$entrypoint $hook respects the Markdown gate (valid=$valid)",
-    async ({ entrypoint, hook, valid }) => {
+    "$entrypoint $hook respects the Markdown gate (valid=$valid, buildSrc=$buildSrc)",
+    async ({ buildSrc, entrypoint, hook, valid }) => {
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-gradle-scripts-")
       );
@@ -135,6 +137,11 @@ describe("Gradle Node-side script integration", () => {
         const { scripts } = JSON.parse(
           await readFile(path.join(gradleProfile, "package.json"), "utf-8")
         );
+        if (buildSrc) {
+          scripts["gradle:check"] = "./gradlew :check :buildSrc:check";
+          scripts["gradle:ktlintCheck"] =
+            "./gradlew ktlintCheck :buildSrc:ktlintCheck";
+        }
         await writeFile(
           path.join(directory, "package.json"),
           JSON.stringify({ private: true, scripts })
@@ -214,7 +221,11 @@ describe("Gradle Node-side script integration", () => {
           expect(result.status).toBe(0);
           expect(
             await readFile(path.join(directory, "gradle-calls.txt"), "utf-8")
-          ).toBe(hook === "pre-commit" ? "ktlintCheck\n" : "check\n");
+          ).toBe(
+            hook === "pre-commit"
+              ? `ktlintCheck${buildSrc ? " :buildSrc:ktlintCheck" : ""}\n`
+              : `${buildSrc ? ":check :buildSrc:check" : "check"}\n`
+          );
         } else {
           expect(result.status).toBe(1);
           await expect(

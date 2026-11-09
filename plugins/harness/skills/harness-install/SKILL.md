@@ -164,9 +164,10 @@ Run the baseline's install, prepare, check, and hook proof using the correspondi
 This selection does not enable the JavaScript or TypeScript lint profile.
 For Kotlin, read and copy the complete native module, including source, resources, build files, and tests.
 Use the selected Gradle or conditional Maven integration to attach its produced JAR to the actual ktlint runtime.
-Do not install only a prebuilt JAR or substitute buildSrc classes for ruleset registration.
+Do not install only a prebuilt JAR or assume buildSrc classes register a ruleset with ktlint.
 The native build graph must build the module before consumer lint runs.
 Otherwise report the integration gap.
+For targets with buildSrc, follow the Gradle reference to register the module there and adapt the full and pre-commit gates.
 Do not install the module when Kotlin is unselected.
 
 Install CI catalogs only when explicitly selected, retaining least-privilege read permissions.

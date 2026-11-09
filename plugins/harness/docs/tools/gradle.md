@@ -149,7 +149,7 @@ Dokka does not report every undocumented declaration by default, so review KDoc 
 
 Use this profile only when the target has Kotlin sources and a Gradle Kotlin integration.
 Copy the complete `tooling/kotlin/` module into a target-owned tooling directory, or include that directory as a Gradle composite build.
-Do not copy only its JAR or place its source under `buildSrc`.
+Keep the complete module and its tests together instead of installing only its JAR or copying its source into `buildSrc`.
 
 The module coordinates are `com.ririnto.sinon.harness:harness-kotlin:1.0.0`.
 It uses Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
@@ -166,7 +166,7 @@ dependencies {
 ```
 
 Make the consumer's `ktlintCheck` depend on the ruleset module's `jar` task when both projects are in one build.
-A composite build can expose the module project, but the consumer still needs the explicit `ktlintRuleset(...)` dependency because buildSrc classes are not a ktlint runtime ruleset.
+A composite build can expose the module project, but the consumer still needs the explicit `ktlintRuleset(...)` dependency to register the ruleset with ktlint.
 For an included build, use the module's coordinates in `ktlintRuleset("com.ririnto.sinon.harness:harness-kotlin:1.0.0")` and add `includeBuild("tooling/kotlin")` in `settings.gradle.kts`.
 The included module's `jar` task is then part of dependency resolution and runs before the consumer's ktlint task.
 Wire the included build's `check` task into the existing root `check` so normal verification also runs ruleset tests and lint:
@@ -179,6 +179,18 @@ tasks.named("check") {
 
 Use the actual included-build name when it differs from `kotlin`.
 Retain existing root `check` dependencies.
+For a target with `buildSrc`, include the same module in `buildSrc/settings.gradle.kts` with a path relative to `buildSrc`, such as `includeBuild("../tooling/kotlin")`.
+Configure plugin and dependency repositories there according to the target's repository policy.
+Apply the ktlint Gradle plugin in `buildSrc/build.gradle.kts`, select the compatible ktlint engine, and add the same coordinate to its `ktlintRuleset` configuration.
+The root build's included-build declaration and ruleset dependency do not configure `buildSrc`.
+Keep the module's source and tests in the module so both builds consume the same artifact and its own checks remain available.
+BuildSrc source can instead be packaged and registered as a ruleset JAR, but that is a different integration and does not preserve the complete standalone module as the shared owner.
+
+The qualified root task `:check` does not select subproject checks by name.
+For a target with subprojects, add each check-bearing subproject's `check` to the root `check`, preserving its existing dependencies.
+For example, add `dependsOn(":child:check")` inside the root `tasks.named("check")` block for a subproject named `child`.
+Adapt the paths to the target and account for when its plugins register tasks.
+Verify that the resulting graph runs every existing root and subproject gate as well as the included ruleset module's `:check`.
 Dependabot can scan a target-owned copy through the Gradle ecosystem when its `directory` points to the module root containing `gradle/libs.versions.toml`.
 Keep Kotlin, the ktlint Gradle plugin, and ktlint engine updates in one reviewed change because the module's compiler and runtime API contracts are coupled.
 For a target that keeps a direct local JAR path instead, add an explicit task dependency from the consumer lint task to the module `jar` task through the target's existing Gradle orchestration.
@@ -191,6 +203,7 @@ Its Kotest specs use constructor declarations and typed companion properties.
 The tests compare native ktlint rule-engine results with Kotest matchers.
 Kotest uses the JUnit Platform on the JVM.
 The consumer's native `ktlintCheck` must also report a violation from a disposable Kotlin fixture before the integration is accepted.
+For a target with `buildSrc`, also verify that a disposable violation in `buildSrc` fails its native `ktlintCheck` and that a clean full gate runs every required check.
 The module's test count is reported from the Gradle test results rather than inferred from task names.
 
 Kotlin Maven support is conditional and separate from this Gradle path.
@@ -233,6 +246,11 @@ For pnpm targets, install `tooling/gradle/.husky/` through the shared [Husky int
 For other package managers, adapt hook commands to invoke the corresponding target scripts.
 Keep the checked-in wrapper at the selected root and preserve its task graph.
 
+For a target with `buildSrc`, adapt `gradle:check` to `./gradlew :check :buildSrc:check` and `gradle:ktlintCheck` to `./gradlew ktlintCheck :buildSrc:ktlintCheck`.
+Keep the existing `pre-commit` and `pre-push` compositions so those hooks invoke the adapted commands.
+Retain existing target script commands when composing these gates.
+The generic manifest remains suitable for targets without `buildSrc`, where the explicit `:buildSrc` tasks do not exist.
+
 Install the canonical Markdownlint configuration and `rules/` from `tooling/pnpm/`, omitting `*.test.ts` files.
 For pnpm targets, use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the development dependencies in this manifest.
 For pnpm targets, resolve catalog references in the target's `pnpm-workspace.yaml` before running `pnpm install`.
@@ -246,6 +264,7 @@ The [pnpm profile](pnpm.md#bounded-manifest-merge) owns the shared custom-rule r
 
 Run `./gradlew spotlessCheck checkstyleMain checkstyleTest` for the focused Java gate when those tasks exist.
 Run `./gradlew check` for the target's normal full gate.
+For a target with `buildSrc` configured above, run `./gradlew :check :buildSrc:check` for the full gate.
 Run `./gradlew spotlessApply` only after reviewing the resulting Java diff.
 
 Spotless `8.10.4` requires Gradle `7.3` or newer and a Java 17 or newer runtime.
@@ -261,5 +280,6 @@ Gradle `9.8.2` falls outside Kotlin `2.4.21`'s fully supported range.
 Before adopting that image or the GitHub action versions, check their official releases and the target's Gradle wrapper and Java policy.
 Keep compatible target pins.
 The CI catalog assumes that the target contains a checked-in `./gradlew` wrapper.
-For a non-root Gradle root, add `working-directory: <existing-root>` to the GitHub run step and run `cd <existing-root> && ./gradlew check` in GitLab.
+For a target with `buildSrc`, change the catalog's Gradle command to `./gradlew :check :buildSrc:check` after wiring the root and subproject checks as described above.
+For a non-root Gradle root, add `working-directory: <existing-root>` to the GitHub run step and prefix the selected GitLab command with `cd <existing-root> &&`.
 Replace `<existing-root>` with a real target-owned path before activating the catalog.
