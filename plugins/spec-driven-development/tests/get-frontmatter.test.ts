@@ -35,7 +35,7 @@ test.each([
     const file = path.join(directory, "SPEC.md");
     writeFileSync(
       file,
-      "---\ntitle: Value\ntag: [one]\nstatus: draft\ndescription: Hidden\n---\nbody: ignored\n"
+      "---\ntag: [one]\nstatus: draft\ndescription: Hidden\n---\n\n# Value\n\nbody: ignored\n"
     );
     const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
     const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
@@ -47,7 +47,7 @@ test.each([
     expect(JSON.parse(String(output.mock.calls[0]?.[0]))).toEqual({
       ...expected,
       file,
-      frontmatter_end_line: 6,
+      frontmatter_end_line: 5,
       kind: "spec"
     });
     if (fieldOrder !== undefined) {

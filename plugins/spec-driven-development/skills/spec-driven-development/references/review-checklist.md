@@ -14,7 +14,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Frontmatter
 
-- [ ] title field exists and is non-empty
+- [ ] The document begins with a non-empty body H1 title
 - [ ] description field exists (multiline allowed via `>-`)
 - [ ] last_updated field exists (ISO 8601 calendar date, `YYYY-MM-DD`)
 - [ ] status field is one of: draft, review, approved, wip, implemented, deprecated, superseded, removed
@@ -76,7 +76,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] When OpenAPI-based HTTP endpoint contracts are used: each status code either defines response content schema(s) or is an intentional no-body response (`1xx`, `204`, `205`, `304`, or `HEAD`)
 - [ ] When OpenAPI-based HTTP endpoint contracts are used: OpenAPI covers scenarios from `SPEC.md`
 - [ ] When `CONTRACT.md` is used: it exists in the same directory as `SPEC.md`
-- [ ] When `CONTRACT.md` is used: frontmatter parses as YAML and includes title, description, and last_updated
+- [ ] When `CONTRACT.md` is used: frontmatter parses as YAML and includes description and last_updated
 - [ ] When `CONTRACT.md` is used: last_updated is an ISO 8601 calendar date (`YYYY-MM-DD`)
 - [ ] When `CONTRACT.md` is used: Contract Units are used (function/file/interface/class as applicable)
 - [ ] When `CONTRACT.md` is used: multiple units are used in one document when ownership and lifecycle are shared

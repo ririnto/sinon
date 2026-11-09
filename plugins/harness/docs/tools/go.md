@@ -1,5 +1,4 @@
 ---
-title: Go Tool Reference
 metadata:
   reference:
     golangci-lint:
@@ -15,6 +14,8 @@ metadata:
       version: v0.6.0
       url: https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite
 ---
+
+# Go Tool Reference
 
 This document owns the `go` profile commands, dependencies, and target integration rules for Go module and workspace targets.
 It accompanies the [Go language rules](../languages/go.md) and [shared rules](../rules.md).

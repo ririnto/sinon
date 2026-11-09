@@ -1,5 +1,4 @@
 ---
-title: pnpm
 metadata:
   reference:
     TypeScript configurations:
@@ -70,6 +69,8 @@ metadata:
       version: 0.156.0
       url: https://registry.npmjs.org/@oxc-project/types/0.156.0
 ---
+
+# pnpm
 
 Use this profile for a pnpm-managed JavaScript, TypeScript, or JSX project.
 Use the [project baseline](baseline.md) for eligibility and fresh-root materialization.

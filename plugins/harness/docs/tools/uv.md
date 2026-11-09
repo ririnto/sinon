@@ -1,5 +1,4 @@
 ---
-title: uv Tool Reference
 metadata:
   reference:
     uv:
@@ -28,6 +27,8 @@ metadata:
     Dependabot:
       url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 ---
+
+# uv Tool Reference
 
 This document owns the `uv` profile commands, dependencies, and target integration rules for Python targets.
 It accompanies the [Python language rules](../languages/python.md) and [shared rules](../rules.md).

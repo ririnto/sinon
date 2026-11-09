@@ -74,7 +74,8 @@ const formatJsonlRow = (
     : {
         ...entry.data,
         file: filePath,
-        frontmatter_end_line: entry.endLine
+        frontmatter_end_line: entry.endLine,
+        title: entry.record.title
       };
   if (fields) {
     for (const field of fields) {

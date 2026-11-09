@@ -1,5 +1,4 @@
 ---
-title: Engineering Rules
 metadata:
   reference:
     OpenAI skills:
@@ -20,6 +19,8 @@ metadata:
         - https://www.w3.org/TR/WCAG22/
         - https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 ---
+
+# Engineering Rules
 
 This document owns project-wide mandatory engineering rules for projects using Harness.
 Language and tool documents own their specific requirements.
@@ -213,9 +214,8 @@ For a single Boolean condition in Kotlin, prefer a subject-taking `when (conditi
 
 ## Documentation Formatting
 
-Use a body H1 for ordinary Markdown titles.
-For documents that rely on frontmatter, use `title:` there and omit the duplicate body H1.
-Do not add frontmatter only to replace a body H1.
+Put Markdown document titles in a body H1 and omit the frontmatter `title` field.
+When a document cannot carry a body H1, keep its frontmatter `title` as its only title.
 
 Put each complete Markdown sentence on its own source line.
 Do not join separate sentences with semicolons or substitute punctuation.

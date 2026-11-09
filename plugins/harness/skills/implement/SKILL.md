@@ -1,5 +1,4 @@
 ---
-title: Implement
 name: implement
 description: Use when implementing a feature, bugfix, refactor, or design change.
 metadata:
@@ -9,6 +8,8 @@ metadata:
     OpenAI skills:
       url: https://learn.chatgpt.com/docs/build-skills.md
 ---
+
+# Implement
 
 Complete the requested change with the minimum sufficient edit.
 Use the [shared engineering rules](../../docs/rules.md) for instruction discovery, authority, planning, proof, and completion.

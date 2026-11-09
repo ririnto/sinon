@@ -1,6 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 
-import { extractFrontmatterFromText } from "./frontmatter.js";
+import {
+  extractDocumentTitle,
+  extractFrontmatterFromText
+} from "./frontmatter.js";
 import { isRecord, parseYamlRecord } from "./infrastructure.js";
 import { extractCallPath, extractLinkTargets } from "./links.js";
 import { ISO_DATE_RE, RELATIVE_SPEC_LINK_RE, SPEC_STATUSES } from "./shared.js";
@@ -11,15 +14,15 @@ import type {
 } from "./shared.js";
 
 const REQUIRED_FIELDS = new Map<string, readonly string[]>([
-  ["contract", ["title", "description", "last_updated"]],
-  ["research", ["title", "description", "last_updated", "subject", "tag"]],
-  ["spec", ["title", "description", "last_updated", "status", "call"]]
+  ["contract", ["description", "last_updated"]],
+  ["research", ["description", "last_updated", "subject", "tag"]],
+  ["spec", ["description", "last_updated", "status", "call"]]
 ]);
 
 const requiredFieldsForKind = (kind: string): readonly string[] =>
-  REQUIRED_FIELDS.get(kind) ?? ["title", "description", "last_updated"];
+  REQUIRED_FIELDS.get(kind) ?? ["description", "last_updated"];
 
-const STRING_FIELDS = ["title", "description", "last_updated"] as const;
+const STRING_FIELDS = ["description", "last_updated"] as const;
 
 const validateRequiredFields = (
   filePath: string,
@@ -193,6 +196,16 @@ export const validateDocument = (
       errors: [`FAIL [${filePath}]: Invalid YAML frontmatter`],
       passed: false
     };
+  }
+  if ("title" in data) {
+    errors.push(
+      `FAIL [${filePath}]: frontmatter must not contain a title field`
+    );
+  }
+  if (!extractDocumentTitle(text, block.endLine)) {
+    errors.push(
+      `FAIL [${filePath}]: document must start with a non-empty H1 title`
+    );
   }
   errors.push(
     ...validateFrontmatterShape(filePath, kind, data),

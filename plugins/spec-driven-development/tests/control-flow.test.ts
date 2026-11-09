@@ -80,7 +80,7 @@ test.each([
   mkdirSync(specRoot);
   writeFileSync(
     path.join(specRoot, "SPEC.md"),
-    '---\ntitle: Example\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: draft\ncall: []\n---\n'
+    '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: draft\ncall: []\n---\n\n# Example\n'
   );
   writeFileSync(path.join(specRoot, "CHANGELOG.md"), changelog);
   const output = vi.spyOn(console, "log").mockImplementation(vi.fn());

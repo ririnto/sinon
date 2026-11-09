@@ -1,5 +1,4 @@
 ---
-title: JavaScript
 metadata:
   reference:
     JavaScript:
@@ -7,6 +6,8 @@ metadata:
         - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
         - https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
 ---
+
+# JavaScript
 
 Use the JavaScript language rules for `.js`, `.jsx`, `.mjs`, and `.cjs` files.
 The [shared rules](../rules.md) apply alongside these JavaScript-only invariants.
