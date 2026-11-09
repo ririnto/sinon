@@ -1,7 +1,8 @@
 # Specification Validation States
 
 The specification validator discovers supported documents under the selected specification tree.
-It validates every discovered document and aggregates the results before choosing an exit status.
+When discovery and reads succeed, it validates every discovered document and aggregates the results before choosing an exit status.
+Unexpected filesystem errors can abort validation before the summary.
 
 ```mermaid
 stateDiagram-v2
@@ -9,11 +10,14 @@ stateDiagram-v2
     Resolving --> Rejected: Missing or invalid specification directory
     Resolving --> Discovering: Specification directory resolved
     Discovering --> Rejected: No supported documents found
+    Discovering --> Aborted: Filesystem error
     Discovering --> Validating: Documents found
+    Validating --> Aborted: Filesystem error
     Validating --> Aggregating: Record one document result
     Aggregating --> Validating: More documents remain
     Aggregating --> Passed: Every document passed
     Aggregating --> Failed: Any document failed
+    Aborted --> [*]
     Rejected --> [*]
     Passed --> [*]: Exit zero
     Failed --> [*]: Exit nonzero

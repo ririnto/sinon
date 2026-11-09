@@ -15,13 +15,17 @@ test("mixed generated document trees report every failure in the aggregate", () 
   const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
   const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
   const documents = [
-    ["SPEC.md", "status: draft\ncall: []\n", "status: invalid\ncall: []\n"],
+    [
+      "SPEC.md",
+      "status: draft\ncall: []\n",
+      "status: invalid\ncall: invalid\n"
+    ],
     [
       "RESEARCH.md",
       "subject: {name: library, version: '1'}\ntag: []\n",
       "subject: {}\ntag: []\n"
     ],
-    ["CONTRACT.md", "", "description: ''\n"]
+    ["CONTRACT.md", "", ""]
   ] as const;
   for (let mask = 0; mask < 8; mask += 1) {
     const tree = path.join(root, `tree-${mask}`, "spec");
@@ -30,7 +34,7 @@ test("mixed generated document trees report every failure in the aggregate", () 
       mkdirSync(directory, { recursive: true });
       writeFileSync(
         path.join(directory, filename),
-        `---\ntitle: Example\ndescription: Example\nlast_updated: '2026-01-01'\n${Math.floor(mask / 2 ** index) % 2 === 1 ? invalid : valid}---\n`
+        `---\ntitle: Example\ndescription: ${index === 2 && Math.floor(mask / 2 ** index) % 2 === 1 ? "''" : "Example"}\nlast_updated: '2026-01-01'\n${Math.floor(mask / 2 ** index) % 2 === 1 ? invalid : valid}---\n`
       );
     }
     output.mockClear();
@@ -46,6 +50,9 @@ test("mixed generated document trees report every failure in the aggregate", () 
       `- Passed: ${documents.length - failed}`
     ]);
     expect(output.mock.calls).toContainEqual([`- Failed: ${failed}`]);
-    expect(errors.mock.calls).toHaveLength(failed);
+    expect(errors.mock.calls).toHaveLength(failed + (mask % 2));
+    if (Math.floor(mask / 4) % 2 === 1) {
+      expect(errors.mock.calls.flat().join("\n")).toContain("description");
+    }
   }
 });
