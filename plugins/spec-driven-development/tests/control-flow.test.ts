@@ -69,3 +69,32 @@ test.each([
     expect(errors).not.toHaveBeenCalled();
   }
 );
+
+test.each([
+  "# Changelog\n",
+  "## 2026-01-01 - First\n\n## 2026-10-01 - Second\n"
+])("validate ignores changelog layout", (changelog) => {
+  const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-validate-"));
+  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  const specRoot = path.join(directory, "spec");
+  mkdirSync(specRoot);
+  writeFileSync(
+    path.join(specRoot, "SPEC.md"),
+    '---\ntitle: Example\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: draft\ncall: []\n---\n'
+  );
+  writeFileSync(path.join(specRoot, "CHANGELOG.md"), changelog);
+  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
+  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+  expect(main(["validate", specRoot])).toBe(0);
+  expect(output.mock.calls).toEqual([
+    ["Validation Summary"],
+    ["- Total checks: 1"],
+    ["- Passed: 1"],
+    ["- Failed: 0"],
+    [`OK: Validation complete for ${specRoot}`]
+  ]);
+  expect(errors).not.toHaveBeenCalled();
+});

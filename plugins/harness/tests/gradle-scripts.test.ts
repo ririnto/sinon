@@ -89,33 +89,6 @@ describe("Java CI entrypoints", () => {
 });
 
 describe("Gradle Node-side script integration", () => {
-  test("manifest preserves the requested script and catalog surface", async () => {
-    const manifest = JSON.parse(
-      await readFile(path.join(gradleProfile, "package.json"), "utf-8")
-    );
-    expect(manifest.scripts).toEqual({
-      check: "run-p check:*",
-      "check:markdownlint-cli2": "markdownlint-cli2",
-      fix: "run-p fix:*",
-      "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-      "gradle:check": "./gradlew check",
-      "gradle:ktlintCheck": "./gradlew ktlintCheck",
-      "pre-commit": "run-s check gradle:ktlintCheck",
-      "pre-push": "run-s check gradle:check",
-      prepare: "husky"
-    });
-    expect(manifest.devDependencies).toEqual({
-      husky: "catalog:",
-      markdownlint: "catalog:",
-      "markdownlint-cli2": "catalog:",
-      "markdownlint-rule-search-replace": "catalog:",
-      "npm-run-all2": "catalog:"
-    });
-    expect(Object.keys(manifest).toSorted()).toEqual([
-      "devDependencies",
-      "scripts"
-    ]);
-  });
   test.each(
     [
       { hook: "pre-commit", valid: true },

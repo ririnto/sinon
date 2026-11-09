@@ -7,7 +7,8 @@ Versions live in the project's Gradle and pnpm catalogs.
 Generate this sample with the materializer before running it.
 The generated `buildSrc` supplies the custom ktlint rules to both modules and the root check.
 
-Use JDK 25; the application modules target Java 21 and the Kotlin ruleset builds with Java 25.
+Use JDK 25.
+The application modules target Java 21 and the Kotlin ruleset builds with Java 25.
 Run `./gradlew :check :buildSrc:check` to build, test, and lint the modules.
 Run `./gradlew :app:run --args=Ada` to run the application.
 

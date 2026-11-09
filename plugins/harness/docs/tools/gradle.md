@@ -155,7 +155,8 @@ Keep the descriptor target-owned and preserve its existing content and file mode
 Merge the module's dependencies, Kotlin and ktlint plugin versions, test configuration, and toolchain into the existing `buildSrc/build.gradle.kts`.
 Merge its `.editorconfig` policy into `buildSrc/.editorconfig` and preserve the target's existing settings.
 The Gradle sample demonstrates this integration and pins Kotlin `2.4.21`, ktlint engine `1.8.0`, ktlint Gradle plugin `14.2.0`, and JVM toolchain `25`.
-Keep the target's wrapper compatible with these versions.
+Kotlin `2.4.21` is fully supported with Gradle `7.6.3` through `9.7.0`.
+Keep the target's wrapper within that range.
 
 The buildSrc JAR and its service descriptor make the rules available to the root build and Kotlin subprojects.
 Apply the ktlint plugin to each Kotlin project and select the compatible ktlint engine.
@@ -170,7 +171,9 @@ The sample connects each Kotlin subproject's check to root check when its plugin
 Verify the actual task graph and test a disposable custom-rule violation in both a subproject and buildSrc.
 Run `./gradlew :check :buildSrc:check` and verify that a clean run passes every required check.
 Keep Kotlin, the ktlint Gradle plugin, and ktlint engine updates in one reviewed change because their compiler and runtime API contracts are coupled.
-The ruleset tests compare native ktlint rule-engine results with Kotest matchers and run on the JUnit Platform.
+The copied tests cover each registered rule and provider registration.
+The tests compare native ktlint rule-engine results with Kotest matchers and run on the JUnit Platform.
+Report the ruleset test count from the Gradle test results rather than inferring it from task names.
 
 Kotlin Maven support is conditional and separate from this Gradle path.
 The existing Maven profile does not claim arbitrary Maven Kotlin support.
@@ -190,7 +193,7 @@ Preserve existing identity, commands, dependencies, workspaces, and package-mana
 Create a minimal private target manifest only when none exists, keeping project identity target-owned.
 For an existing script name, retain its command and report the required composition before changing that owner.
 
-The supplied script surface is:
+The supplied script surface for a target without `buildSrc` is:
 
 | Script | Command |
 | --- | --- |
@@ -204,16 +207,21 @@ The supplied script surface is:
 | `pre-push` | `run-s check gradle:check` |
 | `prepare` | `husky` |
 
-For a target without `buildSrc`, the pre-commit gate requires a real target-owned `ktlintCheck` task.
-If that task is missing, report the integration gap and resolve the Kotlin integration before activating this script surface.
 The package scripts finish Node-side checks successfully before invoking Gradle.
 For pnpm targets, install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git hooks delegate to the matching pnpm scripts.
 For other package managers, adapt hook commands to invoke the corresponding target scripts.
 Keep the checked-in wrapper at the selected root and preserve its task graph.
 
-For a target with `buildSrc`, adapt `gradle:check` to `./gradlew :check :buildSrc:check` and change `pre-commit` to `run-s check gradle:check`.
-Keep `pre-push` invoking `gradle:check`.
-Ensure that both root and `buildSrc` checks include their existing ktlint gates before removing the separate `gradle:ktlintCheck` script.
+For a target with `buildSrc`, replace the Gradle scripts and hook commands with the following:
+
+| Script | Command |
+| --- | --- |
+| `gradle:check` | `./gradlew :check :buildSrc:check` |
+| `pre-commit` | `run-s check gradle:check` |
+| `pre-push` | `run-s check gradle:check` |
+
+Omit the separate lint script from this setup.
+Ensure that both root and `buildSrc` checks include their existing ktlint gates.
 Verify that both hooks retain the Node checks and run the exact two-task Gradle command.
 Retain existing target script commands when composing these gates.
 The generic manifest remains suitable for targets without `buildSrc`, where the explicit `:buildSrc` tasks do not exist.

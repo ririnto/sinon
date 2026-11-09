@@ -87,6 +87,6 @@ References from language and tool documents to common rules stay `../rules.md` i
 The installer reads current canonical inputs and writes only mapped target paths.
 It manages only `implement` and `review` skills and their supporting documents, preserving other target skills.
 Its preview separates safe creates and unchanged files from conflicts that require explicit replacement authority.
-For Kotlin Gradle targets, it merges the rule sources, resources, and tests into target-owned `buildSrc/`.
+For Kotlin Gradle targets, it merges the rule sources, resources, and tests into target-owned `buildSrc/` as described in the [Gradle profile](docs/tools/gradle.md#kotlin-ruleset-integration).
 Supported Maven targets retain the standalone Kotlin module.
 The service descriptor makes the ruleset provider discoverable.

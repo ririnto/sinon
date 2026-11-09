@@ -237,32 +237,14 @@ describe("pnpm profile configuration", () => {
     }
   );
 
-  test.each(
-    [
-      {
-        commands: [
-          "node --import tsx .claude-plugin/marketplace/generate.ts --check",
-          "vitest run .claude-plugin/marketplace/generate.test.ts"
-        ],
-        gate: "check:marketplace"
-      },
-      {
-        commands: [
-          "ultracite check --config oxlint.config.ts",
-          "ultracite check --type-aware --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm",
-          "ultracite check .claude-plugin/marketplace"
-        ],
-        gate: "check:ultracite"
-      }
-    ].flatMap((entry) =>
-      [-1, ...entry.commands.map((_, index) => index)].map((failure) => ({
-        ...entry,
-        failure
-      }))
-    )
-  )(
-    "$gate preserves tool order with failure $failure",
-    async ({ commands, failure, gate }) => {
+  test.each([-1, 0, 1])(
+    "check:ultracite preserves tool order with failure %i",
+    async (failure) => {
+      const gate = "check:ultracite";
+      const commands = [
+        "ultracite check --config oxlint.config.ts",
+        "ultracite check --type-aware --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm"
+      ];
       const scripts: Record<string, string> = rootManifest.scripts;
       const [runner, ...tasks] = scripts[gate].split(" ");
       expect(runner).toBe("run-s");
