@@ -209,6 +209,9 @@ catalogs:
     tar:
       specifier: ^7.5.22
       version: 7.5.22
+    tla-chaos-loop:
+      specifier: ^1.1.0
+      version: 1.1.0
     tsx:
       specifier: ^4.23.15
       version: 4.23.15
@@ -274,6 +277,9 @@ importers:
       tar:
         specifier: 'catalog:'
         version: 7.5.22
+      tla-chaos-loop:
+        specifier: 'catalog:'
+        version: 1.1.0
       tsx:
         specifier: 'catalog:'
         version: 4.23.15
@@ -2259,9 +2265,17 @@ packages:
     resolution: {integrity: sha512-jBrmx4lYmaC9k/mgPbylxs7kBUxHtD8256up+HjLaDFfXScKJQyil+SWXSvhAtT7XHo+yTVlpB81PGmHP8oLSQ==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
+  tla-chaos-loop@1.1.0:
+    resolution: {integrity: sha512-GDLQYj+EkDEX3tHxG0bJvL9D/cvq3uaDfahYKUmB2T2IvEdOC54gBNBB28BEwRgRYirriE9eGAxfWzip4oN7Xg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  tree-sitter-wasms@0.1.13:
+    resolution: {integrity: sha512-wT+cR6DwaIz80/vho3AvSF0N4txuNx/5bcRKoXouOfClpxh/qqrF4URNLQXbbt8MaAxeksZcZd1j8gcGjc+QxQ==}
 
   trough@2.2.0:
     resolution: {integrity: sha512-tmMpK00BjZiUyVyvrBK7knerNgmgvcV/KLVyuma/SC+TQN167GrMRciANTz09+k3zW8L8t60jWO1GpfkZdjTaw==}
@@ -2438,6 +2452,9 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  web-tree-sitter@0.26.13:
+    resolution: {integrity: sha512-5bUZ7vbQ1kcondet96wzP974+JfCZDeQ7bTpacICm2nnvHpa5cO0ByRsoMcAhUP+743vpkb4m0BFlVSm+Ye9VA==}
 
   which-command@0.1.0:
     resolution: {integrity: sha512-XZyoF5/5hZtXitIwzrU4NKK+Wtbb9aB9CezUEw2Q0wlYK8NUYQxC1rRXgNueYLtBAJwXIb+/tFVk4dozciNJMA==}
@@ -4409,9 +4426,16 @@ snapshots:
 
   tinypool@2.2.0: {}
 
+  tla-chaos-loop@1.1.0:
+    dependencies:
+      tree-sitter-wasms: 0.1.13
+      web-tree-sitter: 0.26.13
+
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  tree-sitter-wasms@0.1.13: {}
 
   trough@2.2.0: {}
 
@@ -4571,6 +4595,8 @@ snapshots:
       '@types/node': 26.6.6
     transitivePeerDependencies:
       - msw
+
+  web-tree-sitter@0.26.13: {}
 
   which-command@0.1.0: {}
 
