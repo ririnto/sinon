@@ -11,8 +11,8 @@ The locked `tla-chaos-loop` dependency supplies TLC.
 Each command creates and removes its own temporary metadata directory.
 
 ```sh
-pnpm run test:promtool:models
-pnpm run check:promtool-release
+pnpm exec run-p check:promtool:download check:promtool:child
+pnpm run check:promtool
 ```
 
 ## Download lifecycle

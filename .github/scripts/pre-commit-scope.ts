@@ -40,7 +40,7 @@ const triggeredChecks: readonly {
     patterns: [/^plugins\/spec-driven-development\//u]
   },
   {
-    check: "check:promtool-release",
+    check: "check:promtool",
     patterns: [/^plugins\/observability-assets\//u]
   }
 ];

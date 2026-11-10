@@ -33,7 +33,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Java launcher and Lombok discovery | `pnpm run check:java` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
 | Harness installation, profiles, and custom lint rules | `pnpm run check:lint-rules` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
 | Specification commands | `pnpm run check:sdd` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
-| Promtool release verification and process handling | `pnpm run check:promtool-release` | Local archive and process fixtures test integrity checks and child-process behavior, then TLC checks bounded download and child lifecycle models. |
+| Promtool release verification and process handling | `pnpm run check:promtool` | Local archive and process fixtures test integrity checks and child-process behavior, while TLC checks bounded download and child lifecycle models. |
 | Prometheus rule examples | `pnpm run test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
 | Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and Harness tooling pass their configured lint and formatting checks, including the React effect policy. |
@@ -43,7 +43,7 @@ The root [package scripts](../package.json) own command composition.
 The [Harness pnpm reference](../plugins/harness/docs/tools/pnpm.md) explains differences between root checks and installed profile checks.
 The [state-machine inventory](state-machines.md) maps maintained lifecycles to their source and verification.
 The [Promtool model reference](../plugins/observability-assets/tests/promtool/model/README.md) records model assumptions and source mappings.
-Run `pnpm run test:promtool:models` to check those models alone.
+Run `pnpm exec run-p check:promtool:download check:promtool:child` to check those models alone.
 TLC checks the finite models without network access and removes its temporary state files after each run.
 The models supplement runtime tests and do not prove network cancellation, operating-system behavior, or source equivalence.
 
