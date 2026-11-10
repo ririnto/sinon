@@ -46,7 +46,7 @@ test("each plugin suite is added only by its own plugin paths", () => {
   ]);
   expect(selectChecks(["plugins/observability-assets/README.md"])).toEqual([
     ...alwaysRunChecks,
-    "check:promtool-release"
+    "check:promtool"
   ]);
 });
 
