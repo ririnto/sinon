@@ -41,12 +41,16 @@ It does not assert eventual settlement, socket closure, or liveness.
 The model conservatively permits signals after close and before that continuation.
 This includes schedules that Node.js microtask ordering may exclude.
 The recorded first signal is separate from the implementation's interruption state.
+Signal history records each callback and whether its PID was known.
+An independent expected sequence records immediate attempts and, when spawn occurs after a pre-PID signal, one deferred attempt for the first signal.
+The forwarding invariant compares this sequence with the actual attempt records.
 
 The model bounds one child and two distinct signals, each handled at most once.
 The PID may already be known before the spawn event.
 A failed spawn has no PID and emits an error before close.
 The model conservatively permits a later child error while its listener is installed.
 Kill records are attempts and do not guarantee termination.
+If spawn fails, no deferred attempt is expected.
 A code and a signal close are distinct abstract results; their actual values are outside this model.
 The model does not assert that the child eventually closes or that an unhandled signal has no effect on the parent process.
 The listener set represents process signal listeners, while `deferred` represents the optional spawn listener.
@@ -60,6 +64,8 @@ Run both configurations after changes.
 To check that the invariants detect regressions, copy the models and configurations to a temporary directory and separately apply each mutation there.
 Remove the settlement guard from `Throw` to violate `ThrowDrained`.
 Replace the assignment to `interrupted'` with `s` to violate `FirstSignal`.
+Replace the immediate `Append(kills, ...)` expression with `kills` to violate `Forwarding`.
+Separately replace the deferred `Append(kills, ...)` expression with `kills`, and then replace both expressions, to violate `Forwarding` in each run.
 Preserve `listeners` and `deferred` in `Finish` to violate `Cleanup`.
 Replace the assignment to `firstError'` with `a` to violate `ErrorPreserved` when both assets reject.
 Each mutated run should exit nonzero with the named invariant violation.
