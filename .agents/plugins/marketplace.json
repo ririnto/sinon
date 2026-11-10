@@ -211,6 +211,18 @@
     },
     {
       "category": "Development",
+      "name": "tlaplus",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/tlaplus/AgentSkills.git"
+      }
+    },
+    {
+      "category": "Development",
       "name": "workgraph",
       "policy": {
         "authentication": "ON_INSTALL",

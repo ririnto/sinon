@@ -342,6 +342,22 @@
     },
     {
       "author": {
+        "name": "tlaplus"
+      },
+      "category": "development",
+      "description": "Skills for creating and modifying TLA+ specifications.",
+      "license": "MIT",
+      "name": "tlaplus",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/tlaplus/AgentSkills.git"
+      },
+      "homepage": "https://github.com/tlaplus/AgentSkills",
+      "keywords": ["tla-plus", "formal-methods", "model-checking"],
+      "repository": "https://github.com/tlaplus/AgentSkills"
+    },
+    {
+      "author": {
         "name": "ririnto"
       },
       "category": "development",
