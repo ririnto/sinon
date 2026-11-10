@@ -46,11 +46,15 @@ pnpm run test:promtool check rules plugins/observability-assets/tests/promtool/a
 pnpm run test:promtool test rules plugins/observability-assets/tests/promtool/alerts/api-errors.test.yaml
 ```
 
-Run the release-integrity regression tests without downloading a release:
+Run the release-integrity regression tests and bounded lifecycle models without downloading a release:
 
 ```sh
 pnpm run check:promtool-release
 ```
+
+The [model reference](model/README.md) describes the checked properties, source mappings, and limits.
+The model commands require Java and a POSIX shell with `mktemp`.
+Run `pnpm run test:promtool:release` for the runtime regression tests alone.
 
 The rule and tests adapt the examples in `plugins/observability-assets/skills/prometheus-alert-rules/SKILL.md` and `plugins/observability-assets/skills/alert-rule-testing/SKILL.md`.
 These files verify the documentation examples.
