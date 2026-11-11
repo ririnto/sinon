@@ -1,8 +1,9 @@
 # Contributing
 
-Describe the problem and acceptance criteria in an issue before proposing a change.
+Issues are optional and are not prerequisites for implementation, pull requests, or integration.
+Record the problem, scope, and acceptance criteria in the task or pull request when no issue is used.
 Use the bug report or change request template in `.github/ISSUE_TEMPLATE/`.
-Keep new requirements in separate issues and link related work.
+Track new requirements separately in the task, pull request, or an issue when useful, and link related work.
 
 ## Scope And Instructions
 
@@ -48,7 +49,7 @@ Explain the reason, main changes, verification, and material limitations in the 
 Write each complete body sentence on its own line and separate paragraphs with blank lines.
 
 Use the [pull request template](.github/pull_request_template.md) for the resulting behavior, scope, verification, and limitations.
-Link the issue and use a closing reference only when the change satisfies its acceptance criteria.
+Link an issue when one exists and use a closing reference only when the change satisfies its acceptance criteria.
 Complete independent review of the complete posted change and resolve acceptance blockers and required checks before normal integration.
 After the platform records the PR merge, locate the base worktree.
 Confirm `git -C /path/to/base-worktree branch --show-current` reports `<base>`.
