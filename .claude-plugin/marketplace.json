@@ -13,6 +13,22 @@
         "name": "ririnto"
       },
       "category": "development",
+      "description": "Browser automation MCP tools powered by agent-browser.",
+      "license": "MIT",
+      "name": "agent-browser-plugin",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/agent-browser-plugin.git"
+      },
+      "homepage": "https://github.com/ririnto/agent-browser-plugin",
+      "keywords": ["agent-browser", "browser-automation", "mcp"],
+      "repository": "https://github.com/ririnto/agent-browser-plugin"
+    },
+    {
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
       "description": "Desktop observation and automation MCP tools driven by native accessibility trees.",
       "license": "MIT",
       "name": "agent-desktop-plugin",
