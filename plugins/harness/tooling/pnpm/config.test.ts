@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import {
+  copyFile,
   mkdir,
   mkdtemp,
   readdir,
@@ -33,28 +34,6 @@ const markdownlintBin = path.join(
   path.dirname(resolvePackage("markdownlint-cli2")),
   "markdownlint-cli2-bin.mjs"
 );
-const stylePasses = [
-  {
-    configurationFile: "oxlint.style-no-blank-lines-in-functions.config.ts",
-    pluginFile: "no-blank-lines-in-functions.ts",
-    ruleCode: "style(no-blank-lines-in-functions)"
-  },
-  {
-    configurationFile: "oxlint.style-no-em-dash.config.ts",
-    pluginFile: "no-em-dash.ts",
-    ruleCode: "style(no-em-dash)"
-  },
-  {
-    configurationFile: "oxlint.style-no-inline-comments-in-functions.config.ts",
-    pluginFile: "no-inline-comments-in-functions.ts",
-    ruleCode: "style(no-inline-comments-in-functions)"
-  },
-  {
-    configurationFile: "oxlint.style-sibling-test-spacing.config.ts",
-    pluginFile: "sibling-test-spacing.ts",
-    ruleCode: "style(sibling-test-spacing)"
-  }
-] as const;
 const nodeModulesDirectory = path.resolve(
   profileDirectory,
   "../../../../node_modules"
@@ -237,64 +216,55 @@ describe("pnpm profile configuration", () => {
     }
   );
 
-  test.each([-1, 0, 1])(
-    "check:ultracite preserves tool order with failure %i",
-    async (failure) => {
-      const gate = "check:ultracite";
-      const commands = [
-        "ultracite check --config oxlint.config.ts",
-        "ultracite check --type-aware --config plugins/harness/tooling/pnpm/oxlint.config.ts plugins/harness/tooling/pnpm"
-      ];
-      const scripts: Record<string, string> = rootManifest.scripts;
-      const [runner, ...tasks] = scripts[gate].split(" ");
-      expect(runner).toBe("run-s");
-      expect(tasks.map((task) => scripts[task])).toEqual(commands);
-      const directory = await mkdtemp(
-        path.join(tmpdir(), "sinon-script-order-")
+  test("repository scripts preserve disjoint typed and untyped lint scopes with one config", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "sinon-root-lint-"));
+    try {
+      await preparePackageRoot(directory);
+      await copyFile(
+        path.resolve(profileDirectory, "../../../../oxlint.config.ts"),
+        path.join(directory, "oxlint.config.ts")
       );
-      try {
-        await symlink(
-          path.resolve(profileDirectory, "../../../../node_modules"),
-          path.join(directory, "node_modules"),
-          "dir"
-        );
-        await writeFile(
-          path.join(directory, "record.cjs"),
-          [
-            "require('node:fs').appendFileSync('calls', process.argv[2] + '\\n');",
-            "process.exit(process.argv[3] === 'fail' ? 1 : 0);"
-          ].join("\n")
-        );
-        await writeFile(
-          path.join(directory, "package.json"),
-          JSON.stringify({
-            scripts: {
-              check: scripts.check,
-              [gate]: scripts[gate],
-              ...Object.fromEntries(
-                tasks.map((task, index) => [
-                  task,
-                  `node record.cjs ${task}${index === failure ? " fail" : ""}`
-                ])
-              )
-            }
-          })
-        );
-        const result = spawnSync("pnpm", ["run", "check"], {
-          cwd: directory,
-          encoding: "utf-8"
-        });
-        expect(result.status, result.stdout + result.stderr).toBe(
-          failure < 0 ? 0 : 1
-        );
-        expect(await readFile(path.join(directory, "calls"), "utf-8")).toBe(
-          `${tasks.slice(0, failure < 0 ? tasks.length : failure + 1).join("\n")}\n`
-        );
-      } finally {
-        await rm(directory, { force: true, recursive: true });
-      }
+      const typedDirectory = path.join(
+        directory,
+        "plugins/harness/tooling/pnpm"
+      );
+      await mkdir(path.join(typedDirectory, "plugins"), { recursive: true });
+      await copyFile(
+        path.join(profileDirectory, "plugins/tsdoc-plugin.ts"),
+        path.join(typedDirectory, "plugins/tsdoc-plugin.ts")
+      );
+      await writeFile(
+        path.join(directory, "package.json"),
+        JSON.stringify({ scripts: rootManifest.scripts, type: "module" })
+      );
+      await Promise.all(
+        [
+          path.join(directory, "ordinary.ts"),
+          path.join(typedDirectory, "violation.ts")
+        ].map(async (filename) => {
+          await writeFile(
+            filename,
+            "export const undocumented = (): number => 1;\nvoid Promise.resolve();\n"
+          );
+        })
+      );
+      const formatted = runPackageScript(directory, "ultracite:fix");
+      expect(
+        formatted.status,
+        formatted.stderr.toString() + formatted.stdout.toString()
+      ).toBe(0);
+      const result = runPackageScript(directory, "check:ultracite");
+      const output = result.stderr.toString() + result.stdout.toString();
+      expect(result.status, output).toBe(1);
+      expect(output).toContain("plugins/harness/tooling/pnpm/violation.ts:");
+      expect(output).toContain("tsdoc(require-export-tsdoc)");
+      expect(output).toContain("typescript(no-floating-promises)");
+      expect(output).not.toContain("ordinary.ts:");
+      expect(output.match(/tsdoc\(require-export-tsdoc\)/gu)).toHaveLength(1);
+    } finally {
+      await rm(directory, { force: true, recursive: true });
     }
-  );
+  }, 30_000);
 
   test("Harness guidance parses and uses body titles", async () => {
     const harnessRoot = path.resolve(profileDirectory, "../..");
@@ -356,7 +326,7 @@ describe("pnpm profile configuration", () => {
     }
   });
 
-  test("Ultracite loads the base configuration without style rules", async () => {
+  test("Ultracite runs every installed policy together without duplicate diagnostics", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
     try {
       await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
@@ -380,9 +350,16 @@ describe("pnpm profile configuration", () => {
       expect(diagnostics.map(({ code }) => code)).toContain(
         "tsdoc(require-export-tsdoc)"
       );
-      expect(
-        diagnostics.filter(({ code }) => code?.startsWith("style(") === true)
-      ).toEqual([]);
+      for (const code of [
+        "function-spacing(no-blank-lines-in-functions)",
+        "prose-style(no-em-dash)",
+        "function-comments(no-inline-comments-in-functions)",
+        "test-spacing(sibling-test-spacing)"
+      ]) {
+        expect(
+          diagnostics.filter((diagnostic) => diagnostic.code === code)
+        ).toHaveLength(1);
+      }
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
@@ -427,55 +404,6 @@ describe("pnpm profile configuration", () => {
     }
   }, 30_000);
 
-  test.each(stylePasses)(
-    "Ultracite loads copied $configurationFile with peer plugins absent",
-    async (stylePass) => {
-      const directory = await mkdtemp(
-        path.join(tmpdir(), "sinon-style-profile-lint-")
-      );
-      try {
-        await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-        await configureBaseline(directory, "node", "eligible");
-        await symlink(
-          path.resolve(profileDirectory, "../../../../node_modules"),
-          path.join(directory, "node_modules"),
-          "dir"
-        );
-        await Promise.all(
-          stylePasses
-            .filter(({ pluginFile }) => pluginFile !== stylePass.pluginFile)
-            .map(async ({ pluginFile }) => {
-              await rm(path.join(directory, "plugins", pluginFile));
-            })
-        );
-        await rm(path.join(directory, "plugins/no-direct-use-effect.ts"));
-        const pluginFiles = await readdir(path.join(directory, "plugins"));
-        expect(pluginFiles.toSorted()).toEqual(
-          [stylePass.pluginFile, "tsdoc-plugin.ts"].toSorted()
-        );
-        await writeFile(path.join(directory, "sample.ts"), packageStyleFixture);
-        const { diagnostics, status } = runUltracite(
-          directory,
-          "sample.ts",
-          "check",
-          path.join(directory, stylePass.configurationFile)
-        );
-        expect(status).toBe(1);
-        expect(
-          diagnostics.filter(({ code }) => code?.startsWith("style(") === true)
-        ).toEqual([
-          expect.objectContaining({
-            code: stylePass.ruleCode,
-            severity: "error"
-          })
-        ]);
-      } finally {
-        await rm(directory, { force: true, recursive: true });
-      }
-    },
-    30_000
-  );
-
   test("materialized scripts discover nested style violations and ignore generated files", async () => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-script-discovery-")
@@ -517,7 +445,7 @@ describe("pnpm profile configuration", () => {
     }
   }, 90_000);
 
-  test("materialized fix script formats once before read-only style checks", async () => {
+  test("materialized fix script formats once and retains diagnostic-only policies", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-script-fix-"));
     try {
       await preparePackageRoot(directory);
@@ -591,10 +519,7 @@ describe("pnpm profile configuration", () => {
       );
       for (const configuration of [
         path.resolve(profileDirectory, "../../../..", "oxlint.config.ts"),
-        path.join(directory, "oxlint.config.ts"),
-        ...stylePasses.map(({ configurationFile }) =>
-          path.join(directory, configurationFile)
-        )
+        path.join(directory, "oxlint.config.ts")
       ]) {
         const { diagnostics, status } = runUltracite(
           directory,

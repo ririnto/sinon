@@ -64,33 +64,33 @@ An effective command enforces a row only in targets that materialize the owning 
 ## Oxlint Policies
 
 Each retained module remains self-contained and independently registrable through Oxlint `jsPlugins`.
-The style rules use separate configurations because their modules share the canonical `style` namespace.
-The existing base configuration retains its registrations.
+The root configuration registers the style modules through explicit unique aliases so their default `style` metadata cannot collide.
+Each adopted rule runs in the same check and fix invocation.
 
 | Custom ID | Upstream comparison | Decision and distinguishing behavior | Pillars | Effective enforcement |
 | --- | --- | --- | --- | --- |
-| `style/no-blank-lines-in-functions` | Stylistic empty-line, block-padding, and statement-padding rules | Retain because physical gaps inside function expressions and proven-registration exceptions differ from global or statement-level padding. | Consistency, maintainability | `ultracite:check:style:no-blank-lines-in-functions` runs its Oxlint config and `check:ultracite` composes that command. |
-| `style/no-inline-comments-in-functions` | Native `eslint/no-inline-comments` and `eslint-plugin-no-comments` | Retain because standalone explanatory comments, declaration attachment, directives, and licenses require different predicates without comment-removal fixes. | Consistency, maintainability | `ultracite:check:style:no-inline-comments-in-functions` runs its Oxlint config and `check:ultracite` composes that command. |
-| `style/sibling-test-spacing` | Native Jest padding and Vitest or Jest `padding-around-all` | Retain because exactly one blank line between adjacent proven registrations differs from generic padding around calls. | Consistency, maintainability | `ultracite:check:style:sibling-test-spacing` runs its Oxlint config and `check:ultracite` composes that command. |
-| `style/no-em-dash` | Native text-pattern bans on irregular or extended characters | Author a diagnostic-only rule because comment and string or JSX prose scoping with the standalone-glyph exemption exceeds character-pattern matching. | Consistency, maintainability | `ultracite:check:style:no-em-dash` runs its Oxlint config and `check:ultracite` composes that command. |
-| `tsdoc/require-export-tsdoc` | JSDoc `require-jsdoc` and `multiline-blocks`, plus TSDoc `syntax` | Retain because export statements, effective class visibility, and every preceding block's delimiters exceed those rules' contracts. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
-| `react-effects/no-direct-use-effect` | React Compiler rules, including `set-state-in-effect` | Author a diagnostic-only rule because upstream accepts legitimate effects and does not prohibit every direct React effect call. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
+| `function-spacing/no-blank-lines-in-functions` | Stylistic empty-line, block-padding, and statement-padding rules | Retain because physical gaps inside function expressions and proven-registration exceptions differ from global or statement-level padding. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `function-comments/no-inline-comments-in-functions` | Native `eslint/no-inline-comments` and `eslint-plugin-no-comments` | Retain because standalone explanatory comments, declaration attachment, directives, and licenses require different predicates without comment-removal fixes. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `test-spacing/sibling-test-spacing` | Native Jest padding and Vitest or Jest `padding-around-all` | Retain because exactly one blank line between adjacent proven registrations differs from generic padding around calls. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `prose-style/no-em-dash` | Native text-pattern bans on irregular or extended characters | Author a diagnostic-only rule because comment and string or JSX prose scoping with the standalone-glyph exemption exceeds character-pattern matching. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `tsdoc/require-export-tsdoc` | JSDoc `require-jsdoc` and `multiline-blocks`, plus TSDoc `syntax` | Retain because export statements, effective class visibility, and every preceding block's delimiters exceed those rules' contracts. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `react-effects/no-direct-use-effect` | React Compiler rules, including `set-state-in-effect` | Author a diagnostic-only rule because upstream accepts legitimate effects and does not prohibit every direct React effect call. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
 
-The base configuration registers `eslint-plugin-react-hooks` through `jsPlugins` with `name: "react-hooks-js"` and `specifier: "eslint-plugin-react-hooks"`.
-The base Oxlint configuration executes the adopted upstream rules and native spread rule through `ultracite:check:base`.
-The five custom rules run through the base or dedicated Oxlint configurations named in the table.
-The profile declares the upstream package dependency and catalog entry without introducing an ESLint process.
+The root configuration registers `eslint-plugin-react-hooks` through `jsPlugins` with `name: "react-hooks-js"` and `specifier: "eslint-plugin-react-hooks"`.
+Its five selected upstream rules and the native spread rule run in the same invocation as the custom modules.
+The profile retains this dependency because enabling Oxlint's native React plugin would also enable unrelated default correctness rules.
+No separate ESLint process or copied native rule inventory is required.
 
 | Adopted upstream ID | Positive fixture | Negative fixture | Pillars | Effective enforcement |
 | --- | --- | --- | --- | --- |
-| `react-hooks-js/set-state-in-render` | The unconditional setter in `render.tsx` produces the aliased diagnostic. | The event-handler setter in `valid-render.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
-| `react-hooks-js/set-state-in-effect` | The synchronous setter in `effect.tsx` produces the aliased diagnostic. | The timer callback in `valid-effect.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
-| `react-hooks-js/immutability` | The prop mutation in `mutation.tsx` produces the aliased diagnostic. | The local copy mutation in `valid-mutation.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
-| `react-hooks-js/purity` | The render-time random call in `random.tsx` produces the aliased diagnostic. | The constant expression in `valid-random.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
-| `react-hooks-js/rules-of-hooks` | The conditional hook in `hooks.tsx` produces the aliased diagnostic. | The top-level hook in `valid-hooks.tsx` produces no matching diagnostic. | Stability, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
-| `oxc/no-accumulating-spread` | The reducer spread in `spread.ts` produces the native diagnostic. | Ordinary copying and in-place accumulation in `valid-spread.ts` produce no matching diagnostic. | Performance, maintainability | `ultracite:check:base` runs the base Oxlint config and `check:ultracite` composes that command. |
+| `react-hooks-js/set-state-in-render` | The unconditional setter in `render.tsx` produces the aliased diagnostic. | The event-handler setter in `valid-render.tsx` produces no matching diagnostic. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `react-hooks-js/set-state-in-effect` | The synchronous setter in `effect.tsx` produces the aliased diagnostic. | The timer callback in `valid-effect.tsx` produces no matching diagnostic. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `react-hooks-js/immutability` | The prop mutation in `mutation.tsx` produces the aliased diagnostic. | The local copy mutation in `valid-mutation.tsx` produces no matching diagnostic. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `react-hooks-js/purity` | The render-time random call in `random.tsx` produces the aliased diagnostic. | The constant expression in `valid-random.tsx` produces no matching diagnostic. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `react-hooks-js/rules-of-hooks` | The conditional hook in `hooks.tsx` produces the aliased diagnostic. | The top-level hook in `valid-hooks.tsx` produces no matching diagnostic. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `oxc/no-accumulating-spread` | The reducer spread in `spread.ts` produces the native diagnostic. | Ordinary copying and in-place accumulation in `valid-spread.ts` produce no matching diagnostic. | Performance, maintainability | `check:ultracite` runs the root Oxlint configuration. |
 
-The suite invokes these fixtures through actual Ultracite with both base configurations.
+The suite invokes these fixtures through actual Ultracite with the actual repository root configuration and a materialized target configuration.
 The render-state rule satisfies the render-state requirement within its documented compiler coverage, including supported conditional-update exceptions.
 These observations do not prove absence of every possible state update or mutation.
 The reviewed `refs` and `static-components` rules complement effect analysis but are outside this six-rule adoption.

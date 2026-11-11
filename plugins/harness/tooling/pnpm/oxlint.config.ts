@@ -13,7 +13,17 @@ export default defineConfig({
   jsPlugins: [
     { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
     "./plugins/no-direct-use-effect.ts",
-    "./plugins/tsdoc-plugin.ts"
+    "./plugins/tsdoc-plugin.ts",
+    {
+      name: "function-spacing",
+      specifier: "./plugins/no-blank-lines-in-functions.ts"
+    },
+    { name: "prose-style", specifier: "./plugins/no-em-dash.ts" },
+    {
+      name: "function-comments",
+      specifier: "./plugins/no-inline-comments-in-functions.ts"
+    },
+    { name: "test-spacing", specifier: "./plugins/sibling-test-spacing.ts" }
   ],
   overrides: [
     {
@@ -29,13 +39,17 @@ export default defineConfig({
     }
   ],
   rules: {
+    "function-comments/no-inline-comments-in-functions": "deny",
+    "function-spacing/no-blank-lines-in-functions": "deny",
     "oxc/no-accumulating-spread": "deny",
+    "prose-style/no-em-dash": "deny",
     "react-effects/no-direct-use-effect": "deny",
     "react-hooks-js/immutability": "deny",
     "react-hooks-js/purity": "deny",
     "react-hooks-js/rules-of-hooks": "deny",
     "react-hooks-js/set-state-in-effect": "deny",
     "react-hooks-js/set-state-in-render": "deny",
+    "test-spacing/sibling-test-spacing": "deny",
     "tsdoc/require-export-tsdoc": "deny",
     "typescript/consistent-type-imports": [
       "error",
