@@ -97,9 +97,6 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/<profile>/.husky/<name>` for `pre-commit` and `pre-push` when the Node-side script surface is selected |
 | `<target-git-root>/.husky/.gitignore` | `<plugin-root>/tooling/pnpm/.husky/.gitignore` for every selected profile |
 | `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
-| `<target-root>/oxlint.style-no-blank-lines-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-blank-lines-in-functions.config.ts` when pnpm is selected |
-| `<target-root>/oxlint.style-no-inline-comments-in-functions.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-no-inline-comments-in-functions.config.ts` when pnpm is selected |
-| `<target-root>/oxlint.style-sibling-test-spacing.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.style-sibling-test-spacing.config.ts` when pnpm is selected |
 | `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
 | `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
 | `<target-root>/typedoc.json` | `<plugin-root>/tooling/pnpm/typedoc.json` for a Node API profile |

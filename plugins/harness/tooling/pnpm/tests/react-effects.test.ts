@@ -185,88 +185,85 @@ test.each(pluginSources)(
   60_000
 );
 
-test.each([
-  new URL("../../../../../oxlint.config.ts", import.meta.url),
-  new URL("../oxlint.config.ts", import.meta.url)
-])(
-  "isolated %s runs the maintained React Compiler rules through Ultracite",
-  async (source) => {
-    const directory = await mkdtemp(
-      path.join(tmpdir(), "sinon-react-compiler-")
+test("root and materialized configs activate the adopted React rules", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-compiler-"));
+  try {
+    await configureBaseline(directory, "node", "eligible");
+    await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+    await symlink(
+      new URL("../../../../../node_modules", import.meta.url),
+      path.join(directory, "node_modules"),
+      "dir"
     );
-    try {
-      await mkdir(path.join(directory, "plugins"));
-      await cp(source, path.join(directory, "oxlint.config.ts"));
-      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-      await cp(
-        pluginSources[0],
-        path.join(directory, "plugins/no-direct-use-effect.ts")
-      );
-      await cp(
-        new URL("../plugins/tsdoc-plugin.ts", import.meta.url),
-        path.join(directory, "plugins/tsdoc-plugin.ts")
-      );
-      await symlink(
-        new URL("../../../../../node_modules", import.meta.url),
-        path.join(directory, "node_modules"),
-        "dir"
-      );
-      const compilerCases = [
-        [
-          "direct.tsx",
-          'import { useEffect } from "react"; useEffect(() => {});',
-          "react-effects(no-direct-use-effect)",
-          'import { useMount } from "framework"; useMount(() => {});'
-        ],
-        [
-          "render.tsx",
-          'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
-          "react-hooks-js(set-state-in-render)",
-          'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }'
-        ],
-        [
-          "effect.tsx",
-          'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { setCount(1); }, []); return <div>{count}</div>; }',
-          "react-hooks-js(set-state-in-effect)",
-          'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => setCount(c => c + 1), 1000); return () => clearInterval(id); }, []); return <div>{count}</div>; }'
-        ],
-        [
-          "mutation.tsx",
-          "export function Counter({ value }: { value: { count: number } }) { value.count += 1; return <div>{value.count}</div>; }",
-          "react-hooks-js(immutability)",
-          "export function Counter({ value }: { value: { count: number } }) { const local = { ...value }; local.count += 1; return <div>{local.count}</div>; }"
-        ],
-        [
-          "random.tsx",
-          "export function Counter() { return <div>{Math.random()}</div>; }",
-          "react-hooks-js(purity)",
-          "export function Counter() { return <div>{42}</div>; }"
-        ],
-        [
-          "hooks.tsx",
-          'import { useState } from "react"; export function Counter({ ready }: { ready: boolean }) { if (ready) { const [count] = useState(0); return <div>{count}</div>; } return null; }',
-          "react-hooks-js(rules-of-hooks)",
-          'import { useState } from "react"; export function Counter() { const [count] = useState(0); return <div>{count}</div>; }'
-        ],
-        [
-          "spread.ts",
-          "const items = [1, 2]; items.reduce((acc: number[], item) => [...acc, item], []);",
-          "oxc(no-accumulating-spread)",
-          "const items = [1, 2]; const copy = [...items]; copy.reduce((acc: number[], item) => { acc.push(item); return acc; }, []);"
-        ]
-      ] as const;
-      await Promise.all(
-        compilerCases.flatMap(([filename, text, , negative]) => [
-          writeFile(path.join(directory, filename), `${text}\n`),
-          writeFile(path.join(directory, `valid-${filename}`), `${negative}\n`)
-        ])
-      );
-      await writeFile(
-        path.join(directory, "valid.tsx"),
-        'import { useState } from "react"; import { useMount } from "framework"; export function Counter() { const [count, setCount] = useState(0); useMount(() => {}); return <button onClick={() => setCount(count + 1)}>{count}</button>; }\n'
-      );
-      const result = runUltracite(directory, ".", "check", "oxlint.config.ts");
+    const compilerCases = [
+      [
+        "direct.tsx",
+        'import { useEffect } from "react"; useEffect(() => {});',
+        "react-effects(no-direct-use-effect)",
+        'import { useMount } from "framework"; useMount(() => {});'
+      ],
+      [
+        "render.tsx",
+        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
+        "react-hooks-js(set-state-in-render)",
+        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }'
+      ],
+      [
+        "effect.tsx",
+        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { setCount(1); }, []); return <div>{count}</div>; }',
+        "react-hooks-js(set-state-in-effect)",
+        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => setCount(c => c + 1), 1000); return () => clearInterval(id); }, []); return <div>{count}</div>; }'
+      ],
+      [
+        "mutation.tsx",
+        "export function Counter({ value }: { value: { count: number } }) { value.count += 1; return <div>{value.count}</div>; }",
+        "react-hooks-js(immutability)",
+        "export function Counter({ value }: { value: { count: number } }) { const local = { ...value }; local.count += 1; return <div>{local.count}</div>; }"
+      ],
+      [
+        "random.tsx",
+        "export function Counter() { return <div>{Math.random()}</div>; }",
+        "react-hooks-js(purity)",
+        "export function Counter() { return <div>{42}</div>; }"
+      ],
+      [
+        "hooks.tsx",
+        'import { useState } from "react"; export function Counter({ ready }: { ready: boolean }) { if (ready) { const [count] = useState(0); return <div>{count}</div>; } return null; }',
+        "react-hooks-js(rules-of-hooks)",
+        'import { useState } from "react"; export function Counter() { const [count] = useState(0); return <div>{count}</div>; }'
+      ],
+      [
+        "spread.ts",
+        "const items = [1, 2]; items.reduce((acc: number[], item) => [...acc, item], []);",
+        "oxc(no-accumulating-spread)",
+        "const items = [1, 2]; const copy = [...items]; copy.reduce((acc: number[], item) => { acc.push(item); return acc; }, []);"
+      ]
+    ] as const;
+    await Promise.all(
+      compilerCases.flatMap(([filename, text, , negative]) => [
+        writeFile(path.join(directory, filename), `${text}\n`),
+        writeFile(path.join(directory, `valid-${filename}`), `${negative}\n`)
+      ])
+    );
+    await writeFile(
+      path.join(directory, "valid.tsx"),
+      'import { useState } from "react"; import { useMount } from "framework"; export function Counter() { const [count, setCount] = useState(0); useMount(() => {}); return <button onClick={() => setCount(count + 1)}>{count}</button>; }\n'
+    );
+    await writeFile(
+      path.join(directory, "unadopted.tsx"),
+      "export const labels = [<span />];\n"
+    );
+    for (const configuration of [
+      path.resolve(import.meta.dirname, "../../../../../oxlint.config.ts"),
+      path.join(directory, "oxlint.config.ts")
+    ]) {
+      const result = runUltracite(directory, ".", "check", configuration);
       expect(result.status).toBe(1);
+      expect(
+        result.diagnostics.filter(
+          ({ code }) => code?.startsWith("react(") === true
+        )
+      ).toEqual([]);
       for (const [filename, , code] of compilerCases) {
         expect(
           result.diagnostics.some(
@@ -294,12 +291,11 @@ test.each([
               code === "oxc(no-accumulating-spread)")
         )
       ).toEqual([]);
-    } finally {
-      await rm(directory, { force: true, recursive: true });
     }
-  },
-  60_000
-);
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+}, 60_000);
 
 test("Harness materializes the React policy dependency and package-script execution path", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-install-"));
@@ -320,15 +316,15 @@ test("Harness materializes the React policy dependency and package-script execut
         ultracite: "catalog:"
       },
       scripts: {
-        "check:ultracite": "run-p --continue-on-error ultracite:check:**",
-        "ultracite:check:base": "ultracite check --type-aware"
+        "check:ultracite":
+          "ultracite check --type-aware --config oxlint.config.ts"
       }
     });
     await writeFile(
       path.join(directory, "sample.ts"),
       'import { useEffect } from "react"; useEffect(() => {});\n'
     );
-    const result = spawnSync("pnpm", ["run", "ultracite:check:base"], {
+    const result = spawnSync("pnpm", ["run", "check:ultracite"], {
       cwd: directory,
       encoding: "utf-8",
       timeout: 60_000

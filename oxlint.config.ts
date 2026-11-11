@@ -10,7 +10,32 @@ export default defineConfig({
   ignorePatterns: core.ignorePatterns,
   jsPlugins: [
     { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
-    "./plugins/no-direct-use-effect.ts"
+    "./plugins/no-direct-use-effect.ts",
+    "./plugins/harness/tooling/pnpm/plugins/tsdoc-plugin.ts"
+  ],
+  overrides: [
+    {
+      files: ["plugins/harness/tooling/pnpm/**/*"],
+      rules: {
+        "tsdoc/require-export-tsdoc": "deny",
+        "typescript/consistent-type-imports": [
+          "error",
+          { fixStyle: "separate-type-imports", prefer: "type-imports" }
+        ],
+        "typescript/no-floating-promises": ["error", { ignoreVoid: false }]
+      }
+    },
+    {
+      files: ["plugins/harness/tooling/pnpm/**/*.{js,jsx,mjs,cjs}"],
+      rules: {
+        "jsdoc/require-param": "deny",
+        "jsdoc/require-param-name": "deny",
+        "jsdoc/require-param-type": "deny",
+        "jsdoc/require-returns": "deny",
+        "jsdoc/require-returns-description": "allow",
+        "jsdoc/require-returns-type": "deny"
+      }
+    }
   ],
   rules: {
     "oxc/no-accumulating-spread": "deny",

@@ -354,7 +354,7 @@ describe("fresh-root baseline", () => {
           Object.keys(manifest.scripts).filter((script) =>
             script.startsWith("ultracite:fix:")
           )
-        ).toEqual(["ultracite:fix:base"]);
+        ).toEqual([]);
         expect(
           Object.values(manifest.scripts).filter((command) =>
             /^(?:oxlint|oxfmt)\b/u.test(String(command))
@@ -371,24 +371,24 @@ describe("fresh-root baseline", () => {
             "utf-8"
           )
         );
-        const configurationFiles = [
-          "oxlint.config.ts",
-          "oxlint.style-no-blank-lines-in-functions.config.ts",
-          "oxlint.style-no-em-dash.config.ts",
-          "oxlint.style-no-inline-comments-in-functions.config.ts",
-          "oxlint.style-sibling-test-spacing.config.ts"
-        ];
-        await Promise.all(
-          configurationFiles.map(async (file) => {
-            const [materialized, source] = await Promise.all([
-              readFile(path.join(directory, file), "utf-8"),
-              readFile(
-                path.join(repositoryRoot, "plugins/harness/tooling/pnpm", file),
-                "utf-8"
-              )
-            ]);
-            expect(materialized).toBe(source);
-          })
+        const installedFiles = await readdir(directory);
+        expect(
+          installedFiles
+            .filter(
+              (file) => file.startsWith("oxlint") || file.startsWith("oxfmt")
+            )
+            .toSorted()
+        ).toEqual(["oxfmt.config.ts", "oxlint.config.ts"]);
+        expect(
+          await readFile(path.join(directory, "oxlint.config.ts"), "utf-8")
+        ).toBe(
+          await readFile(
+            path.join(
+              repositoryRoot,
+              "plugins/harness/tooling/pnpm/oxlint.config.ts"
+            ),
+            "utf-8"
+          )
         );
         const pluginFiles = await readdir(path.join(directory, "plugins"));
         expect(pluginFiles.toSorted()).toEqual([

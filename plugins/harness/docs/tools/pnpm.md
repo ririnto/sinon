@@ -85,14 +85,14 @@ Inspect each package root in a monorepo and install the profile at each selected
 
 ## Managed Sources
 
-The profile provides `oxlint.config.ts`, three independent style configs, `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
-The style configs are `oxlint.style-no-blank-lines-in-functions.config.ts`, `oxlint.style-no-inline-comments-in-functions.config.ts`, and `oxlint.style-sibling-test-spacing.config.ts`.
-The base configuration owns core, TSDoc, and non-style rules.
-Merge its settings into an existing Oxlint configuration without replacing the target's presets or rules.
-Keep the profile's relative JavaScript plugin at the top level because Oxlint rejects relative plugin specifiers inside extended configurations.
+The profile provides one root `oxlint.config.ts`, one root `oxfmt.config.ts`, `plugins/`, `rules/`, and `.markdownlint-cli2.jsonc` as native lint and format sources.
+The Oxlint configuration owns core, TSDoc, React, and custom style rules in one pass.
+Merge its settings into an existing root Oxlint configuration without replacing the target's presets or rules.
+Keep relative JavaScript plugin registrations at the top level because Oxlint rejects relative plugin specifiers inside extended configurations.
 Preserve both configurations' plugins, overrides, environment, and ignore patterns during the merge.
-Each style configuration registers one plugin and one canonical `style/<rule>` identifier.
-Copy `plugins/` next to the Oxlint configs because their `jsPlugins` entries use `./plugins/*.ts` paths.
+Use scoped overrides for file-specific policy instead of adding configuration files or repeated lint passes.
+The four style modules use explicit, unique aliases: `function-spacing`, `function-comments`, `test-spacing`, and `prose-style`.
+Copy `plugins/` next to the root Oxlint configuration because its `jsPlugins` entries use `./plugins/*.ts` paths.
 Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `rules/*.ts` paths.
 Omit the `*.test.ts` files from both copies.
 It provides `.editorconfig` only when the target has no existing editor configuration or when the user approves a bounded merge.
@@ -162,17 +162,16 @@ After merging, run `pnpm install` and `pnpm run prepare` at the selected root.
 Verify actual Git commit and push invocations in a disposable repository, including a failing check that blocks each operation.
 Manual script execution alone does not prove hook installation.
 
-The base and style configurations extend the target-installed Ultracite Oxc core preset.
-The base configuration owns TSDoc and non-style checks.
-Each style configuration preserves `core.env` and `core.ignorePatterns`, registers one plugin named `style`, and enables only its original canonical rule.
-The blank-line pass checks physical blank lines inside executable function bodies.
-The inline-comment pass diagnoses explanatory comments and preserves declaration documentation, required directives, and license markers.
-The sibling-spacing pass requires one blank line only when an unshadowed named import from Vitest, Jest globals, or Bun proves a registration boundary.
+The root configuration extends the target-installed Ultracite Oxc core preset and preserves `core.env` and `core.ignorePatterns`.
+Its explicit JS-plugin aliases let the four self-contained style modules run together without a namespace collision.
+The blank-line rule checks physical blank lines inside executable function bodies.
+The inline-comment rule diagnoses explanatory comments and preserves declaration documentation, required directives, and license markers.
+The sibling-spacing rule requires one blank line only when an unshadowed named import from Vitest, Jest globals, or Bun proves a registration boundary.
 Direct `describe` callbacks and program-level registrations are recognized, including named import aliases, static `only`, `skip`, `concurrent`, and `sequential` modifiers, and direct `each` factories.
 Global names, namespace calls, unknown factories, shadowed bindings, ordinary callbacks, and gaps containing comments remain outside the registration-spacing diagnostic.
 Required directives between registrations stay intact because moving them can change their target.
 The built-in test-padding rule supplies padding around test calls but does not express this exact sibling lifecycle and proven-binding contract, so the AST-aware diagnostic handles it without an automatic fix.
-The inline-comment pass exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
+The inline-comment rule exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
 The TSDoc plugin checks the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
 Read those requirements when configuring TypeScript documentation checks.
 Protected, private, and `#private` members and constructors are exempt.
@@ -292,17 +291,19 @@ Passing establishes only that the supported patterns were absent from the suppli
 The [rule mapping](lint-rule-mapping.md) records exact IDs, upstream comparisons, and consumer migration boundaries.
 Projects using React directly or through framework dependencies consume this same configuration through Ultracite.
 The shared Node profile also installs it because source-proven matching leaves unrelated code outside the custom diagnostic.
-Merge the base configuration into the target's existing configuration and keep the independent style configurations intact.
+Merge all policy into the target's root configuration, preserving target-specific scope through overrides.
+For previously split style configurations, migrate their rules to the explicit aliases, update check and fix scripts, and remove obsolete configurations after checking their consumers.
 For an existing React-effect pass, migrate any target-owned rules and settings that the merged base still needs.
 Update or remove the obsolete `ultracite:check:react-effects` script and its references to `oxlint.react-effects.config.ts`, preserving unrelated commands.
 Remove the old configuration only after confirming no retained command references it.
 
 The configuration registers `eslint-plugin-react-hooks` with the supported `jsPlugins` object alias.
 Its `name` is `react-hooks-js`, and its `specifier` is `eslint-plugin-react-hooks`.
-The configuration and mapping table own the adopted upstream rule inventory.
+The configuration and mapping table own the five adopted upstream rules.
 Declare `eslint-plugin-react-hooks` through the supplied dependency and catalog fragments.
 Keep compatible Oxlint, Ultracite, and Oxc type dependencies from the shared profile.
 Oxlint loads these rules inside Ultracite without a separate ESLint invocation or wrapper.
+Enabling the native React plugin also enables its default correctness rules, so this profile retains the explicit JS-plugin subset without expanding policy.
 
 `react-effects/no-direct-use-effect` reports calls proven to originate from React's runtime export.
 The self-contained `plugins/no-direct-use-effect.ts` has the same identity and behavior in the standalone Sinon distribution and this profile.
@@ -318,8 +319,11 @@ The rule reports diagnostics without fixes because replacing effects can change 
 The [mapping](lint-rule-mapping.md#oxlint-policies) records upstream fixture results and compiler coverage limits.
 The custom call diagnostic covers a separate requirement from the upstream checks.
 
-`ultracite:check:base` runs the base configuration with type awareness, including the React policy.
-The shared check and fix commands include the base configuration without additional formatter-writing passes.
+`check:ultracite` runs the root configuration with type awareness, including the React policy.
+The shared check and fix commands each run once, without additional formatter-writing passes.
+Sinon's publishing repository uses one root configuration but retains separate untyped and type-aware invocations with disjoint lint paths.
+Oxlint enables type awareness globally and does not support it in file overrides, so the second invocation preserves the existing Harness-tooling scope without expanding policy to unrelated packages.
+Both invocations use the root formatter configuration; Ultracite forwards the lint exclusion only to Oxlint, so formatting covers the Harness subtree again in the typed invocation.
 Verify both positive and negative target fixtures before claiming consumer adoption.
 
 ## Type-Aware Promise Checks
@@ -359,15 +363,12 @@ Skip the fragment for a JavaScript-only target.
 
 Run `pnpm install` after a dependency change.
 Run `pnpm run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs the base and three style passes through `run-p --continue-on-error ultracite:check:**`.
-The base pass includes the React policy, and the recursive pattern includes the independent style configurations.
-All passes report findings before the combined command fails if any pass fails.
-Each Ultracite check reports findings without writing source changes.
-The nested `ultracite:` scripts keep the top-level `run-p check:*` from discovering style passes twice.
+The `check:ultracite` task runs `ultracite check --type-aware --config oxlint.config.ts` once.
+That invocation reports core, React, documentation, and custom style diagnostics without writing source changes.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `pnpm run fix` within the authorized source-edit scope.
-The `fix:ultracite` task runs one formatter-writing base fix, then read-only style checks through `run-s --continue-on-error`.
-The command preserves a failing exit status while collecting diagnostics from every pass.
+The `fix:ultracite` task runs `ultracite fix --type-aware --config oxlint.config.ts` once.
+The custom style policies remain diagnostic-only while supported native fixes and formatting run through the same command.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
 Run `pnpm run test` only when the target owns that native test command.
 The source profile uses `vitest run` for non-watching tests.
