@@ -1,36 +1,12 @@
-import type {
-  ArrowFunctionExpression,
-  Function as OxcFunction,
-  Node
-} from "@oxc-project/types";
-
-interface Comment {
-  readonly start: number;
-  readonly end: number;
-  readonly type: string;
-  readonly value: string;
-}
-
-interface RuleContext {
-  readonly sourceCode: {
-    readonly getAllComments: () => readonly Comment[];
-    readonly getCommentsBefore: (node: Node) => readonly Comment[];
-    readonly getCommentsInside: (node: Node) => readonly Comment[];
-    readonly text: string;
-  };
-  readonly report: (diagnostic: {
-    readonly messageId: string;
-    readonly node: Node;
-  }) => void;
-}
+import type { ESTree, Comment, Context, Plugin, Rule } from "@oxlint/plugins";
 
 type FunctionNode =
-  | (OxcFunction & {
+  | (ESTree.Function & {
       readonly type: "FunctionDeclaration" | "FunctionExpression";
     })
-  | ArrowFunctionExpression;
+  | ESTree.ArrowFunctionExpression;
 
-const isFunctionNode = (node: Node): node is FunctionNode =>
+const isFunctionNode = (node: ESTree.Node): node is FunctionNode =>
   node.type === "FunctionDeclaration" ||
   node.type === "FunctionExpression" ||
   node.type === "ArrowFunctionExpression";
@@ -42,10 +18,10 @@ const toolDirectivePattern =
   /^\s*(?:@ts-(?:check|expect-error|ignore|nocheck)|(?:eslint|oxlint)-(?:disable(?:-line|-next-line)?|enable)|(?:oxfmt|prettier)-ignore|(?:c8|istanbul|v8) ignore)(?![\w-])/u;
 
 const noInlineCommentsRule = {
-  create(context: RuleContext) {
+  create(context: Context) {
     const documentation = new Set<number>();
     const reportedOffsets = new Set<number>();
-    const declaration = (node: Node): void => {
+    const declaration = (node: ESTree.Node): void => {
       let boundary = node.start;
       const comments = context.sourceCode.getCommentsBefore(node);
       for (let index = comments.length - 1; index >= 0; index -= 1) {
@@ -61,7 +37,7 @@ const noInlineCommentsRule = {
         }
       }
     };
-    const inspect = (node: Node, comments: readonly Comment[]): void => {
+    const inspect = (node: ESTree.Node, comments: readonly Comment[]): void => {
       for (const { start, type, value } of comments) {
         if (
           type !== "Shebang" &&
@@ -80,7 +56,7 @@ const noInlineCommentsRule = {
         }
       }
     };
-    const inspectFunction = (node: Node): void => {
+    const inspectFunction = (node: ESTree.Node): void => {
       if (isFunctionNode(node) && node.body?.type === "BlockStatement") {
         inspect(node, context.sourceCode.getCommentsInside(node.body));
       }
@@ -91,7 +67,7 @@ const noInlineCommentsRule = {
         declaration,
       "FunctionDeclaration:exit": inspectFunction,
       "FunctionExpression:exit": inspectFunction,
-      "Program:exit"(node: Node) {
+      "Program:exit"(node: ESTree.Node) {
         inspect(node, context.sourceCode.getAllComments());
       }
     };
@@ -106,13 +82,13 @@ const noInlineCommentsRule = {
         "Use declaration documentation instead of explanatory comments."
     },
     type: "problem"
-  } as const
-};
+  }
+} satisfies Rule;
 
 const plugin = {
   meta: { name: "style" },
   rules: { "no-inline-comments-in-functions": noInlineCommentsRule }
-};
+} satisfies Plugin;
 
 /**
  * Provide the native Oxlint plugin for inline-comment checks.

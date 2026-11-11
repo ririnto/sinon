@@ -124,7 +124,7 @@ describe("pnpm profile configuration", () => {
   test.each([
     [
       "../../../../package.json",
-      "run-p $(node --import tsx .github/scripts/pre-commit-scope.ts)",
+      "node --import tsx .github/scripts/pre-commit-scope.ts",
       "run-s check"
     ],
     ["package.fragment.json", "run-s check", "run-s check"],

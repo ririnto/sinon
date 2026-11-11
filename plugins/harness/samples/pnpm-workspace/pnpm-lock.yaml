@@ -164,9 +164,9 @@ settings:
 
 catalogs:
   default:
-    '@oxc-project/types':
-      specifier: ^0.156.0
-      version: 0.156.0
+    '@oxlint/plugins':
+      specifier: 1.90.0
+      version: 1.90.0
     '@tsconfig/node-lts':
       specifier: ^24.0.1
       version: 24.0.1
@@ -217,9 +217,9 @@ importers:
 
   .:
     devDependencies:
-      '@oxc-project/types':
+      '@oxlint/plugins':
         specifier: 'catalog:'
-        version: 0.156.0
+        version: 1.90.0
       '@tsconfig/node-lts':
         specifier: 'catalog:'
         version: 24.0.1
@@ -601,9 +601,6 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@oxc-project/types@0.156.0':
-    resolution: {integrity: sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw==}
-
   '@oxfmt/binding-android-arm-eabi@0.75.0':
     resolution: {integrity: sha512-zHJ7LcTN46/5mtoLxsUu14pdF9ixFwDURtmxZ0CeNwqom5qB5NRVqU6o2GRZ7QPdNBW8G6j9UTJzQ+EDevMH0w==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -877,6 +874,10 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
+
+  '@oxlint/plugins@1.90.0':
+    resolution: {integrity: sha512-FT0JJDNbj9oobVWHpAzFckHY/bx1ftPjulBx4UCMXqmDUGqVWOkbKe5bj4zdEL+D5Ud7y/RfioLwSvlHBMjI4w==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
@@ -2225,8 +2226,6 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.3
 
-  '@oxc-project/types@0.156.0': {}
-
   '@oxfmt/binding-android-arm-eabi@0.75.0':
     optional: true
 
@@ -2358,6 +2357,8 @@ snapshots:
 
   '@oxlint/binding-win32-x64-msvc@1.90.0':
     optional: true
+
+  '@oxlint/plugins@1.90.0': {}
 
   '@sec-ant/readable-stream@0.4.1': {}
 

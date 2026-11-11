@@ -1,41 +1,4 @@
-import type {
-  Class,
-  ClassElement,
-  ExportDefaultDeclaration,
-  ExportNamedDeclaration,
-  MethodDefinition,
-  Node,
-  PropertyDefinition,
-  TSExportAssignment,
-  VariableDeclaration
-} from "@oxc-project/types";
-
-/**
- * Oxlint comment token shape used by sourceCode comment lookup.
- */
-interface Comment {
-  end: number;
-  start: number;
-  type: string;
-  value: string;
-}
-
-/**
- * Minimal Oxlint-compatible rule context surface used by this plugin.
- */
-interface RuleContext {
-  filename?: string;
-  getFilename?: () => string;
-  sourceCode: {
-    text: string;
-    getCommentsBefore: (node: Node) => Comment[];
-  };
-  report: (diagnostic: {
-    data?: Record<string, string | undefined>;
-    messageId: string;
-    node: Node;
-  }) => void;
-}
+import type { ESTree, Comment, Context, Plugin, Rule } from "@oxlint/plugins";
 
 /**
  * Extract a printable name from an identifier, literal, or qualified name node.
@@ -74,7 +37,7 @@ const nameOf = (value: unknown): string | undefined => {
  * @param node Declaration, method, or property node to name for diagnostics.
  * @returns The declared name or "[anonymous]" when no stable name exists.
  */
-const nodeName = (node: Node): string =>
+const nodeName = (node: ESTree.Node): string =>
   nameOf("id" in node ? node.id : undefined) ??
   nameOf("key" in node ? node.key : undefined) ??
   "[anonymous]";
@@ -87,8 +50,8 @@ const nodeName = (node: Node): string =>
  *   and for public properties initialized with a function.
  */
 const isPublicClassElement = (
-  element: ClassElement
-): element is MethodDefinition | PropertyDefinition =>
+  element: ESTree.ClassElement
+): element is ESTree.MethodDefinition | ESTree.PropertyDefinition =>
   (element.type === "MethodDefinition" ||
     element.type === "TSAbstractMethodDefinition" ||
     ((element.type === "PropertyDefinition" ||
@@ -122,8 +85,8 @@ const declarationKinds: Readonly<Record<string, string>> = {
  * @returns True when the node is a class declaration.
  */
 const isClassDeclaration = (
-  node: Node
-): node is Class & { type: "ClassDeclaration" } =>
+  node: ESTree.Node
+): node is ESTree.Class & { type: "ClassDeclaration" } =>
   node.type === "ClassDeclaration";
 
 /**
@@ -132,26 +95,26 @@ const isClassDeclaration = (
  * @param node Variable declaration node to inspect.
  * @returns The first binding identifier name, or a generic declaration label.
  */
-const variableName = (node: VariableDeclaration): string =>
+const variableName = (node: ESTree.VariableDeclaration): string =>
   nameOf(node.declarations[0]?.id) ?? "variable declaration";
 
 /**
  * Check TSDoc on exported TypeScript public API declarations.
  */
 const exportTsdocRule = {
-  create(context: RuleContext) {
+  create(context: Context) {
     const { sourceCode } = context;
-    const checkedClasses = new WeakSet<Class>();
-    const checkedDeclarations = new WeakSet<Node>();
-    const checkedVariableDeclarators = new WeakSet<Node>();
-    const checkedVariableComments = new WeakSet<Node>();
+    const checkedClasses = new WeakSet<ESTree.Class>();
+    const checkedDeclarations = new WeakSet<ESTree.Node>();
+    const checkedVariableDeclarators = new WeakSet<ESTree.Node>();
+    const checkedVariableComments = new WeakSet<ESTree.Node>();
     /**
      * Find TSDoc blocks before a node or its export wrapper.
      *
      * @param node AST node to inspect.
      * @returns Documentation comment tokens without their block delimiters.
      */
-    const tsdocComments = (node: Node): Comment[] =>
+    const tsdocComments = (node: ESTree.Node): Comment[] =>
       [
         ...sourceCode.getCommentsBefore(node),
         ...(node.parent?.type.startsWith("Export") === true
@@ -170,7 +133,7 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const report = (
-      node: Node,
+      node: ESTree.Node,
       kind: string,
       name: string,
       requirePresence = true
@@ -206,7 +169,7 @@ const exportTsdocRule = {
      * @param node Exposed class declaration node to validate.
      * @returns Nothing.
      */
-    const validateClassMembers = (node: Class): void => {
+    const validateClassMembers = (node: ESTree.Class): void => {
       if (!checkedClasses.has(node)) {
         checkedClasses.add(node);
         for (const element of node.body.body) {
@@ -229,8 +192,8 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const validateExportedDeclaration = (
-      node: Node | null | undefined,
-      exportNode?: Node
+      node: ESTree.Node | null | undefined,
+      exportNode?: ESTree.Node
     ): void => {
       if (node && !checkedDeclarations.has(node)) {
         checkedDeclarations.add(node);
@@ -267,8 +230,8 @@ const exportTsdocRule = {
       }
     };
     const validateLocalVariable = (
-      declaration: VariableDeclaration,
-      node: Node,
+      declaration: ESTree.VariableDeclaration,
+      node: ESTree.Node,
       name: string
     ): void => {
       for (const declarator of declaration.declarations) {
@@ -301,7 +264,7 @@ const exportTsdocRule = {
       }
     };
     const validateLocalDeclaration = (
-      node: Node,
+      node: ESTree.Node,
       name: string | undefined
     ): void => {
       const scope = node.parent;
@@ -328,18 +291,16 @@ const exportTsdocRule = {
         }
       }
     };
-    return /\.(?:[cm]?ts|tsx)$/u.test(
-      context.filename ?? context.getFilename?.() ?? ""
-    )
+    return /\.(?:[cm]?ts|tsx)$/u.test(context.filename)
       ? {
-          ExportDefaultDeclaration(node: ExportDefaultDeclaration) {
+          ExportDefaultDeclaration(node: ESTree.ExportDefaultDeclaration) {
             if (node.declaration.type in declarationKinds) {
               validateExportedDeclaration(node.declaration);
             } else if (node.declaration.type === "Identifier") {
               validateLocalDeclaration(node, node.declaration.name);
             }
           },
-          ExportNamedDeclaration(node: ExportNamedDeclaration) {
+          ExportNamedDeclaration(node: ESTree.ExportNamedDeclaration) {
             if (node.declaration) {
               validateExportedDeclaration(node.declaration);
             } else if (!node.source) {
@@ -348,7 +309,7 @@ const exportTsdocRule = {
               }
             }
           },
-          TSExportAssignment(node: TSExportAssignment) {
+          TSExportAssignment(node: ESTree.TSExportAssignment) {
             if (node.expression.type === "Identifier") {
               validateLocalDeclaration(node, node.expression.name);
             }
@@ -367,8 +328,8 @@ const exportTsdocRule = {
         'Use multiline TSDoc with opening and closing delimiters on separate lines for exported public API {{kind}} "{{name}}".'
     },
     type: "suggestion"
-  } as const
-};
+  }
+} satisfies Rule;
 
 /**
  * Oxlint JS plugin exporting custom TSDoc rules.
@@ -378,7 +339,7 @@ const plugin = {
   rules: {
     "require-export-tsdoc": exportTsdocRule
   }
-};
+} satisfies Plugin;
 
 /**
  * Provide the native rule for exported TypeScript API documentation.

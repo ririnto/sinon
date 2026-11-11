@@ -9,16 +9,15 @@ const alwaysRunChecks = [
   "check:versions"
 ];
 
-const triggeredChecks: readonly {
-  check: string;
+const testScopes: readonly {
+  tests: readonly string[];
   patterns: readonly RegExp[];
 }[] = [
   {
-    check: "check:hook-scope",
-    patterns: [/^\.github\/scripts\//u, /^\.husky\//u]
+    patterns: [/^\.github\/scripts\//u, /^\.husky\//u],
+    tests: [".github/scripts/pre-commit-scope.test.ts"]
   },
   {
-    check: "check:lint-rules",
     patterns: [
       /^plugins\/harness\//u,
       /^rules\//u,
@@ -29,36 +28,44 @@ const triggeredChecks: readonly {
       /^oxlint\.config\.ts$/u,
       /^tsconfig\.json$/u,
       /^\.markdownlint-cli2\.jsonc$/u
-    ]
+    ],
+    tests: ["rules", "plugins/harness/tooling/pnpm", "plugins/harness/tests"]
   },
   {
-    check: "check:java",
-    patterns: [/^plugins\/java\//u]
+    patterns: [/^plugins\/java\//u],
+    tests: ["plugins/java/tests"]
   },
   {
-    check: "check:sdd",
-    patterns: [/^plugins\/spec-driven-development\//u]
+    patterns: [/^plugins\/spec-driven-development\//u],
+    tests: ["plugins/spec-driven-development/tests"]
   },
   {
-    check: "check:promtool",
-    patterns: [/^plugins\/observability-assets\//u]
+    patterns: [/^plugins\/observability-assets\//u],
+    tests: ["plugins/observability-assets/tests/promtool/release.test.ts"]
   }
 ];
 
 /**
- * Selects the pre-commit checks for the staged paths.
- * The always-run set keeps repository-wide validators in every commit;
- * the triggered set adds each suite whose inputs the staged paths touch.
+ * Select repository validators and one scoped test invocation for staged paths.
+ * Version regression tests always run alongside version validation.
  */
 export const selectChecks = (stagedPaths: readonly string[]): string[] => [
   ...alwaysRunChecks,
-  ...triggeredChecks
-    .filter(({ patterns }) =>
-      stagedPaths.some((stagedPath) =>
-        patterns.some((pattern) => pattern.test(stagedPath))
+  ...(stagedPaths.some((file) =>
+    file.startsWith("plugins/observability-assets/")
+  )
+    ? ["check:promtool"]
+    : []),
+  `check:test ${[
+    ".github/scripts/sync-versions.test.ts",
+    ...testScopes
+      .filter(({ patterns }) =>
+        stagedPaths.some((stagedPath) =>
+          patterns.some((pattern) => pattern.test(stagedPath))
+        )
       )
-    )
-    .map(({ check }) => check)
+      .flatMap(({ tests }) => tests)
+  ].join(" ")}`
 ];
 
 const runCli = (): void => {
@@ -71,7 +78,17 @@ const runCli = (): void => {
     );
   }
   const stagedPaths = staged.stdout.split("\n").filter((line) => line !== "");
-  process.stdout.write(selectChecks(stagedPaths).join(" "));
+  const result = spawnSync(
+    "pnpm",
+    ["exec", "run-p", ...selectChecks(stagedPaths)],
+    {
+      stdio: "inherit"
+    }
+  );
+  if (result.error) {
+    throw result.error;
+  }
+  process.exitCode = result.status ?? 1;
 };
 
 if (

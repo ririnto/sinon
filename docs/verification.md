@@ -18,7 +18,9 @@ The API documentation profile uses the named catalog for its compatible TypeScri
 The separately distributed specification plugin owns its standalone catalog and lockfile.
 
 The root has no separate `build` or `test` script.
-Its `check:*` scripts compose the component tests, TypeScript check, lint, and formatting.
+Its `check:*` scripts compose `check:test`, TypeScript checking, lint, formatting, version validation, and lifecycle models.
+`check:test` discovers root-owned TypeScript tests once, including hidden GitHub script tests, without selecting the independent sample packages.
+Pre-commit invokes this same runner with the affected suite paths and always includes version regression tests.
 The Promtool fixture runner requires a separate command and network access.
 
 Harness fixtures use the profile's own pnpm version, which can differ from the root version.
@@ -30,10 +32,11 @@ Start with the row matching the changed behavior, then run the complete gate bef
 
 | Changed surface | Command | Observable evidence |
 | --- | --- | --- |
-| Java launcher and Lombok discovery | `pnpm run check:java` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
-| Harness installation, profiles, and custom lint rules | `pnpm run check:lint-rules` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
-| Specification commands | `pnpm run check:sdd` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
-| Promtool release verification and process handling | `pnpm run check:promtool` | Local archive and process fixtures test integrity checks and child-process behavior, while TLC checks bounded download and child lifecycle models. |
+| Java launcher and Lombok discovery | `pnpm run check:test plugins/java/tests` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
+| Harness installation, profiles, and custom lint rules | `pnpm run check:test rules plugins/harness/tooling/pnpm plugins/harness/tests` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
+| Specification commands | `pnpm run check:test plugins/spec-driven-development/tests` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
+| Promtool release verification and process handling | `pnpm run check:test plugins/observability-assets/tests/promtool` | Local archive and process fixtures test integrity checks and child-process behavior. |
+| Promtool lifecycle models | `pnpm run check:promtool` | TLC checks bounded download and child lifecycle models. |
 | Prometheus rule examples | `pnpm run test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
 | Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and Harness tooling pass their configured lint and formatting checks, including the React effect policy. |

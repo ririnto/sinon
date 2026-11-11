@@ -1,6 +1,6 @@
 catalog:
+  "@oxlint/plugins": 1.92.0
   "@google/design.md": ^0.4.0
-  "@oxc-project/types": ^0.157.0
   "@tsconfig/next": ^2.0.6
   "@tsconfig/node-lts": ^24.0.1
   "@tsconfig/react-native": ^3.0.9
