@@ -3,7 +3,7 @@
 ## Problem And Result
 
 Describe the problem and resulting behavior.
-Link the issue and add a closing reference only when its acceptance criteria are satisfied.
+Link an issue when one exists and add a closing reference only when its acceptance criteria are satisfied.
 
 ## Scope
 
@@ -21,7 +21,7 @@ List commands, outcomes, and the scope of reused passing evidence.
 ## Limitations And Follow-ups
 
 Record failed or unrun checks and remaining limitations.
-Link separate issues for new requirements or deferred findings.
+Record new requirements or deferred findings separately in the task, pull request, or an issue when useful.
 
 ## Review Checklist
 
