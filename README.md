@@ -139,6 +139,9 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 
 Sinon selects external plugins through its marketplace catalog.
 
+- [agent-browser](https://github.com/ririnto/agent-browser-plugin): the Sinon catalog follows the upstream default branch.
+  The upstream repository owns the browser automation MCP tools and their version.
+  Install it as `agent-browser-plugin@sinon` in either host.
 - [agent-desktop](https://github.com/ririnto/agent-desktop-plugin): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the desktop automation MCP tools and their version.
   Install it with `claude plugin install agent-desktop-plugin@sinon`.

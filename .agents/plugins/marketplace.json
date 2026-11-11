@@ -6,6 +6,18 @@
   "plugins": [
     {
       "category": "Development",
+      "name": "agent-browser-plugin",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/agent-browser-plugin.git"
+      }
+    },
+    {
+      "category": "Development",
       "name": "agent-desktop-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
