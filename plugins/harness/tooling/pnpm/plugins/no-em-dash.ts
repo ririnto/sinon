@@ -1,33 +1,10 @@
-import type { Node } from "@oxc-project/types";
-
-interface Comment {
-  readonly start: number;
-  readonly type: string;
-  readonly value: string;
-}
-
-interface SourcePosition {
-  readonly column: number;
-  readonly line: number;
-}
-
-interface RuleContext {
-  readonly sourceCode: {
-    readonly getAllComments: () => readonly Comment[];
-    readonly getLocFromIndex: (offset: number) => SourcePosition;
-  };
-  readonly report: (diagnostic: {
-    readonly loc?: { readonly start: SourcePosition };
-    readonly messageId: string;
-    readonly node: Node;
-  }) => void;
-}
+import type { ESTree, Comment, Context, Plugin, Rule } from "@oxlint/plugins";
 
 const emDash = "—";
 
 const noEmDashRule = {
-  create(context: RuleContext) {
-    const inspectComment = (comment: Comment, program: Node): void => {
+  create(context: Context) {
+    const inspectComment = (comment: Comment, program: ESTree.Node): void => {
       if (comment.type === "Shebang") {
         return;
       }
@@ -46,7 +23,7 @@ const noEmDashRule = {
       }
     };
     return {
-      JSXText: (node: Node): void => {
+      JSXText: (node: ESTree.Node): void => {
         if (
           node.type === "JSXText" &&
           node.value.trim() !== emDash &&
@@ -55,7 +32,7 @@ const noEmDashRule = {
           context.report({ messageId: "noEmDash", node });
         }
       },
-      Literal: (node: Node): void => {
+      Literal: (node: ESTree.Node): void => {
         if (
           node.type === "Literal" &&
           typeof node.value === "string" &&
@@ -65,12 +42,12 @@ const noEmDashRule = {
           context.report({ messageId: "noEmDash", node });
         }
       },
-      Program: (node: Node): void => {
+      Program: (node: ESTree.Node): void => {
         for (const comment of context.sourceCode.getAllComments()) {
           inspectComment(comment, node);
         }
       },
-      TemplateLiteral: (node: Node): void => {
+      TemplateLiteral: (node: ESTree.Node): void => {
         if (
           node.type === "TemplateLiteral" &&
           !(
@@ -95,7 +72,7 @@ const noEmDashRule = {
     },
     type: "problem"
   }
-};
+} satisfies Rule;
 
 /**
  * Provide the native Oxlint plugin for em-dash prose checks.
@@ -103,6 +80,6 @@ const noEmDashRule = {
 const plugin = {
   meta: { name: "style" },
   rules: { "no-em-dash": noEmDashRule }
-};
+} satisfies Plugin;
 
 export default plugin;

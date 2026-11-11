@@ -65,9 +65,9 @@ metadata:
       url:
         - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
         - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/how-to.md
-    Oxc Project Types:
-      version: 0.156.0
-      url: https://registry.npmjs.org/@oxc-project/types/0.156.0
+    Oxlint Plugin API:
+      version: 1.92.0
+      url: https://registry.npmjs.org/@oxlint/plugins/1.92.0
 ---
 
 # pnpm
@@ -119,7 +119,7 @@ Preserve existing build approval policy and review conflicts instead of approvin
 Do not add direct `oxlint` or `oxfmt` script entries.
 Route lint and format execution only through Ultracite.
 Add `npm-run-all2` only when the merged scripts use `run-p` or `run-s`.
-Add `@oxc-project/types` only when the target keeps TypeScript custom plugins and the target's Oxc version requires its declarations.
+Use `@oxlint/plugins` for the public context, scope, AST, and plugin types in TypeScript custom plugins.
 Use the [Git hook integration](#git-hook-integration) for the script surface.
 
 ## API Documentation

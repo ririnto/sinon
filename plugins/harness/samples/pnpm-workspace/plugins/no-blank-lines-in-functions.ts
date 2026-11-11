@@ -1,58 +1,21 @@
 import type {
-  ArrowFunctionExpression,
-  Function as OxcFunction,
-  Node
-} from "@oxc-project/types";
+  ESTree,
+  Context,
+  Plugin,
+  Rule,
+  Scope,
+  Span
+} from "@oxlint/plugins";
 
-interface SourceRange {
-  readonly end: number;
-  readonly start: number;
-}
-
-interface Comment extends SourceRange {
-  readonly type: string;
-  readonly value: string;
-}
-
-interface Scope {
-  readonly upper: Scope | null;
-  readonly variables: readonly {
-    readonly name: string;
-    readonly defs: readonly {
-      readonly type: string;
-      readonly node: Node;
-      readonly parent: Node | null;
-    }[];
-  }[];
-}
-
-interface RuleContext {
-  readonly sourceCode: {
-    readonly getLocFromIndex: (offset: number) => {
-      line: number;
-      column: number;
-    };
-    readonly getScope: (node: Node) => Scope;
-    readonly getCommentsInside: (node: Node) => readonly Comment[];
-    readonly getTokens: (node: Node) => readonly SourceRange[];
-    readonly text: string;
-  };
-  readonly report: (diagnostic: {
-    readonly loc?: {
-      readonly start: { readonly line: number; readonly column: number };
-    };
-    readonly messageId: string;
-    readonly node: Node;
-  }) => void;
-}
+type SourceRange = Pick<Span, "start" | "end">;
 
 type FunctionNode =
-  | (OxcFunction & {
+  | (ESTree.Function & {
       readonly type: "FunctionDeclaration" | "FunctionExpression";
     })
-  | ArrowFunctionExpression;
+  | ESTree.ArrowFunctionExpression;
 
-const isFunctionNode = (node: Node): node is FunctionNode =>
+const isFunctionNode = (node: ESTree.Node): node is FunctionNode =>
   node.type === "FunctionDeclaration" ||
   node.type === "FunctionExpression" ||
   node.type === "ArrowFunctionExpression";
@@ -68,7 +31,7 @@ const registrations = new Set([
 ]);
 const frameworks = new Set(["vitest", "@jest/globals", "bun:test"]);
 
-const registrationCallee = (node: Node): Node | undefined => {
+const registrationCallee = (node: ESTree.Node): ESTree.Node | undefined => {
   if (node.type === "CallExpression") {
     let { callee } = node;
     if (
@@ -95,7 +58,10 @@ const registrationCallee = (node: Node): Node | undefined => {
   return undefined;
 };
 
-const registration = (node: Node, context: RuleContext): string | undefined => {
+const registration = (
+  node: ESTree.Node,
+  context: Context
+): string | undefined => {
   const callee = registrationCallee(node);
   if (callee?.type === "Identifier") {
     let scope: Scope | null = context.sourceCode.getScope(callee);
@@ -124,7 +90,7 @@ const registration = (node: Node, context: RuleContext): string | undefined => {
   return undefined;
 };
 
-const siblingGaps = (node: Node, context: RuleContext): SourceRange[] => {
+const siblingGaps = (node: ESTree.Node, context: Context): SourceRange[] => {
   const { parent } = node;
   const call = parent?.parent;
   const suite =
@@ -153,10 +119,10 @@ const siblingGaps = (node: Node, context: RuleContext): SourceRange[] => {
 };
 
 const noBlankLinesRule = {
-  create(context: RuleContext) {
+  create(context: Context) {
     const reportedOffsets = new Set<number>();
     const registrationGaps: SourceRange[] = [];
-    const inspectFunction = (node: Node): void => {
+    const inspectFunction = (node: ESTree.Node): void => {
       if (isFunctionNode(node) && node.body?.type === "BlockStatement") {
         const { body } = node;
         const tokens = context.sourceCode.getTokens(body);
@@ -214,7 +180,7 @@ const noBlankLinesRule = {
     };
     return {
       "ArrowFunctionExpression:exit": inspectFunction,
-      BlockStatement: (node: Node) => {
+      BlockStatement: (node: ESTree.Node) => {
         registrationGaps.push(...siblingGaps(node, context));
       },
       "FunctionDeclaration:exit": inspectFunction,
@@ -229,13 +195,13 @@ const noBlankLinesRule = {
       noBlankLines: "Remove blank lines from function bodies."
     },
     type: "problem"
-  } as const
-};
+  }
+} satisfies Rule;
 
 const plugin = {
   meta: { name: "style" },
   rules: { "no-blank-lines-in-functions": noBlankLinesRule }
-};
+} satisfies Plugin;
 
 /**
  * Provide the native Oxlint plugin for function-body blank-line checks.

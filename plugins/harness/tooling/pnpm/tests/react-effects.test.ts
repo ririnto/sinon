@@ -1,17 +1,10 @@
 import { spawnSync } from "node:child_process";
-import {
-  cp,
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  symlink,
-  writeFile
-} from "node:fs/promises";
+import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { expect, test } from "vitest";
+import { RuleTester } from "oxlint/plugins-dev";
+import { describe, expect, test } from "vitest";
 
 import plugin from "../../../../no-direct-use-effect.js";
 import { configureBaseline } from "../../../scripts/configure.js";
@@ -137,52 +130,31 @@ const cases = [
   ]
 ] as const;
 
-test.each(pluginSources)(
-  "isolated %s detects only source-proven React effect calls",
-  async (source) => {
-    const directory = await mkdtemp(
-      path.join(tmpdir(), "sinon-react-effects-")
-    );
-    try {
-      await mkdir(path.join(directory, "plugins"));
-      await cp(source, path.join(directory, "plugins/no-direct-use-effect.ts"));
-      await writeFile(
-        path.join(directory, ".oxlintrc.json"),
-        JSON.stringify({
-          env: { node: true },
-          jsPlugins: ["./plugins/no-direct-use-effect.ts"],
-          rules: { "react-effects/no-direct-use-effect": "error" }
-        })
-      );
-      await Promise.all(
-        cases.map(async ([filename, text]) => {
-          await writeFile(path.join(directory, filename), `${text}\n`);
-        })
-      );
-      const result = runUltracite(directory, ".");
-      expect(result.status).toBe(1);
-      const diagnostics = result.diagnostics.filter(
-        ({ code }) => code === "react-effects(no-direct-use-effect)"
-      );
-      for (const [filename, , count] of cases) {
-        expect(
-          diagnostics.filter((diagnostic) => diagnostic.filename === filename),
-          filename
-        ).toHaveLength(count);
-      }
-      runUltracite(directory, "named.ts", "fix");
-      const fixed = await readFile(path.join(directory, "named.ts"), "utf-8");
-      expect(fixed).toContain('import { useEffect } from "react";');
-      expect(
-        runUltracite(directory, "named.ts").diagnostics.filter(
-          ({ code }) => code === "react-effects(no-direct-use-effect)"
-        )
-      ).toHaveLength(1);
-    } finally {
-      await rm(directory, { force: true, recursive: true });
-    }
-  },
-  60_000
+RuleTester.describe = (name, run) => {
+  describe(name, run);
+};
+RuleTester.it = test;
+
+new RuleTester({
+  languageOptions: { env: { node: true }, parserOptions: { lang: "ts" } }
+}).run(
+  "react-effects/no-direct-use-effect",
+  plugin.rules["no-direct-use-effect"],
+  {
+    invalid: cases
+      .filter((fixture) => fixture[2] > 0)
+      .map(([filename, code, count]) => ({
+        code,
+        errors: Array.from({ length: count }, () => ({
+          messageId: "noDirectUseEffect"
+        })),
+        filename,
+        output: null
+      })),
+    valid: cases
+      .filter((fixture) => fixture[2] === 0)
+      .map(([filename, code]) => ({ code, filename }))
+  }
 );
 
 test("root and materialized configs activate the adopted React rules", async () => {
@@ -310,7 +282,7 @@ test("Harness materializes the React policy dependency and package-script execut
       JSON.parse(await readFile(path.join(directory, "package.json"), "utf-8"))
     ).toMatchObject({
       devDependencies: {
-        "@oxc-project/types": "catalog:",
+        "@oxlint/plugins": "catalog:",
         "eslint-plugin-react-hooks": "catalog:",
         oxlint: "catalog:",
         ultracite: "catalog:"

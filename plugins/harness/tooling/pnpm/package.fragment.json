@@ -11,7 +11,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@oxc-project/types": "catalog:",
+    "@oxlint/plugins": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "husky": "catalog:",
     "markdownlint": "catalog:",

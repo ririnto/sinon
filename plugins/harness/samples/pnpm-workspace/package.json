@@ -18,7 +18,7 @@
     "test:packages": "pnpm -r --if-present run test"
   },
   "devDependencies": {
-    "@oxc-project/types": "catalog:",
+    "@oxlint/plugins": "catalog:",
     "@tsconfig/node-lts": "catalog:",
     "@types/node": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",

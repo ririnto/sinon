@@ -3,9 +3,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { expect, test } from "vitest";
+import { RuleTester } from "oxlint/plugins-dev";
+import { describe, expect, test } from "vitest";
 
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
+import blankLines from "../plugins/no-blank-lines-in-functions.js";
+import siblingSpacing from "../plugins/sibling-test-spacing.js";
 
 const pluginDirectory = new URL("../plugins/", import.meta.url);
 
@@ -363,46 +366,38 @@ const registrationCases = [
 
 type RegistrationCase = (typeof registrationCases)[number];
 
-test.each([
+RuleTester.describe = (name, run) => {
+  describe(name, run);
+};
+RuleTester.it = test;
+
+for (const { expectedCount, messageId, rule, ruleId } of [
   {
     expectedCount: (testCase: RegistrationCase) => testCase[2],
-    pluginFile: "sibling-test-spacing.ts",
-    ruleCode: "style(sibling-test-spacing)",
+    messageId: "siblingSpacing",
+    rule: siblingSpacing.rules["sibling-test-spacing"],
     ruleId: "style/sibling-test-spacing"
   },
   {
     expectedCount: (testCase: RegistrationCase) => testCase[3],
-    pluginFile: "no-blank-lines-in-functions.ts",
-    ruleCode: "style(no-blank-lines-in-functions)",
+    messageId: "noBlankLines",
+    rule: blankLines.rules["no-blank-lines-in-functions"],
     ruleId: "style/no-blank-lines-in-functions"
   }
-])(
-  "$ruleCode preserves registration-boundary behavior",
-  async ({ pluginFile, ruleId, ruleCode, expectedCount }) => {
-    const directory = await mkdtemp(
-      path.join(tmpdir(), "sinon-registration-style-")
-    );
-    try {
-      await writeRuleConfiguration(directory, pluginFile, ruleId);
-      await Promise.all(
-        registrationCases.map(async ([filename, source]) => {
-          await writeFile(path.join(directory, filename), source);
-        })
-      );
-      for (const testCase of registrationCases) {
-        const { diagnostics } = runUltracite(directory, testCase[0]);
-        expect(
-          diagnostics
-            .filter(({ code }) => code?.startsWith("style(") === true)
-            .map(({ code }) => code),
-          testCase[0]
-        ).toEqual(
-          Array.from({ length: expectedCount(testCase) }, () => ruleCode)
-        );
-      }
-    } finally {
-      await rm(directory, { force: true, recursive: true });
-    }
-  },
-  60_000
-);
+]) {
+  new RuleTester().run(ruleId, rule, {
+    invalid: registrationCases
+      .filter((fixture) => expectedCount(fixture) > 0)
+      .map((fixture) => ({
+        code: fixture[1],
+        errors: Array.from({ length: expectedCount(fixture) }, () => ({
+          messageId
+        })),
+        filename: fixture[0],
+        output: null
+      })),
+    valid: registrationCases
+      .filter((fixture) => expectedCount(fixture) === 0)
+      .map(([filename, code]) => ({ code, filename }))
+  });
+}

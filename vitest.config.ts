@@ -1,7 +1,7 @@
 import { configDefaults, defineConfig } from "vitest/config";
 
 /**
- * Keep native worktree copies out of canonical component test discovery.
+ * Discover root-owned tests without entering independent consumer projects.
  */
 export default defineConfig({
   test: {
@@ -9,6 +9,11 @@ export default defineConfig({
       ...configDefaults.exclude,
       "**/.claude/worktrees/**",
       "**/.worktrees/**"
+    ],
+    include: [
+      "{.github/scripts,rules}/**/*.test.ts",
+      "plugins/*/tests/**/*.test.ts",
+      "plugins/harness/tooling/pnpm/**/*.test.ts"
     ]
   }
 });

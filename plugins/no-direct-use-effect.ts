@@ -1,32 +1,19 @@
-import type { CallExpression, Node } from "@oxc-project/types";
-
-interface Binding {
-  readonly defs: readonly {
-    readonly type: string;
-    readonly node: Node;
-    readonly parent: Node | null;
-  }[];
-}
-
-interface Scope {
-  readonly upper: Scope | null;
-  readonly variables: readonly (Binding & { readonly name: string })[];
-}
-
-interface RuleContext {
-  readonly sourceCode: { readonly getScope: (node: Node) => Scope };
-  readonly report: (diagnostic: {
-    readonly messageId: string;
-    readonly node: Node;
-  }) => void;
-}
+import type {
+  ESTree,
+  Context,
+  Definition,
+  Plugin,
+  Rule,
+  Scope,
+  Variable
+} from "@oxlint/plugins";
 
 interface Origin {
-  readonly node: Node | null | undefined;
+  readonly node: ESTree.Node | null | undefined;
   readonly expected: "hook" | "namespace";
 }
 
-const nameOf = (node: Node): string | undefined => {
+const nameOf = (node: ESTree.Node): string | undefined => {
   if (node.type === "Identifier") {
     return node.name;
   }
@@ -37,10 +24,10 @@ const nameOf = (node: Node): string | undefined => {
 };
 
 const bindingFor = (
-  node: Node,
+  node: ESTree.Node,
   name: string,
-  context: RuleContext
-): Binding | undefined => {
+  context: Context
+): Variable | undefined => {
   let scope: Scope | null = context.sourceCode.getScope(node);
   while (scope) {
     const binding = scope.variables.find((variable) => variable.name === name);
@@ -53,7 +40,7 @@ const bindingFor = (
 };
 
 const matchesImport = (
-  binding: Binding["defs"][number],
+  binding: Definition,
   expected: Origin["expected"]
 ): boolean => {
   const { node, parent } = binding;
@@ -74,7 +61,7 @@ const matchesImport = (
 };
 
 const variableOrigin = (
-  binding: Binding["defs"][number],
+  binding: Definition,
   name: string,
   expected: Origin["expected"]
 ): Origin | false => {
@@ -110,9 +97,9 @@ const variableOrigin = (
 };
 
 const bindingOrigin = (
-  node: Extract<Node, { type: "Identifier" }>,
+  node: Extract<ESTree.Node, { type: "Identifier" }>,
   expected: Origin["expected"],
-  context: RuleContext
+  context: Context
 ): Origin | boolean => {
   const definition = bindingFor(node, node.name, context)?.defs;
   const binding = definition?.length === 1 ? definition[0] : undefined;
@@ -124,7 +111,7 @@ const bindingOrigin = (
     : variableOrigin(binding, node.name, expected);
 };
 
-const isCommonJsNamespace = (node: Node, context: RuleContext): boolean =>
+const isCommonJsNamespace = (node: ESTree.Node, context: Context): boolean =>
   node.type === "CallExpression" &&
   node.callee.type === "Identifier" &&
   node.callee.name === "require" &&
@@ -133,10 +120,10 @@ const isCommonJsNamespace = (node: Node, context: RuleContext): boolean =>
   node.arguments[0]?.type === "Literal" &&
   node.arguments[0].value === "react";
 
-const isReactEffect = (callee: Node, context: RuleContext): boolean => {
-  let current: Node | null | undefined = callee;
+const isReactEffect = (callee: ESTree.Node, context: Context): boolean => {
+  let current: ESTree.Node | null | undefined = callee;
   let expected: Origin["expected"] = "hook";
-  const visited = new Set<Node>();
+  const visited = new Set<ESTree.Node>();
   while (current && !visited.has(current)) {
     visited.add(current);
     if (
@@ -171,9 +158,9 @@ const isReactEffect = (callee: Node, context: RuleContext): boolean => {
 };
 
 const noDirectUseEffectRule = {
-  create(context: RuleContext) {
+  create(context: Context) {
     return {
-      CallExpression(node: CallExpression) {
+      CallExpression(node: ESTree.CallExpression) {
         if (isReactEffect(node.callee, context)) {
           context.report({ messageId: "noDirectUseEffect", node: node.callee });
         }
@@ -190,8 +177,8 @@ const noDirectUseEffectRule = {
         "Call a framework-provided effect hook instead of React's 'useEffect'."
     },
     type: "problem"
-  } as const
-};
+  }
+} satisfies Rule;
 
 /**
  * Diagnose source-proven React useEffect calls without rewriting lifecycle behavior.
@@ -199,4 +186,4 @@ const noDirectUseEffectRule = {
 export default {
   meta: { name: "react-effects" },
   rules: { "no-direct-use-effect": noDirectUseEffectRule }
-};
+} satisfies Plugin;
