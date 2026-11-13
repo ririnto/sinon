@@ -115,7 +115,7 @@ Use the [verification map](docs/verification.md) for component commands, consume
 The root package commands invoke validation suites owned by their catalog or plugin components.
 Store shared npm dependency versions in `pnpm-workspace.yaml` catalogs and reference them with `catalog:`.
 Follow repository guidance for task-specific checks and package validation.
-Run `pnpm run test:promtool` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
+Run `pnpm run check:test:promtool` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
 That component verifies and runs the official release executable without a separate Go build graph.
 
 ## Current Plugins

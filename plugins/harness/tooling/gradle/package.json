@@ -1,13 +1,13 @@
 {
   "scripts": {
-    "check": "run-p check:*",
+    "check": "run-s check:markdownlint-cli2 check:test",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:test": "run-p check:test:*",
+    "check:test:gradle": "./gradlew ktlintCheck check",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "gradle:check": "./gradlew check",
-    "gradle:ktlintCheck": "./gradlew ktlintCheck",
-    "pre-commit": "run-s check gradle:ktlintCheck",
-    "pre-push": "run-s check gradle:check",
+    "pre-commit": "run-s check",
+    "pre-push": "run-s check",
     "prepare": "husky"
   },
   "devDependencies": {

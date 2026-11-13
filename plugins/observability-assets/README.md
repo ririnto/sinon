@@ -118,5 +118,5 @@ Skill examples are authoring patterns that must be adapted into the target repos
 
 ## Validation
 
-Run `pnpm run test:promtool` from the repository root to execute the rule fixtures with the official Prometheus release binary.
+Run `pnpm run check:test:promtool` from the repository root to execute the rule fixtures with the official Prometheus release binary.
 Run `pnpm run check:promtool` to test release archive integrity without downloading Prometheus.

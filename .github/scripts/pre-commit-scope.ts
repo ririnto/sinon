@@ -56,7 +56,7 @@ export const selectChecks = (stagedPaths: readonly string[]): string[] => [
   )
     ? ["check:promtool"]
     : []),
-  `check:test ${[
+  `check:test:unit ${[
     ".github/scripts/sync-versions.test.ts",
     ...testScopes
       .filter(({ patterns }) =>

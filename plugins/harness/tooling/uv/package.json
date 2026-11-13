@@ -1,15 +1,15 @@
 {
   "scripts": {
-    "check": "run-p check:*",
+    "check": "run-s check:markdownlint-cli2 check:uv",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:uv": "run-p check:uv:*",
+    "check:uv:format": "uv run ruff format --check .",
+    "check:uv:lint": "uv run ruff check .",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "pre-commit": "run-s check uv:check",
-    "pre-push": "run-s check uv:check",
+    "pre-commit": "run-s check",
+    "pre-push": "run-s check",
     "prepare": "husky",
-    "uv:check": "run-s uv:lint uv:format",
-    "uv:format": "uv run ruff format --check .",
-    "uv:lint": "uv run ruff check .",
     "uv:doc": "uv run --group docs sphinx-build -n -W -b html docs build/api-docs"
   },
   "devDependencies": {

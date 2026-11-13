@@ -72,16 +72,16 @@ These checks enforce Go-specific contracts rather than multiline comment delimit
 
 Use the [project baseline](baseline.md) for the root pnpm manifest, Markdownlint configuration, catalog, and real Husky hooks.
 The hooks in `tooling/go/.husky/` run the shared check before native lint, formatting, and NilAway on commit.
-On push it also runs the race-enabled test gate.
+Both hooks run the race-enabled test gate after Markdown validation and the Go checks.
 The hooks use the tools pinned in `tools/go.mod`.
 
 Run at the module or workspace root:
 
 ```sh
-pnpm go:lint
-pnpm go:format
-pnpm go:nilaway
-pnpm go:test
+pnpm check:go:lint
+pnpm check:go:format
+pnpm check:go:nilaway
+pnpm check:test:go
 ```
 
 The Taskfile enumerates the active main modules and runs each check from its module root.
@@ -89,7 +89,7 @@ NilAway receives each module's own path while analysis retains workspace depende
 Place a golangci-lint configuration where each module can discover it, including modules outside the workspace root.
 Test each module with `GOWORK=off` as well to detect dependencies supplied only by the workspace.
 
-The `go:check` command runs all four tasks.
+The `check` command runs all four tasks alongside Markdown checks.
 The Go toolchain resolves and builds Task and the other tools from the separate tools module.
 Update tool versions in that module after checking compatibility with the target's Go directive.
 NilAway has no stable release tag.
@@ -101,7 +101,7 @@ Run `pnpm go:docs` from the module root, then open the local address printed by 
 The command generates and serves the module's documentation as HTML and does not publish it.
 `-list=false` disables serving required dependency modules.
 Use `go doc -all <package>` to print one package's documentation as text without pkgsite.
-Run `pnpm go:lint` to validate documentation comments and fix its findings.
+Run `pnpm check:go:lint` to validate documentation comments and fix its findings.
 The documentation server does not report every missing or unclear contract, so review the rendered API for useful descriptions and links.
 
 ## CI Behavior

@@ -18,6 +18,6 @@ GOWORK=off go test ./...
 (cd greeting && GOWORK=off go test ./...)
 ```
 
-`pnpm run go:check` runs lint, formatting, NilAway, and race tests across both modules.
+`pnpm run check` runs lint, formatting, NilAway, and race tests across both modules.
 `pnpm run go:docs` serves local API documentation.
 The project-owned hooks run those checks on commit and push, and both CI configurations use the same Taskfile.

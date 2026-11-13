@@ -6,8 +6,8 @@ Install Python 3.12 or later and uv, then run:
 ```sh
 pnpm install
 uv sync --all-packages
-pnpm run uv:check
-pnpm run uv:test
+pnpm run check:uv
+pnpm run check:test:uv
 pnpm run uv:doc
 uv run --package workspace-greeter greeter Ada
 uv build --all-packages

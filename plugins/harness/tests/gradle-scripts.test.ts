@@ -111,9 +111,7 @@ describe("Gradle Node-side script integration", () => {
           await readFile(path.join(gradleProfile, "package.json"), "utf-8")
         );
         if (buildSrc) {
-          scripts["gradle:check"] = "./gradlew :check :buildSrc:check";
-          scripts["pre-commit"] = "run-s check gradle:check";
-          delete scripts["gradle:ktlintCheck"];
+          scripts["check:test:gradle"] = "./gradlew :check :buildSrc:check";
         }
         await writeFile(
           path.join(directory, "package.json"),
@@ -194,11 +192,7 @@ describe("Gradle Node-side script integration", () => {
           expect(result.status).toBe(0);
           expect(
             await readFile(path.join(directory, "gradle-calls.txt"), "utf-8")
-          ).toBe(
-            buildSrc
-              ? ":check :buildSrc:check\n"
-              : `${hook === "pre-commit" ? "ktlintCheck" : "check"}\n`
-          );
+          ).toBe(buildSrc ? ":check :buildSrc:check\n" : "ktlintCheck check\n");
         } else {
           expect(result.status).toBe(1);
           await expect(
