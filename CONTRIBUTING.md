@@ -23,8 +23,6 @@ Use `.yaml` when the consuming platform supports it.
 Preserve required `.yml` names and record the consumer's filename requirement before renaming files.
 Update references and validate consumers when changing a filename.
 This repository uses Markdown issue templates, so it needs no YAML issue-form filenames.
-GitHub requires `.yml` for issue forms if contributors introduce them later.
-See [GitHub's template documentation](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates) for that exception.
 
 ## Verification
 

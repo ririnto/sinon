@@ -8,13 +8,10 @@ Problem: the team needs a repeatable local environment for models and retrieval 
 
 Solution: keep the local runtime list short and explicit so every developer sees the same endpoints.
 
-The reviewed Ollama image is 0.31.2.
-Refresh this digest deliberately when adopting a newer release.
-
 ```yaml
 services:
   ollama:
-    image: ollama/ollama@sha256:509fdf54e23bd50d87af646cb51c0a7a203d6a83cc4d6695b3b08c5be1c62c0a
+    image: ollama/ollama:0.31.2
     ports:
       - 11434:11434
   pgvector:
@@ -24,12 +21,6 @@ services:
     environment:
       POSTGRES_PASSWORD: app
 ```
-
-## Decision points
-
-| Situation | First choice |
-| --- | --- |
-| need repeatable dev bootstrap | Docker Compose with explicit model and vector services |
 
 ## Pitfalls
 

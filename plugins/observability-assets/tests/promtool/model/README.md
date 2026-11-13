@@ -11,18 +11,21 @@ The locked `tla-chaos-loop` dependency supplies TLC.
 Each command creates and removes its own temporary metadata directory.
 
 ```sh
-pnpm exec run-p check:promtool:download check:promtool:child
 pnpm run check:promtool
 ```
 
 ## Download lifecycle
 
-`RequestOk` represents fetch fulfillment and the synchronous successful response check.
-`Reject` represents a fetch error, non-OK response, or body error.
-`BodyOk` represents a completed body read.
-`AggregateReject` and `AggregateFulfill` represent the `Promise.all` reaction.
-`Abort` represents the catch continuation and cancellation request.
-`Throw` represents the continuation after `Promise.allSettled`, and `Return` represents the successful await.
+| Model action | Source effect |
+| --- | --- |
+| `RequestOk` | Fetch fulfills and the synchronous response check succeeds. |
+| `Reject` | Fetch, response validation, or body reading fails. |
+| `BodyOk` | Body reading completes. |
+| `AggregateReject`, `AggregateFulfill` | The `Promise.all` reaction runs. |
+| `Abort` | The catch continuation requests cancellation. |
+| `Throw` | The continuation after `Promise.allSettled` throws. |
+| `Return` | The successful await returns. |
+
 The first rejection is recorded independently as expected history to check error preservation.
 
 Two distinct assets each make one request and can each reject.
@@ -34,10 +37,12 @@ It does not assert eventual settlement, socket closure, or liveness.
 
 ## Child lifecycle
 
-`Signal` represents a once-registered process signal callback, including a deferred spawn listener when the PID is unknown.
-`Spawn` represents the spawn event and any deferred forwarding.
-`SpawnError` represents the first child error event, including a failed spawn or a failed kill attempt.
-`Close` resolves the close promise, and `Finish` represents its continuation and the `finally` cleanup.
+- `Signal` represents a once-registered process signal callback, including a deferred spawn listener when the PID is unknown.
+- `Spawn` represents the spawn event and any deferred forwarding.
+- `SpawnError` represents the first child error event, including a failed spawn or a failed kill attempt.
+- `Close` resolves the close promise.
+- `Finish` represents its continuation and the `finally` cleanup.
+
 The model conservatively permits signals after close and before that continuation.
 This includes schedules that Node.js microtask ordering may exclude.
 The recorded first signal is separate from the implementation's interruption state.
@@ -51,7 +56,8 @@ A failed spawn has no PID and emits an error before close.
 The model conservatively permits a later child error while its listener is installed.
 Kill records are attempts and do not guarantee termination.
 If spawn fails, no deferred attempt is expected.
-A code and a signal close are distinct abstract results; their actual values are outside this model.
+A code and a signal close are distinct abstract results.
+Their actual values are outside this model.
 The model does not assert that the child eventually closes or that an unhandled signal has no effect on the parent process.
 The listener set represents process signal listeners, while `deferred` represents the optional spawn listener.
 The model does not track the removal of the child error and close listeners, which the runtime tests exercise.
