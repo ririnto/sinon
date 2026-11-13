@@ -12,7 +12,7 @@ overrides:
   micromark-extension-math>katex: "catalog:"
 
 catalog:
-  "@oxlint/plugins": 1.92.0
+  "@oxlint/plugins": 1.93.0
   "@radix-ui/colors": ^3.0.0
   "@radix-ui/react-icons": ^1.3.2
   "@radix-ui/themes": ^3.3.0
@@ -31,12 +31,12 @@ catalog:
   fast-sort: ^3.4.1
   husky: ^9.1.7
   katex: ^0.19.1
-  markdownlint: ^0.42.0
+  markdownlint: ^0.42.1
   markdownlint-cli2: ^0.24.0
   markdownlint-rule-search-replace: ^1.2.0
   npm-run-all2: ^9.0.4
-  oxfmt: ^0.77.0
-  oxlint: ^1.92.0
+  oxfmt: ^0.78.0
+  oxlint: ^1.93.0
   oxlint-tsgolint: ^7.0.2006
   radix-ui: ^1.8.1
   react: ^19.3.1
@@ -47,7 +47,7 @@ catalog:
   tsx: ^4.23.15
   typescript: ^7.0.2
   ultracite: ^8.1.1
-  vite: ^8.3.6
+  vite: ^8.3.7
   vitest: ^5.1.0
   yaml: ^2.9.1
 
