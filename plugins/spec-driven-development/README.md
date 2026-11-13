@@ -100,7 +100,7 @@ After installation, commands work offline.
 
 ## Validation
 
-Run `pnpm run check:test plugins/spec-driven-development/tests` from the repository root to test the plugin's CLI, frontmatter handling, and document validation.
+Run `pnpm run check:test:unit plugins/spec-driven-development/tests` from the repository root to test the plugin's CLI, frontmatter handling, and document validation.
 
 Run the CLI from the consuming repository:
 Resolve the package root two levels above the installed skill directory.

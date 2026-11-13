@@ -54,7 +54,7 @@ pnpm run check:promtool
 
 The [model reference](model/README.md) describes the checked properties, source mappings, and limits.
 The model commands require Java and a POSIX shell with `mktemp`.
-Run `pnpm run check:test plugins/observability-assets/tests/promtool` for the runtime regression tests alone.
+Run `pnpm run check:test:unit plugins/observability-assets/tests/promtool` for the runtime regression tests alone.
 
 The rule and tests adapt the examples in `plugins/observability-assets/skills/prometheus-alert-rules/SKILL.md` and `plugins/observability-assets/skills/alert-rule-testing/SKILL.md`.
 These files verify the documentation examples.
