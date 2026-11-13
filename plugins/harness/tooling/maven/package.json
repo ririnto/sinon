@@ -1,13 +1,13 @@
 {
   "scripts": {
-    "check": "run-p check:*",
+    "check": "run-s check:markdownlint-cli2 check:test",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:test": "run-p check:test:*",
+    "check:test:maven": "./mvnw verify",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "maven:check": "./mvnw verify",
-    "maven:lint": "./mvnw spotless:check checkstyle:check",
-    "pre-commit": "run-s check maven:lint",
-    "pre-push": "run-s check maven:check",
+    "pre-commit": "run-s check",
+    "pre-push": "run-s check",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -12,7 +12,7 @@
     "check:promtool": "run-p check:promtool:*",
     "check:promtool:child": "model_dir=$(mktemp -d) && trap 'rm -rf \"$model_dir\"' EXIT && java -XX:+UseParallelGC -cp node_modules/tla-chaos-loop/tools/tla2tools.jar tlc2.TLC -workers 1 -metadir \"$model_dir\" -config plugins/observability-assets/tests/promtool/model/ChildLifecycle.cfg plugins/observability-assets/tests/promtool/model/ChildLifecycle.tla",
     "check:promtool:download": "model_dir=$(mktemp -d) && trap 'rm -rf \"$model_dir\"' EXIT && java -XX:+UseParallelGC -cp node_modules/tla-chaos-loop/tools/tla2tools.jar tlc2.TLC -workers 1 -metadir \"$model_dir\" -config plugins/observability-assets/tests/promtool/model/DownloadLifecycle.cfg plugins/observability-assets/tests/promtool/model/DownloadLifecycle.tla",
-    "check:test": "vitest run",
+    "check:test": "run-p check:test:*",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "run-s ultracite:check ultracite:check:harness",
     "check:versions": "node .github/scripts/sync-versions.mjs",
@@ -22,12 +22,13 @@
     "pre-commit": "node --import tsx .github/scripts/pre-commit-scope.ts",
     "pre-push": "run-s check",
     "prepare": "husky",
-    "test:promtool": "tsx plugins/observability-assets/tests/promtool/run.ts",
     "ultracite:check": "ultracite check --config oxlint.config.ts --ignore-pattern \"plugins/harness/tooling/pnpm/**\"",
     "ultracite:check:harness": "ultracite check --type-aware --config oxlint.config.ts plugins/harness/tooling/pnpm",
     "ultracite:fix": "ultracite fix --config oxlint.config.ts --ignore-pattern \"plugins/harness/tooling/pnpm/**\"",
     "ultracite:fix:harness": "ultracite fix --type-aware --config oxlint.config.ts plugins/harness/tooling/pnpm",
-    "versions:sync": "node .github/scripts/sync-versions.mjs --write"
+    "versions:sync": "node .github/scripts/sync-versions.mjs --write",
+    "check:test:unit": "vitest run",
+    "check:test:promtool": "tsx plugins/observability-assets/tests/promtool/run.ts"
   },
   "devDependencies": {
     "@google/design.md": "catalog:",

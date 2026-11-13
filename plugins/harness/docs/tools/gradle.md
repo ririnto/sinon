@@ -198,14 +198,14 @@ The supplied script surface for a target without `buildSrc` is:
 
 | Script | Command |
 | --- | --- |
-| `check` | `run-p check:*` |
+| `check` | `run-s check:markdownlint-cli2 check:test` |
+| `check:test` | `run-p check:test:*` |
 | `check:markdownlint-cli2` | `markdownlint-cli2` |
 | `fix` | `run-p fix:*` |
 | `fix:markdownlint-cli2` | `markdownlint-cli2 --fix` |
-| `gradle:check` | `./gradlew check` |
-| `gradle:ktlintCheck` | `./gradlew ktlintCheck` |
-| `pre-commit` | `run-s check gradle:ktlintCheck` |
-| `pre-push` | `run-s check gradle:check` |
+| `check:test:gradle` | `./gradlew ktlintCheck check` |
+| `pre-commit` | `run-s check` |
+| `pre-push` | `run-s check` |
 | `prepare` | `husky` |
 
 The package scripts finish Node-side checks successfully before invoking Gradle.
@@ -217,9 +217,9 @@ For a target with `buildSrc`, replace the Gradle scripts and hook commands with 
 
 | Script | Command |
 | --- | --- |
-| `gradle:check` | `./gradlew :check :buildSrc:check` |
-| `pre-commit` | `run-s check gradle:check` |
-| `pre-push` | `run-s check gradle:check` |
+| `check:test:gradle` | `./gradlew :check :buildSrc:check` |
+| `pre-commit` | `run-s check` |
+| `pre-push` | `run-s check` |
 
 Omit the separate lint script from this setup.
 Ensure that both root and `buildSrc` checks include their existing ktlint gates.

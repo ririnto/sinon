@@ -21,7 +21,7 @@ const alwaysRunChecks = [
   "check:versions"
 ];
 
-const versionTest = "check:test .github/scripts/sync-versions.test.ts";
+const versionTest = "check:test:unit .github/scripts/sync-versions.test.ts";
 
 test("paths outside every suite keep only the always-run checks", () => {
   expect(
@@ -112,7 +112,7 @@ test.each([0, 7])(
         private: true,
         scripts: {
           "check:markdownlint-cli2": "node --version",
-          "check:test": "node record-tests.mjs",
+          "check:test:unit": "node record-tests.mjs",
           "check:typescript": "node --version",
           "check:ultracite": "node --version",
           "check:versions": "node --version"

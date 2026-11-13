@@ -13,9 +13,8 @@
     "pre-push": "run-s check",
     "prepare": "husky",
     "build": "pnpm --filter @sample/invoice run build",
-    "check:sample": "run-s test",
-    "test": "run-s build test:packages",
-    "test:packages": "pnpm -r --if-present run test"
+    "check:test": "run-s build check:test:packages",
+    "check:test:packages": "pnpm -r --if-present run check:test"
   },
   "devDependencies": {
     "@oxlint/plugins": "catalog:",

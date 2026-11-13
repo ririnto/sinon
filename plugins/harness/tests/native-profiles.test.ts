@@ -11,7 +11,8 @@ const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const trackedScripts = ["-leading.sh", "script with spaces.sh", "star*.sh"];
 const nativeProfiles = [
   {
-    commitCalls: [
+    executables: ["cargo"],
+    nativeCalls: [
       ["cargo", "fmt", "--all", "--", "--check"],
       [
         "cargo",
@@ -26,27 +27,26 @@ const nativeProfiles = [
         "warnings"
       ]
     ],
-    executables: ["cargo"],
     profile: "rust",
-    pushExtra: [["cargo", "test", "--workspace"]]
+    testCalls: [["cargo", "test", "--workspace"]]
   },
   {
-    commitCalls: [
+    executables: ["uv"],
+    nativeCalls: [
       ["uv", "run", "ruff", "check", "."],
       ["uv", "run", "ruff", "format", "--check", "."]
     ],
-    executables: ["uv"],
     profile: "uv",
-    pushExtra: []
+    testCalls: []
   },
   {
-    commitCalls: [
+    executables: ["shellcheck", "shfmt"],
+    nativeCalls: [
       ["shellcheck", "-S", "warning", "--", ...trackedScripts],
       ["shfmt", "-d", "--", ...trackedScripts]
     ],
-    executables: ["shellcheck", "shfmt"],
     profile: "shell",
-    pushExtra: []
+    testCalls: []
   }
 ] as const;
 
@@ -89,8 +89,8 @@ describe("remaining native profile Git gates", () => {
       hook,
       state,
       executables,
-      commitCalls,
-      pushExtra
+      nativeCalls,
+      testCalls
     }) => {
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-native-gate-")
@@ -138,7 +138,7 @@ describe("remaining native profile Git gates", () => {
         executables.map((name) =>
           writeFile(
             path.join(directory, ".bin", name),
-            `#!/usr/bin/env sh\nset -e\nprintf '%s\\n' '${name}' "$@" >> "$HARNESS_FIXTURE_TRACE"\nif [ "$HARNESS_FIXTURE_FAIL" = '${name}' ]; then exit 7; fi\n`,
+            `#!/usr/bin/env node\nimport { appendFileSync } from "node:fs";\nappendFileSync(process.env.HARNESS_FIXTURE_TRACE, JSON.stringify(["${name}", ...process.argv.slice(2)]) + "\\n");\nif (process.env.HARNESS_FIXTURE_FAIL === "${name}") process.exit(7);\n`,
             { mode: 0o755 }
           )
         )
@@ -170,13 +170,27 @@ describe("remaining native profile Git gates", () => {
       if (state === "markdown") {
         await expect(readFile(trace)).rejects.toMatchObject({ code: "ENOENT" });
       } else {
-        const calls =
-          state === "native"
-            ? [commitCalls[0]]
-            : [...commitCalls, ...(hook === "pre-push" ? pushExtra : [])];
-        expect(await readFile(trace, "utf-8")).toBe(
-          `${calls.flat().join("\n")}\n`
-        );
+        const recordedCalls = await readFile(trace, "utf-8");
+        const calls = recordedCalls
+          .trim()
+          .split("\n")
+          .map((line) => JSON.parse(line) as string[]);
+        const nativeLines = nativeCalls.map((call) => JSON.stringify(call));
+        if (state === "native") {
+          expect(calls.length).toBeGreaterThan(0);
+          for (const call of calls) {
+            expect(nativeLines).toContain(JSON.stringify(call));
+          }
+          expect(calls.some((call) => call[0] === executables[0])).toBe(true);
+        } else {
+          expect(
+            calls
+              .slice(0, nativeCalls.length)
+              .map((call) => JSON.stringify(call))
+              .toSorted()
+          ).toEqual(nativeLines.toSorted());
+          expect(calls.slice(nativeCalls.length)).toEqual(testCalls);
+        }
       }
       if (state !== "valid") {
         if (hook === "pre-commit") {

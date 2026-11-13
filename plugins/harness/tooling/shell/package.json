@@ -1,15 +1,15 @@
 {
   "scripts": {
-    "check": "run-p check:*",
+    "check": "run-s check:markdownlint-cli2 check:shell",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:shell": "run-p check:shell:*",
+    "check:shell:format": "git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --",
+    "check:shell:lint": "git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "pre-commit": "run-s check shell:check",
-    "pre-push": "run-s check shell:check",
-    "prepare": "husky",
-    "shell:check": "run-s shell:lint shell:format",
-    "shell:format": "git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --",
-    "shell:lint": "git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --"
+    "pre-commit": "run-s check",
+    "pre-push": "run-s check",
+    "prepare": "husky"
   },
   "devDependencies": {
     "husky": "catalog:",

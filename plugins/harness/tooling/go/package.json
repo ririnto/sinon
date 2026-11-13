@@ -1,17 +1,18 @@
 {
   "scripts": {
-    "check": "run-p check:*",
+    "check": "run-s check:markdownlint-cli2 check:go check:test",
+    "check:go": "run-p check:go:*",
+    "check:go:format": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. format",
+    "check:go:lint": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. lint",
+    "check:go:nilaway": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. nilaway",
     "check:markdownlint-cli2": "markdownlint-cli2",
+    "check:test": "run-p check:test:*",
+    "check:test:go": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. test",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "go:check": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. check",
     "go:docs": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. docs --",
-    "go:format": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. format",
-    "go:lint": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. lint",
-    "go:nilaway": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. nilaway",
-    "go:test": "HARNESS_GOWORK=\"$(go env GOWORK)\" GOWORK=off go -C tools tool task --dir .. test",
-    "pre-commit": "run-s check go:lint go:format go:nilaway",
-    "pre-push": "run-s check go:check",
+    "pre-commit": "run-s check",
+    "pre-push": "run-s check",
     "prepare": "husky"
   },
   "devDependencies": {

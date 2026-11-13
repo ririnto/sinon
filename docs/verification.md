@@ -37,7 +37,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Specification commands | `pnpm run check:test plugins/spec-driven-development/tests` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
 | Promtool release verification and process handling | `pnpm run check:test plugins/observability-assets/tests/promtool` | Local archive and process fixtures test integrity checks and child-process behavior. |
 | Promtool lifecycle models | `pnpm run check:promtool` | TLC checks bounded download and child lifecycle models. |
-| Prometheus rule examples | `pnpm run test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
+| Prometheus rule examples | `pnpm run check:test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
 | Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and Harness tooling pass their configured lint and formatting checks, including the React effect policy. |
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |

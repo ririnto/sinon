@@ -5,7 +5,7 @@ Install the stable Rust toolchain with rustfmt and Clippy, then run:
 
 ```sh
 pnpm install
-pnpm run rust:check
+pnpm run check
 pnpm run rust:doc
 cargo run -p greeter -- Ada
 ```

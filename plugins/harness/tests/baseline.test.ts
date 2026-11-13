@@ -35,6 +35,16 @@ const profiles: BaselineProfile[] = [
   "react"
 ];
 
+const nativeGateCommands: Partial<Record<BaselineProfile, string>> = {
+  go: "run-s check:markdownlint-cli2 check:go check:test",
+  gradle: "run-s check:markdownlint-cli2 check:test",
+  kotlin: "run-s check:markdownlint-cli2 check:test",
+  maven: "run-s check:markdownlint-cli2 check:test",
+  rust: "run-s check:markdownlint-cli2 check:rust check:test",
+  shell: "run-s check:markdownlint-cli2 check:shell",
+  uv: "run-s check:markdownlint-cli2 check:uv"
+};
+
 const targetDirectory = async (): Promise<string> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-baseline-"));
   onTestFinished(() => rm(directory, { force: true, recursive: true }));
@@ -200,7 +210,7 @@ describe("fresh-root baseline", () => {
       );
       expect(manifest.engines.node).toBe(rootManifest.engines.node);
       expect(manifest.scripts).toMatchObject({
-        check: "run-p check:*",
+        check: nativeGateCommands[profile] ?? "run-p check:*",
         "check:markdownlint-cli2": "markdownlint-cli2",
         fix: "run-p fix:*",
         "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
@@ -279,8 +289,7 @@ describe("fresh-root baseline", () => {
       );
       if (profile === "gradle" || profile === "kotlin") {
         expect(manifest.scripts).toMatchObject({
-          "gradle:check": "./gradlew check",
-          "gradle:ktlintCheck": "./gradlew ktlintCheck"
+          "check:test:gradle": "./gradlew ktlintCheck check"
         });
         expect(
           await readFile(
@@ -760,7 +769,7 @@ describe("Maven and Go hook entrypoints", () => {
     (
       [
         {
-          calls: "mvnw spotless:check checkstyle:check\n",
+          calls: "mvnw verify\n",
           hook: "pre-commit",
           profile: "maven",
           valid: true
@@ -772,13 +781,15 @@ describe("Maven and Go hook entrypoints", () => {
           valid: true
         },
         {
-          calls: "go task lint\ngo task format\ngo task nilaway\n",
+          calls:
+            "go task lint\ngo task format\ngo task nilaway\ngo task test\n",
           hook: "pre-commit",
           profile: "go",
           valid: true
         },
         {
-          calls: "go task check\n",
+          calls:
+            "go task lint\ngo task format\ngo task nilaway\ngo task test\n",
           hook: "pre-push",
           profile: "go",
           valid: true
@@ -854,9 +865,13 @@ describe("Maven and Go hook entrypoints", () => {
           : git(...gitArguments);
       expect(result.status).toBe(valid ? 0 : 1);
       if (valid) {
-        expect(
-          await readFile(path.join(directory, "native-calls.txt"), "utf-8")
-        ).toBe(calls);
+        const recordedCalls = await readFile(
+          path.join(directory, "native-calls.txt"),
+          "utf-8"
+        );
+        expect(recordedCalls.trim().split("\n").toSorted()).toEqual(
+          calls.trim().split("\n").toSorted()
+        );
       } else {
         await expect(
           readFile(path.join(directory, "native-calls.txt"))

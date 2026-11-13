@@ -152,7 +152,8 @@ Checkstyle engine `14.3.0` is the selected version for this profile.
 If the target's Java baseline is older, retain compatible existing tools or obtain explicit approval for an upgrade.
 
 Use the [project baseline](baseline.md) for the root pnpm manifest, Markdownlint configuration, catalog, and real Husky hooks.
-The hooks in `tooling/maven/.husky/` run the shared check before `maven:lint` on commit and `maven:check` on push.
+Both hooks run `check`, which completes Markdown validation before `check:test:maven` runs Maven verify.
+The Maven lifecycle includes Checkstyle during validate and Spotless during verify.
 The native commands are `./mvnw spotless:check checkstyle:check` and `./mvnw verify` respectively.
 Preserve existing hook and script owners through the pnpm profile's bounded merge.
 The GitLab catalog's `maven:3.10.0-eclipse-temurin-25` image records a profile baseline, not the current stable runtime.

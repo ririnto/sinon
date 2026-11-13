@@ -24,6 +24,15 @@ import { configureBaseline } from "../../scripts/configure.js";
 import { runUltracite } from "../../tests/ultracite-fixture.js";
 import tsconfig from "./tsconfig.fragment.json" with { type: "json" };
 
+const nativeGateCommands: Record<string, string> = {
+  "../go/package.json": "run-s check:markdownlint-cli2 check:go check:test",
+  "../gradle/package.json": "run-s check:markdownlint-cli2 check:test",
+  "../maven/package.json": "run-s check:markdownlint-cli2 check:test",
+  "../rust/package.json": "run-s check:markdownlint-cli2 check:rust check:test",
+  "../shell/package.json": "run-s check:markdownlint-cli2 check:shell",
+  "../uv/package.json": "run-s check:markdownlint-cli2 check:uv"
+};
+
 const profileDirectory = import.meta.dirname;
 const resolvePackage = createRequire(import.meta.url).resolve;
 const tscBin = path.join(
@@ -128,32 +137,12 @@ describe("pnpm profile configuration", () => {
       "run-s check"
     ],
     ["package.fragment.json", "run-s check", "run-s check"],
-    [
-      "../go/package.json",
-      "run-s check go:lint go:format go:nilaway",
-      "run-s check go:check"
-    ],
-    [
-      "../gradle/package.json",
-      "run-s check gradle:ktlintCheck",
-      "run-s check gradle:check"
-    ],
-    [
-      "../maven/package.json",
-      "run-s check maven:lint",
-      "run-s check maven:check"
-    ],
-    [
-      "../rust/package.json",
-      "run-s check rust:format rust:lint",
-      "run-s check rust:check"
-    ],
-    [
-      "../shell/package.json",
-      "run-s check shell:check",
-      "run-s check shell:check"
-    ],
-    ["../uv/package.json", "run-s check uv:check", "run-s check uv:check"]
+    ["../go/package.json", "run-s check", "run-s check"],
+    ["../gradle/package.json", "run-s check", "run-s check"],
+    ["../maven/package.json", "run-s check", "run-s check"],
+    ["../rust/package.json", "run-s check", "run-s check"],
+    ["../shell/package.json", "run-s check", "run-s check"],
+    ["../uv/package.json", "run-s check", "run-s check"]
   ])(
     "%s owns its hook sequences and receives hook delegation",
     async (manifestFile, preCommit, prePush) => {
@@ -163,7 +152,7 @@ describe("pnpm profile configuration", () => {
         )
       ).toMatchObject({
         scripts: {
-          check: "run-p check:*",
+          check: nativeGateCommands[manifestFile] ?? "run-p check:*",
           fix: "run-p fix:*",
           "pre-commit": preCommit,
           "pre-push": prePush,
