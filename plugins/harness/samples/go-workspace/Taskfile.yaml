@@ -73,7 +73,7 @@ tasks:
       NILAWAY:
         sh: GOWORK=off go -C "$TOOLS_DIR" tool -n nilaway
     cmds:
-      - 'GOWORK="${HARNESS_GOWORK-${GOWORK-}}" "{{.NILAWAY}}" -include-pkgs="$(GOWORK=off go list -m)" ./...'
+      - 'GOWORK="${HARNESS_GOWORK-${GOWORK-}}" "{{.NILAWAY}}" ./...'
 
   test-module:
     internal: true
