@@ -1,20 +1,20 @@
 catalog:
-  "@oxlint/plugins": 1.92.0
+  "@oxlint/plugins": 1.93.0
   "@google/design.md": ^0.4.0
-  "@tsconfig/next": ^2.0.6
-  "@tsconfig/node-lts": ^24.0.1
-  "@tsconfig/react-native": ^3.0.9
-  "@tsconfig/vite-react": ^8.1.1
+  "@tsconfig/next": ^2.0.7
+  "@tsconfig/node-lts": ^26.0.1
+  "@tsconfig/react-native": ^3.0.10
+  "@tsconfig/vite-react": ^8.1.2
   "@types/node": ^26.6.6
   "@vue/tsconfig": ^0.9.1
   eslint-plugin-react-hooks: ^7.1.1
   husky: ^9.1.7
-  markdownlint: ^0.42.0
-  markdownlint-cli2: ^0.24.0
+  markdownlint: ^0.42.1
+  markdownlint-cli2: ^0.24.1
   markdownlint-rule-search-replace: ^1.2.0
   npm-run-all2: ^9.0.4
-  oxfmt: ^0.77.0
-  oxlint: ^1.92.0
-  oxlint-tsgolint: ^7.0.2006
-  ultracite: ^8.1.1
+  oxfmt: ^0.78.0
+  oxlint: ^1.93.0
+  oxlint-tsgolint: ^7.0.2007
+  ultracite: ^8.2.0
   vitest: ^5.1.0
