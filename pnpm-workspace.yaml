@@ -24,7 +24,6 @@ catalog:
   eslint-plugin-react-hooks: ^7.1.1
   fast-sort: ^3.4.1
   husky: ^9.1.7
-  katex: ^0.19.1
   markdownlint: ^0.42.1
   markdownlint-cli2: ^0.24.1
   markdownlint-rule-search-replace: ^1.2.0
