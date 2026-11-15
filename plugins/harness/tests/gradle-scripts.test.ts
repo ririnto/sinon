@@ -6,6 +6,13 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { parseDocument } from "yaml";
 
+import {
+  arrayValue,
+  objectValue,
+  stringValue,
+  valueAt
+} from "./structured-value.ts";
+
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const pnpmProfile = path.join(import.meta.dirname, "../tooling/pnpm");
 const gradleProfile = path.join(import.meta.dirname, "../tooling/gradle");
@@ -38,7 +45,7 @@ describe("Java CI entrypoints", () => {
   )(
     "$provider $profile needs no JavaScript runtime",
     async ({ profile, provider, task, wrapper }) => {
-      const catalog = parseDocument(
+      const catalog: unknown = parseDocument(
         await readFile(
           path.join(
             import.meta.dirname,
@@ -51,12 +58,17 @@ describe("Java CI entrypoints", () => {
           "utf-8"
         )
       ).toJS();
-      const commands: string[] =
+      const commands =
         provider === "gitlab"
-          ? catalog[`${profile}-java`].script
-          : catalog.jobs[`${profile}-java`].steps.flatMap(
-              (step: { run?: string }) => (step.run ? [step.run] : [])
-            );
+          ? arrayValue(valueAt(catalog, `${profile}-java`, "script")).map(
+              stringValue
+            )
+          : arrayValue(
+              valueAt(catalog, "jobs", `${profile}-java`, "steps")
+            ).flatMap((step) => {
+              const run = valueAt(step, "run");
+              return typeof run === "string" && run !== "" ? [run] : [];
+            });
       expect(commands).toEqual([`./${wrapper} ${task}`]);
       const directory = await mkdtemp(path.join(tmpdir(), "sinon-java-ci-"));
       try {
@@ -107,12 +119,15 @@ describe("Gradle Node-side script integration", () => {
         path.join(tmpdir(), "sinon-gradle-scripts-")
       );
       try {
-        const { scripts } = JSON.parse(
+        const manifest: unknown = JSON.parse(
           await readFile(path.join(gradleProfile, "package.json"), "utf-8")
         );
-        if (buildSrc) {
-          scripts["check:test:gradle"] = "./gradlew :check :buildSrc:check";
-        }
+        const scripts = {
+          ...objectValue(valueAt(manifest, "scripts")),
+          ...(buildSrc
+            ? { "check:test:gradle": "./gradlew :check :buildSrc:check" }
+            : {})
+        };
         await writeFile(
           path.join(directory, "package.json"),
           JSON.stringify({ private: true, scripts })

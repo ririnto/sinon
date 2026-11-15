@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 
+import { arrayValue, objectValue, stringValue } from "./structured-value.ts";
+
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const ultraciteBin = path.resolve(
   path.dirname(createRequire(import.meta.url).resolve("ultracite/oxfmt")),
@@ -29,7 +31,9 @@ export const runUltracite = (
       action,
       "--format",
       "json",
-      ...(configuration ? ["--config", configuration] : []),
+      ...(configuration !== undefined && configuration !== ""
+        ? ["--config", configuration]
+        : []),
       ...extraArguments,
       filename
     ],
@@ -49,8 +53,21 @@ export const runUltracite = (
     );
   }
   return {
-    diagnostics: JSON.parse(output.slice(start, output.lastIndexOf("}") + 1))
-      .diagnostics,
+    diagnostics: arrayValue(
+      objectValue(JSON.parse(output.slice(start, output.lastIndexOf("}") + 1)))
+        .diagnostics
+    ).map((entry) => {
+      const diagnostic = objectValue(entry);
+      return {
+        message: stringValue(diagnostic.message),
+        ...(diagnostic.code === undefined
+          ? {}
+          : { code: stringValue(diagnostic.code) }),
+        ...(diagnostic.filename === undefined
+          ? {}
+          : { filename: stringValue(diagnostic.filename) })
+      };
+    }),
     status: result.status
   };
 };

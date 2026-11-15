@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { isRecord, parseYamlRecord } from "./infrastructure.js";
+import { coerceString, isRecord, parseYamlRecord } from "./infrastructure.js";
 import { DOC_FILE_NAMES, FRONTMATTER_DELIMITER_RE } from "./shared.js";
 import type {
   FilterRule,
   FrontmatterBlock,
+  FrontmatterRecord,
   JsonRecord,
   LoadEntryResult,
   MutableRecord
@@ -59,18 +60,13 @@ export const extractFrontmatterFromFile = (
  * Normalizes a single tag or tag array into trimmed, non-empty strings.
  */
 export const normalizeTag = (value: unknown): readonly string[] => {
-  let tags: string[];
-  if (Array.isArray(value)) {
-    tags = value
-      .map((item) => String(item).trim())
-      .filter((item) => item.length > 0);
-  } else if (value === undefined || value === null) {
-    tags = [];
-  } else {
-    const scalar = String(value).trim();
-    tags = scalar ? [scalar] : [];
+  if (value === undefined || value === null) {
+    return [];
   }
-  return tags;
+  const values: readonly unknown[] = Array.isArray(value) ? value : [value];
+  return values
+    .map((item) => coerceString(item).trim())
+    .filter((item) => item.length > 0);
 };
 
 /**
@@ -97,13 +93,12 @@ export const parseFields = (
  */
 export const subjectString = (data: JsonRecord): string => {
   const { subject } = data;
-  let text = "";
-  if (isRecord(subject)) {
-    const name = String(subject.name ?? "");
-    const version = String(subject.version ?? "");
-    text = name || version ? `${name}@${version}` : "";
+  if (!isRecord(subject)) {
+    return "";
   }
-  return text;
+  const name = coerceString(subject.name ?? "");
+  const version = coerceString(subject.version ?? "");
+  return name.length > 0 || version.length > 0 ? `${name}@${version}` : "";
 };
 
 /**
@@ -135,20 +130,20 @@ export const buildRecord = (
   data: MutableRecord,
   endLine: number,
   title: string
-): MutableRecord => {
+): FrontmatterRecord => {
   const tags = normalizeTag(data.tag ?? data.tags);
   return {
-    created: String(data.created ?? ""),
-    description: String(data.description ?? ""),
+    created: coerceString(data.created ?? ""),
+    description: coerceString(data.description ?? ""),
     file: filePath,
     frontmatter_end_line: endLine,
     kind: toKindLabel(filePath),
-    last_updated: String(data.last_updated ?? ""),
-    status: String(data.status ?? ""),
+    last_updated: coerceString(data.last_updated ?? ""),
+    status: coerceString(data.status ?? ""),
     subject: subjectString(data),
     tag: tags,
     title,
-    updated: String(data.updated ?? "")
+    updated: coerceString(data.updated ?? "")
   };
 };
 

@@ -12,7 +12,7 @@ import path from "node:path";
 
 import { expect, onTestFinished, test } from "vitest";
 
-import { selectChecks } from "./pre-commit-scope";
+import { selectChecks } from "./pre-commit-scope.ts";
 
 const alwaysRunChecks = [
   "check:markdownlint-cli2",
@@ -95,7 +95,9 @@ test.each([0, 7])(
   "the hook runs one filtered test task and respects test exit %s",
   async (status) => {
     const fixture = await mkdtemp(path.join(tmpdir(), "sinon-hook-scope-"));
-    onTestFinished(() => rm(fixture, { force: true, recursive: true }));
+    onTestFinished(async () => {
+      await rm(fixture, { force: true, recursive: true });
+    });
     await symlink(
       path.resolve(import.meta.dirname, "../../node_modules"),
       path.join(fixture, "node_modules"),

@@ -15,7 +15,9 @@ import { configureBaseline } from "../scripts/configure.js";
 
 test("conflicts at generated baseline destinations leave the target unchanged", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "sinon-baseline-property-"));
-  onTestFinished(() => rm(root, { force: true, recursive: true }));
+  onTestFinished(async () => {
+    await rm(root, { force: true, recursive: true });
+  });
   const results = await Promise.allSettled(
     (["node", "gradle", "uv"] as const).map(async (profile) => {
       const reference = path.join(root, `${profile}-reference`);

@@ -6,6 +6,7 @@ import path from "node:path";
 import { describe, expect, onTestFinished, test } from "vitest";
 
 import { configureBaseline } from "../scripts/configure.js";
+import { arrayValue, stringValue } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const trackedScripts = ["-leading.sh", "script with spaces.sh", "star*.sh"];
@@ -95,7 +96,9 @@ describe("remaining native profile Git gates", () => {
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-native-gate-")
       );
-      onTestFinished(() => rm(directory, { force: true, recursive: true }));
+      onTestFinished(async () => {
+        await rm(directory, { force: true, recursive: true });
+      });
       const trace = path.join(directory, "native-calls.txt");
       const options = {
         cwd: directory,
@@ -122,9 +125,9 @@ describe("remaining native profile Git gates", () => {
       await writeFile(path.join(directory, "README.md"), "# Target\n");
       if (profile === "shell") {
         await Promise.all(
-          trackedScripts.map((name) =>
-            writeFile(path.join(directory, name), "#!/usr/bin/env sh\n")
-          )
+          trackedScripts.map(async (name) => {
+            await writeFile(path.join(directory, name), "#!/usr/bin/env sh\n");
+          })
         );
       }
       expect(git("add", ".").status).toBe(0);
@@ -135,13 +138,13 @@ describe("remaining native profile Git gates", () => {
       await configureBaseline(directory, profile, "eligible");
       await mkdir(path.join(directory, ".bin"));
       await Promise.all(
-        executables.map((name) =>
-          writeFile(
+        executables.map(async (name) => {
+          await writeFile(
             path.join(directory, ".bin", name),
             `#!/usr/bin/env node\nimport { appendFileSync } from "node:fs";\nappendFileSync(process.env.HARNESS_FIXTURE_TRACE, JSON.stringify(["${name}", ...process.argv.slice(2)]) + "\\n");\nif (process.env.HARNESS_FIXTURE_FAIL === "${name}") process.exit(7);\n`,
             { mode: 0o755 }
-          )
-        )
+          );
+        })
       );
       if (profile === "shell") {
         await writeFile(
@@ -174,7 +177,7 @@ describe("remaining native profile Git gates", () => {
         const calls = recordedCalls
           .trim()
           .split("\n")
-          .map((line) => JSON.parse(line) as string[]);
+          .map((line) => arrayValue(JSON.parse(line)).map(stringValue));
         const nativeLines = nativeCalls.map((call) => JSON.stringify(call));
         if (state === "native") {
           expect(calls.length).toBeGreaterThan(0);

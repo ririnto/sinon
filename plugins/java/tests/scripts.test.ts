@@ -12,7 +12,9 @@ const fixture = async () => {
   const directory = await realpath(
     await mkdtemp(path.join(tmpdir(), "sinon-java-scripts-"))
   );
-  onTestFinished(() => rm(directory, { force: true, recursive: true }));
+  onTestFinished(async () => {
+    await rm(directory, { force: true, recursive: true });
+  });
   const bin = path.join(directory, "bin");
   const project = path.join(directory, "project");
   await Promise.all([mkdir(bin), mkdir(project)]);
@@ -46,6 +48,19 @@ const readJavaProbe = (output: Buffer) =>
         return [line.slice(0, separator), line.slice(separator + 1)];
       })
   );
+
+const launcherOutput = (source: string) => {
+  const output: unknown = JSON.parse(source);
+  if (
+    typeof output !== "object" ||
+    output === null ||
+    !("args" in output) ||
+    !("options" in output)
+  ) {
+    throw new TypeError("Expected launcher output");
+  }
+  return output;
+};
 
 describe("Java shell script behavior", () => {
   test.each([
@@ -207,7 +222,7 @@ describe("Java shell script behavior", () => {
       }
     );
     expect(result.status, result.stderr.toString()).toBe(0);
-    const output = JSON.parse(result.stdout.toString());
+    const output = launcherOutput(result.stdout.toString());
     expect(output.args).toEqual(args);
     let selected: string | undefined;
     if (["override", "override-precedence"].includes(mode)) {
@@ -216,9 +231,9 @@ describe("Java shell script behavior", () => {
       selected = projectJar;
     }
     expect(output.options).toBe(
-      selected
-        ? `-javaagent:${selected} -Xmx1g   -Dmessage='hello world' -Dlabel="alpha  beta"  -Dkeep=yes`
-        : environment.JDK_JAVA_OPTIONS
+      selected === undefined
+        ? environment.JDK_JAVA_OPTIONS
+        : `-javaagent:${selected} -Xmx1g   -Dmessage='hello world' -Dlabel="alpha  beta"  -Dkeep=yes`
     );
     const warnings: string[] = [];
     if (mode === "missing-override" || mode === "fallback") {
@@ -230,7 +245,7 @@ describe("Java shell script behavior", () => {
         "java: Lombok jar path must be a single filesystem token without whitespace. Ignoring override."
       );
     }
-    if (selected) {
+    if (selected !== undefined) {
       const source = ["override", "override-precedence"].includes(mode)
         ? "override"
         : "project";
@@ -311,12 +326,12 @@ public final class Probe {
         [other, "OtherAgent"]
       ];
       await Promise.all(
-        agents.map(([, mainClass]) =>
-          writeFile(
+        agents.map(async ([, mainClass]) => {
+          await writeFile(
             path.join(directory, `${mainClass}.mf`),
             `Manifest-Version: 1.0\nPremain-Class: ${mainClass}\n\n`
-          )
-        )
+          );
+        })
       );
       for (const [jar, mainClass] of agents) {
         const manifest = path.join(directory, `${mainClass}.mf`);
@@ -397,7 +412,11 @@ process.exitCode = result.status ?? 1;
       }
     });
     const closed = once(child, "close");
-    const [ready] = await once(child.stdout, "data");
+    const values: unknown[] = await once(child.stdout, "data");
+    const [ready] = values;
+    if (!Buffer.isBuffer(ready)) {
+      throw new TypeError("Expected child output bytes");
+    }
     expect(Number(ready.toString())).toBe(child.pid);
     child.kill("SIGTERM");
     expect(await closed).toEqual([143, null]);

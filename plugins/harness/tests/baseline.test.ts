@@ -20,6 +20,13 @@ import type {
   BaselineProfile,
   TypeScriptProfile
 } from "../scripts/configure.js";
+import {
+  valueAt,
+  objectValue,
+  stringValue,
+  arrayValue,
+  optionalObject
+} from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const profiles: BaselineProfile[] = [
@@ -47,7 +54,9 @@ const nativeGateCommands: Partial<Record<BaselineProfile, string>> = {
 
 const targetDirectory = async (): Promise<string> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-baseline-"));
-  onTestFinished(() => rm(directory, { force: true, recursive: true }));
+  onTestFinished(async () => {
+    await rm(directory, { force: true, recursive: true });
+  });
   return directory;
 };
 
@@ -101,30 +110,40 @@ describe("fresh-root baseline", () => {
     async (selected, config, dependency) => {
       const directory = await targetDirectory();
       await configureBaseline(directory, "frontend", "eligible", selected);
-      const tsconfig = JSON.parse(
+      const tsconfig: unknown = JSON.parse(
         await readFile(path.join(directory, "tsconfig.json"), "utf-8")
       );
-      const manifest = JSON.parse(
+      const manifest: unknown = JSON.parse(
         await readFile(path.join(directory, "package.json"), "utf-8")
+      );
+      expect(valueAt(manifest, "scripts", "pre-commit")).toMatch(
+        /^run-s check(?: |$)/u
+      );
+      expect(valueAt(manifest, "scripts", "pre-push")).toMatch(
+        /^run-s check(?: |$)/u
       );
       const workspace = parseDocument(
         await readFile(path.join(directory, "pnpm-workspace.yaml"), "utf-8")
       );
-      expect(tsconfig.extends).toBe(config);
-      expect(tsconfig.compilerOptions.noUncheckedIndexedAccess).toBe(true);
-      expect(manifest.devDependencies[dependency]).toBe("catalog:");
+      expect(valueAt(tsconfig, "extends")).toBe(config);
+      expect(
+        valueAt(tsconfig, "compilerOptions", "noUncheckedIndexedAccess")
+      ).toBe(true);
+      expect(valueAt(manifest, "devDependencies", dependency)).toBe("catalog:");
       expect(workspace.getIn(["catalog", dependency])).toBeTruthy();
       if (selected === "vue") {
-        expect(manifest.devDependencies.typescript).toBe("catalog:vue");
+        expect(valueAt(manifest, "devDependencies", "typescript")).toBe(
+          "catalog:vue"
+        );
         expect(workspace.getIn(["catalogs", "vue", "typescript"])).toBe(
           "^6.0.3"
         );
       }
-      if (selected === "next") {
-        expect(tsconfig.include).toContain(".next/types/**/*.ts");
-      }
+      expect(valueAt(tsconfig, "include")).toEqual(["**/*", "**/.*/**/*"]);
+      expect(valueAt(tsconfig, "compilerOptions", "allowJs")).toBe(true);
+      expect(valueAt(tsconfig, "compilerOptions", "noEmit")).toBeUndefined();
       if (selected === "vite-react") {
-        expect(tsconfig.compilerOptions.tsBuildInfoFile).toBe(
+        expect(valueAt(tsconfig, "compilerOptions", "tsBuildInfoFile")).toBe(
           "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
         );
       }
@@ -135,6 +154,26 @@ describe("fresh-root baseline", () => {
         selected
       );
       expect(second.created).toEqual([]);
+    }
+  );
+
+  test.each(["node", "frontend", "react"] as const)(
+    "creates a type-aware JavaScript project for %s without an explicit TypeScript profile",
+    async (profile) => {
+      const directory = await targetDirectory();
+      await configureBaseline(directory, profile, "eligible");
+      const config: unknown = JSON.parse(
+        await readFile(path.join(directory, "tsconfig.json"), "utf-8")
+      );
+      expect(valueAt(config, "compilerOptions", "allowJs")).toBe(true);
+      expect(valueAt(config, "compilerOptions", "noEmit")).toBe(true);
+      expect(valueAt(config, "include")).toEqual(["**/*", "**/.*/**/*"]);
+      const manifest: unknown = JSON.parse(
+        await readFile(path.join(directory, "package.json"), "utf-8")
+      );
+      expect(valueAt(manifest, "scripts", "check:ultracite")).toContain(
+        "--type-aware"
+      );
     }
   );
 
@@ -167,15 +206,26 @@ describe("fresh-root baseline", () => {
         path.join(directory, "package.json"),
         JSON.stringify({ packageManager })
       );
-      const ci = parseDocument(
-        await readFile(path.join(repositoryRoot, String(file)), "utf-8")
+      const ci: unknown = parseDocument(
+        await readFile(path.join(repositoryRoot, file), "utf-8")
       ).toJS();
       const command =
         platform === "GitLab"
-          ? ci.pnpm.before_script[0]
-          : ci.jobs.pnpm.steps.find((step: { run?: string }) =>
-              step.run?.startsWith("npm install --global ")
-            ).run;
+          ? stringValue(valueAt(ci, "pnpm", "before_script", 0))
+          : stringValue(
+              valueAt(
+                [...arrayValue(valueAt(ci, "jobs", "pnpm", "steps"))].find(
+                  (step) => {
+                    const run = valueAt(step, "run");
+                    return (
+                      typeof run === "string" &&
+                      run.startsWith("npm install --global ")
+                    );
+                  }
+                ),
+                "run"
+              )
+            );
       const result = spawnSync("sh", ["-c", command], {
         cwd: directory,
         encoding: "utf-8",
@@ -197,54 +247,61 @@ describe("fresh-root baseline", () => {
       const directory = await targetDirectory();
       const first = await configureBaseline(directory, profile, "eligible");
       expect(first.status).toBe("configured");
-      const manifest = JSON.parse(
+      const manifest: unknown = JSON.parse(
         await readFile(path.join(directory, "package.json"), "utf-8")
       );
-      expect(manifest.private).toBe(true);
-      expect(manifest.devDependencies["markdownlint-rule-search-replace"]).toBe(
-        "catalog:"
-      );
-      expect(manifest.packageManager).toBeUndefined();
-      const rootManifest = JSON.parse(
+      expect(valueAt(manifest, "private")).toBe(true);
+      expect(
+        valueAt(manifest, "devDependencies", "markdownlint-rule-search-replace")
+      ).toBe("catalog:");
+      expect(valueAt(manifest, "packageManager")).toBeUndefined();
+      const rootManifest: unknown = JSON.parse(
         await readFile(path.join(repositoryRoot, "package.json"), "utf-8")
       );
-      expect(manifest.engines.node).toBe(rootManifest.engines.node);
-      expect(manifest.scripts).toMatchObject({
+      expect(valueAt(manifest, "engines", "node")).toBe(
+        valueAt(rootManifest, "engines", "node")
+      );
+      expect(valueAt(manifest, "scripts")).toMatchObject({
         check: nativeGateCommands[profile] ?? "run-p check:*",
         "check:markdownlint-cli2": "markdownlint-cli2",
         fix: "run-p fix:*",
         "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-        "pre-commit": expect.stringMatching(/^run-s check(?: |$)/u),
-        "pre-push": expect.stringMatching(/^run-s check(?: |$)/u),
+
         prepare: "husky"
       });
+      expect(valueAt(manifest, "scripts", "pre-commit")).toMatch(
+        /^run-s check(?: |$)/u
+      );
+      expect(valueAt(manifest, "scripts", "pre-push")).toMatch(
+        /^run-s check(?: |$)/u
+      );
       const workspace = parseDocument(
         await readFile(path.join(directory, "pnpm-workspace.yaml"), "utf-8"),
         { uniqueKeys: true }
       );
       expect(workspace.errors).toEqual([]);
-      const { catalog } = workspace.toJS();
-      expect(workspace.toJS().allowBuilds).toEqual(
+      const catalog = objectValue(valueAt(workspace.toJS(), "catalog"));
+      expect(valueAt(workspace.toJS(), "allowBuilds")).toEqual(
         profile === "node" || profile === "frontend" || profile === "react"
           ? { esbuild: true }
           : undefined
       );
       for (const [name, version] of Object.entries({
-        ...manifest.dependencies,
-        ...manifest.devDependencies
+        ...optionalObject(valueAt(manifest, "dependencies")),
+        ...objectValue(valueAt(manifest, "devDependencies"))
       })) {
         expect(version).toBe("catalog:");
         expect(catalog[name]).toBeTypeOf("string");
       }
-      const configuration = JSON.parse(
+      const configuration: unknown = JSON.parse(
         await readFile(
           path.join(directory, ".markdownlint-cli2.jsonc"),
           "utf-8"
         )
       );
       assertSortedKeys(configuration);
-      expect(configuration.gitignore).toBe(true);
-      expect(configuration.config["table-column-style"]).toEqual({
+      expect(valueAt(configuration, "gitignore")).toBe(true);
+      expect(valueAt(configuration, "config", "table-column-style")).toEqual({
         style: "compact"
       });
       for (const [text, expected] of [
@@ -256,7 +313,7 @@ describe("fresh-root baseline", () => {
       ] as const) {
         expect(
           lint({
-            config: configuration.config,
+            config: objectValue(valueAt(configuration, "config")),
             strings: { sample: text }
           }).sample.map(({ ruleNames }) => ruleNames[0])
         ).toEqual(expected);
@@ -269,8 +326,10 @@ describe("fresh-root baseline", () => {
         "no-sensitive-content.mjs",
         "table-separators.ts"
       ]);
-      expect(configuration.config["sensitive-content"]).toBeUndefined();
-      expect(configuration.customRules).not.toContain(
+      expect(
+        valueAt(configuration, "config", "sensitive-content")
+      ).toBeUndefined();
+      expect(valueAt(configuration, "customRules")).not.toContain(
         "rules/no-sensitive-content.mjs"
       );
       expect(
@@ -288,7 +347,7 @@ describe("fresh-root baseline", () => {
         })
       );
       if (profile === "gradle" || profile === "kotlin") {
-        expect(manifest.scripts).toMatchObject({
+        expect(valueAt(manifest, "scripts")).toMatchObject({
           "check:test:gradle": "./gradlew ktlintCheck check"
         });
         expect(
@@ -331,8 +390,10 @@ describe("fresh-root baseline", () => {
         expect(await readdir(directory)).not.toContain("Cargo.toml");
       }
       if (profile === "node") {
-        expect(manifest.scripts["api:docs"]).toBe("typedoc");
-        expect(manifest.devDependencies.typedoc).toBe("catalog:");
+        expect(valueAt(manifest, "scripts", "api:docs")).toBe("typedoc");
+        expect(valueAt(manifest, "devDependencies", "typedoc")).toBe(
+          "catalog:"
+        );
         expect(first.created).toContain("typedoc.json");
       }
       if (profile === "uv") {
@@ -341,8 +402,8 @@ describe("fresh-root baseline", () => {
       }
       if (profile === "node" || profile === "frontend" || profile === "react") {
         expect(
-          Object.keys(manifest.scripts).filter((script) =>
-            script.startsWith("check:")
+          Object.keys(objectValue(valueAt(manifest, "scripts"))).filter(
+            (script) => script.startsWith("check:")
           )
         ).toEqual(
           profile === "node"
@@ -355,19 +416,19 @@ describe("fresh-root baseline", () => {
               ]
         );
         expect(
-          Object.keys(manifest.scripts).filter((script) =>
-            script.startsWith("fix:")
+          Object.keys(objectValue(valueAt(manifest, "scripts"))).filter(
+            (script) => script.startsWith("fix:")
           )
         ).toEqual(["fix:markdownlint-cli2", "fix:ultracite"]);
         expect(
-          Object.keys(manifest.scripts).filter((script) =>
-            script.startsWith("ultracite:fix:")
+          Object.keys(objectValue(valueAt(manifest, "scripts"))).filter(
+            (script) => script.startsWith("ultracite:fix:")
           )
         ).toEqual([]);
         expect(
-          Object.values(manifest.scripts).filter((command) =>
-            /^(?:oxlint|oxfmt)\b/u.test(String(command))
-          )
+          Object.values(objectValue(valueAt(manifest, "scripts")))
+            .map(stringValue)
+            .filter((command) => /^(?:oxlint|oxfmt)\b/u.test(command))
         ).toEqual([]);
         expect(
           await readFile(path.join(directory, "oxfmt.config.ts"), "utf-8")
@@ -410,10 +471,12 @@ describe("fresh-root baseline", () => {
         ]);
       }
       if (profile === "frontend" || profile === "react") {
-        expect(manifest.scripts["check:storybook"]).toBe(
+        expect(valueAt(manifest, "scripts", "check:storybook")).toBe(
           "storybook build --test"
         );
-        expect(manifest.devDependencies.storybook).toBe("catalog:");
+        expect(valueAt(manifest, "devDependencies", "storybook")).toBe(
+          "catalog:"
+        );
         expect(
           spawnSync("git", ["init", "--quiet"], {
             cwd: directory,
@@ -442,7 +505,7 @@ describe("fresh-root baseline", () => {
         );
       }
       if (profile === "react") {
-        expect(manifest.dependencies).toMatchObject({
+        expect(valueAt(manifest, "dependencies")).toMatchObject({
           "@radix-ui/colors": "catalog:",
           "@radix-ui/react-icons": "catalog:",
           "@radix-ui/themes": "catalog:",
@@ -475,7 +538,9 @@ describe("fresh-root baseline", () => {
         eligibility
       ]);
       expect(result.status).toBe(0);
-      expect(JSON.parse(result.stdout.toString()).status).toBe("skipped");
+      expect(valueAt(JSON.parse(result.stdout.toString()), "status")).toBe(
+        "skipped"
+      );
       expect(await readdir(directory)).toEqual(["config.yaml"]);
       expect(await readFile(path.join(directory, "config.yaml"), "utf-8")).toBe(
         "enabled: true\n"
@@ -658,7 +723,9 @@ describe("fresh-root baseline", () => {
       "eligible"
     ]);
     expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout.toString()).status).toBe("configured");
+    expect(valueAt(JSON.parse(result.stdout.toString()), "status")).toBe(
+      "configured"
+    );
   });
 
   test("the frontend design gate rejects an invalid color token", async () => {
@@ -667,7 +734,9 @@ describe("fresh-root baseline", () => {
     const binary = path.join(repositoryRoot, "node_modules/.bin/designmd");
     const valid = spawnSync(binary, ["lint", "DESIGN.md"], { cwd: directory });
     expect(valid.status).toBe(0);
-    expect(JSON.parse(valid.stdout.toString()).summary.errors).toBe(0);
+    expect(
+      valueAt(JSON.parse(valid.stdout.toString()), "summary", "errors")
+    ).toBe(0);
     await writeFile(
       path.join(directory, "DESIGN.md"),
       "---\nname: Project\ncolors:\n  primary: invalid-color\n---\n"
@@ -677,7 +746,7 @@ describe("fresh-root baseline", () => {
     });
     expect(invalid.status).toBe(1);
     expect(
-      JSON.parse(invalid.stdout.toString()).summary.errors
+      valueAt(JSON.parse(invalid.stdout.toString()), "summary", "errors")
     ).toBeGreaterThan(0);
   });
 
@@ -839,15 +908,15 @@ describe("Maven and Go hook entrypoints", () => {
       await mkdir(path.join(directory, ".bin"));
       const stubs = profile === "maven" ? ["mvnw"] : ["go"];
       await Promise.all(
-        stubs.map((name) =>
-          writeFile(
+        stubs.map(async (name) => {
+          await writeFile(
             path.join(directory, name === "mvnw" ? name : `.bin/${name}`),
             name === "go"
               ? `#!/usr/bin/env sh\nif [ "$1" = env ]; then echo off; else printf 'go task %s\\n' "$7" >> '${path.join(directory, "native-calls.txt")}'; fi\n`
               : `#!/usr/bin/env sh\nprintf 'mvnw %s\\n' "$*" >> '${path.join(directory, "native-calls.txt")}'\n`,
             { mode: 0o755 }
-          )
-        )
+          );
+        })
       );
       expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
       await writeFile(

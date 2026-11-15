@@ -38,6 +38,7 @@ export default defineConfig({
     }
   ],
   rules: {
+    "typescript/no-floating-promises": ["error", { ignoreVoid: false }],
     "oxc/no-accumulating-spread": "deny",
     "react-effects/no-direct-use-effect": "deny",
     "react-hooks-js/immutability": "deny",

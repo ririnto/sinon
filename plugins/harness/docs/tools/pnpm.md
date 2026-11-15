@@ -321,8 +321,9 @@ The custom call diagnostic covers a separate requirement from the upstream check
 
 `check:ultracite` runs the root configuration with type awareness, including the React policy.
 The shared check and fix commands each run once, without additional formatter-writing passes.
-Sinon's publishing repository uses one root configuration but retains separate untyped and type-aware invocations with disjoint lint paths.
-Oxlint enables type awareness globally and does not support it in file overrides, so the second invocation preserves the existing Harness-tooling scope without expanding policy to unrelated packages.
+Sinon's publishing repository uses one root configuration but runs type-aware checks over repository scripts, tests, JavaScript, and TypeScript.
+The standalone workspace sample and Storybook fixtures use their own installed consumer dependencies through `check:consumers`, rather than the publishing repository's Node-only types.
+Both repository lint invocations enable type awareness; the second retains the Harness tooling entry point.
 Both invocations use the root formatter configuration; Ultracite forwards the lint exclusion only to Oxlint, so formatting covers the Harness subtree again in the typed invocation.
 Verify both positive and negative target fixtures before claiming consumer adoption.
 
@@ -335,8 +336,8 @@ The rule diagnoses unhandled promises rather than every use of `void`.
 It accepts explicit rejection handling, awaited calls, and returned promises.
 It provides suggestions upstream, but normal Ultracite fixes do not rewrite `void` into `await`.
 Keep that conversion under the [common async policy](../rules.md#code-rules-common-to-all-languages) because scheduling and cancellation require semantic review.
-The Sinon root runs its Harness tooling check and fix with `--type-aware`.
-Its separate general repository and marketplace lint passes do not use that flag.
+The Sinon root runs both general and Harness tooling checks and fixes with `--type-aware`.
+The consumer gate installs standalone dependencies before checking unchanged generated configurations and HTML and React stories in their target projects.
 The root `check:typescript` script runs `tsc --noEmit` independently of Ultracite's TypeScript checks.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
 The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.90.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.1.0/packages/cli/src/commands/check.ts).
@@ -346,7 +347,7 @@ The tested backend contract is documented in the [Oxlint rule implementation](ht
 Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node-lts` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
 Install the selected base as a target-owned development dependency and add its version to the target's pnpm catalog.
 Keep the Node runtime version independent of the Node LTS base package's version.
-A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit it.
+A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit the framework selection but still receive a non-emitting compiler configuration for type-aware linting.
 The configurator applies the strictness fragment while omitting options already supplied by the base.
 React Native uses bundler module resolution for Metro and omits `verbatimModuleSyntax`, which conflicts with the base's CommonJS module setting.
 Next source includes and the Vite build-info path are target-relative.
@@ -357,7 +358,8 @@ For an existing TypeScript configuration, inspect its effective compiler setting
 Preserve required target behavior with justified overrides, including source paths, module and runtime settings, and types.
 Merge missing flags from `tsconfig.fragment.json` after checking their compatibility with the target and chosen base, and report genuine conflicts.
 Each flag can introduce new compiler errors in existing code, so run `pnpm exec tsc --noEmit` after merging and report the new errors instead of fixing unrelated source.
-Skip the fragment for a JavaScript-only target.
+Use the generated JavaScript project configuration for a JavaScript-only target.
+Recursive includes cover source files and hidden tooling directories without listing individual files.
 
 ## Commands
 

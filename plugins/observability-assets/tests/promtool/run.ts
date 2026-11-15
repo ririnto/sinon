@@ -96,7 +96,7 @@ export const downloadReleaseAssets = async (
   })();
   const checksums = (async () => {
     const response = await releaseAsset(checksumUrl, controller.signal);
-    return response.text();
+    return await response.text();
   })();
   try {
     return await Promise.all([archive, checksums]);
@@ -108,13 +108,23 @@ export const downloadReleaseAssets = async (
 };
 
 const installPromtool = async (directory: string): Promise<string> => {
-  const manifest = JSON.parse(
+  const manifest: unknown = JSON.parse(
     await readFile(
       new URL("../../../../package.json", import.meta.url),
       "utf-8"
     )
   );
-  const version: unknown = manifest.config?.promtoolVersion;
+  if (
+    typeof manifest !== "object" ||
+    manifest === null ||
+    !("config" in manifest) ||
+    typeof manifest.config !== "object" ||
+    manifest.config === null ||
+    !("promtoolVersion" in manifest.config)
+  ) {
+    throw new Error("package.json must configure a stable promtoolVersion");
+  }
+  const version = manifest.config.promtoolVersion;
   if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/u.test(version)) {
     throw new Error("package.json must configure a stable promtoolVersion");
   }
@@ -199,8 +209,12 @@ export const execute = async (
       child.kill(signal);
     }
   };
-  const onSigint = (): void => forwardSignal("SIGINT");
-  const onSigterm = (): void => forwardSignal("SIGTERM");
+  const onSigint = (): void => {
+    forwardSignal("SIGINT");
+  };
+  const onSigterm = (): void => {
+    forwardSignal("SIGTERM");
+  };
   process.once("SIGINT", onSigint);
   process.once("SIGTERM", onSigterm);
   try {

@@ -27,6 +27,11 @@ export const warn = (message: string): void => {
 };
 
 /**
+ * Converts a value with JavaScript String coercion, including non-scalar YAML.
+ */
+export const coerceString: (value: unknown) => string = String;
+
+/**
  * Reports whether a value is an object record rather than an array or null.
  */
 export const isRecord = (value: unknown): value is MutableRecord =>

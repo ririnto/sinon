@@ -32,11 +32,13 @@ export const generateMermaid = (specRoot: string): string => {
     if (entry) {
       entries.set(filePath, entry);
     }
-    const title = String(
-      entry?.record.title || path.basename(path.dirname(filePath))
-    );
+    const title = entry?.record.title;
+    const displayTitle =
+      title !== undefined && title.length > 0
+        ? title
+        : path.basename(path.dirname(filePath));
     ids.set(filePath, id);
-    lines.push(`  ${id}["${title.replaceAll('"', "'")}"]`);
+    lines.push(`  ${id}["${displayTitle.replaceAll('"', "'")}"]`);
   }
   const edges = new Set<string>();
   for (const filePath of specFiles) {

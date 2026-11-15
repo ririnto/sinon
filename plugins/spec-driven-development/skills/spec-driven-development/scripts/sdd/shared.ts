@@ -18,13 +18,18 @@ export interface FrontmatterBlock {
 }
 
 /**
+ * A generated frontmatter record always includes a textual body title.
+ */
+export type FrontmatterRecord = MutableRecord & { readonly title: string };
+
+/**
  * Stores values derived from one document's frontmatter.
  */
 export interface LoadEntry {
   readonly yamlBody: string;
   readonly endLine: number;
   readonly data: MutableRecord;
-  readonly record: MutableRecord;
+  readonly record: FrontmatterRecord;
   readonly subjectStr: string;
   readonly tags: readonly string[];
 }

@@ -31,29 +31,38 @@ test.each([
   "get-frontmatter selects fields with options %j and reports the header boundary",
   (options, expected, fieldOrder) => {
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-fields-"));
-    onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+    onTestFinished(() => {
+      rmSync(directory, { force: true, recursive: true });
+    });
     const file = path.join(directory, "SPEC.md");
     writeFileSync(
       file,
       "---\ntag: [one]\nstatus: draft\ndescription: Hidden\n---\n\n# Value\n\nbody: ignored\n"
     );
-    const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    const output = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
     expect(main(["get-frontmatter", "spec", file, ...options])).toBe(0);
     expect(output).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(String(output.mock.calls[0]?.[0]))).toEqual({
+    const parsed: unknown = JSON.parse(String(output.mock.calls[0]?.[0]));
+    expect(parsed).toEqual({
       ...expected,
       file,
       frontmatter_end_line: 5,
       kind: "spec"
     });
     if (fieldOrder !== undefined) {
-      expect(
-        Object.keys(JSON.parse(String(output.mock.calls[0]?.[0])))
-      ).toEqual(["file", "frontmatter_end_line", "kind", ...fieldOrder]);
+      if (typeof parsed !== "object" || parsed === null) {
+        throw new Error("Expected an object in JSON output");
+      }
+      expect(Object.keys(parsed)).toEqual([
+        "file",
+        "frontmatter_end_line",
+        "kind",
+        ...fieldOrder
+      ]);
     }
     expect(errors).not.toHaveBeenCalled();
   }
@@ -64,11 +73,13 @@ test.each([
   ["unterminated", "---\ntitle: value"]
 ])("get-frontmatter rejects a %s header without output", (_kind, content) => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-header-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const file = path.join(directory, "SPEC.md");
   writeFileSync(file, content);
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   onTestFinished(() => {
     vi.restoreAllMocks();
   });

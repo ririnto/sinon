@@ -86,6 +86,7 @@ const preparePackageRoot = async (directory: string): Promise<void> => {
     path.join(directory, "tsconfig.json"),
     JSON.stringify({
       compilerOptions: {
+        allowJs: true,
         module: "esnext",
         moduleResolution: "bundler",
         noEmit: true,
@@ -93,7 +94,7 @@ const preparePackageRoot = async (directory: string): Promise<void> => {
         strict: true,
         target: "es2022"
       },
-      include: ["**/*.ts", "**/*.tsx"]
+      include: ["**/*", "**/.*/**/*"]
     })
   );
 };
@@ -205,7 +206,7 @@ describe("pnpm profile configuration", () => {
     }
   );
 
-  test("repository scripts preserve disjoint typed and untyped lint scopes with one config", async () => {
+  test("repository scripts type-check ordinary, hidden, JavaScript, and Harness paths", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-root-lint-"));
     try {
       await preparePackageRoot(directory);
@@ -226,14 +227,17 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "package.json"),
         JSON.stringify({ scripts: rootManifest.scripts, type: "module" })
       );
+      await mkdir(path.join(directory, ".github/scripts"), { recursive: true });
       await Promise.all(
         [
           path.join(directory, "ordinary.ts"),
+          path.join(directory, "ordinary.mjs"),
+          path.join(directory, ".github/scripts/hidden.ts"),
           path.join(typedDirectory, "violation.ts")
         ].map(async (filename) => {
           await writeFile(
             filename,
-            "export const undocumented = (): number => 1;\nvoid Promise.resolve();\n"
+            "export const undocumented = () => 1;\nvoid Promise.resolve();\n"
           );
         })
       );
@@ -241,8 +245,16 @@ describe("pnpm profile configuration", () => {
       expect(
         formatted.status,
         formatted.stderr.toString() + formatted.stdout.toString()
-      ).toBe(0);
-      const result = runPackageScript(directory, "check:ultracite");
+      ).toBe(1);
+      const general = runPackageScript(directory, "ultracite:check");
+      const generalOutput =
+        general.stderr.toString() + general.stdout.toString();
+      expect(general.status, generalOutput).toBe(1);
+      expect(generalOutput).toContain("ordinary.ts:");
+      expect(generalOutput).toContain("ordinary.mjs:");
+      expect(generalOutput).toContain(".github/scripts/hidden.ts:");
+      expect(generalOutput).toContain("typescript(no-floating-promises)");
+      const result = runPackageScript(directory, "ultracite:check:harness");
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status, output).toBe(1);
       expect(output).toContain("plugins/harness/tooling/pnpm/violation.ts:");
@@ -609,6 +621,7 @@ describe("pnpm profile configuration", () => {
         JSON.stringify({
           compilerOptions: {
             ...tsconfig.compilerOptions,
+            allowJs: true,
             module: "esnext",
             noEmit: true,
             strict: true,

@@ -14,11 +14,15 @@ import path from "node:path";
 import { expect, onTestFinished, test } from "vitest";
 import { parse } from "yaml";
 
+import { valueAt } from "../../plugins/harness/tests/structured-value.ts";
+
 const root = path.resolve(import.meta.dirname, "../..");
 
 test("version snapshots detect drift, update, and remain self-contained", async () => {
   const fixture = await mkdtemp(path.join(tmpdir(), "sinon-version-sync-"));
-  onTestFinished(() => rm(fixture, { force: true, recursive: true }));
+  onTestFinished(async () => {
+    await rm(fixture, { force: true, recursive: true });
+  });
   await mkdir(path.join(fixture, ".github/scripts"), { recursive: true });
   await cp(
     path.join(root, ".github/scripts/sync-versions.mjs"),
@@ -86,13 +90,13 @@ test("version snapshots detect drift, update, and remain self-contained", async 
   expect(spawnSync(process.execPath, [script]).status).toBe(1);
   expect(spawnSync(process.execPath, [script, "--write"]).status).toBe(0);
   expect(spawnSync(process.execPath, [script]).status).toBe(0);
-  const runtime = JSON.parse(
+  const runtime: unknown = JSON.parse(
     await readFile(
       path.join(fixture, "plugins/harness/tooling/pnpm/runtime.fragment.json"),
       "utf-8"
     )
   );
-  const workspace = parse(
+  const workspace: unknown = parse(
     await readFile(
       path.join(
         fixture,
@@ -101,9 +105,9 @@ test("version snapshots detect drift, update, and remain self-contained", async 
       "utf-8"
     )
   );
-  expect(runtime.engines.node).toBe("^26.1.0");
-  expect(workspace.catalog.example).toBe("^2.0.0");
-  const docsCatalog = parse(
+  expect(valueAt(runtime, "engines", "node")).toBe("^26.1.0");
+  expect(valueAt(workspace, "catalog", "example")).toBe("^2.0.0");
+  const docsCatalog: unknown = parse(
     await readFile(
       path.join(
         fixture,
@@ -112,8 +116,8 @@ test("version snapshots detect drift, update, and remain self-contained", async 
       "utf-8"
     )
   );
-  expect(docsCatalog.catalog.example).toBe("^3.0.0");
-  const vueCatalog = parse(
+  expect(valueAt(docsCatalog, "catalog", "example")).toBe("^3.0.0");
+  const vueCatalog: unknown = parse(
     await readFile(
       path.join(
         fixture,
@@ -122,19 +126,21 @@ test("version snapshots detect drift, update, and remain self-contained", async 
       "utf-8"
     )
   );
-  expect(vueCatalog.catalog.example).toBe("^4.0.0");
-  const ci = parse(
+  expect(valueAt(vueCatalog, "catalog", "example")).toBe("^4.0.0");
+  const ci: unknown = parse(
     await readFile(
       path.join(fixture, "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"),
       "utf-8"
     )
   );
-  expect(ci.pnpm.image).toBe("node:26");
-  const github = parse(
+  expect(valueAt(ci, "pnpm", "image")).toBe("node:26");
+  const github: unknown = parse(
     await readFile(
       path.join(fixture, "plugins/harness/ci/github/pnpm.yaml"),
       "utf-8"
     )
   );
-  expect(github.jobs.pnpm.steps[0].with["node-version"]).toBe(26);
+  expect(
+    valueAt(github, "jobs", "pnpm", "steps", 0, "with", "node-version")
+  ).toBe(26);
 });

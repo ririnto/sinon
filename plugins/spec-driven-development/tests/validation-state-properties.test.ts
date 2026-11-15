@@ -12,8 +12,8 @@ test("mixed generated document trees report every failure in the aggregate", () 
     vi.restoreAllMocks();
     rmSync(root, { force: true, recursive: true });
   });
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   const documents = [
     [
       "SPEC.md",
