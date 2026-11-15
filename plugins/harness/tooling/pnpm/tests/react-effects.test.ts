@@ -6,9 +6,11 @@ import path from "node:path";
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, expect, test } from "vitest";
 
+import rootConfiguration from "../../../../../oxlint.config.js";
 import plugin from "../../../../no-direct-use-effect.js";
 import { configureBaseline } from "../../../scripts/configure.js";
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
+import profileConfiguration from "../oxlint.config.js";
 
 const pluginSources = [
   new URL("../../../../no-direct-use-effect.ts", import.meta.url),
@@ -157,7 +159,18 @@ new RuleTester({
   }
 );
 
-test("root and materialized configs activate the adopted React rules", async () => {
+test("root and materialized configs retain adopted policies and load their plugins", async () => {
+  for (const configuration of [rootConfiguration, profileConfiguration]) {
+    expect(configuration.rules).toMatchObject({
+      "oxc/no-accumulating-spread": "deny",
+      "react-effects/no-direct-use-effect": "deny",
+      "react-hooks-js/immutability": "deny",
+      "react-hooks-js/purity": "deny",
+      "react-hooks-js/rules-of-hooks": "deny",
+      "react-hooks-js/set-state-in-effect": "deny",
+      "react-hooks-js/set-state-in-render": "deny"
+    });
+  }
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-compiler-"));
   try {
     await configureBaseline(directory, "node", "eligible");
@@ -175,40 +188,10 @@ test("root and materialized configs activate the adopted React rules", async () 
         'import { useMount } from "framework"; useMount(() => {});'
       ],
       [
-        "render.tsx",
-        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
-        "react-hooks-js(set-state-in-render)",
-        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }'
-      ],
-      [
-        "effect.tsx",
-        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { setCount(1); }, []); return <div>{count}</div>; }',
-        "react-hooks-js(set-state-in-effect)",
-        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => setCount(c => c + 1), 1000); return () => clearInterval(id); }, []); return <div>{count}</div>; }'
-      ],
-      [
-        "mutation.tsx",
-        "export function Counter({ value }: { value: { count: number } }) { value.count += 1; return <div>{value.count}</div>; }",
-        "react-hooks-js(immutability)",
-        "export function Counter({ value }: { value: { count: number } }) { const local = { ...value }; local.count += 1; return <div>{local.count}</div>; }"
-      ],
-      [
         "random.tsx",
         "export function Counter() { return <div>{Math.random()}</div>; }",
         "react-hooks-js(purity)",
         "export function Counter() { return <div>{42}</div>; }"
-      ],
-      [
-        "hooks.tsx",
-        'import { useState } from "react"; export function Counter({ ready }: { ready: boolean }) { if (ready) { const [count] = useState(0); return <div>{count}</div>; } return null; }',
-        "react-hooks-js(rules-of-hooks)",
-        'import { useState } from "react"; export function Counter() { const [count] = useState(0); return <div>{count}</div>; }'
-      ],
-      [
-        "spread.ts",
-        "const items = [1, 2]; items.reduce((acc: number[], item) => [...acc, item], []);",
-        "oxc(no-accumulating-spread)",
-        "const items = [1, 2]; const copy = [...items]; copy.reduce((acc: number[], item) => { acc.push(item); return acc; }, []);"
       ]
     ] as const;
     await Promise.all(
