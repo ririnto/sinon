@@ -92,7 +92,7 @@ const assertSortedKeys = (value: unknown): void => {
 
 describe("fresh-root baseline", () => {
   test.each([
-    ["node", "@tsconfig/node-lts/tsconfig.json", "@tsconfig/node-lts"],
+    ["node", "@tsconfig/node24/tsconfig.json", "@tsconfig/node24"],
     [
       "vite-react",
       "@tsconfig/vite-react/tsconfig.json",

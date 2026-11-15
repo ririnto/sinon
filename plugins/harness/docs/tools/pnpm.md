@@ -3,7 +3,7 @@ metadata:
   reference:
     TypeScript configurations:
       url:
-        - https://www.npmjs.com/package/@tsconfig/node-lts
+        - https://www.npmjs.com/package/@tsconfig/node24
         - https://www.npmjs.com/package/@tsconfig/vite-react
         - https://www.npmjs.com/package/@vue/tsconfig
         - https://www.npmjs.com/package/@tsconfig/react-native
@@ -344,7 +344,7 @@ The tested backend contract is documented in the [Oxlint rule implementation](ht
 
 ## TypeScript Strictness Merge
 
-Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node-lts` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
+Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node24` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
 Install the selected base as a target-owned development dependency and add its version to the target's pnpm catalog.
 Keep the Node runtime version independent of the Node LTS base package's version.
 A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit the framework selection but still receive a non-emitting compiler configuration for type-aware linting.
