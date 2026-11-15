@@ -34,8 +34,8 @@ export const runUltracite = (
       ...(configuration !== undefined && configuration !== ""
         ? ["--config", configuration]
         : []),
-      ...extraArguments,
-      filename
+      filename,
+      ...extraArguments
     ],
     {
       cwd: directory,

@@ -457,15 +457,27 @@ describe("authored Markdown diagnostics", () => {
   });
 
   test.each([
-    [noEmDash, "Keep prose \u2014 clear.\n", 1],
+    [noEmDash, `Keep prose ${String.fromCodePoint(0x20_14)} clear.\n`, 1],
     [
       noEmDash,
-      "`code \u2014 text` and [URL](https://example.org/a\u2014b).\n",
+      `\`code ${String.fromCodePoint(0x20_14)} text\` and [URL](https://example.org/a${String.fromCodePoint(0x20_14)}b).\n`,
       0
     ],
-    [noEmDash, '> Exact \u2014 quotation.\n\n"Literal \u2014 quote."\n', 0],
-    [noEmDash, "---\ntitle: Literal \u2014 metadata\n---\n\nProse.\n", 0],
-    [noEmDash, "```text\ncode \u2014 text\n```\n", 0],
+    [
+      noEmDash,
+      `> Exact ${String.fromCodePoint(0x20_14)} quotation.\n\n"Literal ${String.fromCodePoint(0x20_14)} quote."\n`,
+      0
+    ],
+    [
+      noEmDash,
+      `---\ntitle: Literal ${String.fromCodePoint(0x20_14)} metadata\n---\n\nProse.\n`,
+      0
+    ],
+    [
+      noEmDash,
+      `\`\`\`text\ncode ${String.fromCodePoint(0x20_14)} text\n\`\`\`\n`,
+      0
+    ],
     [noRelativeSkillLinks, "Use [skill](../other/SKILL.md).\n", 1],
     [noRelativeSkillLinks, "See [skill][s].\n\n[s]: ../other/SKILL.md\n", 1],
     [noRelativeSkillLinks, "Use [guide][g].\n\n[g]: ../guide.md\n", 0],

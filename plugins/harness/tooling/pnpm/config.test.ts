@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import {
   copyFile,
+  cp,
   mkdir,
   mkdtemp,
   readdir,
@@ -218,10 +219,10 @@ describe("pnpm profile configuration", () => {
         directory,
         "plugins/harness/tooling/pnpm"
       );
-      await mkdir(path.join(typedDirectory, "plugins"), { recursive: true });
+      await cp(profileDirectory, typedDirectory, { recursive: true });
       await copyFile(
-        path.join(profileDirectory, "plugins/tsdoc-plugin.ts"),
-        path.join(typedDirectory, "plugins/tsdoc-plugin.ts")
+        path.resolve(profileDirectory, "../../../../.eslintignore"),
+        path.join(directory, ".eslintignore")
       );
       await writeFile(
         path.join(directory, "package.json"),
@@ -257,7 +258,7 @@ describe("pnpm profile configuration", () => {
       const result = runPackageScript(directory, "ultracite:check:harness");
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status, output).toBe(1);
-      expect(output).toContain("plugins/harness/tooling/pnpm/violation.ts:");
+      expect(output).toContain("violation.ts:");
       expect(output).toContain("tsdoc(require-export-tsdoc)");
       expect(output).toContain("typescript(no-floating-promises)");
       expect(output).not.toContain("ordinary.ts:");

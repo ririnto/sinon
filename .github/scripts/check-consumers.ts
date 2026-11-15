@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import {
   copyFile,
   mkdir,
@@ -58,6 +58,25 @@ const checkRenderer = async (renderer: "html" | "react"): Promise<void> => {
     );
     run(directory, ["install"]);
     run(directory, ["run", "check:ultracite"]);
+    await writeFile(
+      path.join(directory, "src/type-aware-boundary.ts"),
+      "void Promise.resolve();\n"
+    );
+    const result = spawnSync(
+      "pnpm",
+      ["--dir", directory, "run", "check:ultracite"],
+      { encoding: "utf-8" }
+    );
+    const diagnostics = `${result.stdout}${result.stderr}`;
+    if (
+      result.status !== 1 ||
+      !diagnostics.includes("type-aware-boundary.ts:") ||
+      !diagnostics.includes("typescript(no-floating-promises)")
+    ) {
+      throw new Error(
+        "The generated consumer did not enforce its type-aware promise policy"
+      );
+    }
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

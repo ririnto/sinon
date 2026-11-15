@@ -323,8 +323,11 @@ The custom call diagnostic covers a separate requirement from the upstream check
 The shared check and fix commands each run once, without additional formatter-writing passes.
 Sinon's publishing repository uses one root configuration but runs type-aware checks over repository scripts, tests, JavaScript, and TypeScript.
 The standalone workspace sample and Storybook fixtures use their own installed consumer dependencies through `check:consumers`, rather than the publishing repository's Node-only types.
-Both repository lint invocations enable type awareness; the second retains the Harness tooling entry point.
-Both invocations use the root formatter configuration; Ultracite forwards the lint exclusion only to Oxlint, so formatting covers the Harness subtree again in the typed invocation.
+Both repository lint invocations enable type awareness.
+The second runs from the Harness tooling directory so its own configuration is discovered.
+The root `.eslintignore` keeps independently checked consumer configurations out of root discovery.
+Each consumer runs the same bare command from its own directory.
+Formatting may inspect files again.
 Verify both positive and negative target fixtures before claiming consumer adoption.
 
 ## Type-Aware Promise Checks
@@ -365,11 +368,11 @@ Recursive includes cover source files and hidden tooling directories without lis
 
 Run `pnpm install` after a dependency change.
 Run `pnpm run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs `ultracite check --type-aware --config oxlint.config.ts` once.
+The `check:ultracite` task runs `ultracite check --type-aware` once.
 That invocation reports core, React, documentation, and custom style diagnostics without writing source changes.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `pnpm run fix` within the authorized source-edit scope.
-The `fix:ultracite` task runs `ultracite fix --type-aware --config oxlint.config.ts` once.
+The `fix:ultracite` task runs `ultracite fix --type-aware` once.
 The custom style policies remain diagnostic-only while supported native fixes and formatting run through the same command.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
 Run `pnpm run test` only when the target owns that native test command.
