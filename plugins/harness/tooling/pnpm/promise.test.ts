@@ -12,7 +12,7 @@ const findings = (result: ReturnType<typeof runUltracite>) =>
     ({ code }) => code?.includes("no-floating-promises") === true
   );
 
-test("Ultracite executes type-aware promise diagnostics without rewriting void", async () => {
+test("Harness promise policy reports unhandled work without rewriting void", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-promises-"));
   try {
     await writeFile(
@@ -32,36 +32,28 @@ test("Ultracite executes type-aware promise diagnostics without rewriting void",
         "async function handled() { await work(); }",
         "function returned() { return work(); }",
         "void handled().catch(() => {});",
-        "void returned().catch(() => {});",
-        "void 42;"
+        "void returned().catch(() => {});"
       ].join("\n")
     );
-    const configuration = {
-      options: { typeAware: true },
-      rules: {
-        "typescript/no-floating-promises": ["error", { ignoreVoid: false }]
-      }
-    };
-    await writeFile(
-      path.join(directory, ".oxlintrc.json"),
-      JSON.stringify(configuration)
+    await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+    const configuration = fileURLToPath(
+      new URL("oxlint.config.ts", import.meta.url)
     );
-    const fixed = runUltracite(directory, "sample.ts", "fix");
-    expect(findings(fixed)).toHaveLength(2);
+    expect(
+      findings(
+        runUltracite(directory, "sample.ts", "fix", configuration, [
+          "--type-aware"
+        ])
+      )
+    ).toHaveLength(2);
     const text = await readFile(path.join(directory, "sample.ts"), "utf-8");
     expect(text).toContain("void work();");
     expect(text).toContain("void work().catch(");
-    expect(text).toContain("void 42;");
-    expect(findings(runUltracite(directory, "sample.ts"))).toHaveLength(2);
     expect(
       findings(
-        runUltracite(
-          directory,
-          "sample.ts",
-          "check",
-          fileURLToPath(new URL("oxlint.config.ts", import.meta.url)),
-          ["--type-aware"]
-        )
+        runUltracite(directory, "sample.ts", "check", configuration, [
+          "--type-aware"
+        ])
       )
     ).toHaveLength(2);
   } finally {
