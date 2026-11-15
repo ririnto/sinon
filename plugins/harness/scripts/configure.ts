@@ -58,6 +58,57 @@ interface ManifestFragment {
   dependencies?: Record<string, string>;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const stringRecord = (value: unknown): Record<string, string> => {
+  if (!isRecord(value)) {
+    throw new TypeError("Expected a string mapping.");
+  }
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => {
+      if (typeof item !== "string") {
+        throw new TypeError(`Expected a string at ${key}.`);
+      }
+      return [key, item];
+    })
+  );
+};
+
+const readManifest = (source: string): ManifestFragment => {
+  const value: unknown = JSON.parse(source);
+  if (!isRecord(value)) {
+    throw new TypeError("Expected a manifest object.");
+  }
+  return {
+    scripts: stringRecord(value.scripts),
+    devDependencies: stringRecord(value.devDependencies),
+    ...(value.dependencies === undefined
+      ? {}
+      : { dependencies: stringRecord(value.dependencies) })
+  };
+};
+
+const isTypeScriptProfile = (value: string): value is TypeScriptProfile =>
+  Object.hasOwn(typescriptProfiles, value);
+
+const readRuntime = (source: string) => {
+  const runtime: unknown = JSON.parse(source);
+  if (
+    !isRecord(runtime) ||
+    typeof runtime.private !== "boolean" ||
+    typeof runtime.type !== "string" ||
+    !isRecord(runtime.engines)
+  ) {
+    throw new TypeError("Expected runtime settings.");
+  }
+  return {
+    private: runtime.private,
+    type: runtime.type,
+    engines: stringRecord(runtime.engines)
+  };
+};
+
 const toolingRoot = path.resolve(import.meta.dirname, "../tooling");
 const nativeProfiles = {
   frontend: "pnpm/package.fragment.json",
@@ -114,15 +165,15 @@ const isProfile = (value: string): value is BaselineProfile =>
 const isEligibility = (value: string): value is BaselineEligibility =>
   ["eligible", "archived", "inactive", "configuration-only"].includes(value);
 
-const readSource = (relative: string): Promise<string> =>
-  readFile(path.join(toolingRoot, relative), "utf-8");
+const readSource = async (relative: string): Promise<string> =>
+  await readFile(path.join(toolingRoot, relative), "utf-8");
 
 const inspect = async (file: string) => {
   try {
     return await lstat(file);
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return;
+      return null;
     }
     throw error;
   }
@@ -182,6 +233,9 @@ const assertAncestors = async (
   );
 };
 
+const compilerConfiguration = (settings: Record<string, unknown>): string =>
+  `${JSON.stringify(settings, null, 2).slice(0, -2)},\n  "include": ["**/*", "**/.*/**/*"]\n}\n`;
+
 const addTypeScriptProfile = async (
   sources: Map<string, string>,
   manifest: ManifestFragment,
@@ -189,7 +243,20 @@ const addTypeScriptProfile = async (
   workspace: string,
   typescriptProfile?: TypeScriptProfile
 ): Promise<string> => {
-  if (!typescriptProfile) {
+  if (typescriptProfile === undefined) {
+    if (profile === "node" || profile === "frontend" || profile === "react") {
+      sources.set(
+        "tsconfig.json",
+        compilerConfiguration({
+          compilerOptions: {
+            allowJs: true,
+            noEmit: true,
+            module: "NodeNext",
+            target: "ESNext"
+          }
+        })
+      );
+    }
     return workspace;
   }
   if (!(profile === "node" || profile === "frontend" || profile === "react")) {
@@ -202,9 +269,13 @@ const addTypeScriptProfile = async (
   if (typescriptProfile === "node") {
     manifest.devDependencies["@types/node"] = "catalog:";
   }
-  const { compilerOptions } = JSON.parse(
+  const fragment: unknown = JSON.parse(
     await readSource("pnpm/tsconfig.fragment.json")
   );
+  if (!isRecord(fragment) || !isRecord(fragment.compilerOptions)) {
+    throw new TypeError("Expected compiler options.");
+  }
+  const compilerOptions = { ...fragment.compilerOptions };
   if (typescriptProfile === "react-native") {
     delete compilerOptions.verbatimModuleSyntax;
     compilerOptions.moduleResolution = "bundler";
@@ -221,25 +292,11 @@ const addTypeScriptProfile = async (
   }
   sources.set(
     "tsconfig.json",
-    `${JSON.stringify(
-      {
-        compilerOptions,
-        extends: base.config,
-        ...(typescriptProfile === "next"
-          ? {
-              exclude: ["node_modules"],
-              include: [
-                "next-env.d.ts",
-                "**/*.ts",
-                "**/*.tsx",
-                ".next/types/**/*.ts"
-              ]
-            }
-          : {})
-      },
-      null,
-      2
-    )}\n`
+    compilerConfiguration({
+      compilerOptions: { ...compilerOptions, allowJs: true },
+      extends: base.config,
+      ...(typescriptProfile === "next" ? { exclude: ["node_modules"] } : {})
+    })
   );
   if (typescriptProfile === "vue") {
     const vueCatalog = await readSource(
@@ -276,16 +333,14 @@ export const configureBaseline = async (
     throw new Error("The target must be a regular directory.");
   }
   const sources = new Map<string, string>();
-  const manifest: ManifestFragment = JSON.parse(
-    await readSource(nativeProfiles[profile])
-  );
+  const manifest = readManifest(await readSource(nativeProfiles[profile]));
   let workspace = await readSource("pnpm/pnpm-workspace.fragment.yaml");
   if (profile === "node" || profile === "frontend" || profile === "react") {
     workspace =
       (await readSource("pnpm/allow-builds.fragment.yaml")) + workspace;
   }
   if (profile === "node") {
-    const docs: ManifestFragment = JSON.parse(
+    const docs = readManifest(
       await readSource("pnpm/api-docs.package.fragment.json")
     );
     Object.assign(manifest.scripts, docs.scripts);
@@ -300,7 +355,7 @@ export const configureBaseline = async (
     await addDirectory(sources, "uv/docs", "docs");
   }
   if (profile === "frontend" || profile === "react") {
-    const extra: ManifestFragment = JSON.parse(
+    const extra = readManifest(
       await readSource(`${profile}/package.fragment.json`)
     );
     Object.assign(manifest.scripts, extra.scripts);
@@ -320,7 +375,8 @@ export const configureBaseline = async (
     workspace,
     typescriptProfile
   );
-  const runtime = JSON.parse(await readSource("pnpm/runtime.fragment.json"));
+  const runtime = readRuntime(await readSource("pnpm/runtime.fragment.json"));
+  const { engines } = runtime;
   sources.set(
     "package.json",
     `${JSON.stringify(
@@ -353,7 +409,7 @@ export const configureBaseline = async (
             )
           )
         ],
-        ["engines", runtime.engines]
+        ["engines", engines]
       ]),
       null,
       2
@@ -495,16 +551,19 @@ if (
       "typescript-profile": { type: "string" }
     }
   });
-  if (values.help) {
+  if (values.help === true) {
     process.stdout.write(
       "Usage: node configure.ts --target <root> --profile <gradle|kotlin|maven|go|rust|uv|shell|node|frontend|react> --eligibility <eligible|archived|inactive|configuration-only> [--typescript-profile <node|vite-react|vue|react-native|next>] --non-interactive\n"
     );
   } else {
     if (
-      !values.target ||
-      !values.profile ||
+      values.target === undefined ||
+      values.target === "" ||
+      values.profile === undefined ||
+      values.profile === "" ||
       !isProfile(values.profile) ||
-      !values.eligibility ||
+      values.eligibility === undefined ||
+      values.eligibility === "" ||
       !isEligibility(values.eligibility)
     ) {
       throw new Error(
@@ -512,13 +571,13 @@ if (
       );
     }
     if (
-      values["typescript-profile"] &&
-      !Object.hasOwn(typescriptProfiles, values["typescript-profile"])
+      values["typescript-profile"] !== undefined &&
+      !isTypeScriptProfile(values["typescript-profile"])
     ) {
       throw new Error("Provide a supported --typescript-profile.");
     }
     if (
-      values["typescript-profile"] &&
+      values["typescript-profile"] !== undefined &&
       !["node", "frontend", "react"].includes(values.profile)
     ) {
       throw new Error(
@@ -526,7 +585,7 @@ if (
       );
     }
     process.stdout.write(
-      `${JSON.stringify(await configureBaseline(values.target, values.profile, values.eligibility, values["typescript-profile"] as TypeScriptProfile | undefined))}\n`
+      `${JSON.stringify(await configureBaseline(values.target, values.profile, values.eligibility, values["typescript-profile"]))}\n`
     );
   }
 }

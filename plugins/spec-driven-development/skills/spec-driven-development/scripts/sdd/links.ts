@@ -1,7 +1,7 @@
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 
-import { isRecord } from "./infrastructure.js";
+import { coerceString, isRecord } from "./infrastructure.js";
 import { URL_SCHEME_RE } from "./shared.js";
 import type { JsonRecord } from "./shared.js";
 
@@ -89,15 +89,10 @@ export const resolveTargetPaths = (
  * non-record entries.
  */
 export const extractCallPath = (rawCall: unknown): string => {
-  let callPath: string;
   if (typeof rawCall === "string") {
-    callPath = rawCall;
-  } else if (isRecord(rawCall)) {
-    callPath = String(rawCall.path ?? "");
-  } else {
-    callPath = "";
+    return rawCall;
   }
-  return callPath;
+  return isRecord(rawCall) ? coerceString(rawCall.path ?? "") : "";
 };
 
 /**

@@ -18,10 +18,13 @@ The API documentation profile uses the named catalog for its compatible TypeScri
 The separately distributed specification plugin owns its standalone catalog and lockfile.
 
 The root has no separate `build` or `test` script.
-Its `check:*` scripts compose `check:test`, TypeScript checking, lint, formatting, version validation, and lifecycle models.
+Its `check:*` scripts compose `check:test`, TypeScript checking, type-aware lint, installed consumer checks, formatting, version validation, and lifecycle models.
 `check:test` discovers root-owned TypeScript tests once, including hidden GitHub script tests, without selecting the independent sample packages.
 Pre-commit invokes this same runner with the affected suite paths and always includes version regression tests.
 The Promtool fixture runner requires a separate command and network access.
+`check:consumers` installs the independent workspace sample from its lockfile and materializes fresh HTML and React projects.
+It checks unchanged Storybook fixtures with each consumer's own dependencies and compiler settings.
+This gate needs package registry access when the local store lacks a dependency.
 
 Harness fixtures use the profile's own pnpm version, which can differ from the root version.
 Invoke pnpm directly so it selects each fixture's `packageManager` pin.
@@ -40,6 +43,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Prometheus rule examples | `pnpm run check:test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
 | Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and Harness tooling pass their configured lint and formatting checks, including the React effect policy. |
+| Independent workspace and Storybook consumers | `pnpm run check:consumers` | Installed consumers pass type-aware lint without rewriting the source fixtures. |
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |
 
 The root [package scripts](../package.json) own command composition.

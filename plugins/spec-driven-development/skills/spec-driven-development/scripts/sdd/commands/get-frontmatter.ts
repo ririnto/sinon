@@ -7,7 +7,7 @@ import {
   normalizeTag,
   parseFields
 } from "../frontmatter.js";
-import { fail, isRecord } from "../infrastructure.js";
+import { coerceString, fail, isRecord } from "../infrastructure.js";
 import { DOC_FILE_NAMES, VALID_FORMATS, VALID_KINDS } from "../shared.js";
 import type { LoadEntry, MutableRecord, ParsedArgs } from "../shared.js";
 
@@ -49,7 +49,7 @@ const outputValue = (
   process.stdout.write(
     Array.isArray(value) || isRecord(value)
       ? JSON.stringify(value)
-      : `${String(value ?? "")}\n`
+      : `${coerceString(value ?? "")}\n`
   );
   return 0;
 };

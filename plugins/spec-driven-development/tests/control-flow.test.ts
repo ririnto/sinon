@@ -18,7 +18,9 @@ test.each([
   "list-frontmatter resolves inbound query %s and excludes unsupported calls",
   (query, expectedLinks) => {
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-links-"));
-    onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+    onTestFinished(() => {
+      rmSync(directory, { force: true, recursive: true });
+    });
     const specRoot = path.join(directory, "spec");
     const moduleDirectory = path.join(specRoot, "module");
     mkdirSync(moduleDirectory, { recursive: true });
@@ -50,8 +52,8 @@ test.each([
         title: "Caller"
       })}\n---\n`
     );
-    const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    const output = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
@@ -75,7 +77,9 @@ test.each([
   "## 2026-01-01 - First\n\n## 2026-10-01 - Second\n"
 ])("validate ignores changelog layout", (changelog) => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-validate-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const specRoot = path.join(directory, "spec");
   mkdirSync(specRoot);
   writeFileSync(
@@ -83,8 +87,8 @@ test.each([
     '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: draft\ncall: []\n---\n\n# Example\n'
   );
   writeFileSync(path.join(specRoot, "CHANGELOG.md"), changelog);
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   onTestFinished(() => {
     vi.restoreAllMocks();
   });

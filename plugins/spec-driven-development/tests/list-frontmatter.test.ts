@@ -24,14 +24,16 @@ test.each([
   "list-frontmatter renders %s from %j",
   (field, frontmatter, expected) => {
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-record-"));
-    onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+    onTestFinished(() => {
+      rmSync(directory, { force: true, recursive: true });
+    });
     const file = path.join(directory, "SPEC.md");
     writeFileSync(
       file,
       `---\ndescription: Example\n${frontmatter}\n---\n\n# Example\n`
     );
-    const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    const output = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
@@ -77,7 +79,9 @@ test.each([
   ]
 ] as const)("list-frontmatter applies selection %j", (options, expected) => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-selection-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   writeFileSync(
     path.join(directory, "SPEC.md"),
     "---\nstatus: implemented\ntag: [ingest, domain]\ncategory: [api, ui]\n---\n\n# Ingest\n"
@@ -86,8 +90,8 @@ test.each([
     path.join(directory, "RESEARCH.md"),
     '---\nstatus: draft\ntag: " domain "\ncategory: cli\n---\n\n# Research\n'
   );
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
@@ -106,7 +110,7 @@ test.each([
     String(output.mock.calls[0]?.[0])
       .split("\n")
       .filter(Boolean)
-      .map((row) => JSON.parse(row))
+      .map((row): unknown => JSON.parse(row))
   ).toEqual(
     expected.map(({ name, title }) => ({
       file: path.join(directory, name),
@@ -114,4 +118,38 @@ test.each([
     }))
   );
   expect(errors).not.toHaveBeenCalled();
+});
+
+test("list-frontmatter preserves JavaScript coercion for non-scalar YAML fields", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-coercion-"));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
+  const file = path.join(directory, "SPEC.md");
+  writeFileSync(
+    file,
+    "---\ncreated: {value: one}\ndescription: [one, two]\nsubject: {name: {value: model}, version: [1, 2]}\ntag: [{value: one}, [1, 2], null]\n---\n\n# Example\n"
+  );
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+
+  expect(
+    main([
+      "list-frontmatter",
+      directory,
+      "--jsonl",
+      "--fields",
+      "created,description,subject,tag"
+    ])
+  ).toBe(0);
+  const parsed: unknown = JSON.parse(String(output.mock.calls[0]?.[0]));
+  expect(parsed).toEqual({
+    created: "[object Object]",
+    description: "one,two",
+    file,
+    subject: "[object Object]@1,2",
+    tag: ["[object Object]", "1,2", "null"]
+  });
 });

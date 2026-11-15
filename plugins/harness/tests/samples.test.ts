@@ -40,7 +40,9 @@ test.each(samples)(
   "materializes %s into an independent empty directory",
   async (name, manifest) => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-sample-"));
-    onTestFinished(() => rm(directory, { force: true, recursive: true }));
+    onTestFinished(async () => {
+      await rm(directory, { force: true, recursive: true });
+    });
     await materializeSample(name, directory);
     const copied = await stat(path.join(directory, manifest));
     expect(copied.isFile()).toBe(true);
@@ -77,7 +79,9 @@ test.each(samples)(
 
 test("rejects a nonempty destination before writing", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-sample-"));
-  onTestFinished(() => rm(directory, { force: true, recursive: true }));
+  onTestFinished(async () => {
+    await rm(directory, { force: true, recursive: true });
+  });
   await writeFile(path.join(directory, "owned.txt"), "keep");
   await expect(materializeSample("go-workspace", directory)).rejects.toThrow(
     "empty"
@@ -89,7 +93,9 @@ test("rejects a nonempty destination before writing", async () => {
 
 test("rejects unsafe inputs before writing and excludes generated files", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-sample-fixture-"));
-  onTestFinished(() => rm(directory, { force: true, recursive: true }));
+  onTestFinished(async () => {
+    await rm(directory, { force: true, recursive: true });
+  });
   const script = path.join(directory, "scripts/materialize-sample.ts");
   const source = path.join(directory, "samples/go-workspace");
   const target = path.join(directory, "target");

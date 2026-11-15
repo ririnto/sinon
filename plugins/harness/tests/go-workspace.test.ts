@@ -14,13 +14,18 @@ import { expect, onTestFinished, test } from "vitest";
 
 const tooling = path.resolve(import.meta.dirname, "../tooling/go");
 
-test.skipIf(!process.env.HARNESS_GO_WORKSPACE_TEST)(
+test.skipIf(
+  process.env.HARNESS_GO_WORKSPACE_TEST === undefined ||
+    process.env.HARNESS_GO_WORKSPACE_TEST === ""
+)(
   "tests each active workspace module and propagates failures",
   async () => {
     const root = await realpath(
       await mkdtemp(path.join(tmpdir(), "go workspace "))
     );
-    onTestFinished(() => rm(root, { force: true, recursive: true }));
+    onTestFinished(async () => {
+      await rm(root, { force: true, recursive: true });
+    });
     const first = path.join(root, "first module");
     const second = path.join(root, "second module");
     await Promise.all([mkdir(first), mkdir(second)]);

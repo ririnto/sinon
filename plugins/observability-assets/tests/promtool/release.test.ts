@@ -23,13 +23,15 @@ const withLocalServer = async (
   const sockets = new Set<Socket>();
   server.on("connection", (socket) => {
     sockets.add(socket);
-    socket.once("close", () => sockets.delete(socket));
+    socket.once("close", () => {
+      sockets.delete(socket);
+    });
   });
   const listening = once(server, "listening");
   server.listen(0, "127.0.0.1");
   await listening;
   const address = server.address();
-  if (!address || typeof address === "string") {
+  if (address === null || typeof address === "string") {
     throw new Error("Missing local server address");
   }
   try {
@@ -78,8 +80,12 @@ const serveOpenResponses = (
         pendingResponse.flushHeaders();
         pendingResponse.write("held response body");
         if (pendingPath === destroyPath) {
-          const timeout = setTimeout(() => pendingResponse.destroy(), 25);
-          pendingResponse.once("close", () => clearTimeout(timeout));
+          const timeout = setTimeout(() => {
+            pendingResponse.destroy();
+          }, 25);
+          pendingResponse.once("close", () => {
+            clearTimeout(timeout);
+          });
         }
       }
     }
@@ -190,9 +196,13 @@ process.exitCode = status;`;
     );
     let childPid: number | undefined;
     try {
-      const [output] = await once(wrapper.stdout, "data", {
+      const outputs: unknown[] = await once(wrapper.stdout, "data", {
         signal: AbortSignal.timeout(5000)
       });
+      const [output] = outputs;
+      if (!Buffer.isBuffer(output)) {
+        throw new TypeError("Expected child output bytes");
+      }
       childPid = Number(output.toString().trim());
       if (!Number.isInteger(childPid)) {
         throw new TypeError("Fixture child did not report a valid process ID");
@@ -201,7 +211,8 @@ process.exitCode = status;`;
         signal: AbortSignal.timeout(5000)
       });
       wrapper.kill(interruption);
-      const [code, signal] = await wrapperClosed;
+      const closedValues: unknown[] = await wrapperClosed;
+      const [code, signal] = closedValues;
       expect(code).toBe(interruption === "SIGINT" ? 130 : 143);
       expect(signal).toBeNull();
       expect(processExists(childPid)).toBe(false);

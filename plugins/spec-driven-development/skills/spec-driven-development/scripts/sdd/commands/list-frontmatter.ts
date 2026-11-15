@@ -26,11 +26,11 @@ import { LIST_KINDS } from "../shared.js";
 import type { LoadEntry, MutableRecord, ParsedArgs } from "../shared.js";
 
 const buildListHeader = (
-  inboundOf: string | undefined,
+  inboundOf: string,
   fields: readonly string[] | undefined
 ): string => {
   let header: string;
-  if (inboundOf !== undefined && inboundOf.length > 0) {
+  if (inboundOf.length > 0) {
     header = "target\tsource\traw_link";
   } else if (fields) {
     header = ["file", ...fields.filter((field) => field !== "file")].join("\t");
@@ -163,7 +163,7 @@ const collectInboundRows = (
  */
 export const cmdListFrontmatter = (args: ParsedArgs): number => {
   const specPath = commandSpecPath(args, 0, "spec_path");
-  if (!specPath) {
+  if (specPath === undefined) {
     return 1;
   }
   const kind = optionString(args, "kind") ?? "any";
@@ -194,10 +194,11 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
   }
   const { filters } = filterResult;
   const fields = parseFields(optionString(args, "fields"));
-  const inboundOf = optionString(args, "inbound-of");
-  const targetCandidates = inboundOf
-    ? resolveTargetPaths(inboundOf, path.resolve(specPath))
-    : undefined;
+  const inboundOf = optionString(args, "inbound-of") ?? "";
+  const targetCandidates =
+    inboundOf.length > 0
+      ? resolveTargetPaths(inboundOf, path.resolve(specPath))
+      : undefined;
   const output: string[] = [];
   if (!jsonl) {
     output.push(buildListHeader(inboundOf, fields));
@@ -215,7 +216,7 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
       result.kind === "entry" &&
       matchesFilters(result.entry.record, result.entry.data, filters)
     ) {
-      if (inboundOf) {
+      if (inboundOf.length > 0) {
         output.push(
           ...collectInboundRows(
             result.entry,
@@ -234,7 +235,7 @@ export const cmdListFrontmatter = (args: ParsedArgs): number => {
     }
   }
   console.log(output.join("\n"));
-  if (failures > 0 && optionBool(args, "best-effort")) {
+  if (failures > 0) {
     warn(
       `Skipped ${failures} file(s) due to invalid, empty, or unterminated YAML frontmatter (--best-effort)`
     );

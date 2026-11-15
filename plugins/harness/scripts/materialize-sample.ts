@@ -20,6 +20,9 @@ const samples = [
 
 type Sample = (typeof samples)[number];
 
+const isSample = (value: string): value is Sample =>
+  samples.some((sample) => sample === value);
+
 const generated = new Set([
   ".git",
   ".gradle",
@@ -96,19 +99,21 @@ export const materializeSample = async (
   const kotlin = path.resolve(import.meta.dirname, "../tooling/kotlin");
   await Promise.all(
     (name === "gradle-multi-module" ? [source, kotlin] : [source]).map(
-      (input) => inspectDirectory(input, input)
+      async (input) => {
+        await inspectDirectory(input, input);
+      }
     )
   );
   const children = await readdir(source);
   await Promise.all(
-    children.map((child) =>
-      cp(path.join(source, child), path.join(root, child), {
+    children.map(async (child) => {
+      await cp(path.join(source, child), path.join(root, child), {
         errorOnExist: true,
         filter: includeEntry.bind(null, source),
         force: false,
         recursive: true
-      })
-    )
+      });
+    })
   );
   if (name === "gradle-multi-module") {
     await mkdir(path.join(root, "buildSrc"), { recursive: true });
@@ -136,20 +141,22 @@ if (
       target: { type: "string" }
     }
   });
-  if (values.help) {
+  if (values.help === true) {
     process.stdout.write(
       `Usage: node materialize-sample.ts --sample <${samples.join("|")}> --target <empty-directory>\n`
     );
   } else {
     if (
-      !values.sample ||
-      !samples.includes(values.sample as Sample) ||
-      !values.target
+      values.sample === undefined ||
+      values.sample === "" ||
+      !isSample(values.sample) ||
+      values.target === undefined ||
+      values.target === ""
     ) {
       throw new Error(
         "Provide a supported --sample and an empty --target directory."
       );
     }
-    await materializeSample(values.sample as Sample, values.target);
+    await materializeSample(values.sample, values.target);
   }
 }

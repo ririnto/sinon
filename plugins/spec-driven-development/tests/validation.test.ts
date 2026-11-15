@@ -27,7 +27,9 @@ test.each(["", "# ", "## Not a title", "```\n# Not a title\n```"])(
   "validateDocument rejects a missing or invalid body title",
   (heading) => {
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-title-"));
-    onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+    onTestFinished(() => {
+      rmSync(directory, { force: true, recursive: true });
+    });
     const filePath = path.join(directory, "CONTRACT.md");
     writeFileSync(
       filePath,
@@ -39,7 +41,9 @@ test.each(["", "# ", "## Not a title", "```\n# Not a title\n```"])(
 
 test("validateDocument rejects a frontmatter title even with a body title", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-title-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const filePath = path.join(directory, "CONTRACT.md");
   writeFileSync(
     filePath,
@@ -59,7 +63,9 @@ test.each([
   "removed"
 ])("validateDocument accepts the %s SPEC status", (status) => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-status-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const filePath = path.join(directory, "SPEC.md");
   writeFileSync(
     filePath,
@@ -82,7 +88,9 @@ test.each([
   ["quoted numeric string", 'status: "1"']
 ])("validateDocument rejects a %s SPEC status", (_kind, statusField) => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-status-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const filePath = path.join(directory, "SPEC.md");
   writeFileSync(
     filePath,

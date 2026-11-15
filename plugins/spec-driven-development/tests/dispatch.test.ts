@@ -21,7 +21,9 @@ test("generateMermaid preserves linked fixture output", () => {
 
 test("diagram generation keeps colliding path IDs distinct", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-graph-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const specRoot = path.join(directory, "spec");
   const callerPath = path.join(specRoot, "domain", "foo-bar", "SPEC.md");
   const calleePath = path.join(specRoot, "domain", "foo_bar", "SPEC.md");
@@ -35,8 +37,8 @@ test("diagram generation keeps colliding path IDs distinct", () => {
     calleePath,
     '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: implemented\ncall: []\n---\n\n# Underscore Callee\n'
   );
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
@@ -47,11 +49,11 @@ test("diagram generation keeps colliding path IDs distinct", () => {
   expect(main(["generate-diagram", specRoot])).toBe(0);
 
   const diagram = String(output.mock.calls[0]?.[0] ?? "");
-  const callerId = diagram.match(
-    /^\s+(?<id>[A-Za-z0-9_]+)\["Hyphen Caller"\]$/mu
+  const callerId = /^\s+(?<id>[A-Za-z0-9_]+)\["Hyphen Caller"\]$/mu.exec(
+    diagram
   )?.groups?.id;
-  const calleeId = diagram.match(
-    /^\s+(?<id>[A-Za-z0-9_]+)\["Underscore Callee"\]$/mu
+  const calleeId = /^\s+(?<id>[A-Za-z0-9_]+)\["Underscore Callee"\]$/mu.exec(
+    diagram
   )?.groups?.id;
   expect(callerId).toBeDefined();
   expect(calleeId).toBeDefined();
@@ -68,8 +70,8 @@ test.each([
   [["validate", repositoryPaths.sddFixtureRoot, "--unknown"], 1],
   [["unknown-command"], 1]
 ] as const)("main reports the command outcome for %j", (args, expected) => {
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
@@ -80,13 +82,17 @@ test.each([
 
 test("list-tags preserves lexical ordering and counts", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-tags-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   writeFileSync(
     path.join(directory, "SPEC.md"),
     '---\ntag: [z, Z, alpha, "2", "10", z]\n---\n'
   );
-  const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-  onTestFinished(() => output.mockRestore());
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  onTestFinished(() => {
+    output.mockRestore();
+  });
   expect(main(["list-tags", directory, "--count"])).toBe(0);
   expect(output.mock.calls).toEqual([
     ["10\t1"],
@@ -103,8 +109,8 @@ test.each([
 ] as const)(
   "list-tags lists %s without errors",
   (_description, options, expected) => {
-    const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    const output = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
@@ -112,7 +118,9 @@ test.each([
     expect(
       main(["list-tags", repositoryPaths.sddFixtureRoot, ...options])
     ).toBe(0);
-    expect(output.mock.calls.map(([line]) => line)).toEqual(expected);
+    expect(output.mock.calls.map(([line]: unknown[]) => line)).toEqual(
+      expected
+    );
     expect(errors).not.toHaveBeenCalled();
   }
 );
@@ -123,8 +131,8 @@ test.each([
 ] as const)(
   "list-frontmatter finds the known inbound SPEC caller for %s without errors",
   (_description, options) => {
-    const output = vi.spyOn(console, "log").mockImplementation(vi.fn());
-    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    const output = vi.spyOn(console, "log").mockImplementation(() => {});
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
@@ -161,10 +169,12 @@ test.each([
   "list-tags still rejects %s frontmatter",
   (_kind, content, diagnostic) => {
     const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-empty-yaml-"));
-    onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+    onTestFinished(() => {
+      rmSync(directory, { force: true, recursive: true });
+    });
     const changelogPath = path.join(directory, "CHANGELOG.md");
     writeFileSync(changelogPath, content);
-    const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
@@ -178,7 +188,9 @@ test.each([
 
 test("validate reports an invalid status and exits nonzero", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-status-cli-"));
-  onTestFinished(() => rmSync(directory, { force: true, recursive: true }));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
   const specDirectory = path.join(directory, "spec", "domain");
   mkdirSync(specDirectory, { recursive: true });
   const file = path.join(specDirectory, "SPEC.md");
@@ -186,11 +198,28 @@ test("validate reports an invalid status and exits nonzero", () => {
     file,
     '---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: unknown\ncall: []\n---\n\n# Status Example\n'
   );
-  const errors = vi.spyOn(console, "error").mockImplementation(vi.fn());
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
   expect(main(["validate", directory])).toBe(1);
   expect(errors.mock.calls.flat().join("\n")).toContain(file);
   expect(errors.mock.calls.flat().join("\n")).toContain("status");
+});
+
+test("diagram generation uses the containing directory when the title is empty", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-untitled-"));
+  onTestFinished(() => {
+    rmSync(directory, { force: true, recursive: true });
+  });
+  const specDirectory = path.join(directory, "untitled");
+  mkdirSync(specDirectory);
+  writeFileSync(
+    path.join(specDirectory, "SPEC.md"),
+    "---\nstatus: draft\n---\n"
+  );
+
+  expect(generateMermaid(directory)).toBe(
+    'flowchart TD\n  untitled_SPEC_md["untitled"]'
+  );
 });
