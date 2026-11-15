@@ -346,7 +346,7 @@ The tested backend contract is documented in the [Oxlint rule implementation](ht
 
 Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node24` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
 Install the selected base as a target-owned development dependency and add its version to the target's pnpm catalog.
-Keep the Node runtime version independent of the Node LTS base package's version.
+Keep the Node runtime version independent of the TypeScript base package's version.
 A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit the framework selection but still receive a non-emitting compiler configuration for type-aware linting.
 The configurator applies the strictness fragment while omitting options already supplied by the base.
 React Native uses bundler module resolution for Metro and omits `verbatimModuleSyntax`, which conflicts with the base's CommonJS module setting.
