@@ -131,8 +131,8 @@ const typescriptProfiles: Record<
     dependency: "@tsconfig/next"
   },
   node: {
-    config: "@tsconfig/node-lts/tsconfig.json",
-    dependency: "@tsconfig/node-lts"
+    config: "@tsconfig/node24/tsconfig.json",
+    dependency: "@tsconfig/node24"
   },
   "react-native": {
     config: "@tsconfig/react-native/tsconfig.json",

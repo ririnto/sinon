@@ -5,10 +5,10 @@
   "scripts": {
     "check": "run-p check:*",
     "check:markdownlint-cli2": "markdownlint-cli2",
-    "check:ultracite": "ultracite check --type-aware --config oxlint.config.ts",
+    "check:ultracite": "ultracite check --type-aware",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-    "fix:ultracite": "ultracite fix --type-aware --config oxlint.config.ts",
+    "fix:ultracite": "ultracite fix --type-aware",
     "pre-commit": "run-s check",
     "pre-push": "run-s check",
     "prepare": "husky",
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@oxlint/plugins": "catalog:",
-    "@tsconfig/node-lts": "catalog:",
+    "@tsconfig/node24": "catalog:",
     "@types/node": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "husky": "catalog:",
@@ -33,7 +33,7 @@
     "ultracite": "catalog:"
   },
   "engines": {
-    "node": "^26.13.0"
+    "node": "^24.22.3"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.21.0"
 }

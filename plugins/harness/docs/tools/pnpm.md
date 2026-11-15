@@ -3,7 +3,7 @@ metadata:
   reference:
     TypeScript configurations:
       url:
-        - https://www.npmjs.com/package/@tsconfig/node-lts
+        - https://www.npmjs.com/package/@tsconfig/node24
         - https://www.npmjs.com/package/@tsconfig/vite-react
         - https://www.npmjs.com/package/@vue/tsconfig
         - https://www.npmjs.com/package/@tsconfig/react-native
@@ -323,8 +323,11 @@ The custom call diagnostic covers a separate requirement from the upstream check
 The shared check and fix commands each run once, without additional formatter-writing passes.
 Sinon's publishing repository uses one root configuration but runs type-aware checks over repository scripts, tests, JavaScript, and TypeScript.
 The standalone workspace sample and Storybook fixtures use their own installed consumer dependencies through `check:consumers`, rather than the publishing repository's Node-only types.
-Both repository lint invocations enable type awareness; the second retains the Harness tooling entry point.
-Both invocations use the root formatter configuration; Ultracite forwards the lint exclusion only to Oxlint, so formatting covers the Harness subtree again in the typed invocation.
+Both repository lint invocations enable type awareness.
+The second runs from the Harness tooling directory so its own configuration is discovered.
+The root `.eslintignore` keeps independently checked consumer configurations out of root discovery.
+Each consumer runs the same bare command from its own directory.
+Formatting may inspect files again.
 Verify both positive and negative target fixtures before claiming consumer adoption.
 
 ## Type-Aware Promise Checks
@@ -344,9 +347,9 @@ The tested backend contract is documented in the [Oxlint rule implementation](ht
 
 ## TypeScript Strictness Merge
 
-Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node-lts` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
+Select the base for the target's actual TypeScript runtime or framework: `@tsconfig/node24` for Node, `@tsconfig/vite-react` for Vite React, `@vue/tsconfig/tsconfig.dom.json` for browser Vue, `@tsconfig/react-native` for React Native, and `@tsconfig/next` for Next.
 Install the selected base as a target-owned development dependency and add its version to the target's pnpm catalog.
-Keep the Node runtime version independent of the Node LTS base package's version.
+Keep the Node runtime version independent of the TypeScript base package's version.
 A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit the framework selection but still receive a non-emitting compiler configuration for type-aware linting.
 The configurator applies the strictness fragment while omitting options already supplied by the base.
 React Native uses bundler module resolution for Metro and omits `verbatimModuleSyntax`, which conflicts with the base's CommonJS module setting.
@@ -365,11 +368,11 @@ Recursive includes cover source files and hidden tooling directories without lis
 
 Run `pnpm install` after a dependency change.
 Run `pnpm run check` for read-only lint and formatting checks owned by the target package.
-The `check:ultracite` task runs `ultracite check --type-aware --config oxlint.config.ts` once.
+The `check:ultracite` task runs `ultracite check --type-aware` once.
 That invocation reports core, React, documentation, and custom style diagnostics without writing source changes.
 The `check:markdownlint-cli2` task lints Markdown files at the project root without writing changes.
 Run `pnpm run fix` within the authorized source-edit scope.
-The `fix:ultracite` task runs `ultracite fix --type-aware --config oxlint.config.ts` once.
+The `fix:ultracite` task runs `ultracite fix --type-aware` once.
 The custom style policies remain diagnostic-only while supported native fixes and formatting run through the same command.
 The `fix:markdownlint-cli2` task applies Markdownlint fixes.
 Run `pnpm run test` only when the target owns that native test command.

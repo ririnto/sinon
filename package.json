@@ -22,10 +22,10 @@
     "pre-commit": "node --import tsx .github/scripts/pre-commit-scope.ts",
     "pre-push": "run-s check",
     "prepare": "husky",
-    "ultracite:check": "ultracite check --type-aware --config oxlint.config.ts --ignore-pattern \"plugins/harness/tooling/pnpm/**\" --ignore-pattern \"plugins/harness/samples/pnpm-workspace/**\" --ignore-pattern \"plugins/harness/tests/fixtures/storybook/**\"",
-    "ultracite:check:harness": "ultracite check --type-aware --config oxlint.config.ts plugins/harness/tooling/pnpm",
-    "ultracite:fix": "ultracite fix --type-aware --config oxlint.config.ts --ignore-pattern \"plugins/harness/tooling/pnpm/**\" --ignore-pattern \"plugins/harness/samples/pnpm-workspace/**\" --ignore-pattern \"plugins/harness/tests/fixtures/storybook/**\"",
-    "ultracite:fix:harness": "ultracite fix --type-aware --config oxlint.config.ts plugins/harness/tooling/pnpm",
+    "ultracite:check": "ultracite check --type-aware",
+    "ultracite:check:harness": "cd plugins/harness/tooling/pnpm && ultracite check --type-aware",
+    "ultracite:fix": "ultracite fix --type-aware",
+    "ultracite:fix:harness": "cd plugins/harness/tooling/pnpm && ultracite fix --type-aware",
     "versions:sync": "node .github/scripts/sync-versions.mjs --write",
     "check:test:unit": "vitest run",
     "check:test:promtool": "tsx plugins/observability-assets/tests/promtool/run.ts",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@google/design.md": "catalog:",
     "@oxlint/plugins": "catalog:",
-    "@tsconfig/node-lts": "catalog:",
+    "@tsconfig/node24": "catalog:",
     "@types/node": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "husky": "catalog:",
@@ -57,7 +57,7 @@
     "promtoolVersion": "3.13.5"
   },
   "engines": {
-    "node": "^26.13.0"
+    "node": "^24.22.3"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.21.0"
 }

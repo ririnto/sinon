@@ -271,8 +271,7 @@ test("Harness materializes the React policy dependency and package-script execut
         ultracite: "catalog:"
       },
       scripts: {
-        "check:ultracite":
-          "ultracite check --type-aware --config oxlint.config.ts"
+        "check:ultracite": "ultracite check --type-aware"
       }
     });
     await writeFile(
