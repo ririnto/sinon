@@ -107,47 +107,11 @@ class WebConfig implements WebMvcConfigurer {
 
 Define a thin controller with validated input:
 
-```java
-@RestController
-@RequestMapping("/orders")
-class OrderController {
-    private final OrderService orders;
-
-    OrderController(OrderService orders) {
-        this.orders = orders;
-    }
-
-    @GetMapping("/{id}")
-    Order get(@PathVariable Long id) {
-        return orders.findById(id);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    Order create(@RequestBody @Valid CreateOrderRequest request) {
-        return orders.create(request);
-    }
-}
-```
+For Servlet MVC baseline, see [example 1](references/configuration-examples.md#example-1-servlet-mvc-baseline).
 
 Map errors once at the web boundary:
 
-```java
-@RestControllerAdvice
-class ApiExceptionHandler {
-    @ExceptionHandler(OrderNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    ErrorResponse handleNotFound(OrderNotFoundException ex) {
-        return new ErrorResponse(ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    ErrorResponse handleValidation(MethodArgumentNotValidException ex) {
-        return new ErrorResponse(ex.getBindingResult().getFieldError().getDefaultMessage());
-    }
-}
-```
+For Servlet MVC baseline, see [example 2](references/configuration-examples.md#example-2-servlet-mvc-baseline).
 
 Use `PathPattern` semantics for HTTP request mappings on Spring Framework 7.
 Do not start new HTTP mappings with `AntPathMatcher` assumptions.
@@ -156,33 +120,7 @@ Do not start new HTTP mappings with `AntPathMatcher` assumptions.
 
 Choose WebFlux only when controllers, downstream clients, persistence, and other blocking boundaries are designed for non-blocking execution.
 
-```java
-@RestController
-@RequestMapping("/items")
-class ItemController {
-    private final ItemService items;
-
-    ItemController(ItemService items) {
-        this.items = items;
-    }
-
-    @GetMapping("/{id}")
-    Mono<Item> get(@PathVariable Long id) {
-        return items.findById(id);
-    }
-
-    @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    Flux<Item> stream() {
-        return items.streamAll();
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    Mono<Item> create(@RequestBody @Valid Mono<CreateItemRequest> request) {
-        return request.flatMap(items::create);
-    }
-}
-```
+For reactive WebFlux baseline, see [example 3](references/configuration-examples.md#example-3-reactive-webflux-baseline).
 
 Keep reactive chains non-blocking and short.
 Map domain failures with reactive operators or a centralized advice component rather than calling `block()` in the request path.
@@ -212,16 +150,7 @@ class VersionedOrderController {
 
 Register related HTTP interface clients as a group:
 
-```java
-@Configuration(proxyBeanMethods = false)
-@ImportHttpServices(group = "order", types = {OrderClient.class, OrderAdminClient.class})
-class HttpServicesConfiguration {
-    @Bean
-    RestClientHttpServiceGroupConfigurer groupConfigurer() {
-        return groups -> groups.forEachClient((group, builder) -> builder.defaultHeader("User-Agent", "My-App"));
-    }
-}
-```
+For API versioning and HTTP interfaces, see [example 4](references/configuration-examples.md#example-4-api-versioning-and-http-interfaces).
 
 ## Message converters and codecs
 
@@ -259,78 +188,19 @@ Order loadOrder(RestClient client, long orderId) {
 
 Register one configured client and inject it rather than rebuilding it at call sites.
 
-```java
-@Bean
-WebClient orderWebClient() {
-    return WebClient.builder().baseUrl("https://api.example.com").defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build();
-}
+For WebClient baseline, see [example 5](references/configuration-examples.md#example-5-webclient-baseline).
 
-Mono<Order> loadOrder(WebClient client, long orderId) {
-    return client.get()
-        .uri("/orders/{id}", orderId)
-        .retrieve()
-        .onStatus(HttpStatusCode::is4xxClientError, response -> response.bodyToMono(String.class).defaultIfEmpty("").map(ApiException::new))
-        .onStatus(HttpStatusCode::is5xxServerError, response -> response.bodyToMono(String.class).defaultIfEmpty("").map(UpstreamServiceException::new))
-        .bodyToMono(Order.class);
-}
-```
-
-Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when filters, Reactor Netty timeouts, retry selection, or deeper reactive client behavior is the blocker.
+Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when working with client filters, Reactor Netty timeouts, retry selection, or deeper reactive client behavior.
 
 ## Focused web tests
 
 Servlet MVC:
 
-```java
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
-@ContextConfiguration(classes = {AppConfig.class, WebConfig.class})
-class OrderControllerTests {
-    @Autowired
-    WebApplicationContext context;
-
-    MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-    }
-
-    @Test
-    void getOrderReturnsOk() throws Exception {
-        mockMvc.perform(get("/orders/1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1));
-    }
-}
-```
+For focused web tests, see [example 6](references/configuration-examples.md#example-6-focused-web-tests).
 
 Reactive WebFlux:
 
-```java
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {AppConfig.class, ReactiveWebConfig.class})
-class ItemControllerTests {
-    @Autowired
-    ApplicationContext context;
-
-    WebTestClient client;
-
-    @BeforeEach
-    void setUp() {
-        client = WebTestClient.bindToApplicationContext(context).build();
-    }
-
-    @Test
-    void getItemReturnsOk() {
-        client.get().uri("/items/1")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody(Item.class)
-            .value(item -> assertNotNull(item.id()));
-    }
-}
-```
+For focused web tests, see [example 7](references/configuration-examples.md#example-7-focused-web-tests).
 
 Keep web tests focused on HTTP semantics.
 Test service-level business behavior without the web infrastructure.
@@ -348,4 +218,4 @@ Test service-level business behavior without the web infrastructure.
 
 ## References
 
-- Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the blocker is client filters, Reactor Netty timeout configuration, retry placement, or advanced reactive response handling.
+- Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when working with client filters, Reactor Netty timeout configuration, retry placement, or advanced reactive response handling.

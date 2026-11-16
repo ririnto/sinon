@@ -37,8 +37,8 @@ Spring Web Services 5.0 requires JDK 17 or later, Jakarta EE 11 (Servlet 6.1, Ja
   - The Boot starter manages the Spring WS version.
 - `XwsSecurityInterceptor` was removed in Spring WS 4.0 and is not available.
   - Use `Wss4jSecurityInterceptor` for all WS-Security configuration.
-- `WsConfigurerAdapter` was removed in Spring WS 5.0.
-  Implement `WsConfigurer` directly (it provides default methods).
+- Do not extend `WsConfigurerAdapter`; Spring WS 5.0 removed it.
+  Implement `WsConfigurer` directly only when optional endpoint interceptors, such as WS-Security, are required.
 
 ## Task scope
 
@@ -67,108 +67,15 @@ Use the Boot starter for ordinary SOAP server or client work and add test suppor
 For Boot 4.0.x and 4.1.x, use `spring-boot-starter-webservices`.
 The starter manages the Spring WS version automatically.
 
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-webservices</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.ws</groupId>
-        <artifactId>spring-ws-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
+For dependency baseline, see [example 1](references/configuration-examples.md#example-1-dependency-baseline).
 
-## First safe configuration
+## SOAP setup
 
-### Schema and marshaller shape
-
-```java
-@Bean
-XsdSchema holidaysSchema() {
-    return new SimpleXsdSchema(new ClassPathResource("xsd/holidays.xsd"));
-}
-
-@Bean
-Jaxb2Marshaller marshaller() {
-    Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-    marshaller.setContextPath("com.example.hr.schema");
-    return marshaller;
-}
-```
-
-### Boot ordinary-path property shape
-
-```properties
-spring.webservices.path=/ws
-spring.webservices.wsdl-locations=classpath:/wsdl
-```
-
-When the Boot starter is present, `spring.webservices.path` defaults to `/services`.
-Set it explicitly when the integration contract expects a different path.
-
-### SOAP servlet registration shape
-
-```java
-@Bean
-ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext context) {
-    MessageDispatcherServlet servlet = new MessageDispatcherServlet();
-    servlet.setApplicationContext(context);
-    servlet.setTransformWsdlLocations(true);
-    return new ServletRegistrationBean<>(servlet, "/ws/*");
-}
-```
-
-Use the Boot property path above as the ordinary path first.
-Add explicit servlet registration only when the application is not relying on Spring Boot's auto-configured SOAP servlet path or when the mapping must differ from the default deployment shape.
-
-### WSDL publication shape
-
-```java
-@Bean(name = "holidays")
-DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema holidaysSchema) {
-    DefaultWsdl11Definition definition = new DefaultWsdl11Definition();
-    definition.setPortTypeName("HolidaysPort");
-    definition.setLocationUri("/ws");
-    definition.setTargetNamespace("http://example.com/hr");
-    definition.setSchema(holidaysSchema);
-    return definition;
-}
-```
-
-### `WebServiceTemplateBuilder` client shape
-
-```java
-@Bean
-WebServiceTemplate webServiceTemplate(WebServiceTemplateBuilder builder, Jaxb2Marshaller marshaller) {
-    return builder.setMarshaller(marshaller).setUnmarshaller(marshaller)
-        .setDefaultUri("https://example.com/ws").build();
-}
-```
-
-`setDefaultUri` is required so that `marshalSendAndReceive` has a destination.
-Override per-call with a URI argument or `WebServiceMessageCallback` when needed.
-
-### Basic SOAP fault mapping shape
-
-Use `SoapFaultMappingExceptionResolver` to map exception types to SOAP fault codes.
-
-```java
-@Bean
-SoapFaultMappingExceptionResolver soapFaultMappingExceptionResolver() {
-    SoapFaultMappingExceptionResolver resolver = new SoapFaultMappingExceptionResolver();
-    Properties exceptionMappings = new Properties();
-    exceptionMappings.setProperty(BookingNotAllowedException.class.getName(), SoapFaultDefinition.SERVER + ",Booking failed");
-    SoapFaultDefinition definition = new SoapFaultDefinition();
-    definition.setFaultCode(SoapFaultDefinition.SERVER);
-    resolver.setExceptionMappings(exceptionMappings);
-    resolver.setDefaultFault(definition);
-    resolver.setOrder(1);
-    return resolver;
-}
-```
+For schema and marshaller, servlet registration, WSDL publication, client setup, or fault mapping, read [SOAP setup](references/soap-setup.md) and [configuration examples](references/configuration-examples.md).
+The Boot starter defaults `spring.webservices.path` to `/services`; set it when the contract differs.
+Prefer Boot's auto-configured servlet path unless explicit registration is needed.
+Set a default URI for `marshalSendAndReceive`, or override it per call.
+Use `SoapFaultMappingExceptionResolver` to map exceptions to SOAP faults.
 
 ## Implementation guidance
 
@@ -188,170 +95,9 @@ SoapFaultMappingExceptionResolver soapFaultMappingExceptionResolver() {
 
 ## Implementation examples
 
-### SOAP endpoint
+For SOAP endpoints, server configuration, `WebServiceTemplate` clients, or `MockWebServiceClient` and `MockWebServiceServer` tests, read [implementation examples](references/implementation-examples.md).
 
-```java
-@Endpoint
-class HolidayEndpoint {
-    private static final String NAMESPACE = "http://example.com/hr";
-    private final HolidayService service;
-
-    HolidayEndpoint(HolidayService service) {
-        this.service = service;
-    }
-
-    @PayloadRoot(namespace = NAMESPACE, localPart = "HolidayRequest")
-    @ResponsePayload
-    HolidayResponse handle(@RequestPayload HolidayRequest request) {
-        return service.book(request);
-    }
-}
-```
-
-`@PayloadRoot` is the primary routing annotation.
-Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
-
-Spring WS supports both SOAP 1.1 and SOAP 1.2.
-`SaajSoapMessageFactory` is the default for SOAP 1.1.
-Configure `AxiomSoapMessageFactory` explicitly when the Axiom alternative is required.
-See [references/client-variants.md](references/client-variants.md) for message factory details.
-
-### SOAP server configuration
-
-```java
-@Configuration
-@EnableWs
-class WsConfig {
-    @Bean
-    ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext context) {
-        MessageDispatcherServlet servlet = new MessageDispatcherServlet();
-        servlet.setApplicationContext(context);
-        servlet.setTransformWsdlLocations(true);
-        return new ServletRegistrationBean<>(servlet, "/ws/*");
-    }
-
-    @Bean(name = "holidays")
-    DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema holidaysSchema) {
-        DefaultWsdl11Definition definition = new DefaultWsdl11Definition();
-        definition.setPortTypeName("HolidaysPort");
-        definition.setLocationUri("/ws");
-        definition.setTargetNamespace("http://example.com/hr");
-        definition.setSchema(holidaysSchema);
-        return definition;
-    }
-}
-```
-
-Use `WsConfigurer` only when optional endpoint interceptors such as WS-Security are required.
-See [references/ws-security.md](references/ws-security.md) for that branch's dependency and test expectations.
-Do not extend `WsConfigurerAdapter` -- it was removed in Spring WS 5.0.
-
-### `WebServiceTemplate` client call
-
-```java
-@Service
-class HolidayClient {
-    private final WebServiceTemplate webServiceTemplate;
-
-    HolidayClient(WebServiceTemplate webServiceTemplate) {
-        this.webServiceTemplate = webServiceTemplate;
-    }
-
-    HolidayResponse book(HolidayRequest request) {
-        return (HolidayResponse) webServiceTemplate.marshalSendAndReceive(request);
-    }
-}
-```
-
-Use `WebServiceMessageCallback` for per-call SOAP Action headers, authentication, or URI overrides.
-
-### Server-side contract test with `MockWebServiceClient`
-
-```java
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.ws.test.server.MockWebServiceClient;
-import static org.springframework.ws.test.server.RequestCreators.withPayload;
-import static org.springframework.ws.test.server.ResponseMatchers.noFault;
-import static org.springframework.ws.test.server.ResponseMatchers.payload;
-import org.springframework.xml.transform.StringSource;
-
-@SpringBootTest
-class HolidayEndpointTests {
-    @Autowired
-    ApplicationContext applicationContext;
-
-    @Test
-    void respondsWithContractPayload() throws Exception {
-        MockWebServiceClient client = MockWebServiceClient.createClient(applicationContext);
-        client.sendRequest(withPayload(new StringSource("<HolidayRequest xmlns='http://example.com/hr'/>")))
-            .andExpect(noFault())
-            .andExpect(payload(new StringSource("<HolidayResponse xmlns='http://example.com/hr'><status>OK</status></HolidayResponse>")));
-    }
-}
-```
-
-### Client-side test with `MockWebServiceServer`
-
-```java
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.ws.client.core.WebServiceTemplate;
-import org.springframework.ws.test.client.MockWebServiceServer;
-import static org.springframework.ws.test.client.RequestMatchers.payload;
-import static org.springframework.ws.test.client.ResponseCreators.withPayload;
-import org.springframework.xml.transform.StringSource;
-
-@SpringBootTest
-class HolidayClientTests {
-    @Autowired
-    HolidayClient client;
-
-    @Autowired
-    WebServiceTemplate template;
-
-    @Test
-    void sendsRequest() {
-        MockWebServiceServer server = MockWebServiceServer.createServer(template);
-        server.expect(payload(new StringSource("<HolidayRequest xmlns='http://example.com/hr'/>")))
-            .andRespond(withPayload(new StringSource("<HolidayResponse xmlns='http://example.com/hr'><status>OK</status></HolidayResponse>")));
-        client.book(new HolidayRequest());
-        server.verify();
-    }
-}
-```
-
-## Output and configuration shapes
-
-### Default message factory
-
-`SaajSoapMessageFactory` is the default for SOAP 1.1.
-Configure `AxiomSoapMessageFactory` explicitly when the Axiom alternative is required, including for SOAP 1.2.
-Use SAAJ-specific settings when needed.
-See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
-
-### Endpoint URI shape
-
-```text
-/ws
-```
-
-### Payload root mapping shape
-
-```java
-@PayloadRoot(namespace = "http://example.com/hr", localPart = "HolidayRequest")
-```
-
-### SOAP response contract shape
-
-```xml
-<HolidayResponse xmlns="http://example.com/hr">
-  <status>OK</status>
-</HolidayResponse>
-```
+For message factory selection, endpoint URIs, payload-root mappings, or SOAP response contract shapes, read [SOAP output shapes](references/soap-output-shapes.md).
 
 ## Verification
 

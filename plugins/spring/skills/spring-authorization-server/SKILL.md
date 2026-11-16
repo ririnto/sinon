@@ -25,240 +25,78 @@ description: >-
 
 # Spring Authorization Server
 
-## Boundaries
+## Boundaries and task scope
 
-Use this skill when the application is the token issuer: it authenticates users or clients, records consent, issues tokens, publishes provider metadata, and owns signing keys.
-Bearer-token validation in an API and outbound OAuth2 client token management are relying-party concerns rather than token-issuance work.
-An authorization server that uses `oauth2Login()` in its non-authorization-server login chain to authenticate users through an external provider remains in scope because it still issues its own tokens.
+Use this skill for the token issuer: authentication, consent, token issuance, provider metadata, and signing keys.
+Bearer validation and outbound OAuth2 token management belong to relying parties.
+An issuer using `oauth2Login()` in its login chain for external authentication remains in scope.
+Standalone Spring Authorization Server 1.5.8 is final; active development continues in Spring Security 7, aligned with its version and BOM.
+Examples use the Boot 4.1 managed path.
 
-Spring Authorization Server 1.5.8 is the final standalone generation.
-Active authorization-server development continues in Spring Security 7, where `spring-security-oauth2-authorization-server` shares Spring Security's version and BOM line.
-The examples below use the Spring Boot 4.1 managed path.
-
-## Task scope
-
-Identify the issuer, client type, and protocol contract under change.
-Use authorization code with PKCE for public interactive clients.
+Identify the issuer, client type, and protocol contract; use authorization code with PKCE for public interactive clients.
 Add protocol surfaces only when the client contract requires them.
-Use the matching references below.
-The local-development examples are not a prerequisite for changing an existing provider.
+Local examples are not prerequisites for modifying an existing provider.
 
 ## Dependency baseline
 
 Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
 Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
 
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
+For the baseline, see [example 1](references/configuration-examples.md#example-1-dependency-baseline).
 
 Use Spring Boot dependency management for this path.
 Do not add a standalone Spring Authorization Server 1.5.x version beside Spring Security 7 modules.
 
-## First safe commands
-
-```sh
-./mvnw test
-```
-
-```sh
-./gradlew test
-```
-
-After starting the local server, inspect the published contract:
-
-```sh
-curl -fsS http://localhost:9000/.well-known/oauth-authorization-server
-curl -fsS http://localhost:9000/oauth2/jwks
-```
+For local server tests and published-contract inspection, use [local verification commands](references/issuer-setup.md#local-verification-commands).
 
 ## Required components
 
-- An ordered authorization-server filter chain for protocol endpoints
-- A login filter chain that authenticates the resource owner
-- A `RegisteredClientRepository`
-- A `JWKSource<SecurityContext>` and `JwtDecoder`
-- An explicit `AuthorizationServerSettings` issuer for single-issuer deployments, or issuer-scoped settings and components for multi-issuer deployments
-- A shared external or custom `JWKSource<SecurityContext>` for clustered deployments
-- Durable client, authorization, and consent stores before clustered production deployment
+Use ordered authorization-server and resource-owner login filter chains, `RegisteredClientRepository`, `JWKSource<SecurityContext>`, and `JwtDecoder`.
+Configure an explicit `AuthorizationServerSettings` issuer for single-issuer deployments or issuer-scoped settings and components for multiple issuers.
+Clustered production requires a shared external or custom `JWKSource<SecurityContext>` and durable client, authorization, and consent stores.
 
-## Filter chains and issuer
+## Issuer setup
 
-```java
-@Bean
-@Order(1)
-SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.oauth2AuthorizationServer(authorizationServer -> http.securityMatcher(authorizationServer.getEndpointsMatcher()));
-    return http
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-        .exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
-        .build();
-}
-
-@Bean
-@Order(2)
-SecurityFilterChain loginSecurityFilterChain(HttpSecurity http) throws Exception {
-    return http
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-        .formLogin(Customizer.withDefaults())
-        .build();
-}
-
-@Bean
-AuthorizationServerSettings authorizationServerSettings() {
-    return AuthorizationServerSettings.builder().issuer("http://localhost:9000").build();
-}
-```
-
-The explicit issuer above is a single-issuer example.
-For multiple issuers, do not configure a global `.issuer(...)`.
-Enable `multipleIssuersAllowed(true)` and delegate registered clients, authorizations, consent, signing keys, and related components by issuer as described in [references/multitenancy.md](references/multitenancy.md).
-Keep a single issuer stable and equal to the externally visible URL behind proxies and TLS termination.
-Add `.oidc(Customizer.withDefaults())` to the authorization-server configurer only when the provider must publish OIDC metadata, UserInfo, or ID-token surfaces.
-
-## Development user and public client
-
-```java
-@Bean
-UserDetailsService users() {
-    UserDetails user = User.withUsername("user")
-        .password("{noop}password")
-        .roles("USER")
-        .build();
-    return new InMemoryUserDetailsManager(user);
-}
-
-@Bean
-RegisteredClientRepository registeredClientRepository() {
-    RegisteredClient publicClient = RegisteredClient.withId(UUID.randomUUID().toString())
-        .clientId("messaging-client")
-        .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-        .redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client")
-        .scope("message.read")
-        .clientSettings(ClientSettings.builder().requireProofKey(true).build())
-        .build();
-    return new InMemoryRegisteredClientRepository(publicClient);
-}
-```
-
-The `{noop}` password and in-memory repositories are local-development shapes only.
-Use a public client with PKCE unless the client runs on a server that can protect a secret.
-
-## Signing key and decoder
-
-```java
-@Bean
-JWKSource<SecurityContext> jwkSource() {
-    RSAKey rsaKey = generateRsa();
-    JWKSet jwkSet = new JWKSet(rsaKey);
-    return (selector, context) -> selector.select(jwkSet);
-}
-
-@Bean
-JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-    return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-}
-
-private static RSAKey generateRsa() {
-    KeyPair keyPair = generateRsaKey();
-    RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-    RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-    return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString()).build();
-}
-
-private static KeyPair generateRsaKey() {
-    try {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048);
-        return generator.generateKeyPair();
-    }
-    catch (GeneralSecurityException ex) {
-        throw new IllegalStateException("Failed to generate RSA key", ex);
-    }
-}
-```
-
-Generate ephemeral keys only for local development.
-Load protected, rotation-aware signing material from the deployment's key-management boundary before production.
-
-## Minimal token customization
-
-```java
-@Bean
-OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
-    return context -> {
-        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-            context.getClaims().claim("tenant", "default");
-        }
-    };
-}
-```
-
-Add only claims that a documented resource-server or client contract consumes.
-Keep token customization centralized so the issued-token schema remains reviewable.
+When configuring filter chains, issuer, local users, public clients, signing keys, decoders, or token claims, read [issuer setup](references/issuer-setup.md) and [configuration examples](references/configuration-examples.md).
+Keep a single issuer stable and externally visible; for multiple issuers omit global `.issuer(...)`, enable `multipleIssuersAllowed(true)`, and isolate components by issuer.
+Enable OIDC only for required OIDC surfaces.
+In-memory repositories, `{noop}` passwords, and ephemeral signing keys are local-only; protect and rotate deployed keys.
+Use PKCE for public clients unless the client can protect a secret on a server.
+Centralize token customization and add only claims documented clients or resource servers consume.
 
 ## Protocol surface
 
-Baseline endpoints:
+Baseline endpoints are `/oauth2/authorize`, `/oauth2/token`, `/.well-known/oauth-authorization-server`, and `/oauth2/jwks`.
+Enable OIDC metadata, UserInfo, and ID tokens only when required.
+Logout, device authorization, PAR, dynamic registration, introspection, and revocation are also conditional; publish them only when required by a client contract and their access policy is tested.
 
-```text
-authorization: /oauth2/authorize
-token: /oauth2/token
-metadata: /.well-known/oauth-authorization-server
-jwk set: /oauth2/jwks
-```
+## Validation and production
 
-OIDC provider metadata, UserInfo, and ID-token issuance are separate conditional surfaces, all enabled through the OIDC configuration path when required.
-Logout, device authorization, PAR, dynamic registration, introspection, and revocation are additional conditional surfaces.
-Do not publish any of them until the concrete client protocol requires them and their access policy is tested.
-
-## Validation checklist
-
-Apply these checks to affected protocol and deployment contracts, including success and rejection paths.
-
-- Verify metadata reports the intended issuer and endpoint URLs.
-- Verify the registered redirect URI succeeds and an unregistered URI fails.
-- Verify the public client must present a valid PKCE verifier.
-- Verify issued tokens contain only approved scopes and claims.
-- Verify an unknown client, invalid scope, or invalid PKCE request is rejected.
-- Verify signing keys, registered clients, authorization state, and consent survive restart before a clustered production rollout.
-
-## Production guardrails
-
-- Keep the issuer stable behind proxies, external hostnames, and TLS termination.
-- Protect signing keys and plan overlapping key rotation.
-- Persist registered clients, authorizations, and consent when restart continuity matters.
-- Provision redirect URIs, scopes, grant types, and client authentication methods explicitly.
-- Treat endpoint behavior, token claims, consent, and discovery metadata as client compatibility surfaces.
+Verify affected protocol and deployment contracts on success and rejection paths: metadata issuer and endpoints, registered and unregistered redirects, valid and invalid PKCE, the required valid verifier for public clients, approved scopes and claims, and unknown clients or invalid scopes.
+Before clustered production, verify keys, clients, authorization state, and consent survive restart.
+Keep the issuer stable behind proxies and TLS; protect keys and plan overlapping rotation.
+Persist clients, authorizations, and consent when continuity matters.
+Provision redirect URIs, scopes, grants, and client authentication explicitly.
+Treat endpoint behavior, claims, consent, and discovery metadata as client compatibility surfaces.
 
 ## References
 
-- Open [references/client-authentication-variants.md](references/client-authentication-variants.md) when a confidential client or non-default token-endpoint authentication method is required.
-- Open [references/proof-of-possession-variants.md](references/proof-of-possession-variants.md) when DPoP or MTLS-bound tokens are required.
-- Open [references/token-generation-and-customization.md](references/token-generation-and-customization.md) when token formats, generators, or claims differ from the minimal JWT hook.
-- Open [references/oidc-provider-endpoints.md](references/oidc-provider-endpoints.md) when OIDC discovery, UserInfo, logout, or ID-token behavior is required.
-- Open [references/pushed-authorization-requests.md](references/pushed-authorization-requests.md) when clients require PAR.
-- Open [references/device-authorization-grant.md](references/device-authorization-grant.md) when browserless clients require device authorization.
-- Open [references/introspection-and-revocation.md](references/introspection-and-revocation.md) when token liveness inspection or revocation is required.
-- Open [references/dynamic-client-registration.md](references/dynamic-client-registration.md) when external clients need self-service registration.
-- Open [references/federated-identity-and-social-login.md](references/federated-identity-and-social-login.md) when user authentication is delegated to an external provider.
-- Open [references/extension-grants.md](references/extension-grants.md) when an extension grant or token exchange path is required.
-- Open [references/jpa-persistence.md](references/jpa-persistence.md) or [references/redis-persistence.md](references/redis-persistence.md) when registered clients, authorization state, or consent must survive restart.
-- Open [references/multitenancy.md](references/multitenancy.md) when issuer, clients, or signing keys differ by tenant.
-- Open [references/endpoint-customization.md](references/endpoint-customization.md) when protocol endpoint request or response handling must change.
-- Open [references/deployment-and-operations.md](references/deployment-and-operations.md) when proxying, production hardening, or key operations are the blocker.
-- Open [references/upgrade-spring-authorization-server.md](references/upgrade-spring-authorization-server.md) or [references/migrate-spring-security-6-to-7.md](references/migrate-spring-security-6-to-7.md) when the blocker is version migration.
-- Open [references/testing-authorization-endpoint.md](references/testing-authorization-endpoint.md) or [references/testing-refresh-path.md](references/testing-refresh-path.md) when authorization-code or refresh-token behavior needs deeper verification.
-- Open [references/testing-token-metadata-and-jwk-endpoints.md](references/testing-token-metadata-and-jwk-endpoints.md), [references/testing-oidc-endpoints.md](references/testing-oidc-endpoints.md), or [references/testing-introspection-revocation-and-consent.md](references/testing-introspection-revocation-and-consent.md) when the corresponding protocol endpoints need deeper request and response verification.
+Read references when their conditions apply:
+
+- [Client authentication](references/client-authentication-variants.md): confidential clients or non-default token-endpoint authentication.
+- [Proof of possession](references/proof-of-possession-variants.md): DPoP or MTLS-bound tokens.
+- [Token generation](references/token-generation-and-customization.md): token formats, generators, or claims beyond the minimal JWT hook.
+- [OIDC provider endpoints](references/oidc-provider-endpoints.md): OIDC discovery, UserInfo, logout, or ID-token behavior.
+- [PAR](references/pushed-authorization-requests.md): clients require pushed authorization requests.
+- [Device authorization](references/device-authorization-grant.md): browserless clients require device authorization.
+- [Introspection and revocation](references/introspection-and-revocation.md): token liveness inspection or revocation.
+- [Dynamic registration](references/dynamic-client-registration.md): external self-service client registration.
+- [Federated identity](references/federated-identity-and-social-login.md): external user authentication provider.
+- [Extension grants](references/extension-grants.md): extension grants or token exchange.
+- [JPA](references/jpa-persistence.md) or [Redis](references/redis-persistence.md): clients, authorization state, or consent must survive restart.
+- [Multitenancy](references/multitenancy.md): tenant-specific issuer, clients, or signing keys.
+- [Endpoint customization](references/endpoint-customization.md): protocol request or response handling changes.
+- [Deployment and operations](references/deployment-and-operations.md): proxying, production hardening, or key operations.
+- [Authorization Server upgrade](references/upgrade-spring-authorization-server.md) or [Security 6 to 7 migration](references/migrate-spring-security-6-to-7.md): version migration.
+- [Authorization endpoint tests](references/testing-authorization-endpoint.md) or [refresh path tests](references/testing-refresh-path.md): deeper authorization-code or refresh-token verification.
+- [Token metadata and JWK tests](references/testing-token-metadata-and-jwk-endpoints.md), [OIDC tests](references/testing-oidc-endpoints.md), or [introspection, revocation, and consent tests](references/testing-introspection-revocation-and-consent.md): deeper verification of the corresponding protocol requests and responses.

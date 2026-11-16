@@ -33,414 +33,52 @@ Token issuance, signing-key ownership, client registration, provider metadata, a
 
 ## Branch selector
 
-- Stay in `SKILL.md` for the ordinary servlet path: one main `SecurityFilterChain`, explicit authorization rules, password encoding, basic CORS and CSRF policy, session policy, logout behavior, JWT resource-server validation, method security, and allow or deny tests.
-- Open [references/reactive-webflux-security.md](references/reactive-webflux-security.md) only when the application is reactive end to end and uses `SecurityWebFilterChain`.
-- Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the application delegates login to an external identity provider or needs outbound OAuth2 client token management.
-- Open [references/ldap-authentication.md](references/ldap-authentication.md) when directory-backed authentication is part of the job.
-- Open [references/saml2-login.md](references/saml2-login.md) only when enterprise identity-provider requirements specifically depend on SAML2.
-- Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when different URL spaces need separate servlet chains or a custom filter must be placed relative to Spring Security's built-in filters.
-- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default `scope` to authority conversion is not enough, nested or multi-location claim extraction is needed, or issuer, audience, algorithm, or principal-claim rules must be customized.
-- Open [references/exception-handling.md](references/exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
-- Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when the job depends on concurrent-session control, custom logout success handling, or stateful session persistence rules beyond the ordinary path.
-- Open [references/headers.md](references/headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
-- Open [references/servlet-opaque-token-resource-server.md](references/servlet-opaque-token-resource-server.md) only when the servlet resource server must validate bearer tokens via introspection instead of local JWT verification.
-
-## Dependency baseline
-
-### Core starter and test support
-
-Spring Security BOM 7.1.1 is a documented stable baseline.
-For a new standalone BOM, check `org.springframework.security:spring-security-bom` on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
-Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
-Spring Security 7.2.0-M2 is a milestone, not a stable release.
-
-#### Spring Boot-managed path
-
-Use this path when the application intentionally stays on the Spring Boot-managed Spring Security line for that Boot release.
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
-If the application stays on a Spring Boot line that still manages Spring Security 6.x, either keep that Boot-managed 6.x path or move to a platform line that is compatible with Spring Security 7 and Spring Framework 7 before copying the Spring Security 7 APIs shown here.
-
-#### Standalone Spring Security BOM path
-
-Use this path when the build must target the standalone Spring Security BOM instead of the Boot-managed line.
-
-```xml
-<dependencyManagement>
-    <dependencies>
-        <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-bom</artifactId><version>7.1.1</version><type>pom</type><scope>import</scope></dependency>
-    </dependencies>
-</dependencyManagement>
-```
-
-Keep Spring Security modules versionless because the imported BOM manages their versions.
-This is standard Maven dependency management, not a Spring Security feature gate.
-
-For the ordinary servlet path shown in this skill, add the core modules explicitly under that BOM:
-
-```xml
-<dependencies>
-    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-config</artifactId></dependency>
-    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-web</artifactId></dependency>
-    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
-</dependencies>
-```
-
-### Optional resource-server add-on
-
-#### Boot-managed path
-
-Add the Boot starter only when the Boot-managed application validates incoming bearer tokens.
-
-```xml
-<dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-oauth2-resource-server</artifactId></dependency>
-```
-
-#### Standalone Spring Security BOM path
-
-Use the direct Spring Security modules when the build follows the standalone BOM path instead of Boot starters.
-
-```xml
-<dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-oauth2-resource-server</artifactId></dependency>
-```
-
-Add JOSE support as well when the resource server validates JWTs locally.
-
-```xml
-<dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-oauth2-jose</artifactId></dependency>
-```
-
-## First safe configuration
-
-### First safe commands
-
-```sh
-./mvnw test
-```
-
-```sh
-./gradlew test
-```
-
-### PathPatternRequestMatcher
-
-Spring Security provides `PathPatternRequestMatcher` for direct matcher construction.
-Use it when a matcher instance must be explicit, for example in custom `securityMatcher(...)` logic or filter-chain composition.
-
-```java
-PathPatternRequestMatcher apiMatcher = PathPatternRequestMatcher.pathPattern("/api/**");
-```
-
-For an HTTP-method-specific matcher:
-
-```java
-PathPatternRequestMatcher itemMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/items/{id}");
-```
-
-Use the `requestMatchers("/path/**")` DSL for ordinary rules.
-Reach for `PathPatternRequestMatcher` only when you need an explicit matcher object.
-
-### Stateless API baseline
-
-Use this shape for token-based APIs that should not create login sessions.
-
-```java
-@Configuration
-@EnableMethodSecurity
-class SecurityConfig {
-    @Bean
-    SecurityFilterChain api(HttpSecurity http) throws Exception {
-        return http
-            .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health").permitAll().requestMatchers(HttpMethod.GET, "/api/public/**").permitAll().anyRequest().authenticated())
-            .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/actuator/health"))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
-            .build();
-    }
-
-    @Bean
-    Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
-        authorities.setAuthorityPrefix("SCOPE_");
-        authorities.setAuthoritiesClaimName("scope");
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authorities);
-        converter.setPrincipalClaimName("sub");
-        return converter;
-    }
-}
-```
-
-Keep `securityMatcher(...)` out of a single-chain baseline unless the application also defines an explicit fallback chain, because unmatched requests are left unprotected.
-
-### Non-webapp resource server (Spring Boot 4.1+)
-
-Spring Boot 4.1 auto-configures `JwtDecoder`, `OpaqueTokenIntrospector`, and the authentication converter in non-web applications (no servlet or reactive web server).
-The `SecurityFilterChain` bean is not created -- the application must authenticate tokens programmatically.
-Use [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) for authority extraction configuration in non-webapp contexts.
-
-### SPA CSRF handling
-
-For browser SPAs that use session cookies, use Spring Security's SPA CSRF support instead of disabling CSRF entirely.
-
-```java
-@Bean
-SecurityFilterChain spa(HttpSecurity http) throws Exception {
-    return http
-        .authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/assets/**").permitAll().anyRequest().authenticated())
-        .formLogin(Customizer.withDefaults())
-        .csrf(csrf -> csrf.spa())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-        .build();
-}
-```
-
-Spring Security's SPA support uses `CookieCsrfTokenRepository` under the hood.
-The default cookie name is `XSRF-TOKEN` and the default request header is `X-XSRF-TOKEN`.
-
-Keep pure bearer-token API endpoints in a separate stateless chain if they must ignore CSRF entirely.
-
-### Session-management changes (Spring Security 6/7)
-
-Spring Security 6 and 7 tighten session behavior.
-Key changes to keep explicit:
-
-- `SessionCreationPolicy.STATELESS` tells Spring Security not to create an `HttpSession` and not to use one to obtain the `SecurityContext`.
-- `SessionCreationPolicy.IF_REQUIRED` creates a session only when authentication is needed.
-- `SessionCreationPolicy.NEVER` never creates a session but uses an existing one if present.
-- `SessionCreationPolicy.ALWAYS` always creates a session if one does not exist.
-- Since Spring Security 6, `SessionManagementFilter` no longer reads the session on every request just to detect a newly authenticated user.
-- If authentication is performed manually in a controller or service, save the resulting `SecurityContext` explicitly through the chosen `SecurityContextRepository`.
-
-Bearer-token API:
-
-```java
-.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-```
-
-Browser login:
-
-```java
-.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-```
-
-### Basic CORS source for a browser-facing API
-
-Use an explicit `CorsConfigurationSource` when a browser client calls your API from another origin.
-
-```java
-@Bean
-CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("https://app.example.com"));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-    configuration.setAllowCredentials(true);
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
-```
-
-### Stateful browser baseline
-
-Use this shape for server-rendered or browser-session applications.
-
-```java
-@Bean
-SecurityFilterChain browser(HttpSecurity http) throws Exception {
-    return http
-        .authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/assets/**").permitAll().anyRequest().authenticated())
-        .formLogin(Customizer.withDefaults())
-        .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout"))
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-        .build();
-}
-```
-
-### Password encoder shape
-
-```java
-@Bean
-PasswordEncoder passwordEncoder() {
-    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-}
-```
-
-`PasswordEncoderFactories.createDelegatingPasswordEncoder()` creates a delegating encoder that stores the algorithm prefix inside the stored hash, supporting migration from older encoders.
-
-For applications that need a specific hash without the delegating wrapper, use the current documented Spring Security defaults directly:
-
-```java
-@Bean
-PasswordEncoder passwordEncoder() {
-    return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
-}
-```
-
-Use the documented defaults when selecting a concrete encoder directly.
-`BCryptPasswordEncoder` and `Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()` are also valid concrete encoder choices when the storage and migration policy intentionally selects those algorithms.
-When migrating from weaker hashes, store the old encoder prefix alongside hashes and delegate to the new encoder.
-
-Keep the OAuth2 and OIDC branch explicit.
-Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the application delegates browser login to an external IdP or manages outbound OAuth2 client tokens for downstream calls.
+- Open [reactive webflux security](references/reactive-webflux-security.md) only when the application is reactive end to end and uses `SecurityWebFilterChain`.
+- Open [delegated login and oauth2 client](references/delegated-login-and-oauth2-client.md) when the application delegates login to an external identity provider or needs outbound OAuth2 client token management.
+- Open [ldap authentication](references/ldap-authentication.md) when directory-backed authentication is part of the job.
+- Open [saml2 login](references/saml2-login.md) only when enterprise identity-provider requirements specifically depend on SAML2.
+- Open [multiple security filter chains](references/multiple-security-filter-chains.md) when different URL spaces need separate servlet chains or a custom filter must be placed relative to Spring Security's built-in filters.
+- Open [jwt claim mapping](references/jwt-claim-mapping.md) for non-webapp authority extraction, when default `scope` to authority conversion is not enough, nested or multi-location claim extraction is needed, or issuer, audience, algorithm, or principal-claim rules must be customized.
+- Open [exception handling](references/exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
+- Open [session management and logout](references/session-management-and-logout.md) when the job depends on concurrent-session control, custom logout success handling, or stateful session persistence rules beyond the ordinary path.
+- Open [headers](references/headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
+- Open [servlet opaque token resource server](references/servlet-opaque-token-resource-server.md) only when the servlet resource server must validate bearer tokens via introspection instead of local JWT verification.
+
+## Dependency and servlet configuration
+
+Spring Security BOM 7.1.1 is a documented stable baseline; 7.2.0-M2 is a milestone.
+For a new standalone BOM, check Maven Central for the latest stable version compatible with the project's Boot and Framework lines.
+Keep existing pins unless authorized to change them.
+A Boot-managed Security 6.x application must remain on compatible APIs or move to a compatible platform line before using Security 7 APIs.
+Keep BOM-managed modules versionless; add resource-server and JOSE modules only when the corresponding token validation is needed.
+
+Use `requestMatchers` for ordinary rules and `PathPatternRequestMatcher` when an explicit matcher object is needed.
+In a single filter chain, do not use `securityMatcher` without a fallback chain: unmatched requests would be unprotected.
+Use stateless sessions for bearer-token APIs and an appropriate stateful policy for browser login.
+For SPAs using session cookies, use SPA CSRF support rather than disabling CSRF; separate pure bearer endpoints if they must ignore CSRF.
+When authentication is performed manually, save the `SecurityContext` through the chosen repository.
+Use explicit CORS origins, methods, and headers for browser cross-origin clients.
+Use a strong password encoder, maintain the encoder identifier with stored hashes, and follow an explicit migration policy.
+
+For dependency declarations, servlet configuration, session-policy details, SPA CSRF, password encoding, or non-web resource-server setup, read [servlet setup and configuration](references/servlet-setup-and-configuration.md).
 
 ## Coding procedure
 
 1. Keep authorization rules explicit and ordered so public and protected paths are obvious.
-2. Match session policy to the client model: use stateless sessions for bearer-token APIs and a stateful session policy only when browser login is part of the design.
-3. Configure CORS only for real browser-cross-origin clients, and keep allowed origins, methods, and headers explicit.
-4. Keep CSRF policy explicit instead of disabling it reflexively.
+2. Keep CSRF policy explicit instead of disabling it reflexively.
    - For stateless APIs, ignore only the paths that do not rely on browser-session cookies.
-5. Use a strong `PasswordEncoder` and never store raw passwords.
-6. Keep JWT authority mapping, claim interpretation, and principal extraction explicit.
-7. Use method security only where request-level rules are not enough.
+3. Keep JWT authority mapping, claim interpretation, and principal extraction explicit.
+4. Use method security only where request-level rules are not enough.
    - Add `@PostAuthorize`, `@PreFilter`, or `@PostFilter` only when access depends on returned objects or filtered collections.
-8. Keep logout behavior explicit for browser flows, and keep 401 versus 403 handling explicit for API flows.
-9. Rely on Spring Security's default security headers unless the application has a concrete need for custom CSP, frame, or HSTS behavior.
-10. Test both successful access and denial paths for representative endpoints.
+5. Keep logout behavior explicit for browser flows, and keep 401 versus 403 handling explicit for API flows.
+6. Rely on Spring Security's default security headers unless the application has a concrete need for custom CSP, frame, or HSTS behavior.
+7. Test both successful access and denial paths for representative endpoints.
 
-## Implementation examples
+## Examples
 
-### Method security
-
-```java
-@Service
-class InvoiceService {
-    @PreAuthorize("hasAuthority('SCOPE_invoices:write')")
-    void approve(long invoiceId) {
-    }
-
-    @PostAuthorize("returnObject.owner().equals(authentication.name)")
-    InvoiceView load(long invoiceId) {
-        return new InvoiceView(invoiceId, "alice");
-    }
-}
-```
-
-### Collection filtering branch
-
-```java
-@PreFilter(filterTarget = "invoiceIds", value = "filterObject > 0")
-void reprocess(List<Long> invoiceIds) {
-}
-```
-
-### Security test
-
-```java
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-@WebMvcTest(AdminController.class)
-@Import(SecurityConfig.class)
-class AdminControllerTests {
-    @Autowired
-    MockMvc mvc;
-
-    @MockitoBean
-    JwtDecoder jwtDecoder;
-
-    @Test
-    void requiresScope() throws Exception {
-        MockHttpServletRequestBuilder request = get("/admin").with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_admin")));
-        mvc.perform(request).andExpect(status().isOk());
-    }
-}
-```
-
-### @WithMockUser test support
-
-```java
-@WebMvcTest(AdminController.class)
-@Import(SecurityConfig.class)
-class AdminControllerTests {
-    @Autowired
-    MockMvc mvc;
-
-    @Test
-    @WithMockUser(username = "alice@example.com", authorities = "ROLE_ADMIN")
-    void adminAccessForAuthenticatedUser() throws Exception {
-        mvc.perform(get("/admin"))
-            .andExpect(status().isOk());
-    }
-
-    @Test
-    void rejectsAnonymousRequest() throws Exception {
-        mvc.perform(get("/admin"))
-            .andExpect(status().is3xxRedirection());
-    }
-}
-```
-
-Use `@WithUserDetails` only when the test slice also provides the matching `UserDetailsService` entry for that username.
-
-### Denied-access test shape for API security
-
-```java
-@Test
-void rejectsAnonymousRequest() throws Exception {
-    mvc.perform(get("/admin"))
-        .andExpect(status().isUnauthorized());
-}
-```
-
-Use this 401 expectation only for API/basic/bearer-token style security chains that do not redirect to a login page.
-
-### Forbidden-access test shape
-
-```java
-@Test
-void rejectsInsufficientAuthority() throws Exception {
-    MockHttpServletRequestBuilder request = get("/admin").with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_read")));
-    mvc.perform(request).andExpect(status().isForbidden());
-}
-```
-
-## Output and configuration shapes
-
-### Protected scope shape
-
-```text
-SCOPE_invoices:write
-```
-
-### Public endpoint rule shape
-
-```java
-.requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
-```
-
-### JWT-enabled resource-server shape
-
-```java
-.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-```
-
-### Stateless session shape
-
-```java
-.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-```
-
-### Basic logout shape
-
-```java
-.logout(logout -> logout.logoutSuccessUrl("/login?logout"))
-```
+For method security, collection filtering, security tests, or servlet output and configuration shapes, read [servlet examples and tests](references/servlet-examples-and-tests.md).
+Use `@WithUserDetails` only when the test slice supplies the matching `UserDetailsService` entry.
+A 401 anonymous-request expectation applies to API, basic, or bearer-token chains that do not redirect to login.
 
 ## Testing checklist
 

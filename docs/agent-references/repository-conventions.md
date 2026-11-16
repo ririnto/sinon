@@ -128,6 +128,8 @@ Retain authoritative HTML pages when no equivalent text page exists.
 Keep schemas, package artifacts, registry endpoints, and executable URLs in their native formats.
 Keep authoritative citations out of body prose.
 Record sources for a skill and its child references once in the owning `SKILL.md` frontmatter under `metadata.reference`.
+When that source metadata prevents a skill from meeting its size limit, keep the complete `metadata.reference` mapping once in a source ledger under the skill’s `references/` directory and link it directly from the owning `SKILL.md`.
+Preserve every source, version or tag, and URL mapping in that ledger.
 Use concise source names as keys.
 For documents without an owning skill, keep source metadata in that document's frontmatter.
 Omit redundant words such as `Reference` or `README` from source names.

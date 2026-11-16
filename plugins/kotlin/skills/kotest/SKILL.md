@@ -1,110 +1,4 @@
 ---
-metadata:
-  reference:
-    Kotlin:
-      version: 2.4.20
-      url: https://github.com/JetBrains/kotlin/releases/tag/v2.4.20
-    Kotest:
-      version: 6.2.5
-      url: https://github.com/kotest/kotest/releases/tag/6.2.5
-    Kotest documentation:
-      version: 6.2
-      url:
-        - https://kotest.io/docs/framework/project-setup.html
-        - https://kotest.io/docs/framework/testing-styles.html
-        - https://kotest.io/docs/framework/lifecycle-hooks.html
-        - https://kotest.io/docs/assertions/matchers.html
-        - https://kotest.io/docs/assertions/core-matchers.html
-        - https://kotest.io/docs/assertions/soft-assertions.html
-        - https://kotest.io/docs/assertions/exceptions.html
-    kotlinx.coroutines:
-      - version: 1.7.0
-        url: https://raw.githubusercontent.com/Kotlin/kotlinx.coroutines/1.7.0/CHANGES.md
-      - version: 1.11.0
-        url: https://github.com/Kotlin/kotlinx.coroutines/tree/1.11.0/kotlinx-coroutines-test
-    Kotest timeout documentation:
-      version: 6.2
-      url: https://kotest.io/docs/framework/concurrency6.html
-    MockK:
-      version: 1.14.11
-      url: https://github.com/mockk/mockk
-    Turbine:
-      version: 1.2.1
-      url: https://raw.githubusercontent.com/cashapp/turbine/1.2.1/README.md
-    Kotest coroutine dispatcher:
-      version: 6.2
-      url: https://kotest.io/docs/framework/coroutines/test-coroutine-dispatcher.html
-    Kotest eventual assertions:
-      version: 6.2
-      url: https://kotest.io/docs/assertions/eventually.html
-    Kotest extensions:
-      version: 6.2
-      url:
-        - https://kotest.io/docs/framework/extensions/extensions-introduction.html
-        - https://kotest.io/docs/framework/extensions/simple-extensions.html
-        - https://kotest.io/docs/framework/extensions/advanced-extensions.html
-        - https://kotest.io/docs/framework/extensions/extension-examples.html
-        - https://kotest.io/docs/extensions/spring.html
-        - https://kotest.io/docs/extensions/allure.html
-        - https://kotest.io/docs/extensions/blockhound.html
-        - https://kotest.io/docs/extensions/test_clock.html
-        - https://kotest.io/docs/extensions/decoroutinator.html
-        - https://kotest.io/docs/extensions/html_reporter.html
-        - https://kotest.io/docs/extensions/instant.html
-        - https://kotest.io/docs/extensions/junit_xml.html
-        - https://kotest.io/docs/extensions/koin.html
-        - https://kotest.io/docs/extensions/ktor.html
-        - https://kotest.io/docs/extensions/mockserver.html
-        - https://kotest.io/docs/extensions/pitest.html
-        - https://kotest.io/docs/extensions/system_extensions.html
-        - https://kotest.io/docs/extensions/test_containers.html
-        - https://kotest.io/docs/extensions/wiremock.html
-    Kotest BOM:
-      version: 6.2.5
-      url: https://repo1.maven.org/maven2/io/kotest/kotest-bom/6.2.5/kotest-bom-6.2.5.pom
-    Gradle catalogs:
-      url: https://docs.gradle.org/current/userguide/version_catalogs.html
-    Gradle test reporting:
-      version: "9.8.0"
-      url: https://docs.gradle.org/9.8.0/userguide/java_testing.html
-    Kotest XML reporter deprecation:
-      tag: v6.2.5
-      url: https://raw.githubusercontent.com/kotest/kotest/v6.2.5/kotest-extensions/kotest-extensions-junitxml/src/jvmMain/kotlin/io/kotest/extensions/junitxml/JunitXmlReporter.kt
-    ktlint rule engine:
-      version: 1.8.0
-      url: https://raw.githubusercontent.com/ktlint/ktlint/1.8.0/ktlint-rule-engine/src/main/kotlin/com/pinterest/ktlint/rule/engine/api/KtLintRuleEngine.kt
-    Kotest extension and Ktor matcher source:
-      tag: 6.2.5
-      url:
-        - https://github.com/kotest/kotest/tree/6.2.5/kotest-extensions
-        - https://github.com/kotest/kotest/tree/6.2.5/kotest-assertions/kotest-assertions-ktor/src/commonMain/kotlin/io/kotest/assertions/ktor/client
-    Kotest project configuration API:
-      tag: 6.2.5
-      url: https://raw.githubusercontent.com/kotest/kotest/6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/config/AbstractProjectConfig.kt
-    Kotest mountable extension API:
-      tag: v6.2.5
-      url: https://raw.githubusercontent.com/kotest/kotest/v6.2.5/kotest-framework/kotest-framework-engine/src/commonMain/kotlin/io/kotest/core/extensions/MountableExtension.kt
-    WireMock configuration:
-      url: https://wiremock.org/docs/configuration/
-    Ktor test application:
-      url: https://ktor.io/docs/server-testing.html
-    Spring Test transactions:
-      url: https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html
-    Spring embedded database:
-      url: https://docs.spring.io/spring-framework/reference/data-access/jdbc/embedded-database-support.html
-    Spring Boot test context:
-      url:
-        - https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html
-        - https://docs.spring.io/spring-boot/api/java/org/springframework/boot/SpringBootConfiguration.html
-        - https://docs.spring.io/spring-boot/api/java/org/springframework/boot/test/context/SpringBootTest.html
-    Spring Boot 4.1.1 test artifact metadata:
-      version: 4.1.1
-      url:
-        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-test/4.1.1/spring-boot-test-4.1.1.pom
-        - https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-test/4.1.1/spring-boot-starter-test-4.1.1.pom
-    Kotest isolation modes:
-      version: 6.2
-      url: https://kotest.io/docs/framework/isolation-mode.html
 name: kotest
 description: >-
   Write or fix Kotlin JVM tests with Kotest, including coroutine, Flow, and exception-contract tests.
@@ -116,11 +10,11 @@ description: >-
 
 Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works.
 
-Examples follow the documented APIs for Kotlin 2.4.20, Kotest 6.2.5, `kotlinx-coroutines-test` 1.11.0, MockK 1.14.11, and Turbine 1.2.1.
+Examples use Kotlin 2.4.20, Kotest 6.2.5, `kotlinx-coroutines-test` 1.11.0, MockK 1.14.11, and Turbine 1.2.1.
 These are reference versions, not install targets.
 Use existing managed versions unless a required feature justifies an authorized dependency change.
 When choosing a new version, check Maven Central for the latest stable version compatible with the project's Kotlin, Kotest, and other libraries, then record it in the project catalog.
-This skill covers JVM testing only -- for multiplatform targets, adapt the test framework and assertions to each target.
+For multiplatform targets, adapt the test framework and assertions to each target; this skill covers JVM testing.
 Keep the common path centered on Kotest suspending test bodies, bounded Flow collection, and direct exception assertions.
 Use blocker references only when virtual time, replay semantics, mocking-library details, or test organization and timeouts become the real problem.
 
@@ -154,16 +48,18 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 
 ## Task Context
 
-Read the production contract and related tests before choosing test scope.
+Read the production contract and related tests before choosing scope.
 Use Kotest for new JVM test suites, and preserve an existing suite's runner unless the task authorizes migration.
-Reuse existing assertions and fixtures when extending that suite.
-Use Kotest suspending test bodies directly.
+Reuse assertions and fixtures when extending it.
+Use suspending test bodies directly.
 Enable `coroutineTestScope` only when virtual time or a test dispatcher is required.
-Use the reference table below for the test behavior or execution problem under change.
+Use the table for the problem.
 
 ## References
 
-Read the references that match the current decision.
+The [source ledger](references/sources.md) covers this skill and its references.
+
+Read matching references.
 
 | Open when... | Read... |
 | --- | --- |
@@ -184,135 +80,10 @@ Read the references that match the current decision.
 
 ## Core Decisions
 
-### Start with Kotest
-
-Use `FunSpec` and Kotest matchers for new JVM test suites.
-Use `assertSoftly` when several assertions describe one observable behavior.
-The snippet is an adapted spec fragment.
-Replace its application types and service with the target's fixtures.
-
-```kotlin
-import io.kotest.assertions.assertSoftly
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.booleans.shouldBeTrue
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.shouldBe
-
-class ProfileServiceTest : FunSpec({
-    test("returns cached profile") {
-        assertSoftly(service.loadProfile(PROFILE_ID)) {
-            shouldBe(Profile(PROFILE_ID))
-            id shouldBe PROFILE_ID
-            isActive.shouldBeTrue()
-            error.shouldBeNull()
-        }
-    }
-
-    test("returns tags in contract order") {
-        service.loadTags(PROFILE_ID) shouldContainExactly listOf("admin", "editor")
-    }
-}) {
-    companion object {
-        private const val PROFILE_ID: String = "user-1"
-    }
-}
-```
-
-Use these common matchers:
-
-| Matcher | When to use it |
-| --- | --- |
-| `actual shouldBe expected` | value equality is the contract |
-| `actual shouldNotBe unexpected` | a specific value must not match |
-| `actual.shouldBeTrue()` / `actual.shouldBeFalse()` | a boolean predicate is the contract |
-| `actual.shouldBeNull()` / `actual.shouldNotBeNull()` | nullability is part of the contract |
-| `actual shouldContainExactly expected` | ordered collection contents are the contract |
-| `actual shouldContain item` | membership is the contract |
-| `actual shouldBeInstanceOf<Type>()` | runtime type is the contract |
-| `shouldThrowExactly<Type> { ... }` | exact exception type and its fields are the contract |
-
-Use Kotest styles to group related test cases, and use descriptive test names instead of annotation-based display labels.
-Use Kotest lifecycle hooks for fixture setup and cleanup.
-
-### Use suspending tests directly
-
-Kotest `FunSpec` test bodies are suspending.
-Enable `coroutineTestScope` for virtual-time control.
-Kotest runs those tests with a test dispatcher.
-
-When `withTimeout` and `delay` must run against virtual time, enable `coroutineTestScope` for that test.
-Start the timed operation first, advance virtual time, then flush the scheduler before awaiting the result:
-
-```kotlin
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.test.testCoroutineScheduler
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.async
-
-class OrderServiceTest : FunSpec({
-    test("returns fallback on timeout").config(coroutineTestScope = true) {
-        val result = async { service.loadWithTimeout(OrderId("1")) }
-        testCoroutineScheduler.advanceTimeBy(5_000)
-        testCoroutineScheduler.runCurrent()
-        result.await() shouldBe Fallback
-    }
-})
-```
-
-Assert the observable timeout behavior without catching cancellation to make a test pass.
-
-```kotlin
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-
-class OrderSummaryServiceTest : FunSpec({
-    test("loads order summary") {
-        service.loadSummary(OrderId("o-1")) shouldBe OrderSummary("o-1")
-    }
-})
-```
-
-### Keep Flow collection bounded
-
-Use `first()`, `single()`, or `take(n).toList()` to prove a finite contract and finish the test.
-
-```kotlin
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldContainExactly
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-
-class UiStateRepositoryTest : FunSpec({
-    test("emits loading then data") {
-        repository.observe().take(2).toList() shouldContainExactly listOf(UiState.Loading, UiState.Data)
-    }
-})
-```
-
-### Use direct exception assertions
-
-Use `shouldThrowExactly<T>()` when the exact exception type is part of the contract.
-Use `shouldThrow<T>()` when a subtype also satisfies it.
-Both return the exception, so message and property checks stay explicit.
-
-```kotlin
-import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-
-class RetryPolicyTest : FunSpec({
-    test("rejects invalid retry budget") {
-        shouldThrowExactly<IllegalArgumentException> {
-            service.configure(-1)
-        }.message shouldBe "retry budget must be non-negative"
-    }
-})
-```
-
-Assert the exact message and meaningful exception fields when they are part of the contract.
-Use `shouldNotThrowAny { }` only when no-exception is itself the contract.
-Open the Kotest reference for the exact shapes and the `assertSoftly` interaction caveat.
+Use styles to group related tests, descriptive names instead of display annotations, and lifecycle hooks. Use `assertSoftly` when several assertions describe one observable behavior.
+Use suspending tests directly; enable `coroutineTestScope` for virtual time, start timed work before advancing time, flush the scheduler, and assert the outcome without catching cancellation.
+Use `shouldNotThrowAny` only when no exception is the contract.
+For examples, matcher choices, and the `assertSoftly` exception interaction, read [core decisions](references/core-decisions.md).
 
 ## Completion
 

@@ -27,256 +27,35 @@ The `spring-amqp-client` module provides generic AMQP 1.0 protocol support for a
 - Keep queue, exchange, routing-key, and delivery-policy names stable once publishers and consumers are deployed.
 - When deploying against RabbitMQ 4.3+, note that `queue-master-locator` is denied by default and delivery-count semantics changed -- retry and dead-letter policies may need adjustment.
 
-## Official surface map
+## Surface routing
 
-Use this map to keep the official Spring AMQP 4.x surface visible without pushing the common queue path into `references/`.
+Read the applicable reference:
 
-| Surface | Start here when | Open a reference when |
-| --- | --- | --- |
-| Queue and exchange topology | The module needs explicit queue, exchange, binding, and routing-key contracts | Broker credentials or vhost setup are the blocker in [references/broker-configuration-and-vhost-setup.md](references/broker-configuration-and-vhost-setup.md), or delayed exchange and broker events are the blocker in [references/delayed-exchange-and-broker-events.md](references/delayed-exchange-and-broker-events.md) |
-| `RabbitTemplate` send and receive | The module publishes or performs occasional pull-style receive operations | Request-reply semantics are the blocker in [references/request-reply.md](references/request-reply.md), or pull-style polling receive is the blocker in [references/polling-receive.md](references/polling-receive.md) |
-| Publish reliability | The producer must distinguish broker acceptance from unroutable delivery | Publisher confirms, returns, or mandatory publishing are the blocker in [references/publisher-confirms-returns-and-send-reliability.md](references/publisher-confirms-returns-and-send-reliability.md) |
-| `@RabbitListener` consumer path | The consumer is an ordinary queue listener with one payload contract | Listener signatures, headers, validation, or conversion are the blocker in [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) |
-| Listener containers | One baseline container factory is enough for the first consumer | Container choice, prefetch, concurrency, or ordering tradeoffs are the blocker in [references/container-variants-and-concurrency.md](references/container-variants-and-concurrency.md) |
-| Retry, recovery, and transactions | The listener needs one explicit exhausted-message outcome | Recoverer choice, transactional semantics, or deeper failure classification are the blocker in [references/retry-recovery-and-transactions.md](references/retry-recovery-and-transactions.md) |
-| Batching and async listeners | The consumer path is no longer one-message-in, one-message-out | Batch listeners are the blocker in [references/batch-listeners.md](references/batch-listeners.md), async returns are the blocker in [references/async-return-listeners.md](references/async-return-listeners.md), polling receive is the blocker in [references/polling-receive.md](references/polling-receive.md), or consumer threading is the blocker in [references/listener-threading-and-back-pressure.md](references/listener-threading-and-back-pressure.md) |
-| Streams | Queue semantics are not enough | RabbitMQ stream plugin semantics are the blocker in [references/stream-variants.md](references/stream-variants.md) |
-| Multiple brokers | One broker connection is no longer enough | Broker isolation is the blocker in [references/multi-broker-variants.md](references/multi-broker-variants.md) |
-| Generic AMQP 1.0 | RabbitMQ-specific API is not needed or the peer uses AMQP 1.0 natively | Generic AMQP 1.0 client, `@AmqpListener`, and `AmqpClient` are the blocker in [references/generic-amqp10-support.md](references/generic-amqp10-support.md) |
-| Testing | The contract needs broker-focused or listener-focused verification | Test harness depth is the blocker in [references/testing-support-and-listener-harnesses.md](references/testing-support-and-listener-harnesses.md) |
-| Observability and debugging | Delivery behavior must be measured or diagnosed in production | Listener metrics are the blocker in [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md), tracing is the blocker in [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md), or delivery diagnosis is the blocker in [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) |
+- Broker credentials or virtual hosts: [broker setup](references/broker-configuration-and-vhost-setup.md); delayed exchanges or broker events: [delayed delivery](references/delayed-exchange-and-broker-events.md).
+- Request-reply: [request-reply](references/request-reply.md); pull consumption: [polling receive](references/polling-receive.md); confirms and returns: [publish reliability](references/publisher-confirms-returns-and-send-reliability.md).
+- Listener signatures, headers, validation, or conversion: [listener methods](references/conversion-and-listener-method-signatures.md); container choice, prefetch, concurrency, or ordering: [containers](references/container-variants-and-concurrency.md).
+- Recoverers, transactions, or failure classification: [retry and recovery](references/retry-recovery-and-transactions.md).
+- Batch listeners: [batch](references/batch-listeners.md); async returns: [async](references/async-return-listeners.md); consumer threading: [back pressure](references/listener-threading-and-back-pressure.md).
+- RabbitMQ streams: [stream variants](references/stream-variants.md); multiple brokers: [multi-broker](references/multi-broker-variants.md); generic AMQP 1.0: [AMQP 1.0 support](references/generic-amqp10-support.md).
+- Listener or broker test harnesses: [testing](references/testing-support-and-listener-harnesses.md).
+- Listener metrics: [Micrometer](references/listener-metrics-and-micrometer.md); publish/consume trace correlation: [tracing](references/distributed-tracing-for-amqp.md); delivery diagnosis: [debugging](references/delivery-debugging-checklist.md).
 
-## Dependency baseline
+## Dependencies and delivery
 
-Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
-Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
-
-Use the Boot starter for application code and the Rabbit test module for listener and broker-focused tests.
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-amqp</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.amqp</groupId>
-        <artifactId>spring-rabbit-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
-### Feature-to-artifact map
-
-| Need | Artifact |
-| --- | --- |
-| Ordinary publisher and listener path | `spring-boot-starter-amqp` |
-| Listener and broker-focused tests | `spring-rabbit-test` |
-| RabbitMQ stream semantics | stream client support from [references/stream-variants.md](references/stream-variants.md) |
-| Generic AMQP 1.0 protocol | `spring-amqp-client` (see [references/generic-amqp10-support.md](references/generic-amqp10-support.md)) |
-
-## First safe commands
-
-```sh
-./mvnw test -Dtest=OrderMessagingTests
-```
-
-```sh
-./gradlew test --tests OrderMessagingTests
-```
-
-## Build and run path
-
-```sh
-./mvnw spring-boot:run
-```
-
-```sh
-./gradlew bootRun
-```
-
-Run only the application path needed to verify the task, using an authorized local broker.
-Choose confirms, request-reply, streams, or multiple brokers when the delivery contract requires them.
-
-## AMQP topology basics
-
-Start with explicit queue, exchange, binding, and routing-key names.
-Keep the topology stable before publishers and consumers are deployed.
-
-```java
-@Bean
-Queue ordersQueue() {
-    return QueueBuilder.durable("orders")
-        .deadLetterExchange("orders.dlx")
-        .deadLetterRoutingKey("orders.dlq")
-        .build();
-}
-
-@Bean
-DirectExchange ordersExchange() {
-    return new DirectExchange("orders.exchange");
-}
-
-@Bean
-Binding ordersBinding() {
-    return BindingBuilder.bind(ordersQueue()).to(ordersExchange()).with("orders.created");
-}
-```
-
-Use Spring declarations as the shared application contract.
-Treat queue names, exchange type, and routing keys as stable integration identifiers.
-Open [references/broker-configuration-and-vhost-setup.md](references/broker-configuration-and-vhost-setup.md) when broker credentials or vhost setup are the blocker.
-Open [references/delayed-exchange-and-broker-events.md](references/delayed-exchange-and-broker-events.md) when delayed delivery semantics or broker-side events are the blocker.
-
-## Message conversion basics
-
-Use one converter strategy per module unless interoperability requirements force otherwise.
-
-```java
-@Bean
-JacksonJsonMessageConverter jsonConverter() {
-    return new JacksonJsonMessageConverter("com.example.orders");
-}
-```
-
-The no-arg constructor trusts only `java.util` and `java.lang` by default.
-Provide the package of your application payload types as the trusted package argument.
-
-The ordinary path is one JSON payload type per message contract, with the listener receiving the already-converted domain payload.
-Open [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) when the blocker is listener argument design, header access, validation, or custom conversion behavior.
-
-## Publish and consume
-
-Use `RabbitTemplate` for send and receive paths, and `@RabbitListener` for the ordinary consumer path.
-
-```java
-@Service
-class OrderPublisher {
-    private final RabbitTemplate rabbitTemplate;
-
-    OrderPublisher(RabbitTemplate rabbitTemplate) {
-        this.rabbitTemplate = rabbitTemplate;
-    }
-
-    void publish(OrderCreated event) {
-        rabbitTemplate.convertAndSend("orders.exchange", "orders.created", event);
-    }
-}
-
-@Component
-class OrderListener {
-    private final OrderService orderService;
-
-    OrderListener(OrderService orderService) {
-        this.orderService = orderService;
-    }
-
-    @RabbitListener(queues = "orders")
-    void handle(OrderCreated event) {
-        orderService.process(event);
-    }
-}
-```
-
-- Keep the listener payload type aligned with the converter strategy.
-- Keep listeners narrow and idempotent because redelivery can happen.
-- Use pull-style `RabbitTemplate` receive operations only when the consumer contract is actually synchronous.
-
-Open [references/polling-receive.md](references/polling-receive.md) when the caller needs scheduled or command-driven pull semantics.
-
-Open [references/request-reply.md](references/request-reply.md) when the caller truly needs synchronous broker-mediated reply semantics.
-
-Open [references/publisher-confirms-returns-and-send-reliability.md](references/publisher-confirms-returns-and-send-reliability.md) when the producer must detect unroutable messages, broker acceptance, or other send-side delivery uncertainty.
-
-### Confirms and returns baseline
-
-Use confirms and returns only when the producer contract must distinguish broker acceptance from unroutable delivery.
-
-```yaml
-spring:
-  rabbitmq:
-    publisher-confirm-type: correlated
-    publisher-returns: true
-    template:
-      mandatory: true
-```
-
-```java
-@Bean
-RabbitTemplateCustomizer rabbitTemplateCustomizer() {
-    return template -> {
-        template.setConfirmCallback((correlationData, ack, cause) -> {
-        });
-        template.setReturnsCallback(returned -> {
-        });
-    };
-}
-```
-
-- Confirms answer 'did the broker accept the publish to the exchange?'
-- They do not prove queue routing.
-- Returns answer 'did a mandatory message remain unroutable?'
-- They do not replace confirms.
-- A returned message can still have a positive confirm because the broker accepted it at the exchange.
-- Stay on the ordinary publish path unless the producer must react to that uncertainty explicitly.
-
-### Reply timeout baseline
-
-Keep request-reply timeout explicit whenever the caller truly needs synchronous broker-mediated reply semantics.
-
-```java
-rabbitTemplate.setReplyTimeout(5000);
-```
-
-Open [references/request-reply.md](references/request-reply.md) when the producer-consumer contract is request-reply rather than an event flow.
-
-## Listener container baseline
-
-Start with one baseline container factory and keep advanced concurrency or prefetch tuning out of the common path.
-
-```java
-@Bean
-SimpleRabbitListenerContainerFactory ordersListenerContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory) {
-    SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-    configurer.configure(factory, connectionFactory);
-    return factory;
-}
-```
-
-Use a dedicated factory only when a listener truly needs different acknowledgment, retry, or concurrency rules.
-Open [references/container-variants-and-concurrency.md](references/container-variants-and-concurrency.md) when default listener-container behavior is not enough and the blocker is container choice, prefetch, concurrency, or ordering tradeoffs.
-
-### Observability baseline
-
-Wire the first production signals before tuning concurrency or retry behavior.
-
-- Record listener duration.
-- Record failure counts by listener or queue.
-- Record the dead-letter path or exhausted-message count.
-
-Open [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md) when the blocker is Micrometer metrics.
-Open [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md) when publish and consume traces must correlate.
-Open [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) when delivery diagnosis is the blocker.
-
-## Retry and dead-letter baseline
-
-Choose one retry policy per consumer path and make the exhausted-message outcome explicit.
-
-```java
-RetryOperationsInterceptor interceptor = RetryInterceptorBuilder.stateless()
-    .maxAttempts(3)
-    .recoverer(new RejectAndDontRequeueRecoverer())
-    .build();
-```
-
-For the common path:
-
-1. Start with stateless retry for idempotent listeners.
-2. Send exhausted messages to an explicit DLQ or DLX path.
-3. Distinguish broker failures from business-handling failures in logs and metrics.
-
-Open [references/retry-recovery-and-transactions.md](references/retry-recovery-and-transactions.md) when the blocker is transactional retry, recoverer choice, or deeper failure classification.
+Check Maven Central for the latest compatible stable release before recommending a new version; preserve existing BOM or catalog pins unless authorized to change them.
+Use the Boot starter for application code and Rabbit test support for listener and broker tests.
+Run only the needed application path with an authorized local broker.
+Keep queue, exchange, binding, routing key, and delivery policy contracts explicit and stable.
+Use one message converter strategy per module unless interoperability requires otherwise; the no-argument JSON converter trusts only `java.util` and `java.lang`, so provide application payload packages as trusted packages.
+Use `RabbitTemplate` for send and receive and `@RabbitListener` for ordinary consumption; keep listeners narrow and idempotent and align payloads with the converter.
+Use pull receive only for a synchronous consumer contract and set explicit request-reply timeouts when needed.
+Publisher confirms report exchange acceptance, not routing; returns report mandatory unroutable messages and do not replace confirms.
+A positive confirm can accompany a return.
+Use confirms and returns when the producer must distinguish acceptance from unroutable delivery.
+Use a dedicated listener factory only for distinct acknowledgment, retry, or concurrency rules.
+Record listener duration, failure counts by listener or queue, and dead-letter or exhausted-message counts.
+Choose one retry policy per consumer path; for idempotent listeners start with stateless retry, route exhausted messages to an explicit DLQ or DLX, and distinguish broker from business failures in logs and metrics.
+For dependency declarations, topology, conversion, publisher, listener, container, retry, or delivery setup, read [Rabbit setup and delivery](references/rabbit-setup-and-delivery.md).
 
 ## Minimal testing shape
 
@@ -301,53 +80,9 @@ Open [references/testing-support-and-listener-harnesses.md](references/testing-s
 - Treat broker disconnects, transient downstream outages, and resource exhaustion as infrastructure failures that may justify retry.
 - Treat exhausted retries, rejected business operations, and poison messages as dead-letter or recovery-path failures that must stay observable.
 
-## Output and configuration shapes
+## Configuration shapes
 
-### Queue and exchange naming shape
-
-```text
-orders
-orders.exchange
-orders.created
-orders.dlq
-```
-
-### Publish shape
-
-```java
-rabbitTemplate.convertAndSend("orders.exchange", "orders.created", event);
-```
-
-### Listener shape
-
-```java
-@RabbitListener(queues = "orders")
-void handle(OrderCreated event) {
-    orderService.process(event);
-}
-```
-
-### Container factory shape
-
-```java
-SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-```
-
-### Boot auto-configuration hooks
-
-Boot 4.1.x auto-configures several customization points.
-Declare these beans to customize the auto-configured defaults without replacing the entire infrastructure.
-
-| Bean | Effect |
-| --- | --- |
-| `ConnectionFactoryCustomizer` | Customize the underlying `CachingConnectionFactory` properties |
-| `ConnectionNameStrategy` | Name connections from application context |
-| `RabbitTemplateCustomizer` | Apply additive customizations to the auto-configured `RabbitTemplate` |
-| `RabbitTemplateConfigurer` | Build additional `RabbitTemplate` instances with auto-configured settings |
-| `RabbitTemplateRetrySettingsCustomizer` | Programmatic retry customization for the template |
-| `RabbitListenerRetrySettingsCustomizer` | Programmatic retry customization for listeners |
-| `RabbitTemplateObservationConvention` | Custom observation naming for template operations |
-| `RabbitListenerObservationConvention` | Custom observation naming for listener operations |
+For naming, publishing, listeners, container factories, or Boot customization hooks, read [output and configuration shapes](references/output-and-configuration-shapes.md).
 
 ## Production guardrails
 

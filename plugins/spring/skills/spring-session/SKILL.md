@@ -22,39 +22,24 @@ description: >-
 
 ## Boundaries
 
-Use `spring-session` for session persistence, clustered session sharing, cookie or header-based session id transport, repository choice, principal-indexed session lookup, and framework integration around `HttpSession` or `WebSession`.
-
-- Keep authentication, authorization, CSRF policy, and login flow design outside this skill's scope.
-  - Keep `spring-session` focused on where session state lives and how it is resolved.
-- Keep controller, handler, and endpoint design outside this skill's scope.
-  - Keep this skill focused on session infrastructure and transport.
-- Keep general Redis data modeling and broad `RedisTemplate` usage outside this skill's scope when the task is not primarily about session storage.
+Use `spring-session` for session storage, sharing, ID transport, repository choice, principal lookup, and `HttpSession` or `WebSession` integration.
+Authentication, authorization, CSRF, login flow, endpoint design, and general Redis modeling remain outside this skill's scope.
 
 ## Version alignment
 
-Spring Session 4.1.x targets Spring Boot 4.1.x.
-Spring Session 4.0.x targets Spring Boot 4.0.x.
-Spring Boot manages the Spring Session version.
-Add the session starter and Boot resolves the correct artifact.
-
-Minimum requirements:
-
-- Java 17+
-- Spring Framework 6+ when other Spring libraries are used
-- Servlet 3.1+ when running in a servlet container
-- Redis 2.8+ when using `@EnableRedisHttpSession`
-
-Spring Boot 4.1 applications use the newer Framework 7, Servlet 6.1, and managed Redis client baselines supplied by that Boot line.
-Do not present those platform choices as Spring Session's library minimums.
+For Session and Boot compatibility or minimum runtime requirements, read [version alignment](references/version-alignment.md).
+Boot manages Session versions. Session requires Java 17+, Framework 6+ when used, Servlet 3.1+ in servlet containers, and Redis 2.8+ for `@EnableRedisHttpSession`. Do not confuse Boot platform baselines with library minimums.
 
 ## Branch selector
 
-- Stay in `SKILL.md` for the ordinary servlet path: Redis-backed servlet sessions, explicit timeout and namespace, cookie or header transport choice, indexed-versus-default Redis repository choice, cookie customization, JSON serializer awareness, principal lookup, and store-backed tests.
-- Open [references/jdbc-store.md](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
-- Open [references/webflux-websession.md](references/webflux-websession.md) when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
-- Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must share the same backing session lifecycle as HTTP traffic.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, session mapper, or Spring Security listener integration must be customized.
-- Open [references/alternative-repositories.md](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
+Use the ordinary servlet path for Redis-backed sessions, timeout, namespace, transport, repository choice, serialization, principal lookup, and store-backed tests.
+Read the relevant reference when its condition applies:
+
+- [JDBC store](references/jdbc-store.md): relational session tables, cleanup, transactions, or JSON attributes.
+- [WebFlux](references/webflux-websession.md): reactive `WebSession`.
+- [WebSocket](references/websocket-integration.md): share HTTP session lifecycle with WebSocket or STOMP.
+- [Redis advanced](references/redis-advanced.md): customize repository type, events, JSON serialization, expiration, mapper, or Spring Security listeners.
+- [Alternative repositories](references/alternative-repositories.md): Redis and JDBC are poor fits and the deployment mandates another repository.
 
 ## Dependency baseline
 
@@ -64,31 +49,7 @@ Keep project BOM or version-catalog management and existing pins unless the task
 Use the Spring Boot starter that matches the store so the session module, data-access integration, and client dependencies remain aligned.
 Start with Redis for the common clustered browser-session path unless the deployment already standardizes on a different store.
 
-### Redis-backed servlet sessions
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-session-data-redis</artifactId>
-</dependency>
-```
-
-```groovy
-implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
-```
-
-### JDBC-backed servlet sessions
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-session-jdbc</artifactId>
-</dependency>
-```
-
-```groovy
-implementation 'org.springframework.boot:spring-boot-starter-session-jdbc'
-```
+For Redis or JDBC servlet starter declarations, read [store dependencies](references/store-dependencies.md).
 
 ## Store selection
 
@@ -103,71 +64,12 @@ implementation 'org.springframework.boot:spring-boot-starter-session-jdbc'
 - Use the indexed Redis repository (`RedisIndexedSessionRepository`) when Spring Security, administration, or messaging needs `findByPrincipalName(...)`, `SessionCreatedEvent`, `SessionDeletedEvent`, `SessionDestroyedEvent`, or `SessionExpiredEvent`.
 - Keep timeout, namespace, and expiration behavior explicit so operators can reason about TTL and cleanup behavior.
 
-## First safe configuration
+## Session configuration
 
-### Redis-backed application properties
-
-```yaml
-spring:
-  session:
-    timeout: 30m
-    data:
-      redis:
-        namespace: app:session
-        repository-type: indexed
-        flush-mode: on-save
-        save-mode: on-set-attribute
-  data:
-    redis:
-      host: localhost
-      port: 6379
-server:
-  servlet:
-    session:
-      cookie:
-        name: SESSION
-        http-only: true
-        secure: true
-```
-
-### Cookie customization and indexed repository shape
-
-Use the indexed Redis variant when principal lookup is part of the job.
-
-```java
-@Configuration
-class SessionConfig {
-    @Bean
-    CookieSerializer cookieSerializer() {
-        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-        serializer.setCookieName("SESSION");
-        serializer.setUseHttpOnlyCookie(true);
-        serializer.setUseSecureCookie(true);
-        serializer.setSameSite("Lax");
-        serializer.setCookiePath("/");
-        return serializer;
-    }
-}
-```
-
-The Redis session starter and `repository-type: indexed` select `RedisIndexedSessionRepository`.
-Do not add an enable annotation to the Boot-managed common path.
-
-### Header-based session id shape
-
-Use this only when a non-browser client contract requires header transport.
-
-```java
-@Bean
-HttpSessionIdResolver httpSessionIdResolver() {
-    return HeaderHttpSessionIdResolver.xAuthToken();
-}
-```
-
-### Serialization rule
-
-The default Redis serializer is acceptable for one application controlling both reads and writes.
-Switch to JSON serialization when multiple applications, rolling upgrades, or payload inspection requirements make default serialization too brittle.
+For Redis properties, cookie customization, header transport, or serialization, read [session configuration](references/session-configuration.md) and the [configuration examples](references/configuration-examples.md).
+For principal lookup, use indexed Redis; the starter and `repository-type: indexed` select it without an enable annotation.
+Use header transport only for non-browser contracts.
+Use the default Redis serializer for a single application controlling reads and writes; switch to JSON when multiple applications, rolling upgrades, or inspection make it too brittle.
 
 ## Coding procedure
 
@@ -182,76 +84,15 @@ Switch to JSON serialization when multiple applications, rolling upgrades, or pa
 7. Use the matching reference when the task affects Spring Security, WebSocket, or session administration integration.
 8. Use store-backed tests when the changed contract depends on reuse, expiration, serialization, or indexed lookup.
 
-## Session events and listener boundary
+## Session events
 
-- Session lifecycle events and `HttpSessionListener` bridging are additive features, not the ordinary path.
-- Open the Redis advanced reference when Spring Security concurrent-session control, audit handling, or administrator-driven invalidation depends on indexed lookup or published session events.
-
-### Clustered Spring Security concurrency
-
-Use `SpringSessionBackedSessionRegistry` when Spring Security's concurrent-session limit must inspect the same indexed repository across application nodes.
-
-```java
-@Bean
-SpringSessionBackedSessionRegistry<RedisIndexedSessionRepository.RedisSession> sessionRegistry(RedisIndexedSessionRepository sessions) {
-    return new SpringSessionBackedSessionRegistry<>(sessions);
-}
-
-@Bean
-SecurityFilterChain securityFilterChain(HttpSecurity http, SpringSessionBackedSessionRegistry<RedisIndexedSessionRepository.RedisSession> sessionRegistry) throws Exception {
-    return http
-        .sessionManagement(session -> session.maximumSessions(2).sessionRegistry(sessionRegistry))
-        .build();
-}
-```
-
-This branch requires the indexed Redis repository because `SpringSessionBackedSessionRegistry` depends on principal lookup through `FindByIndexNameSessionRepository`.
+Session events and `HttpSessionListener` bridging are additive, not the ordinary path.
+For security concurrency, audit, or administrator invalidation using indexed lookup or events, read [session events](references/session-events.md) and [Redis advanced](references/redis-advanced.md).
+Use `SpringSessionBackedSessionRegistry` with indexed Redis for concurrent-session limits across nodes.
 
 ## Implementation examples
 
-### Spring Security principal lookup and session invalidation
-
-```java
-@Service
-class SessionAdministrationService {
-    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
-
-    SessionAdministrationService(FindByIndexNameSessionRepository<? extends Session> sessionRepository) {
-        this.sessionRepository = sessionRepository;
-    }
-
-    void expireAllSessionsFor(String username) {
-        Map<String, ? extends Session> sessions =
-            sessionRepository.findByPrincipalName(username);
-        for (String sessionId : sessions.keySet()) {
-            sessionRepository.deleteById(sessionId);
-        }
-    }
-}
-```
-
-### Example integration test shape
-
-```java
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-class SessionFlowTest {
-    @Autowired
-    MockMvc mockMvc;
-
-    @Test
-    void sessionStateIsReusedAcrossRequests() throws Exception {
-        MockHttpServletRequestBuilder firstRequest = post("/cart/items").contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-1\"}");
-        MvcResult first = mockMvc.perform(firstRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-        Cookie sessionCookie = first.getResponse().getCookie("SESSION");
-        MockHttpServletRequestBuilder secondRequestBuilder = post("/cart/items").cookie(sessionCookie).contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-2\"}");
-        ResultActions secondRequest = mockMvc.perform(secondRequestBuilder);
-        assertAll(() -> secondRequest.andExpect(status().isOk()), () -> secondRequest.andExpect(jsonPath("$.itemCount").value(2)));
-    }
-}
-```
+For Spring Security principal lookup, invalidation, or integration tests, read [implementation examples](references/implementation-examples.md).
 
 ## Testing checklist
 

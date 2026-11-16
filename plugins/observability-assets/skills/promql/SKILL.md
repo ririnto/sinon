@@ -19,9 +19,9 @@ description: >-
 # PromQL
 
 Write and review PromQL queries that stay readable, correct, and appropriate for the consumer that will use them.
-This file keeps the authoring workflow, function-choice baseline, common templates, and review checks.
+This file keeps the authoring workflow, function choices, and review checks.
 
-Exact language syntax, operator and function tables, vector matching detail, staleness, and HTTP API shapes live in [`./references/language-reference.md`](./references/language-reference.md).
+For language syntax, operators, functions, vector matching, staleness, or HTTP API shapes, read [language reference](./references/language-reference.md).
 
 ## Task Focus
 
@@ -43,16 +43,6 @@ Regex matchers are fully anchored RE2.
 Range selectors append a duration, as in `metric[5m]`.
 `offset` and `@` modifiers follow the selector immediately, before any wrapping function or aggregation.
 Counter functions (`rate`, `irate`, `increase`) go before aggregation so resets are detected: `sum(rate(...))`, never `rate(sum(...))`.
-
-## Minimal Setup
-
-Minimal selector and aggregation shape:
-
-```promql
-sum by (job) (rate(http_requests_total{job="api"}[5m]))
-```
-
-Use when: you need one readable baseline query with explicit label filtering, a range-vector function, and a stable grouped output.
 
 ## First Runnable Commands or Code Shape
 
@@ -79,62 +69,9 @@ Function-choice baseline:
   - For capacity forecasting based on trend
 - use `_over_time` functions when you need rollup statistics across a window rather than a rate
 
-## Ready-to-Adapt Templates
+## Query Examples
 
-Basic selector -- use one metric and one bounded label set:
-
-```promql
-up{job="api",instance=~"api-.+"}
-```
-
-Use when: you need a simple instant-vector selector for current target health.
-
-Range-vector aggregation -- convert a counter into a grouped per-second rate:
-
-```promql
-sum by (job) (rate(http_requests_total{job="api"}[5m]))
-```
-
-Use when: you need one stable rate query for dashboards, recording rules, or alert thresholds.
-
-Alert-oriented shape -- keep the query stable and symptom-oriented:
-
-```promql
-5 < round(
-  100 * sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
-    /
-  sum(rate(http_requests_total{job="api"}[5m])),
-  0.001
-)
-```
-
-Use when: you need a threshold query that can be embedded in an alert rule without hiding the user-facing symptom.
-
-Dashboard-oriented shape -- use `irate()` only for visually volatile counters:
-
-```promql
-sum by (instance) (irate(node_network_receive_bytes_total{job="node"}[1m]))
-```
-
-Use when: you are shaping a fast-moving dashboard panel rather than a stable alert condition.
-
-Basic vector matching -- start without a modifier when both sides already share the same grouped label set:
-
-```promql
-sum by (job) (rate(http_requests_total{job="api",status=~"5.."}[5m]))
-/
-sum by (job) (rate(http_requests_total{job="api"}[5m]))
-```
-
-Use when: you need to preserve one shared label set across both sides of a binary operation and both sides already align without extra matching rules.
-
-Missing-series shape -- page on disappearance instead of on a low numeric threshold:
-
-```promql
-absent(up{job="api"})
-```
-
-Use when: the query should return a signal only when the expected series is missing.
+For selector, rate, alert, dashboard, vector-matching, and missing-series examples, read [query examples](./references/query-examples.md) when choosing that query shape.
 
 ## Validate the Result
 
@@ -168,7 +105,7 @@ Return:
 
 ## References
 
-| If the blocker is... | Read... |
+| When working on... | Read... |
 | --- | --- |
 | exact syntax, literals, operators, aggregation or function tables, vector matching, staleness, or HTTP API shapes | [`./references/language-reference.md`](./references/language-reference.md) |
 | non-trivial vector matching, label-set alignment, worked input/output examples, or refactoring a complex query without changing meaning | [`./references/query-shaping.md`](./references/query-shaping.md) |
@@ -187,27 +124,18 @@ Return:
 
 ## Common Pitfalls
 
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| using `irate()` for a stable alert query | brief spikes can reset alert behavior and create noisy evaluation | use `rate()` for alerting or recorded signals |
-| aggregating before deciding which labels must survive | the final series set becomes hard to reason about | decide the output label set first, then aggregate with `by (...)` or `without (...)` |
-| adding `group_left` or `group_right` before checking whether simple `on (...)` or `ignoring (...)` is enough | query semantics become harder to review and easier to break | start with one-to-one matching and escalate only when the join shape truly requires it |
-| writing a query that works only because the current environment has one lucky label layout | the query breaks as soon as a label cardinality changes | make the selector and matching assumptions explicit in the query itself |
-| placing `offset` or `@` outside the aggregation/function wrapper | syntax error; these modifiers bind to the selector, not the expression | put the modifier inside: `sum(metric offset 5m)` not `sum(metric) offset 5m` |
-| applying `rate()` after `sum()` instead of before | `rate()` cannot detect counter resets across pre-aggregated series | always do `sum(rate(...))` never `rate(sum(...))` for counters |
-| using `delta()` or `idelta()` on counters | no automatic reset adjustment; counter rollovers produce spurious large deltas | use `rate()` or `increase()` for counters; reserve `delta`/`idelta` for gauges |
-| bare metric name selector in dashboards over high-cardinality metrics | expands to thousands of series, causing slow queries and browser timeouts | always apply label filters and aggregation before graphing unknown data |
-| assuming regex matchers are unanchored | `env=~"foo"` matches only exact `"foo"`, not `"foobar"` | use `env=~"foo.*"` for prefix matching, or `env=~".*bar.*"` for substring |
-| relying on staleness to produce zero | stale series disappear entirely rather than returning zero | use `absent()` or `absent_over_time()` to detect disappearance; use `* 0` or explicit clamping if zero-fill is needed |
+Start with one-to-one matching before adding `group_left` or `group_right`, and make label-cardinality assumptions explicit.
+Use bounded label filters and aggregation before graphing unknown high-cardinality metrics.
+Regex matchers are anchored: use `foo.*` for a prefix and `.*bar.*` for a substring.
+Stale series disappear rather than becoming zero; detect disappearance with `absent()` or `absent_over_time()` and use explicit zero-fill when needed.
+Reserve `delta` and `idelta` for gauges because they do not adjust for counter resets.
 
 ## Scope Boundaries
 
 - Activate this skill for:
   - PromQL query authoring and review
   - selector, matcher, aggregation, function, and vector-matching choices
-  - query tuning for alert or dashboard context
   - HTTP API interaction patterns for querying Prometheus
-  - understanding data types, literals, operator precedence, and staleness
 - Do not activate for:
   - full alert-rule YAML authoring
   - Alertmanager routing and notification design

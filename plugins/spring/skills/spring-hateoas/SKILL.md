@@ -23,9 +23,8 @@ description: >-
 
 Use `spring-hateoas` for link modeling, representation assembly, hypermedia media types, and affordance exposure on the server side.
 
-- Use narrower guidance when the task is about publishing API documentation from tests.
-- Keep transport controllers thin.
-  - Hypermedia shape should live in assemblers or representation processors, not spread through controller methods.
+Keep controllers thin; put hypermedia shape in assemblers or processors.
+Use narrower guidance for API documentation from tests.
 
 ## Surface map
 
@@ -78,39 +77,9 @@ Open the entity-links reference only when the application needs explicit `@Enabl
 | EntityLinks and explicit hypermedia activation | `spring-boot-starter-hateoas` |
 | `PagedResourcesAssembler` | `spring-data-commons` |
 
-## First safe configuration
+## Initial configuration
 
-### First safe commands
-
-```sh
-./mvnw test -Dtest=OrderRepresentationTests
-```
-
-```sh
-./gradlew test --tests OrderRepresentationTests
-```
-
-### HAL-oriented response expectation
-
-```text
-Content-Type: application/hal+json
-```
-
-### Paged collection response shape
-
-```json
-{
-  "_embedded": {},
-  "_links": {},
-  "page": {
-    "size": 20,
-    "totalElements": 1,
-    "totalPages": 1,
-    "number": 0
-  }
-}
-```
-
+For focused test commands and HAL response shapes, read [initial configuration](references/representation-shapes.md#initial-configuration).
 Default to HAL unless the project already committed to another hypermedia format.
 
 ## Coding procedure
@@ -118,7 +87,7 @@ Default to HAL unless the project already committed to another hypermedia format
 1. Model the representation type explicitly and avoid returning JPA entities or domain aggregates directly.
 2. Use `RepresentationModelAssembler` for item and collection representations so link logic is centralized.
 3. Build links from controller methods rather than hand-written paths wherever practical.
-4. Add affordances only when clients will actually act on them.
+4. Add affordances only when clients or generated UI flows consume them.
 5. Keep link relation names stable once clients depend on them.
 6. Test changed representation contracts for the expected link set, including affected item and collection responses.
 
@@ -126,12 +95,7 @@ Default to HAL unless the project already committed to another hypermedia format
 
 ### Controller-method links
 
-```java
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
-Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
-Link orders = linkTo(methodOn(OrderController.class).all()).withRel("orders");
-```
+For controller-method links, see [example 1](references/configuration-examples.md#example-1-controller-method-links).
 
 ### Direct link creation
 
@@ -151,13 +115,7 @@ Link templated = Link.of("/orders{?page,size}", "search");
 
 Use `IanaLinkRelations` constants for standard relations and `LinkRelation.of("...")` for custom ones.
 
-```java
-import org.springframework.hateoas.IanaLinkRelations;
-
-model.add(linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel());
-model.add(Link.of("/docs/orders", IanaLinkRelations.PROFILE));
-model.add(Link.of("/admin/orders", LinkRelation.of("manage")));
-```
+For link relations, see [example 2](references/configuration-examples.md#example-2-link-relations).
 
 ### Links concatenation
 
@@ -177,192 +135,9 @@ Open the entity-links reference only when controller-method links are no longer 
 
 ## Implementation examples
 
-### Representation model and assembler
+For assemblers, controllers, pages, affordances, embedding, WebFlux links, or hypermedia tests, read [implementation examples](references/implementation-examples.md).
 
-```java
-class OrderModel extends RepresentationModel<OrderModel> {
-    private final long id;
-    private final String status;
-
-    OrderModel(long id, String status) {
-        this.id = id;
-        this.status = status;
-    }
-
-    /**
-     * Returns the order identifier exposed in the representation.
-     */
-    public long getId() {
-        return id;
-    }
-
-    /**
-     * Returns the order status exposed in the representation.
-     */
-    public String getStatus() {
-        return status;
-    }
-}
-
-@Component
-class OrderModelAssembler implements RepresentationModelAssembler<Order, OrderModel> {
-    /**
-     * Builds the order representation with self and collection links.
-     */
-    @Override
-    public OrderModel toModel(Order order) {
-        OrderModel model = new OrderModel(order.id(), order.status());
-        model.add(linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel());
-        model.add(linkTo(methodOn(OrderController.class).all()).withRel("orders"));
-        return model;
-    }
-
-    /**
-     * Builds the collection representation and adds the collection self link.
-     */
-    @Override
-    public CollectionModel<OrderModel> toCollectionModel(Iterable<? extends Order> orders) {
-        CollectionModel<OrderModel> models = RepresentationModelAssembler.super.toCollectionModel(orders);
-        models.add(linkTo(methodOn(OrderController.class).all()).withSelfRel());
-        return models;
-    }
-}
-```
-
-### Controller using the assembler
-
-```java
-@RestController
-class OrderController {
-    private final OrderService service;
-    private final OrderModelAssembler assembler;
-
-    OrderController(OrderService service, OrderModelAssembler assembler) {
-        this.service = service;
-        this.assembler = assembler;
-    }
-
-    @GetMapping("/orders/{id}")
-    OrderModel one(@PathVariable long id) {
-        return assembler.toModel(service.find(id));
-    }
-
-    @GetMapping("/orders")
-    CollectionModel<OrderModel> all() {
-        return assembler.toCollectionModel(service.findAll());
-    }
-}
-```
-
-### Paged model assembly
-
-```java
-PagedModel<OrderModel> model = pagedResourcesAssembler.toModel(page, assembler);
-```
-
-### Affordance shape
-
-```java
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-import org.springframework.hateoas.mediatype.Affordances;
-import org.springframework.http.HttpMethod;
-
-Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
-Link update = Affordances.of(self)
-    .afford(HttpMethod.PUT)
-    .toLink();
-```
-
-Use affordances only when clients or generated UI flows will actually consume them.
-
-### HalModelBuilder for embedded resources
-
-```java
-import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
-
-HalModelBuilder.halModelOf(order)
-    .preview(new CustomerSummary(customer))
-    .forLink(customerLink)
-    .embed(additional)
-    .link(Link.of("/orders/1", IanaLinkRelations.SELF))
-    .build();
-```
-
-Use `HalModelBuilder` when the representation needs HAL `_embedded` entries with previews or nested documents.
-
-### WebFlux links
-
-```java
-import reactor.core.publisher.Mono;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.server.reactive.WebFluxLinkBuilder;
-
-Mono<Link> self = WebFluxLinkBuilder
-    .linkTo(WebFluxLinkBuilder.methodOn(OrderController.class).one(order.id()))
-    .withSelfRel()
-    .toMono();
-```
-
-Use `WebFluxLinkBuilder.methodOn(...)` and keep the result as `Mono<Link>` in reactive applications.
-
-### Hypermedia test shape
-
-```java
-@WebMvcTest(OrderController.class)
-@Import(OrderModelAssembler.class)
-class OrderRepresentationTests {
-    @MockitoBean
-    OrderService service;
-
-    @Autowired
-    MockMvc mvc;
-
-    @Test
-    void orderResponseContainsSelfLink() throws Exception {
-        mvc.perform(get("/orders/1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._links.self.href").exists());
-    }
-}
-```
-
-## Output and configuration shapes
-
-### Entity model shape
-
-```json
-{
-  "id": 1,
-  "status": "CREATED",
-  "_links": {
-    "self": {
-      "href": "/orders/1"
-    },
-    "orders": {
-      "href": "/orders"
-    }
-  }
-}
-```
-
-### Collection model link shape
-
-```json
-{
-  "_links": {
-    "self": {
-      "href": "/orders"
-    }
-  }
-}
-```
-
-### Stable relation name shape
-
-```text
-self
-orders
-```
+For entity or collection response examples and relation names, read [representation shapes](references/representation-shapes.md).
 
 ## Testing checklist
 
@@ -387,12 +162,3 @@ Select checks for affected representations, links, media types, and access-depen
 - Keep one canonical hypermedia media type per module to reduce client ambiguity.
 - Ensure reverse proxy or base-path configuration does not break generated links.
 - Treat assembler tests as part of the API compatibility surface.
-
-## References
-
-- Open [references/hal-forms-and-affordances.md](references/hal-forms-and-affordances.md) when plain HAL links are not enough and the representation must advertise action metadata or HAL-FORMS templates.
-- Open [references/representation-processors.md](references/representation-processors.md) when one cross-cutting rule must enrich many models with the same extra links or metadata.
-- Open [references/entity-links-and-hypermedia-support.md](references/entity-links-and-hypermedia-support.md) when links should derive from aggregate types, the app needs `EntityLinks`, or explicit `@EnableHypermediaSupport` configuration is required.
-- Open [references/pagedmodel-navigation-and-page-metadata.md](references/pagedmodel-navigation-and-page-metadata.md) when clients depend on `prev`/`next`/`first`/`last` navigation links or precise page metadata semantics.
-- Open [references/forwarded-headers-and-proxy-configuration.md](references/forwarded-headers-and-proxy-configuration.md) when generated links are wrong behind a reverse proxy, gateway, or base-path rewrite.
-- Open [references/problem-details-error-representations.md](references/problem-details-error-representations.md) when error responses should use `application/problem+json` instead of ad hoc JSON payloads.

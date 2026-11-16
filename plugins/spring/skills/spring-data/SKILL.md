@@ -31,10 +31,9 @@ description: >-
 
 Use `spring-data` for repository abstraction, derived query methods, projections, auditing, paging, scrolling, Query by Example, custom repository extensions, and common Spring Data mapping patterns.
 
-- Use store-specific repository guidance when the real problem depends on one store's persistence model.
+- Use store-specific guidance for store-dependent persistence models.
 - Keep this skill focused on what is shared across Spring Data modules rather than store-specific query languages or transaction mechanics.
-- The concrete repository examples in this common path assume imperative repository contracts.
-  Reactive execution details belong in the matching store-specific reactive path.
+- The common examples assume imperative contracts; use store-specific guidance for reactive execution.
 
 ## Dependency baseline
 
@@ -53,150 +52,18 @@ Choose one store module for the repository implementation path.
 - Redis: spring-boot-starter-data-redis
 ```
 
-Keep `spring-data` itself focused on repository abstractions shared across those modules.
-
-If the project already imports the Spring Data BOM for this release train, omit child Spring Data versions from dependency examples and keep the BOM import as the single version anchor.
+If the project imports the Spring Data BOM, omit child Spring Data versions and use the BOM as the version anchor.
 
 Spring Data Commons 4.1.1 is the documented stable example baseline.
 Version 4.2.0-M2 is a preview milestone, not a stable release.
 
-## First safe configuration
+## Repository configuration
 
-### Repository abstraction shape
-
-```java
-interface CustomerRepository extends ListCrudRepository<Customer, Long> {
-}
-```
-
-### Type-safe property paths
-
-Spring Data Commons 4.1 introduces type-safe property path references.
-Prefer method references over string-based property names when the property is known at compile time.
-
-```java
-Sort.by(
-    TypedPropertyPath.of(Person::getFirstName),
-    TypedPropertyPath.of(Person::getLastName)
-)
-```
-
-Nested paths compose through chaining:
-
-```java
-TypedPropertyPath.of(Person::getAddress).then(Address::getCountry)
-```
-
-Keep string-based `PropertyPath.from("name", Person.class)` only when the property name is not known at compile time.
-
-### Derived query shape
-
-```java
-Optional<Customer> findByEmailIgnoreCase(String email);
-```
-
-### Projection shape
-
-Use `@ProjectedPayload` only when a projection is bound from an external web payload, such as controller method parameters.
-Repository return projections do not require this annotation.
-
-```java
-@ProjectedPayload
-interface CustomerView {
-    String getEmail();
-}
-```
-
-Record-based DTO projections used as repository return types do not require `@ProjectedPayload`.
-
-```java
-record CustomerView(Long id, String email) {
-}
-```
-
-### Dynamic projection shape
-
-Use `Class<T>` projection parameter when callers choose the projection shape at runtime:
-
-```java
-record CustomerSummary(String email) {
-}
-
-interface CustomerRepository extends ListCrudRepository<Customer, Long> {
-    <T> List<T> findByEmail(String email, Class<T> projectionType);
-}
-```
-
-Callers pass the projection class:
-
-```java
-List<CustomerView> views = repository.findByEmail("a@example.com", CustomerView.class);
-List<CustomerSummary> summaries = repository.findByEmail("a@example.com", CustomerSummary.class);
-```
-
-The projection type must be a valid Spring Data projection interface or a DTO class such as a record.
-For class-based DTO projections, keep a single constructor or mark the constructor Spring Data should use with `@PersistenceCreator`.
-Dynamic projection works naturally with derived queries.
-Declared queries must still return a shape that matches the selected projection.
-
-### Null-safe repository contract shape
-
-```java
-Optional<Customer> findByEmailIgnoreCase(String email);
-```
-
-### JSpecify nullability in repository contracts
-
-Spring Data Commons 4.0 and later align with JSpecify-style nullability.
-Use package-level `@NullMarked` as the default, then mark only the nullable exceptions explicitly:
-
-| Annotation | Meaning | Typical use |
-| --- | --- | --- |
-| `@NullMarked` | types in the package are non-null by default | `package-info.java` |
-| `@Nullable` | this parameter or type usage may be null | optional parameters, nullable return types |
-| `@NullUnmarked` | temporarily opt one declaration out of `@NullMarked` | migration or mixed nullness areas |
-
-```java
-@NullMarked
-package com.example.customer;
-
-import org.jspecify.annotations.NullMarked;
-```
-
-```java
-interface CustomerRepository extends ListCrudRepository<Customer, Long> {
-    Optional<Customer> findByEmail(@Nullable String email);
-
-    @Nullable
-    Customer findPrimaryContactByAccountId(Long accountId);
-}
-```
-
-Use `Optional<T>` for absent aggregate results and `@Nullable` for truly nullable scalar or entity return types.
-Do not wrap `Optional<T>` itself in `@Nullable`.
-Absence belongs inside the `Optional`.
-
-### Scroll or window shape
-
-```java
-Window<CustomerView> findFirst20ByAddressCityOrderByIdAsc(String city, ScrollPosition position);
-```
-
-### Repository test slice shape
-
-```java
-@DataJpaTest
-class CustomerRepositoryTests {
-    @Autowired
-    CustomerRepository repository;
-
-    @Test
-    void findsProjectionByEmail() {
-        List<CustomerView> views = repository.findByEmail("a@example.com", CustomerView.class);
-        assertThat(views).extracting(CustomerView::email).contains("a@example.com");
-    }
-}
-```
+For a property known at compile time, prefer type-safe property references on Spring Data Commons 4.1; retain string paths for names known only at runtime.
+Use `@ProjectedPayload` only for externally bound web projections, not repository return projections.
+A dynamic projection must be a valid projection interface or DTO; class-based DTOs need one constructor or an explicitly selected `@PersistenceCreator`, and declared query results must match the projection.
+For Commons 4.0+, use package-level `@NullMarked` and annotate nullable exceptions; use `Optional<T>` for absent aggregates and never annotate the `Optional` itself nullable.
+For repository, projection, nullability, scrolling, or test-slice setup, read [repository configuration](references/repository-configuration.md).
 
 ## Coding procedure
 
@@ -210,169 +77,14 @@ class CustomerRepositoryTests {
 8. Keep shared mapping callbacks and conversions intentional rather than hidden in store-specific infrastructure.
 9. Test the repository behavior with the narrowest matching test slice.
 
-## Implementation examples
+## Query and auditing decisions
 
-### Repository abstraction
-
-```java
-interface CustomerRepository extends ListCrudRepository<Customer, Long> {
-    Optional<Customer> findByEmailIgnoreCase(String email);
-    Slice<CustomerView> findByAddressCity(String city, Pageable pageable);
-    Window<CustomerView> findFirst20ByAddressCityOrderByIdAsc(String city, ScrollPosition position);
-}
-
-record CustomerView(Long id, String email) {
-}
-```
-
-### Custom repository fragment
-
-```java
-interface CustomerRepositoryCustom {
-    List<CustomerView> findRecentlyActiveCustomers(Instant since);
-}
-
-interface CustomerRepository extends ListCrudRepository<Customer, Long>, CustomerRepositoryCustom {
-}
-```
-
-### Auditing
-
-```java
-class PurchaseOrder {
-    @CreatedDate
-    Instant createdAt;
-
-    @LastModifiedDate
-    Instant updatedAt;
-}
-```
-
-Enable the matching store-specific auditing configuration in the store-specific path rather than assuming JPA.
-
-### Query by Example shape
-
-```java
-ExampleMatcher matcher = ExampleMatcher.matching()
-    .withIgnoreCase()
-    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-
-Example<Customer> probe = Example.of(new Customer("a@example.com", null), matcher);
-```
-
-### Callback or conversion boundary
-
-Shared mapping callbacks and conversions belong to the common Spring Data model, but keep store-specific callback mechanics in the store-specific path.
-
-## Output and configuration shapes
-
-### Derived query shape
-
-```text
-findByEmailIgnoreCase
-findByAddressCity
-```
-
-### @Query custom query shape
-
-Use declared queries when derived query method names become unwieldy.
-The annotation name is shared across Spring Data modules, but the actual query language and advanced attributes stay store-specific.
-
-Keep common guidance at the level of 'declared query versus derived query'.
-Move JPQL, native SQL, SpEL, and store-specific `@Query` attributes to the store-specific path.
-
-### Derived query method-name pitfalls
-
-Spring Data reserves identifier-targeting base method names.
-When domain properties happen to collide with them, the behavior can surprise:
-
-| Pattern | Behavior | Pitfall |
-| --- | --- | --- |
-| `findById` | maps to identifier equality | `Id` means the declared identifier property, not a random field named `id` |
-| `existsById` | checks identifier existence | does not derive a custom predicate from another `id`-like field |
-| `deleteById` | deletes by identifier | does not derive a custom delete predicate from another `id`-like field |
-
-```java
-class Customer {
-    @Id Long pk;
-    Long id;
-}
-
-Optional<Customer> findById(Long id);
-Optional<Customer> findCustomerById(Long id);
-```
-
-`findById` targets the declared identifier property, while `findCustomerById` targets the property named `id`.
-Prefer explicit derived query names when a domain property could be confused with the identifier.
-
-### Sort null handling
-
-Spring Data Commons 4.1 adds `nullHandling` to `@SortDefault` and allows configuring default null-handling behavior for `Sort` resolution:
-
-```java
-Page<Customer> findAll(@SortDefault(sort = "lastname", nullHandling = Sort.NullHandling.NULLS_LAST) Pageable pageable);
-```
-
-### Paging and scrolling shapes
-
-Choose the return type that matches what callers actually need:
-
-| Type | Use when | Trims result |
-| --- | --- | --- |
-| `Page` | callers need total count and total pages | a separate count operation runs |
-| `Slice` | callers navigate forward through unknown total size | no count query; next-page existence is available |
-| `Window` | callers need scroll-based iteration and a window they can extract the next position from | can be offset- or keyset-backed |
-
-```java
-Page<CustomerView> findByAddressCity(String city, Pageable pageable);
-Slice<CustomerView> findByAddressCity(String city, Pageable pageable);
-Window<CustomerView> findFirst20ByAddressCityOrderByIdAsc(String city, ScrollPosition position);
-```
-
-Use `Page` when the caller needs total count, `Slice` when the caller scrolls through an unknown-length feed, and `Window` when the caller scrolls with deterministic ordering and extracts the next position from the current window.
-`Page` is the heaviest because it runs a separate count query.
-`Slice` avoids the count but still uses pageable offset traversal.
-`Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`.
-The underlying scroll can be offset- or keyset-based depending on the repository method and store support.
-
-Keyset scrolling constraints:
-
-- The query must project the keyset columns used for positioning.
-- Null keys in the keyset column make row positioning unstable.
-- The `ScrollPosition` must be carried forward from the previous Window result.
-- Keep a deterministic sort such as `OrderByIdAsc` so every window position stays stable.
-
-### Auditing activation
-
-Enable auditing per store module.
-The entity annotations are shared, but the activation mechanism is store-specific and belongs in the store-specific path.
-
-Auditing fields:
-
-```java
-class PurchaseOrder {
-    @CreatedDate
-    Instant createdAt;
-
-    @LastModifiedDate
-    Instant updatedAt;
-
-    @CreatedBy
-    String createdBy;
-
-    @LastModifiedBy
-    String modifiedBy;
-}
-```
-
-If using `@CreatedBy` or `@LastModifiedBy`, provide the auditor SPI that matches the store style: `AuditorAware<T>` for imperative repositories and `ReactiveAuditorAware<T>` for reactive infrastructure.
-
-### Auditing field shape
-
-```java
-@CreatedDate
-Instant createdAt;
-```
+Use declared queries when derived names become unwieldy, keeping query language and advanced attributes store-specific.
+Reserved `findById`, `existsById`, and `deleteById` target the declared identifier, not an unrelated property named `id`.
+Choose `Page` for totals with its separate count, `Slice` for forward paging without a count, and `Window` for offset or keyset scrolling with a carried position.
+For keyset scrolling, project positioning columns, avoid null keys, carry the previous `ScrollPosition`, and use a deterministic sort.
+Enable auditing per store; use `AuditorAware<T>` for imperative or `ReactiveAuditorAware<T>` for reactive auditor fields.
+For examples of queries, projections, paging, scrolling, fragments, callbacks, or auditing, read [repository, query, and auditing examples](references/repository-query-and-auditing-examples.md).
 
 ## Testing checklist
 
@@ -389,7 +101,7 @@ Use the existing native test setup.
 
 ## Production checklist
 
-- Keep repository contracts and derived query names stable after callers depend on them.
+- Keep repository contracts and derived query names stable for existing callers.
 - Avoid leaking store-specific behavior into common repository abstractions unless it is intentional.
 - Use projections and paging deliberately to control query shape and result size.
 - Keep custom repository fragments, callbacks, and conversions reviewable because they change shared persistence behavior.
@@ -398,12 +110,12 @@ Use the existing native test setup.
 
 ## References
 
-- Open [references/store-specific-module-selection.md](references/store-specific-module-selection.md) when the ordinary repository-abstraction path is not enough and the task depends on one store's persistence semantics.
-- Open [references/query-by-example.md](references/query-by-example.md) when the blocker is Query by Example matcher behavior, probe design, or choosing QBE instead of a derived query.
-- Open [references/entity-callbacks-and-conversions.md](references/entity-callbacks-and-conversions.md) when the blocker is entity callback registration, custom conversions, or per-property value conversion.
-- Open [references/multimodule-repository-scanning.md](references/multimodule-repository-scanning.md) when the blocker is strict repository scanning across more than one Spring Data store module.
-- Open [references/domain-events.md](references/domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
-- Open [references/rest-exposure.md](references/rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
-- Open [references/aot.md](references/aot.md) when the task depends on AOT or native-image repository details.
-- Open [references/scrolling-patterns.md](references/scrolling-patterns.md) for offset or keyset positions, `WindowIterator`, or keyset projection constraints.
-- Open [references/jpa-transactions.md](references/jpa-transactions.md) for transaction inheritance, declared queries, `@Modifying`, or facade transaction boundaries.
+- Open [store specific module selection](references/store-specific-module-selection.md) when the ordinary repository-abstraction path is not enough and the task depends on one store's persistence semantics.
+- Open [query by example](references/query-by-example.md) when the blocker is Query by Example matcher behavior, probe design, or choosing QBE instead of a derived query.
+- Open [entity callbacks and conversions](references/entity-callbacks-and-conversions.md) when the blocker is entity callback registration, custom conversions, or per-property value conversion.
+- Open [multimodule repository scanning](references/multimodule-repository-scanning.md) when the blocker is strict repository scanning across more than one Spring Data store module.
+- Open [domain events](references/domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
+- Open [rest exposure](references/rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
+- Open [aot](references/aot.md) when the task depends on AOT or native-image repository details.
+- Open [scrolling patterns](references/scrolling-patterns.md) for offset or keyset positions, `WindowIterator`, or keyset projection constraints.
+- Open [jpa transactions](references/jpa-transactions.md) for transaction inheritance, declared queries, `@Modifying`, or facade transaction boundaries.
