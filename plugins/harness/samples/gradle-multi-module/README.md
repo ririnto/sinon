@@ -8,11 +8,11 @@ Generate this sample with the materializer before running it.
 The generated `buildSrc` supplies the custom ktlint rules to both modules and the root check.
 
 Use JDK 25.
-The application modules target Java 21 and the Kotlin ruleset builds with Java 25.
+The application modules and Kotlin ruleset target Java 25.
 Run `./gradlew :check :buildSrc:check` to build, test, and lint the modules.
 Run `./gradlew :app:run --args=Ada` to run the application.
 
-Use Node 26 and pnpm 12 to install the optional Markdown checks and Git hooks:
+Use Node 24.22.3 and pnpm 12.21.0 to install the optional Markdown checks and Git hooks:
 
 ```sh
 pnpm install

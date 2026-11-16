@@ -2,7 +2,7 @@
 
 This project builds a catalog module and a checkout module that consumes the catalog.
 The root POM manages dependency and plugin versions for both modules.
-Java 21 or newer, Node.js 26.13 or newer in the 26 series, and pnpm 12.16.1 are required.
+Java 25, Node.js 24.22.3 in the 24 series, and pnpm 12.21.0 are required.
 
 Run `pnpm install --frozen-lockfile` to install the baseline checks and Git hooks.
 

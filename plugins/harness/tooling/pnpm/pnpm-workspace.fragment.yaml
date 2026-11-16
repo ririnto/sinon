@@ -1,5 +1,5 @@
 catalog:
-  "@oxlint/plugins": 1.93.0
+  "@oxlint/plugins": ^1.93.0
   "@google/design.md": ^0.4.0
   "@tsconfig/next": ^2.0.7
   "@tsconfig/node24": ^24.0.6
