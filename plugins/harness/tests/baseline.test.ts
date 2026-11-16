@@ -266,7 +266,6 @@ describe("fresh-root baseline", () => {
         "check:markdownlint-cli2": "markdownlint-cli2",
         fix: "run-p fix:*",
         "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-
         prepare: "husky"
       });
       expect(valueAt(manifest, "scripts", "pre-commit")).toMatch(
