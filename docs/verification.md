@@ -23,7 +23,7 @@ Its `check:*` scripts compose `check:test`, TypeScript checking, type-aware lint
 Pre-commit invokes this same runner with the affected suite paths and always includes version regression tests.
 The Promtool fixture runner requires a separate command and network access.
 `check:consumers` installs the independent workspace sample from its lockfile and materializes fresh HTML and React projects.
-It checks unchanged Storybook fixtures with each consumer's own dependencies and compiler settings.
+It checks unchanged Storybook fixtures with each consumer's own dependencies and compiler settings, then builds the HTML-Vite and React-Vite stories through each generated `check:storybook` script.
 The root `.eslintignore` separates these consumers from publishing-root configuration discovery.
 The Harness tooling gate runs from its own directory.
 All lint-check invocations use `ultracite check --type-aware` without trailing arguments.
@@ -46,7 +46,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Prometheus rule examples | `pnpm run check:test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
 | Source lint, formatting, and React effect policy | `pnpm run check:ultracite` | Root source and Harness tooling pass their configured lint and formatting checks, including the React effect policy. |
-| Independent workspace and Storybook consumers | `pnpm run check:consumers` | Installed consumers pass type-aware lint without rewriting the source fixtures. |
+| Independent workspace and Storybook consumers | `pnpm run check:consumers` | Installed consumers pass type-aware lint and build real HTML-Vite and React-Vite stories without rewriting the source fixtures. |
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |
 
 The root [package scripts](../package.json) own command composition.
