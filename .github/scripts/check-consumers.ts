@@ -58,6 +58,7 @@ const checkRenderer = async (renderer: "html" | "react"): Promise<void> => {
     );
     run(directory, ["install"]);
     run(directory, ["run", "check:ultracite"]);
+    run(directory, ["run", "check:storybook"]);
     await writeFile(
       path.join(directory, "src/type-aware-boundary.ts"),
       "void Promise.resolve();\n"
