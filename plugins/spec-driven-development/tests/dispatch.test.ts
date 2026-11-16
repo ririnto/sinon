@@ -42,12 +42,10 @@ test("diagram generation keeps colliding path IDs distinct", () => {
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
-
   expect(main(["validate", directory])).toBe(0);
   expect(errors).not.toHaveBeenCalled();
   output.mockClear();
   expect(main(["generate-diagram", specRoot])).toBe(0);
-
   const diagram = String(output.mock.calls[0]?.[0] ?? "");
   const callerId = /^\s+(?<id>[A-Za-z0-9_]+)\["Hyphen Caller"\]$/mu.exec(
     diagram
@@ -114,7 +112,6 @@ test.each([
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
-
     expect(
       main(["list-tags", repositoryPaths.sddFixtureRoot, ...options])
     ).toBe(0);
@@ -136,7 +133,6 @@ test.each([
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
-
     expect(
       main([
         "list-frontmatter",
@@ -178,7 +174,6 @@ test.each([
     onTestFinished(() => {
       vi.restoreAllMocks();
     });
-
     expect(main(["list-tags", directory])).toBe(1);
     expect(errors.mock.calls.flat().join("\n")).toContain(
       `${changelogPath}]: ${diagnostic}`
@@ -218,7 +213,6 @@ test("diagram generation uses the containing directory when the title is empty",
     path.join(specDirectory, "SPEC.md"),
     "---\nstatus: draft\n---\n"
   );
-
   expect(generateMermaid(directory)).toBe(
     'flowchart TD\n  untitled_SPEC_md["untitled"]'
   );

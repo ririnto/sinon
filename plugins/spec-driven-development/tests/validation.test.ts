@@ -71,7 +71,6 @@ test.each([
     filePath,
     `---\ndescription: Example.\nlast_updated: "2026-10-23"\nstatus: ${status}\ncall: []\n---\n\n# Status Example\n`
   );
-
   expect(validateDocument(filePath, "spec")).toEqual({
     errors: [],
     passed: true
@@ -96,9 +95,7 @@ test.each([
     filePath,
     `---\ndescription: Example.\nlast_updated: "2026-10-23"\n${statusField}\ncall: []\n---\n\n# Status Example\n`
   );
-
   const result = validateDocument(filePath, "spec");
-
   expect(result.passed).toBe(false);
   expect(result.errors.some((error) => error.includes("status"))).toBe(true);
 });
