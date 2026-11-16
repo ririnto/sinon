@@ -134,7 +134,6 @@ test("list-frontmatter preserves JavaScript coercion for non-scalar YAML fields"
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
-
   expect(
     main([
       "list-frontmatter",

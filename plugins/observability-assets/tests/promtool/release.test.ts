@@ -234,12 +234,10 @@ process.exitCode = status;`;
 
 test("cleans signal listeners after child success, spawn error, and signal exit", async () => {
   const originalListeners = signalListenerCounts();
-
   await expect(
     execute(process.execPath, ["-e", "process.exit(0)"])
   ).resolves.toBe(0);
   expect(signalListenerCounts()).toEqual(originalListeners);
-
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-exec-error-"));
   try {
     await expect(
@@ -249,7 +247,6 @@ test("cleans signal listeners after child success, spawn error, and signal exit"
     await rm(directory, { force: true, recursive: true });
   }
   expect(signalListenerCounts()).toEqual(originalListeners);
-
   await expect(
     execute(process.execPath, ["-e", 'process.kill(process.pid, "SIGTERM")'])
   ).rejects.toThrow("Promtool terminated by signal SIGTERM");
