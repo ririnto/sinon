@@ -27,4 +27,6 @@ HttpSessionIdResolver httpSessionIdResolver() {
 ## Serialization rule
 
 The default Redis serializer is acceptable for one application controlling both reads and writes.
-Switch to JSON serialization when multiple applications, rolling upgrades, or payload inspection requirements make default serialization too brittle.
+Consider JSON serialization when multiple applications, rolling upgrades, or payload inspection requirements make default serialization too brittle. Verify the mapper and stored attributes before use.
+Changing serializers does not itself migrate existing sessions or establish rolling compatibility.
+Before changing a live format, follow the [serialization transition contract](redis-advanced.md#serialization-transition).

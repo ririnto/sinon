@@ -1,24 +1,12 @@
 ---
-metadata:
-  reference:
-    Spring Session:
-      version: 4.1.1
-      url:
-        - https://docs.spring.io/spring-session/reference/
-        - https://docs.spring.io/spring-session/reference/whats-new.html
-        - https://repo.maven.apache.org/maven2/org/springframework/session/spring-session-bom/maven-metadata.xml
-        - https://repo.maven.apache.org/maven2/org/springframework/session/spring-session-bom/4.1.1/spring-session-bom-4.1.1.pom
-    MongoDB Spring Session:
-      version: 4.0.0
-      url:
-        - https://repo.maven.apache.org/maven2/org/mongodb/mongodb-spring-session/maven-metadata.xml
-        - https://repo.maven.apache.org/maven2/org/mongodb/mongodb-spring-session/4.0.0/mongodb-spring-session-4.0.0.pom
 name: spring-session
 description: >-
   Use Spring Session for session stores, ID transport, expiration, and web integration.
 ---
 
 # Spring Session
+
+Sources for this skill and its references are in the [source ledger](references/sources.md).
 
 ## Boundaries
 
@@ -27,13 +15,13 @@ Authentication, authorization, CSRF, login flow, endpoint design, and general Re
 
 ## Version alignment
 
-For Session and Boot compatibility or minimum runtime requirements, read [version alignment](references/version-alignment.md).
+For Session and Boot compatibility and runtime minimums, read [version alignment](references/version-alignment.md).
 Boot manages Session versions. Session requires Java 17+, Framework 6+ when used, Servlet 3.1+ in servlet containers, and Redis 2.8+ for `@EnableRedisHttpSession`. Do not confuse Boot platform baselines with library minimums.
 
 ## Branch selector
 
-Use the ordinary servlet path for Redis-backed sessions, timeout, namespace, transport, repository choice, serialization, principal lookup, and store-backed tests.
-Read the relevant reference when its condition applies:
+Use the servlet path for Redis sessions, timeout, namespace, transport, repository choice, serialization, principal lookup, and store-backed tests.
+Read references when their conditions apply:
 
 - [JDBC store](references/jdbc-store.md): relational session tables, cleanup, transactions, or JSON attributes.
 - [WebFlux](references/webflux-websession.md): reactive `WebSession`.
@@ -43,8 +31,8 @@ Read the relevant reference when its condition applies:
 
 ## Dependency baseline
 
-Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
-Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
+Before recommending a version, check each selected Maven artifact on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
+Keep project BOM or version-catalog management and pins unless the task authorizes changes.
 
 Use the Spring Boot starter that matches the store so the session module, data-access integration, and client dependencies remain aligned.
 Start with Redis for the common clustered browser-session path unless the deployment already standardizes on a different store.
@@ -62,14 +50,15 @@ For Redis or JDBC servlet starter declarations, read [store dependencies](refere
 
 - Use the default Redis repository (`RedisSessionRepository`) when the application only needs normal read, write, and expiration behavior for each session.
 - Use the indexed Redis repository (`RedisIndexedSessionRepository`) when Spring Security, administration, or messaging needs `findByPrincipalName(...)`, `SessionCreatedEvent`, `SessionDeletedEvent`, `SessionDestroyedEvent`, or `SessionExpiredEvent`.
-- Keep timeout, namespace, and expiration behavior explicit so operators can reason about TTL and cleanup behavior.
+- Keep timeout, namespace, and expiration explicit so operators can reason about TTL and cleanup.
 
 ## Session configuration
 
 For Redis properties, cookie customization, header transport, or serialization, read [session configuration](references/session-configuration.md) and the [configuration examples](references/configuration-examples.md).
 For principal lookup, use indexed Redis; the starter and `repository-type: indexed` select it without an enable annotation.
 Use header transport only for non-browser contracts.
-Use the default Redis serializer for a single application controlling reads and writes; switch to JSON when multiple applications, rolling upgrades, or inspection make it too brittle.
+Use the default Redis serializer for a single application controlling reads and writes. Consider JSON when sharing, upgrades, or inspection make it too brittle, and verify the selected mapper and attributes.
+For every live format change, follow the [transition contract](references/redis-advanced.md#serialization-transition). Do not share a namespace during a mixed rollout until both directions and rollback are validated.
 
 ## Coding procedure
 
