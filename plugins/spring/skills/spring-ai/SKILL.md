@@ -27,26 +27,23 @@ Use `spring-ai` for model-facing application seams, retrieval flow, Spring-manag
 - Keep business rules outside prompts and outside tool implementations.
   - Spring AI should orchestrate model interaction, not replace core domain logic.
 
-## Official surface map
+## Surface routing
 
-Use this map to select a Spring AI surface and its supporting reference.
+Read a reference when the corresponding decision applies:
 
-| Surface | Start here when | Open a reference when |
-| --- | --- | --- |
-| Chat + prompt templates | The feature reads text and returns text or structured data | Provider fit or model capability is the blocker in [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) |
-| Structured output | Downstream code needs fields, records, or typed objects | Upgrade or provider behavior changes the output contract in [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) |
-| Tool calling | The model may request a narrow, side-effect-safe application capability | Sequential tool choreography is the blocker in [references/advanced-tool-orchestration.md](references/advanced-tool-orchestration.md), tool-set curation is the blocker in [references/tool-set-curation.md](references/tool-set-curation.md), or fallback policy is the blocker in [references/tool-failure-and-fallback.md](references/tool-failure-and-fallback.md) |
-| Advisors + chat memory | Requests need prompt decoration, recursive advisor behavior, history, token-window control, reasoning augmentation, or content safety | Advisor ordering or persistent memory is the blocker in [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) |
-| RAG + vector stores | The answer must use retrieved enterprise context | ETL pipeline, ingestion, chunking, embeddings, store choice, or advanced RAG flow design is the blocker in [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) |
-| MCP | Tools or prompts cross a process or service boundary | Client/server choice or transport setup is the blocker in [references/mcp-client-server-boundaries.md](references/mcp-client-server-boundaries.md) |
-| Vision + image generation | The feature must inspect images or generate images from prompts | Single-image vision input: [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md), multiple-image comparison: [references/multiple-image-comparison.md](references/multiple-image-comparison.md), or generated image artifacts: [references/image-generation.md](references/image-generation.md) |
-| Audio transcription + speech | The feature transcribes audio or returns synthesized speech | Transcription or TTS configuration is the blocker in [references/audio-transcription-and-speech-output.md](references/audio-transcription-and-speech-output.md) |
-| Moderation | The application needs input or output safety gates | Moderation placement or category thresholds are the blocker in [references/moderation-and-safety-gates.md](references/moderation-and-safety-gates.md) |
-| Effective agents | One bounded workflow must route, chain, plan, or iteratively refine work | Routing is the blocker in [references/routing-workflow.md](references/routing-workflow.md), feeding one model step into the next: [references/chain-workflow.md](references/chain-workflow.md), bounded planning: [references/planning-and-stepwise-execution.md](references/planning-and-stepwise-execution.md), or application iteration limits: [references/loop-bounds-and-iteration-control.md](references/loop-bounds-and-iteration-control.md) |
-| Evaluation + testing | Prompt, retrieval, or tool behavior needs repeatable checks | Evaluation harness design is the blocker in [references/testing-and-evaluation-harnesses.md](references/testing-and-evaluation-harnesses.md) |
-| Usage + observability | You need token accounting, latency, tracing, or production debugging | Telemetry or incident diagnosis is the blocker in [references/observability-and-production-debugging.md](references/observability-and-production-debugging.md) |
-| Local development infra | You need Docker Model Runner, development-time services, Testcontainers, local models, vector stores, or containerized dev services | Local model runtime is the blocker in [references/development-services-and-local-infra.md](references/development-services-and-local-infra.md), local vector store provisioning is the blocker in [references/local-vector-store-dev.md](references/local-vector-store-dev.md), or full containerized bootstrap is the blocker in [references/containerized-dev-environment.md](references/containerized-dev-environment.md) |
-| Upgrade and migration | Version changes alter starters, APIs, defaults, or provider behavior | Upgrade mechanics are the blocker in [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) |
+- Model family, context, latency, cost, or provider fit: [provider selection](references/provider-selection-and-model-capability-fit.md).
+- Output contracts, starters, APIs, defaults, or provider behavior affected by upgrades: [migration](references/upgrade-notes-and-migration-branches.md).
+- Sequential tool calls: [orchestration](references/advanced-tool-orchestration.md); curated tools: [tool sets](references/tool-set-curation.md); fallback: [tool failure](references/tool-failure-and-fallback.md).
+- Advisor ordering, persistent memory, token buffering, or conversation isolation: [advisors and memory](references/advisors-memory-and-conversation-state.md).
+- RAG ingestion, chunking, embeddings, metadata filters, store selection, or advanced flow: [RAG pipeline](references/rag-pipeline-and-vector-store-decisions.md).
+- choosing MCP versus an in-process bean, or MCP client/server or transport setup: [MCP boundaries](references/mcp-client-server-boundaries.md).
+- Single-image input: [vision input](references/image-generation-and-vision-inputs.md); multiple images: [comparison](references/multiple-image-comparison.md); generated artifacts: [image generation](references/image-generation.md).
+- Transcription or TTS configuration: [audio](references/audio-transcription-and-speech-output.md).
+- Moderation placement or thresholds: [safety gates](references/moderation-and-safety-gates.md).
+- Bounded agent workflows: [routing](references/routing-workflow.md), [chaining](references/chain-workflow.md), [planning](references/planning-and-stepwise-execution.md), or [iteration limits](references/loop-bounds-and-iteration-control.md).
+- Repeatable model, retrieval, or tool evaluations: [evaluation harnesses](references/testing-and-evaluation-harnesses.md).
+- Token accounting, latency, tracing, or incident diagnosis: [observability](references/observability-and-production-debugging.md).
+- Local models and development services: [local infrastructure](references/development-services-and-local-infra.md); local vector stores: [store provisioning](references/local-vector-store-dev.md); containerized bootstrap: [container environment](references/containerized-dev-environment.md).
 
 ## Task scope
 
@@ -54,204 +51,19 @@ Choose the model, tool, memory, retrieval, or media surface required by the feat
 Do not build a plain-chat or non-RAG workflow as a prerequisite for a retrieval-only or tool-focused task.
 Keep external calls and tool side effects within the task's authority and data-handling constraints.
 
-## Dependency baseline
+## Dependencies and implementation
 
 Spring AI 2.0.x supports Spring Boot 4.0.x and 4.1.x.
+Import the Spring AI BOM and add only starters needed for the current feature.
+For a new BOM, check Maven Central for the latest stable release compatible with the project's Boot line; keep existing pins unless an upgrade is authorized.
+Keep credentials environment-backed, verify model support for the account and Spring AI version, and keep application code on Spring AI abstractions.
 
-Import the Spring AI BOM and add only the starters needed for the current model and optional retrieval path.
-The `2.0.1` BOM below illustrates the documented Spring AI baseline.
-For a new BOM, check `org.springframework.ai:spring-ai-bom` on Maven Central for the latest stable release compatible with the project's Boot line.
-Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
+Use explicit, reviewable prompt variables and Spring AI mapping for structured output; treat provider-native JSON modes as an optimization.
+Add only bounded tools; start with read-only or otherwise side-effect-safe capabilities and treat tool selection as an application contract.
+Use advisors for request or response decoration and `ChatMemory` through an advisor for history; use repository-backed memory for production multi-session workloads and explicit conversation identifiers.
+Use RAG for retrieved context with explicit empty-context behavior; keep `EmbeddingModel` portable and choose the `VectorStore` for deployment.
 
-```xml
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-bom</artifactId>
-            <version>2.0.1</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.ai</groupId>
-        <artifactId>spring-ai-starter-model-openai</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-validation</artifactId>
-    </dependency>
-</dependencies>
-```
-
-Add retrieval, image, audio, moderation, or MCP starters only when that surface is part of the current job.
-Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when changing the project's Spring AI version.
-
-## First safe setup
-
-### Minimal provider properties
-
-```yaml
-spring:
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      chat:
-        model: ${OPENAI_CHAT_MODEL}
-```
-
-Set `OPENAI_CHAT_MODEL` to a model supported by the target account and Spring AI version.
-Start with one provider, one model, and one environment-backed secret.
-Open [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) when model family, context window, latency, cost, or provider fit is still unclear.
-
-### Provider-neutral `ChatClient` seam
-
-```java
-@Configuration
-class AssistantAiConfiguration {
-    @Bean
-    ChatClient releaseChatClient(ChatClient.Builder builder) {
-        return builder.defaultSystem("You summarize release changes for backend engineers.").build();
-    }
-}
-```
-
-Keep the application seam on `ChatClient` or another Spring AI abstraction.
-Do not let controllers or domain code depend directly on a provider SDK.
-
-## Prompt templating and structured output
-
-Use prompt templates when reusable instructions or parameterized input are needed.
-Keep variables explicit and keep prompt text reviewable in code.
-
-```java
-record ReleaseSummary(String version, List<String> breakingChanges, List<String> actions) {}
-
-@Service
-class ReleaseSummaryService {
-    private final ChatClient chatClient;
-
-    ReleaseSummaryService(ChatClient chatClient) {
-        this.chatClient = chatClient;
-    }
-
-    ReleaseSummary summarize(String releaseNotes) {
-        return chatClient.prompt()
-            .user(user -> user.text("Summarize the release notes and list required migration actions. Notes: {notes}").param("notes", releaseNotes))
-            .call()
-            .entity(ReleaseSummary.class);
-    }
-}
-```
-
-- Keep prompt variables named and explicit.
-- Put reusable system instructions on the `ChatClient` builder or a dedicated service seam.
-- Start with Spring AI mapping such as `.entity(...)` so the application stays on Spring AI's portable output contract instead of binding ordinary flows to one provider's JSON mode.
-- Keep provider-native JSON modes as an optimization, not the default path, and open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when version or provider changes threaten the output contract.
-
-## Tool boundary
-
-Add tools only when the model needs a bounded application capability.
-
-```java
-@Component
-class InventoryTools {
-    private final InventoryRepository inventoryRepository;
-
-    InventoryTools(InventoryRepository inventoryRepository) {
-        this.inventoryRepository = inventoryRepository;
-    }
-
-    @Tool(description = "Look up available inventory for a SKU")
-    InventorySnapshot inventoryForSku(String sku) {
-        return inventoryRepository.findSnapshotBySku(sku);
-    }
-}
-
-@Service
-class ShippingAssistantService {
-    private final ChatClient chatClient;
-    private final InventoryTools inventoryTools;
-
-    ShippingAssistantService(ChatClient chatClient, InventoryTools inventoryTools) {
-        this.chatClient = chatClient;
-        this.inventoryTools = inventoryTools;
-    }
-
-    String answer(String question) {
-        return chatClient.prompt()
-            .user(question)
-            .tools(inventoryTools)
-            .call()
-            .content();
-    }
-}
-
-record InventorySnapshot(String sku, int availableQuantity) {}
-```
-
-- Start with read-only or otherwise side-effect-safe tools.
-- Treat tool selection as an application contract.
-- `ToolCallingAdvisor` is auto-registered when tools are configured (2.0.0+).
-  - Disable globally with `spring.ai.chat.client.tool-calling.enabled=false` or per-call with `AdvisorParams.toolCallingAdvisorAutoRegister(false)`.
-- Open [references/advanced-tool-orchestration.md](references/advanced-tool-orchestration.md) when one tool call must explicitly feed the next.
-- Open [references/tool-set-curation.md](references/tool-set-curation.md) when the blocker is exposing only a curated tool set.
-- Open [references/tool-failure-and-fallback.md](references/tool-failure-and-fallback.md) when the blocker is explicit fallback behavior after tool failure.
-- Open [references/mcp-client-server-boundaries.md](references/mcp-client-server-boundaries.md) when the tool boundary may need MCP instead of an in-process Spring bean.
-
-## Memory and retrieval escalation
-
-Use advisors when the request or response must be decorated around the model call.
-Use `ChatMemory` through an advisor instead of manually appending prior turns.
-
-Spring AI ships built-in advisors: `MessageChatMemoryAdvisor` (message history), `VectorStoreChatMemoryAdvisor` (vector store-backed memory retrieval), `QuestionAnswerAdvisor` (naive RAG), `RetrievalAugmentationAdvisor` (modular RAG with query transformation, document post-processing, and context augmentation), `ReReadingAdvisor` (re-reading reasoning improvement), and `SafeGuardAdvisor` (content safety gate).
-Use in-memory `MessageWindowChatMemory` for demos and tests.
-Use repository-backed memory for production multi-session workloads.
-
-```java
-@Bean
-ChatClient supportChatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
-    return builder.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build()).build();
-}
-
-String answer(ChatClient chatClient, String conversationId, String question) {
-    return chatClient.prompt()
-        .advisors(advisors -> advisors.param(ChatMemory.CONVERSATION_ID, conversationId))
-        .user(question)
-        .call()
-        .content();
-}
-```
-
-```java
-@Service
-class KnowledgeSearchService {
-    private final VectorStore vectorStore;
-
-    KnowledgeSearchService(VectorStore vectorStore) {
-        this.vectorStore = vectorStore;
-    }
-
-    List<Document> search(String question) {
-        return vectorStore.similaritySearch(SearchRequest.builder()
-            .query(question)
-            .topK(4)
-            .similarityThreshold(0.75)
-            .build());
-    }
-}
-```
-
-- Keep the conversation identifier explicit at the call site.
-- Use in-memory chat memory only for demos, tests, or single-instance transient flows.
-- Use RAG when the answer requires retrieved context, with explicit retrieval and empty-context behavior.
-- Keep `EmbeddingModel` as the portable seam for vector generation and treat the concrete `VectorStore` implementation as a deployment decision.
-- Open [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) when advisor ordering, persistent memory repositories, token buffering, or conversation isolation becomes the blocker.
-- Open [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) when chunking, embeddings, metadata filters, vector-store choice, or advanced retrieval tuning is the blocker.
+For provider setup, dependency declarations, prompt templates, structured output, tool calling, or memory and retrieval examples, read [setup, prompts, tools, and memory](references/setup-prompts-tools-and-memory.md).
 
 ## Usage handling and observability
 
@@ -259,7 +71,7 @@ Include token accounting in the application contract.
 
 - Read `Usage` from the final `ChatResponse` when cost, token budgets, or provider drift matter.
 - Record prompt, completion, and total token counts together with latency and tool or retrieval activity.
-- Open [references/observability-and-production-debugging.md](references/observability-and-production-debugging.md) when usage accounting, tracing, or production debugging becomes the blocker.
+- Open [observability and production debugging](references/observability-and-production-debugging.md) when usage accounting, tracing, or production debugging becomes the blocker.
 
 ## Minimal validation
 
@@ -274,7 +86,7 @@ Use live-provider evaluation only when the required evidence and authority justi
 - Verify retrieval returns the expected documents and that empty-context behavior is explicit.
 - Verify token usage, latency, and tool-call identity are observable in the final path.
 
-Open [references/testing-and-evaluation-harnesses.md](references/testing-and-evaluation-harnesses.md) when the task needs repeatable evaluation datasets, regression checks, or infrastructure-backed integration tests.
+Open [testing and evaluation harnesses](references/testing-and-evaluation-harnesses.md) when the task needs repeatable evaluation datasets, regression checks, or infrastructure-backed integration tests.
 
 ## Production guardrails
 

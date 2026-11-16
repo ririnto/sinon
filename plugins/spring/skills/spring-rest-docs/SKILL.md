@@ -50,16 +50,7 @@ The `4.0.1` versions below illustrate the documented Spring REST Docs baseline.
 For new dependencies, check each `org.springframework.restdocs` artifact on Maven Central for the latest stable release compatible with the project's Boot and Framework lines.
 Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.restdocs</groupId>
-        <artifactId>spring-restdocs-mockmvc</artifactId>
-        <version>4.0.1</version>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
+For dependency baseline, see [example 1](references/configuration-examples.md#example-1-dependency-baseline).
 
 ### Feature-to-artifact map
 
@@ -71,136 +62,12 @@ Keep an existing BOM or version-catalog pin unless the task authorizes changing 
 
 Switch the artifact to `spring-restdocs-webtestclient` when the project does not use MockMvc.
 
-## First safe configuration
+## Test and build setup
 
-### Boot test configuration shape
-
-```java
-@WebMvcTest(OrderController.class)
-@AutoConfigureRestDocs
-class OrderDocumentationTests {
-}
-```
-
-`@AutoConfigureRestDocs` wires the REST Docs infrastructure into the Boot test slice.
-When the output directory or URI rewriting must be customized, keep that customization explicit in the test or in `spring.restdocs.*` configuration.
-
-### Non-Boot test configuration shape
-
-```java
-@ExtendWith(RestDocumentationExtension.class)
-class OrderDocumentationTests {
-    MockMvc mvc;
-
-    @BeforeEach
-    void setUp(WebApplicationContext context, RestDocumentationContextProvider restDocumentation) {
-        this.mvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply(documentationConfiguration(restDocumentation))
-            .build();
-    }
-}
-```
-
-Use `@ExtendWith(RestDocumentationExtension.class)` when the project does not use Boot test slices.
-`RestDocumentationExtension` provides the output directory automatically based on the build tool.
-
-### REST Docs property shape
-
-```yaml
-spring:
-  restdocs:
-    uri:
-      scheme: https
-      host: api.example.com
-      port: 443
-```
-
-Keep published URI rewriting stable across local runs and CI jobs.
-
-### First safe commands
-
-```sh
-./mvnw package
-```
-
-```sh
-./gradlew test asciidoctor
-```
-
-### Test output directory shape
-
-```text
-build/generated-snippets/
-```
-
-```text
-target/generated-snippets/
-```
-
-### Asciidoctor snippets attribute
-
-```adoc
-:snippets: build/generated-snippets
-```
-
-```adoc
-:snippets: target/generated-snippets
-```
-
-Keep the snippets directory stable so documentation includes do not drift across modules or CI jobs.
-
-### Gradle publishing shape
-
-```kotlin
-configurations {
-    create("asciidoctorExt")
-}
-
-dependencies {
-    "asciidoctorExt"("org.springframework.restdocs:spring-restdocs-asciidoctor")
-}
-
-val snippetsDir = file("build/generated-snippets")
-
-tasks.test {
-    outputs.dir(snippetsDir)
-}
-
-tasks.asciidoctor {
-    configurations("asciidoctorExt")
-    inputs.dir(snippetsDir)
-    dependsOn(tasks.test)
-}
-```
-
-### Maven publishing shape
-
-```xml
-    <plugin>
-        <groupId>org.asciidoctor</groupId>
-        <artifactId>asciidoctor-maven-plugin</artifactId>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.restdocs</groupId>
-                <artifactId>spring-restdocs-asciidoctor</artifactId>
-                <version>4.0.1</version>
-            </dependency>
-        </dependencies>
-        <executions>
-            <execution>
-                <phase>prepare-package</phase>
-                <goals>
-                    <goal>process-asciidoc</goal>
-                </goals>
-        </execution>
-    </executions>
-    <configuration>
-        <attributes>
-            <snippets>${project.build.directory}/generated-snippets</snippets>
-        </attributes>
-    </configuration>
-</plugin>
-```
+For Boot or non-Boot test setup, URI rewriting, snippet paths, and Gradle or Maven builds, read [test and build setup](references/setup.md).
+Keep URI rewriting and snippet directories stable across modules, local runs, and CI.
+Use `@ExtendWith(RestDocumentationExtension.class)` for non-Boot tests.
+For sample dependency, test, and build configuration, read [configuration examples](references/configuration-examples.md).
 
 ## Coding procedure
 
@@ -213,53 +80,11 @@ tasks.asciidoctor {
 
 ## Implementation examples
 
-### MockMvc documentation test
-
-```java
-@WebMvcTest(OrderController.class)
-@AutoConfigureRestDocs
-class OrderDocumentationTests {
-    @Autowired
-    MockMvc mvc;
-
-    @Test
-    void createOrder() throws Exception {
-        MockHttpServletRequestBuilder createOrderRequest = post("/orders").contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"ABC\",\"quantity\":2}");
-        mvc.perform(createOrderRequest)
-            .andExpect(status().isCreated())
-            .andDo(document("orders-create", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()), requestFields(fieldWithPath("sku").description("Stock keeping unit"), fieldWithPath("quantity").description("Quantity requested")), responseFields(fieldWithPath("id").description("Created order id"), fieldWithPath("status").description("Order status"))));
-    }
-}
-```
-
-### Query parameter and header documentation
-
-```java
-.andDo(document("orders-list", queryParameters(parameterWithName("status").description("Order status filter")), requestHeaders(headerWithName("X-Correlation-Id").description("Request correlation id")), responseFields(fieldWithPath("[].id").description("Order id"), fieldWithPath("[].status").description("Order status"))));
-```
-
-### Path parameter documentation
-
-```java
-.andDo(document("orders-get", pathParameters(parameterWithName("orderId").description("Order identifier")), responseFields(fieldWithPath("id").description("Order id"), fieldWithPath("status").description("Order status"))));
-```
-
-### URI preprocessing shape
-
-```java
-.andDo(document("orders-get", preprocessRequest(modifyUris().scheme("https").host("api.example.com").removePort()), preprocessResponse(prettyPrint())));
-```
-
-### Asciidoctor include shape
-
-```adoc
-= Orders API
-:snippets: build/generated-snippets
-
-== Create order
-
-operation::orders-create[snippets='http-request,http-response,request-fields,response-fields']
-```
+- For MockMvc documentation test, see [the example](references/implementation-examples.md#mockmvc-documentation-test).
+- For query parameter and header documentation, see [the example](references/implementation-examples.md#query-parameter-and-header-documentation).
+- For path parameter documentation, see [the example](references/implementation-examples.md#path-parameter-documentation).
+- For URI preprocessing shape, see [the example](references/implementation-examples.md#uri-preprocessing-shape).
+- For Asciidoctor include shape, see [the example](references/implementation-examples.md#asciidoctor-include-shape).
 
 ## Output and configuration shapes
 
@@ -299,15 +124,13 @@ operation::orders-create[snippets='http-request,http-response,response-fields']
 
 ## References
 
-- Open [references/webtestclient-surface.md](references/webtestclient-surface.md) when the ordinary MockMvc path is not enough and the task needs WebTestClient.
-- Open [references/relaxed-payloads.md](references/relaxed-payloads.md) when relaxed payload documentation is required.
-- Open [references/subsection-payloads.md](references/subsection-payloads.md) when one payload subtree should be documented without every leaf field.
-- Open [references/ignored-fields.md](references/ignored-fields.md) when a field must exist in the payload but should stay out of published docs.
-- Open [references/query-parameters.md](references/query-parameters.md) when the contract depends on query parameters.
-- Open [references/path-parameters.md](references/path-parameters.md) when the contract depends on URI template variables.
-- Open [references/cookies.md](references/cookies.md) when the contract depends on cookies.
-- Open [references/http-headers.md](references/http-headers.md) when the contract depends on request or response headers.
-- Open [references/preprocessors.md](references/preprocessors.md) when preprocessors must do more than the ordinary pretty-print and URI rewriting path.
-- Open [references/custom-snippets.md](references/custom-snippets.md) when built-in snippets are not enough.
-- Open [references/links.md](references/links.md) when the contract includes hypermedia links.
-- Open [references/multipart.md](references/multipart.md) when the contract includes multipart request parts.
+The surface map routes WebTestClient, links, headers, cookies, and multipart requests.
+Read the relevant reference for these additional conditions:
+
+- [Relaxed payloads](references/relaxed-payloads.md): relaxed payload documentation.
+- [Subsection payloads](references/subsection-payloads.md): document one subtree without every leaf.
+- [Ignored fields](references/ignored-fields.md): require a field without publishing it.
+- [Query parameters](references/query-parameters.md): query parameters are part of the contract.
+- [Path parameters](references/path-parameters.md): URI template variables are part of the contract.
+- [Preprocessors](references/preprocessors.md): preprocessing beyond pretty-printing and URI rewriting.
+- [Custom snippets](references/custom-snippets.md): built-in snippets are insufficient.

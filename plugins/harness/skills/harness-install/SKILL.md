@@ -14,11 +14,11 @@ metadata:
 Install current Harness guidance as independent project files under the target host's skill root.
 This skill owns target mapping, conflicts, and installation proof.
 Profile references own native configuration and build integration.
-Do not install this installer skill into the target.
+Do not install this skill into the target.
 
 ## Target And Authority
 
-Obtain the target path and verify its repository identity, host instructions, skill root contents, and Git status before edits.
+Before edits, verify the target path, repository identity, host instructions, skill root contents, and Git status.
 Use the [project baseline and fresh-root setup](../../docs/tools/baseline.md) before selecting native integrations.
 Inspect existing mapped paths before treating them as Harness-owned.
 Preserve unrelated changes, custom skills, configuration, and hooks.
@@ -50,24 +50,10 @@ Do not load unselected native integrations.
 ## Installed Layout
 
 Use `.claude/skills/` for Claude Code or `.agents/skills/` for Codex.
-Select the target host before composing the preview.
+Select the host before previewing.
 Use `<skill-root>` for that selected path throughout the mapping.
-Create these paths relative to the target root:
-
-```text
-<skill-root>/
-+-- implement/SKILL.md
-+-- review/SKILL.md
-+-- docs/
-    +-- rules.md
-    +-- languages/
-    |   +-- language documents
-    +-- tools/
-        +-- tool documents
-```
-
-Harness manages exactly two target skills: `implement` and `review`.
-Other existing skills remain untouched.
+Under `<skill-root>/`, create `implement/SKILL.md`, `review/SKILL.md`, `docs/rules.md`, and the documents in `docs/languages/` and `docs/tools/`.
+Harness manages only the `implement` and `review` skills; leave other skills untouched.
 Profile documents are support material, not skills.
 Copy the common rules and all language and tool documents by default to preserve the complete reference index.
 Consumers load only references relevant to their task, regardless of which documents are present.
@@ -80,10 +66,9 @@ Native tooling belongs at target configuration or CI paths, outside the selected
 
 ## Source Mapping
 
-Use this skill's absolute `SKILL.md` path from the host's skill listing.
-Resolve `<plugin-root>` two levels above its containing skill directory.
-Claude Code can also provide that path through `CLAUDE_PLUGIN_ROOT`.
-Read current canonical inputs from that root, not a source checkout in the target repository.
+Resolve `<plugin-root>` two levels above this skill's directory from its absolute path in the host's skill listing, or use `CLAUDE_PLUGIN_ROOT` in Claude Code.
+Read current canonical inputs there, not from a checkout in the target.
+Before previewing or performing baseline setup or native integration, read [native source mapping and integration](./references/native-integration.md).
 
 | Target path | Canonical source |
 | --- | --- |
@@ -92,25 +77,11 @@ Read current canonical inputs from that root, not a source checkout in the targe
 | `<skill-root>/docs/rules.md` | `<plugin-root>/docs/rules.md` |
 | `<skill-root>/docs/languages/<name>.md` | `<plugin-root>/docs/languages/<name>.md` |
 | `<skill-root>/docs/tools/<name>.md` | `<plugin-root>/docs/tools/<name>.md` |
-| `<target-root>/.markdownlint-cli2.jsonc` | `<plugin-root>/tooling/pnpm/.markdownlint-cli2.jsonc` when the Node-side baseline is selected |
-| `<target-root>/rules/<name>.ts` | `<plugin-root>/tooling/pnpm/rules/<name>.ts`, excluding `*.test.ts`, when the Node-side baseline is selected |
-| `<target-git-root>/.husky/<name>` | `<plugin-root>/tooling/<profile>/.husky/<name>` for `pre-commit` and `pre-push` when the Node-side script surface is selected |
-| `<target-git-root>/.husky/.gitignore` | `<plugin-root>/tooling/pnpm/.husky/.gitignore` for every selected profile |
-| `<target-root>/oxlint.config.ts` | `<plugin-root>/tooling/pnpm/oxlint.config.ts` when pnpm is selected |
-| `<target-root>/oxfmt.config.ts` | `<plugin-root>/tooling/pnpm/oxfmt.config.ts` when pnpm is selected |
-| `<target-root>/plugins/<name>.ts` | `<plugin-root>/tooling/pnpm/plugins/<name>.ts`, excluding `*.test.ts`, when pnpm is selected |
-| `<target-root>/typedoc.json` | `<plugin-root>/tooling/pnpm/typedoc.json` for a Node API profile |
-| `<target-root>/docs/conf.py` and `docs/index.rst` | `<plugin-root>/tooling/uv/docs/` when uv is selected |
-| `<target-root>/buildSrc/src/` | `<plugin-root>/tooling/kotlin/src/` for Kotlin Gradle targets |
-| `<target-tooling>/kotlin/` | `<plugin-root>/tooling/kotlin/` for supported Kotlin Maven targets |
 
-Use the `pnpm` hook source for Node, frontend, and React, and `gradle` for Kotlin.
-For Gradle targets using another package manager, adapt the source hook commands to invoke the corresponding target scripts with that manager.
 Read the two skills, common rules, and selected language and tool references before composing their target files.
-Preserve canonical content except for these location changes, the package-manager hook adaptation above, and an explicitly filtered reference index:
+Preserve canonical content except for these location changes, the profile-specific hook adaptation, and an explicitly filtered reference index:
 
 - In both copied skills, rewrite the published `../../docs/rules.md` link to `../docs/rules.md`.
-- In the target Markdownlint configuration, rewrite only the `$schema` path to `./node_modules/markdownlint-cli2/schema/markdownlint-cli2-config-schema.json`.
 - Keep common-rule links to `languages/<name>.md` and `tools/<name>.md` unchanged.
 - Keep language and tool links to `../rules.md`, `../languages/<name>.md`, and `../tools/<name>.md` unchanged.
 
@@ -127,12 +98,9 @@ Read each existing destination and preview one status per selected guidance or n
 - `conflict`: destination differs and replacement is not authorized.
 - `replace`: an explicit grant covers replacing this conflicting Harness-owned file.
 
-For a merge, report target ownership and the proposed additions in the preview.
-The installation request authorizes only the bounded profile merge, not replacement of target-owned content.
-For a conflict, report ownership and a diff or concise change summary.
-Leave it unchanged until replacement is authorized.
-Compose destinations from the same current canonical input set on each run.
-Create missing files, apply authorized profile merges, leave satisfied files untouched, and replace only explicitly approved Harness-owned conflicts.
+For a merge, preview ownership and proposed additions; the request authorizes only the bounded profile merge, not replacement of target-owned content.
+For a conflict, report ownership and a diff or concise summary, and leave it unchanged until replacement is authorized.
+Compose from the same current canonical inputs on each run: create missing files, apply authorized merges, keep satisfied files, and replace only explicitly approved Harness-owned conflicts.
 Do not maintain a second target-specific implementation.
 Create parent directories only for mapped destinations.
 Reject symlink ancestors, paths outside the target root, and file-versus-directory mismatches before writing.
@@ -141,41 +109,7 @@ Never delete files merely because they are absent from the mapping.
 
 ## Native Integration
 
-For a fresh root, run the baseline configurator with the selected eligibility value and project type before completing the selected native integration.
-If the configurator returns `skipped`, stop without configuring the root.
-It supplies the shared Node-side files and the selected profile's baseline native configuration from canonical sources.
-It leaves project identity and native build integration with the target.
-For frontend code, read [frontend guidance](../../docs/tools/frontend.md) and select its compatible renderer and React dependencies only when applicable.
-Read the target manifest, build files, editor configuration, CI, and project identity for each selected integration.
-Use the profile's merge rules.
-Add only missing settings and preserve target values on conflict.
-Keep existing manifests, identity, source roots, toolchains, test owners, formatters, checkers, hooks, and unrelated CI jobs.
-Do not replace whole configuration files or silently upgrade dependencies to match a profile.
-Create native configuration only where the selected reference permits it and no target-owned file conflicts.
-When the target owns a public API and its selected profile supports documentation generation, configure and run the generator against the actual public entry points.
-Resolve actionable generator warnings and retain the configuration in the target without a dependency on the plugin checkout.
-
-For pnpm, use the [bounded manifest, catalog, and Markdownlint merge](../../docs/tools/pnpm.md#bounded-manifest-merge).
-For pnpm, select and configure the target TypeScript base through the [TypeScript strictness merge](../../docs/tools/pnpm.md#typescript-strictness-merge).
-The pnpm profile owns the canonical Markdownlint configuration and rules, including config-based `node_modules` exclusion.
-Its [Git hook integration](../../docs/tools/pnpm.md#git-hook-integration) owns Husky setup and existing-hook conflicts for the Node-side script surface.
-For Gradle, Maven, Go, Rust, uv, and shell, merge their canonical Node-side manifests through the [project baseline](../../docs/tools/baseline.md).
-Reuse the shared Markdown sources and select each profile's own Husky configurations.
-For existing Gradle targets that do not use pnpm, adapt the Gradle hook commands to the target's package manager and preserve existing hooks and their owner.
-Run the baseline's install, prepare, check, and hook proof using the corresponding target package-manager commands and adapted hooks instead of its pnpm commands.
-This selection does not enable the JavaScript or TypeScript lint profile.
-For Kotlin, retain the complete rule sources, resources, and tests.
-For Gradle, merge them into `buildSrc` and configure its dependencies and checks as described in the Gradle reference.
-For an existing target-owned service descriptor, preview a bounded merge that preserves its entries and adds the Harness provider only when absent.
-Keep its ownership and file mode, and report `keep` on a repeat when the provider is already present.
-For supported Maven targets, copy the complete native module and follow the Maven reference to attach its produced JAR to the actual ktlint runtime.
-Verify that the native build graph runs the rules and their tests.
-Otherwise report the integration gap.
-Do not install the Kotlin rules when Kotlin is unselected.
-
-Install CI catalogs only when explicitly selected, retaining least-privilege read permissions.
-Adapt working directories, versions, stages, and test ownership to the target's existing jobs.
-When no test owner exists, omit that test task and report it as not applicable.
+Apply the selected profile's bounded merge rules, preserve target-owned files and settings, and never silently upgrade dependencies.
 
 ## Verification And Completion
 
@@ -189,13 +123,9 @@ Verify written destinations with the native filesystem:
   Completed paths produce only `keep` statuses on the second pass.
 
 For changed native integrations, run the target's documented affected checks and profile-specific acceptance proof.
-A Kotlin integration needs the sources, tests, native configuration, and consumer-lint proof required by its selected tool reference.
-A pnpm integration must resolve its Markdownlint configuration at the selected project root.
 Do not invent check commands, add test infrastructure, or rerun unaffected profile checks for guidance-only refreshes.
 
-Report selected profiles, root associations, mapped statuses, preserved customizations, and canonical source identity.
-Use portable paths in Git or public reports.
-Keep any necessary absolute source or target path in private task context.
-Include filesystem and second-pass results, native commands and exit codes, and unresolved conflicts or gaps.
+Report profiles, root associations, mapped statuses, preserved customizations, canonical source identity, filesystem and second-pass results, native commands and exit codes, and unresolved conflicts or gaps.
+Use portable paths in Git or public reports; keep necessary absolute paths in private task context.
 Distinguish source inspection and file-copy proof from native integration and hosted CI behavior.
-Installation is complete only when requested paths and integrations are verified with no unresolved required conflicts or checks.
+Complete installation only when all requested paths and integrations are verified without unresolved required conflicts or checks.

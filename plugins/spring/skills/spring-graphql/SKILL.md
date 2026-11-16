@@ -24,8 +24,6 @@ description: >-
 Keep GraphQL schema, resolver, transport, batching, and tester decisions at the API boundary while domain services stay independent of GraphQL annotations and response shapes.
 
 - Use narrower guidance for ordinary REST or non-GraphQL HTTP endpoint design.
-- Keep transport and resolver concerns at the GraphQL boundary.
-  - Domain services should not depend on GraphQL-specific annotations or response shapes.
 - Keep federation out of the ordinary path.
   - Open the federation reference only when the graph is intentionally split across several services.
 
@@ -34,10 +32,10 @@ Keep GraphQL schema, resolver, transport, batching, and tester decisions at the 
 | Surface | Start here when | Open a reference when |
 | --- | --- | --- |
 | Ordinary schema-first query and mutation API | one service owns the schema and HTTP transport is enough | stay in `SKILL.md` |
-| Subscription or alternate transports | subscriptions, WebSocket, SSE, or RSocket are the blocker | open [references/transports-and-subscriptions.md](references/transports-and-subscriptions.md) |
+| Subscription or alternate transports | using subscriptions, WebSocket, SSE, or RSocket | open [references/transports-and-subscriptions.md](references/transports-and-subscriptions.md) |
 | Custom batching lifecycle | `@BatchMapping` is not enough | open [references/advanced-dataloader.md](references/advanced-dataloader.md) |
-| Test-slice or integration-tester choice | the blocker is choosing the right GraphQL test surface | open [references/testing-graphql.md](references/testing-graphql.md) |
-| Security context or explicit error shaping | request metadata, authorization, or stable error categories are the blocker | open [references/security-context-and-errors.md](references/security-context-and-errors.md) |
+| Test-slice or integration-tester choice | choosing the GraphQL test surface | open [references/testing-graphql.md](references/testing-graphql.md) |
+| Security context or explicit error shaping | working with request metadata, authorization, or stable error categories | open [references/security-context-and-errors.md](references/security-context-and-errors.md) |
 | Federated graph ownership | more than one service contributes to the graph | open [references/federation.md](references/federation.md) |
 
 ## Dependency baseline
@@ -51,88 +49,16 @@ Jackson 3.x is the default serialization library, with Jackson 2.x supported as 
 
 Use the Boot starter for application code and the GraphQL test module for focused tests.
 
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-graphql</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.graphql</groupId>
-        <artifactId>spring-graphql-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
+For dependency baseline, see [example 1](references/configuration-examples.md#example-1-dependency-baseline).
 
-### Feature-to-artifact map
+For transport-specific dependency selection, read [transport artifacts](references/transport-artifacts.md).
 
-| Need | Artifact |
-| --- | --- |
-| Ordinary GraphQL controllers, schema resources, and HTTP endpoint | `spring-boot-starter-graphql` |
-| GraphQL-focused test slices and tester support | `spring-graphql-test` |
-| HTTP transport | `spring-boot-starter-webmvc` or `spring-boot-starter-webflux` |
-| WebSocket transport (Servlet-based apps) | `spring-boot-starter-graphql` + `spring-boot-starter-websocket` |
-| WebSocket transport (WebFlux-based apps) | `spring-boot-starter-webflux` (no extra starter) |
-| SSE transport for subscriptions | none (uses the HTTP handler) |
-| RSocket transport | `spring-boot-starter-rsocket` + Spring WebFlux on Reactor Netty |
+## HTTP configuration
 
-## First safe configuration
-
-### First safe commands
-
-```sh
-./mvnw test -Dtest=BookGraphQlControllerTests
-```
-
-```sh
-./gradlew test --tests BookGraphQlControllerTests
-```
-
-### Schema resource shape
-
-```text
-src/main/resources/graphql/schema.graphqls
-```
-
-### HTTP endpoint shape
-
-```yaml
-spring:
-    graphql:
-        http:
-            path: /graphql
-```
-
-### GraphiQL and schema printer
-
-GraphiQL is disabled by default.
-Enable it for development with `spring.graphql.graphiql.enabled: true`.
-It is auto-enabled with `spring-boot-devtools`.
-The endpoint defaults to `/graphiql` and is configurable with `spring.graphql.graphiql.path`.
-
-Expose the schema as text at `/graphql/schema` with `spring.graphql.schema.printer.enabled: true`.
-
-### CORS configuration
-
-Use `spring.graphql.cors.*` properties to configure Cross-Origin Resource Sharing for browser-based clients.
-
-```yaml
-spring:
-    graphql:
-        cors:
-            allowed-origins: https://example.org
-            allowed-methods: GET,POST
-            max-age: 1800s
-```
-
-### Schema introspection
-
-Introspection is enabled by default (required by GraphiQL and other tools).
-Disable with `spring.graphql.schema.introspection.enabled: false`.
-
-Start with a single schema resource set and one HTTP endpoint.
-Add WebSocket, SSE, or RSocket transports only when the API really needs them.
+For schema resources, HTTP endpoint, GraphiQL, schema printer, browser CORS, introspection setup, or focused Maven and Gradle test commands, read [HTTP configuration](references/http-configuration.md).
+Start with one schema resource set and HTTP endpoint; add WebSocket, SSE, or RSocket only when needed.
+GraphiQL is disabled by default, auto-enabled with devtools, and defaults to `/graphiql`; introspection is enabled by default.
+Expose the schema printer only when needed.
 
 ## Build and run path
 
@@ -174,150 +100,13 @@ Use this when the query shape maps directly to a repository method and no additi
 6. Make validation, authorization, and execution failures observable as distinct GraphQL error categories.
 7. For API changes, test successful execution and affected validation or authorization failure paths.
 
-## 2.0 notable features
+## Spring GraphQL 2.0 features
 
-- JSpecify nullability annotations on the entire public API.
-  - IDEs can warn about `NullPointerException` risks at compile time.
-- Schema Mapping Inspection checks nullability declared in the schema (`Book` vs `Book!`) against controller method signatures and reports mismatches.
-- Flexible input binding via `GraphQlArgumentBinder.Options` with a `nameResolver` function for adapting schema argument names to Java property naming conventions.
-  - Set the options on `AnnotatedControllerConfigurer#setBinderOptions`.
-- `ArgumentValue<T>` wrapper for input types that distinguishes present-null from omitted, enabling partial-update mutations.
-- Kotlin extensions for `GraphQlClient` and `GraphQlTester` with reified type parameters.
-- SSE (Server-Sent Events) transport as an HTTP-based subscription alternative to WebSocket.
+When using 2.0 nullability inspection, argument binding, partial updates, Kotlin extensions, or SSE, read [2.0 features](references/version-2-features.md).
 
 ## Implementation examples
 
-### Schema and controller
-
-```graphql
-type Query {
-    bookById(id: ID!): Book
-}
-
-type Mutation {
-    addBook(input: BookInput!): Book!
-}
-
-type Book {
-    id: ID!
-    title: String!
-    author: String!
-    viewerCanEdit: Boolean!
-    reviews: [Review!]!
-}
-
-type Review {
-    id: ID!
-    body: String!
-}
-
-input BookInput {
-    title: String!
-    author: String!
-}
-```
-
-```java
-@Controller
-class BookGraphQlController {
-    private final BookService service;
-
-    BookGraphQlController(BookService service) {
-        this.service = service;
-    }
-
-    @QueryMapping
-    Book bookById(@Argument Long id) {
-        return service.find(id);
-    }
-
-    @MutationMapping
-    Book addBook(@Argument BookInput input) {
-        return service.add(input);
-    }
-
-    @SchemaMapping(typeName = "Book", field = "viewerCanEdit")
-    boolean viewerCanEdit(Book book, GraphQLContext context) {
-        return context.getOrDefault("role", "viewer").equals("editor");
-    }
-}
-```
-
-### Nested field batching
-
-```java
-@BatchMapping(typeName = "Book", field = "reviews")
-Map<Book, List<Review>> reviews(List<Book> books) {
-    return reviewService.findByBooks(books);
-}
-```
-
-### Explicit DataLoader variant
-
-```java
-@SchemaMapping(typeName = "Book", field = "reviews")
-CompletableFuture<List<Review>> reviews(Book book, DataLoader<Long, List<Review>> reviewsLoader) {
-    return reviewsLoader.load(book.id());
-}
-```
-
-Use `@BatchMapping` for the ordinary nested-field batching path.
-Keep direct `DataLoader` access for advanced loader registration or reuse across several resolvers.
-
-### Error assertion baseline
-
-```java
-graphQlTester.document("mutation { addBook(input: { title: null, author: \"A\" }) { id } }")
-    .execute()
-    .errors()
-    .satisfy(errors -> assertFalse(errors.isEmpty()));
-```
-
-### Context propagation baseline
-
-```java
-@Bean
-WebGraphQlInterceptor roleInterceptor() {
-    return (request, chain) -> {
-        String role = request.getHeaders().getFirst("X-Role");
-        if (role != null) {
-            request.configureExecutionInput((input, builder) -> builder.graphQLContext(Map.of("role", role)).build());
-        }
-        return chain.next(request);
-    };
-}
-```
-
-Spring GraphQL provides a built-in `HttpRequestHeaderInterceptor` for copying HTTP request headers into the GraphQL context without a custom interceptor.
-
-```java
-@Bean
-HttpRequestHeaderInterceptor headerInterceptor() {
-    return HttpRequestHeaderInterceptor.builder().mapHeader("X-Role").build();
-}
-```
-
-Keep context values explicit and small.
-Read them at resolver boundaries only when the field behavior actually depends on request metadata.
-
-### GraphQL test
-
-```java
-@GraphQlTest(BookGraphQlController.class)
-class BookGraphQlControllerTests {
-    @Autowired
-    GraphQlTester graphQlTester;
-
-    @Test
-    void query() {
-        graphQlTester.document("query { bookById(id: 1) { title } }")
-            .execute()
-            .path("bookById.title")
-            .entity(String.class)
-            .isEqualTo("Spring");
-    }
-}
-```
+For schema, batching, DataLoader, errors, context, or tests, read [implementation examples](references/implementation-examples.md).
 
 ## Testing slice choice
 
@@ -327,33 +116,9 @@ class BookGraphQlControllerTests {
 | Server integration with interceptor chain | `HttpGraphQlTester` (auto-configured with `@SpringBootTest` on random/defined port; use `@AutoConfigureHttpGraphQlTester` for MOCK environment) |
 | Subscription verification | `GraphQlTester` + reactive assertions |
 
-Open the testing reference when transport choice, subscription testing, or slice-versus-integration setup becomes the blocker.
+Open the testing reference when choosing transport, testing subscriptions, or configuring test slices or integration tests.
 
-## Output and configuration shapes
-
-### Query path shape
-
-```text
-bookById.title
-```
-
-### GraphQL endpoint shape
-
-```text
-/graphql
-```
-
-### DataLoader field-mapping shape
-
-```java
-@SchemaMapping(typeName = "Book", field = "reviews")
-```
-
-### Batch mapping shape
-
-```java
-@BatchMapping(typeName = "Book", field = "reviews")
-```
+For query paths, endpoint paths, or field mapping examples, read [output shapes](references/output-shapes.md).
 
 ## Testing checklist
 
@@ -378,11 +143,3 @@ Select checks for affected API, transport, and security contracts and their regr
 - Keep GraphQL error shapes intentional so client handling stays predictable.
 - Do not expose subscriptions or alternate transports unless clients really need them.
 - Treat GraphQL schema and tester assertions as part of the API compatibility surface.
-
-## References
-
-- Open [references/transports-and-subscriptions.md](references/transports-and-subscriptions.md) when the ordinary HTTP server path is not enough and the task needs subscriptions, WebSocket, SSE, or RSocket transport wiring.
-- Open [references/advanced-dataloader.md](references/advanced-dataloader.md) when the blocker is DataLoader registration, options, shared batching lifecycle, or batch-loader context.
-- Open [references/testing-graphql.md](references/testing-graphql.md) when the blocker is choosing between GraphQL test slices, integration testers, or subscription test setup.
-- Open [references/security-context-and-errors.md](references/security-context-and-errors.md) when the task needs interceptor-based context propagation, authorization handling, or more explicit GraphQL error shaping.
-- Open [references/federation.md](references/federation.md) when the schema is intentionally part of a federated graph.

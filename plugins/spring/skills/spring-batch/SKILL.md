@@ -43,10 +43,10 @@ description: >-
 
 ## Boundaries
 
-Use `spring-batch` for scheduled or launched batch jobs, chunk and tasklet steps, restart semantics, metadata-backed execution, and large-scale record processing.
+Use `spring-batch` for jobs, chunk and tasklet steps, restarts, metadata, and large-scale processing.
 
 - General message-driven integration flows are outside this skill's scope unless they launch or coordinate batch jobs.
-- Repository design is outside this skill's scope unless the repository is part of batch reader, writer, or metadata behavior.
+- Repository design is outside scope unless used by batch readers, writers, or metadata.
 - Keep domain logic in readers, processors, writers, tasklets, or delegated services.
   - Batch configuration should orchestrate steps, not embed the business model.
 
@@ -54,69 +54,19 @@ Use `spring-batch` for scheduled or launched batch jobs, chunk and tasklet steps
 
 Preserve existing job identity and restart contracts unless changing them is in scope.
 For a new job, define names, parameter identity, metadata storage, and restart expectations before choosing its step model.
-Use the sections and references for the affected processing, fault-tolerance, or scaling concern.
 
 ## Dependency baseline
 
-Before recommending a new version, check each selected Maven artifact on Maven Central for its latest stable release compatible with the project's Boot and Framework lines.
-Keep project BOM or version-catalog management and existing pins unless the task authorizes changing them.
-
-Use the Boot starter for application code and the Batch test module for job and step tests.
-
-Spring Boot 4.0.x and 4.1.x manage Spring Batch 6.0.x.
-The examples target the Spring Batch 6.0.x release line.
-Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch.
-Batch 6-specific APIs require a Boot 4.x path or an intentional compatible Spring Batch 6.x dependency.
-The Boot 4.1-specific starter and auto-configuration examples below require that Boot release line.
-
-JDBC store (default when a `DataSource` is present):
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-batch</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.batch</groupId>
-        <artifactId>spring-batch-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
-MongoDB store (Boot 4.1+):
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-batch-data-mongodb</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.batch</groupId>
-        <artifactId>spring-batch-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
-Treat the Boot-managed path and the standalone current-line path as different compatibility branches.
-Verify the actual Batch line before copying infrastructure or migration examples that depend on Batch 6 behavior.
+For new dependencies, check Maven Central for the latest stable versions compatible with the project's Boot and Framework lines; retain existing pins unless authorized to change them.
+Use the Boot starter for application code and Batch test support for job and step tests.
+Boot 4.0/4.1 manage Batch 6.0; Boot 3.4/3.5 use Batch 5.2.
+Batch 6 APIs require Boot 4 or an intentional compatible Batch 6 dependency; Boot 4.1-specific starter and auto-configuration examples require that release line.
+Verify the actual Batch line before applying version-specific infrastructure or migration guidance.
 
 ## Core batch terms
 
-Keep the batch runtime vocabulary explicit:
-
-| Type | Role |
-| --- | --- |
-| `JobInstance` | one logical run identity defined by the identifying job parameters |
-| `JobExecution` | one concrete execution attempt of a job instance |
-| `JobParameters` | launch parameters that define identity or operational knobs |
-| `JobLauncher` | application-driven job start surface |
-| `ExecutionContext` | restart state persisted across step or job execution |
-| `JobRepository` | metadata store for instances, executions, and step state |
-| `JobOperator` | operational control surface for launch, stop, restart, and Batch 6-only recovery |
+A `JobInstance` identifies a logical run through identifying parameters; a `JobExecution` is an attempt.
+`JobRepository` stores execution metadata and `ExecutionContext` stores restart state.
 
 ## Minimal job model
 
@@ -124,186 +74,30 @@ The minimum Spring Batch model is `Job -> Step -> chunk or tasklet`.
 
 - Use a chunk step for item-oriented work: read, optionally process, then write in transactions.
 - Use a tasklet step for one-shot work such as cleanup, archive, trigger, or command execution.
-- Keep one linear job path until a real branching or scaling need exists.
+- Keep jobs linear until branching or scaling is needed.
 
-## First safe configuration
+## Job configuration
 
-### Infrastructure shape
+The resourceless repository does not persist metadata or support restarts or concurrent execution; use a persistent repository when needed.
+For dependency declarations, version-specific infrastructure, schema setup, or a chunk job example, read [dependencies and job configuration](references/dependencies-and-job-configuration.md).
 
-On the Boot 3.4.x and 3.5.x Batch 5.2.x path, use Boot auto-configuration unless manual infrastructure control is required.
-For manual control, `@EnableBatchProcessing` configures JDBC infrastructure using existing `DataSource` and `PlatformTransactionManager` beans.
-It does not create the transaction manager.
-The default bean names are `dataSource` and `transactionManager`:
+## Processing, restart, and scaling
 
-```java
-@Configuration
-@EnableBatchProcessing
-class BatchInfrastructureConfiguration {
-}
-```
+Use a deterministic reader, optional processor, and writer; keep the writer idempotent or restart-safe where restartability matters.
+Use late binding only when runtime parameters or execution context must resolve at step creation.
+Decide which job parameters identify an instance; store restart-sensitive state in `ExecutionContext` or restart-safe `ItemStream` implementations.
+Skip bad input that should be recorded and bypassed; retry transient failures that may succeed later.
+Choose the smallest scaling model: one step, parallel flows, a multithreaded step, partitioning, or remote execution according to the throughput and distribution need.
+Justify scaling an existing job with measurements and restart evidence.
+For processing, fault tolerance, scaling, or test examples, read [processing and testing](references/processing-and-testing.md).
 
-On Spring Boot 4.1+, the auto-configured store is selected by classpath and conditions:
+## Testing posture
 
-- `BatchJdbcAutoConfiguration` activates when a `DataSource` and `PlatformTransactionManager` are present (the default when `spring-boot-starter-batch` is on the classpath alongside any JDBC starter).
-- `BatchDataMongoAutoConfiguration` activates when a `MongoDatabaseFactory` is present and no JDBC store is configured (the default when `spring-boot-starter-batch-data-mongodb` is on the classpath).
-- `BatchAutoConfiguration` provides a `ResourcelessJobRepository` fallback when neither JDBC nor MongoDB conditions are met.
-
-The resourceless repository does not persist metadata and does not support restartability or concurrent execution.
-Use a persistent repository when jobs require these capabilities.
-
-No `@EnableBatchProcessing` or `@EnableJdbcJobRepository`/`@EnableMongoJobRepository` annotations are needed on the Boot 4.1+ auto-configured path.
-Boot backs off its auto-configuration when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass on the classpath.
-
-On Spring Batch 6 with manual control (for example, when you need custom `tablePrefix`, `transactionManagerRef`, or other annotation attributes that go beyond Boot properties), opt into a persistent backend explicitly:
-
-```java
-@Configuration
-@EnableBatchProcessing
-@EnableJdbcJobRepository
-class BatchInfrastructureConfiguration {
-}
-```
-
-```java
-@Configuration
-@EnableBatchProcessing
-@EnableMongoJobRepository
-class BatchInfrastructureConfiguration {
-}
-```
-
-Boot 4.1+ MongoDB schema initialization property:
-
-```yaml
-spring:
-  batch:
-    data:
-      mongodb:
-        schema:
-          initialize: true
-```
-
-Boot 4.1+ JDBC schema initialization property (unchanged from earlier lines):
-
-```yaml
-spring:
-  batch:
-    jdbc:
-      initialize-schema: always
-```
-
-Change repository strategy only when operations, scale, or platform constraints require it.
-Open [references/6-migration.md](references/6-migration.md) directly for Batch 6-specific migration behavior beyond these annotations.
-
-### Chunk job baseline
-
-```java
-@Configuration
-class ImportJobConfiguration {
-    @Bean
-    Job importJob(JobRepository repository, Step importStep) {
-        return new JobBuilder("importJob", repository)
-            .start(importStep)
-            .build();
-    }
-
-    @Bean
-    Step importStep(JobRepository repository, PlatformTransactionManager tx, ItemReader<Customer> reader, ItemWriter<Customer> writer) {
-        return new StepBuilder("importStep", repository)
-            .<Customer, Customer>chunk(100, tx)
-            .reader(reader)
-            .writer(writer)
-            .build();
-    }
-}
-```
-
-## Reader, processor, writer composition
-
-The ordinary item-oriented path is reader + optional processor + writer.
-
-- Keep the reader deterministic for the same job parameters.
-- Treat the processor as optional.
-  Omit it when the writer can safely consume the reader output directly.
-- Keep the writer idempotent or restart-safe when restartability matters.
-- Add an `ItemProcessor` only when processing logic is a concrete requirement.
-- Open the reader and writer reference for reader, writer, and `ItemStream` implementation details.
-
-Use late binding only when runtime parameters or execution context must resolve at step creation time.
-
-```java
-@Bean
-@StepScope
-FlatFileItemReader<CustomerInput> customerReader(@Value("#{jobParameters['input']}") Resource input) {
-    return new FlatFileItemReaderBuilder<CustomerInput>()
-        .name("customerReader")
-        .resource(input)
-        .delimited()
-        .names("email", "name")
-        .targetType(CustomerInput.class)
-        .build();
-}
-```
-
-## Restartability and fault-tolerance basics
-
-Make restart behavior explicit before tuning performance.
-
-- Decide which job parameters identify a `JobInstance` and which are only operational knobs.
-- Keep restart-sensitive state in `ExecutionContext` or restart-safe `ItemStream` implementations.
-- Use skip for bad input that should be recorded and bypassed.
-- Use retry for transient failures that may succeed on a later attempt.
-
-    ```java
-    .faultTolerant()
-    .skipLimit(10)
-    .skip(FlatFileParseException.class)
-    .retryLimit(3)
-    .retry(DeadlockLoserDataAccessException.class)
-    ```
-
-## Scaling decision ladder
-
-Choose the smallest scaling model that solves throughput before reaching for remote patterns.
-
-| Need | Start here |
-| --- | --- |
-| one step is sufficient | single-threaded chunk or tasklet step |
-| one job has independent branches | parallel flows |
-| one step needs more local throughput | multithreaded step |
-| input can be split into isolated slices | partitioning |
-| work must cross process boundaries | remote chunking or remote step execution |
-
-Open the scaling reference when throughput or distribution requirements need a different execution model.
-Use measurements and restart evidence to justify scaling an existing job.
-
-## Minimal testing posture
-
-Start with unit tests for processors, policies, and transition logic.
-Use a Spring Batch integration test only when job repository state, step wiring, restart behavior, or the real job runtime defines the behavior.
-Reserve an end-to-end job journey for a distinct production-critical flow that lower-level tests do not prove.
-Choose tests for acceptance criteria and regression risks, not a fixed ratio of test layers.
-Review prose guidance directly instead of testing its wording or file layout.
-
-```java
-@SpringBatchTest
-@SpringJUnitConfig(ImportJobConfiguration.class)
-class ImportJobTests {
-    @Autowired
-    private JobOperatorTestUtils jobOperatorTestUtils;
-
-    @Test
-    void jobCompletes(@Autowired Job importJob) throws Exception {
-        jobOperatorTestUtils.setJob(importJob);
-        JobExecution execution = jobOperatorTestUtils.startJob(new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters());
-        assertEquals("COMPLETED", execution.getExitStatus().getExitCode());
-    }
-}
-```
-
-- For changed job behavior, verify the intended exit status with representative parameters.
-- Cover affected restart, skip, retry, or late-binding behavior when it defines an acceptance criterion or regression risk.
-- Verify changed restart-sensitive steps do not duplicate already committed work.
+Start with unit tests for processors, policies, and transitions; use integration tests when repository state, wiring, restart behavior, or the runtime defines behavior.
+Reserve an end-to-end journey for a distinct production-critical flow lower-level tests cannot prove.
+Choose tests for acceptance criteria and regression risks rather than a fixed layer ratio; review prose directly instead of testing its wording or layout.
+For changed job behavior, verify exit status with representative parameters; cover restart, skip, retry, or late binding when relevant to acceptance or regression risk.
+Verify changed restart-sensitive steps do not duplicate committed work.
 
 ## Production guardrails
 
@@ -315,12 +109,14 @@ class ImportJobTests {
 
 ## References
 
-- Open [references/job-infrastructure-launch-and-recovery.md](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobLauncher`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
-- Open [references/step-flow-and-listeners.md](references/step-flow-and-listeners.md) when the task involves tasklets, listeners, or flow branching.
-- Open [references/fault-tolerance-and-transaction-tuning.md](references/fault-tolerance-and-transaction-tuning.md) when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions.
-- Open [references/readers-writers-and-item-streams.md](references/readers-writers-and-item-streams.md) when the blocker is choosing or implementing a reader, writer, delegate, `ItemStream`, or restart-safe file, database, JSON, XML, or messaging pipeline.
-- Open [references/scaling-partitioning-and-remote-execution.md](references/scaling-partitioning-and-remote-execution.md) when one-step throughput is not enough and the task requires multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
-- Open [references/testing-batch-jobs-and-step-scope.md](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
-- Open [references/integration-driven-launch.md](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
-- Open [references/observability-and-monitoring.md](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
-- Open [references/6-migration.md](references/6-migration.md) directly when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.
+Read the relevant reference for the task:
+
+- Repository, launcher, operator, identity, metadata, recovery, shutdown: [job infrastructure](references/job-infrastructure-launch-and-recovery.md).
+- Tasklets, listeners, or branching: [step flow](references/step-flow-and-listeners.md).
+- Transaction attributes, skip, retry, or async pipelines: [fault tolerance](references/fault-tolerance-and-transaction-tuning.md).
+- Reader, writer, delegate, `ItemStream`, or restart-safe pipeline choice: [readers and writers](references/readers-writers-and-item-streams.md).
+- Parallel flows, multithreading, partitioning, or local/remote execution: [scaling](references/scaling-partitioning-and-remote-execution.md).
+- Batch test support, scoped tests, failures, restarts, or metadata: [testing](references/testing-batch-jobs-and-step-scope.md).
+- Integration-channel job launch or feedback: [integration](references/integration-driven-launch.md).
+- Micrometer, JFR, or operator monitoring: [observability](references/observability-and-monitoring.md).
+- Batch 6 migration or upgraded infrastructure: [migration](references/6-migration.md).

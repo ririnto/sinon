@@ -28,75 +28,17 @@ Use the existing delivery owner, such as provider files, Git Sync, Terraform, or
 Obtain explicit authorization for the target before applying files, enabling sync, reloading Grafana, or making API writes.
 Confirm overwrite and deletion effects before changing a watched provider path.
 
-## Grafana Config File Locations
+## Configuration Locations
 
-Grafana discovers provisioning config from these paths at startup:
+When locating provider YAML or diagnosing configuration precedence, read [configuration locations](./references/config-locations.md).
+Grafana loads provider config at startup from the deployment's provisioning directory; verify the actual configured paths.
 
-| Environment | Provider YAML location | Default dashboard base |
-| --- | --- | --- |
-| Docker / official image | `/etc/grafana/provisioning/dashboards/*.yaml` | `/var/lib/grafana/dashboards` |
-| Linux package install | `<grafana_home>/conf/provisioning/dashboards/*.yaml` | `<grafana_home>/data/dashboards` |
-| Custom binary | set via `[paths].provisioning` in `grafana.ini` | set via `[paths].data` |
+## Provider Configuration
 
-Config file load order (later values override earlier):
-
-```text
-1. $GF_PATHS_HOME/conf/defaults.ini          (bundled defaults)
-2. $GF_PATHS_HOME/conf/custom.ini             (distribution overrides)
-3. /etc/grafana/grafana.ini                   (system-level config)
-4. --config=<path> CLI flag                   (explicit override)
-5. GF_ environment variables                  (highest priority)
-
-```
-
-Use when: you need to know exactly where Grafana reads its config and which file takes precedence for a given setting.
-
-## Minimal Provider Config
-
-Minimal provider -- smallest safe shape before adding optional controls:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: observability-dashboards
-    type: file
-    options:
-      path: /var/lib/grafana/dashboards/operations
-
-```
-
-Use when: you need the smallest safe provisioning shape before adding folder and update controls.
-The provider file only matters after Grafana loads it from the environment's provisioning directory and can read the dashboard files at the configured `options.path`.
-
-Complete provider config -- every field with type, default, and description:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: observability-dashboards
-    orgId: 1
-    folder: Operations
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/operations
-      foldersFromFilesStructure: false
-
-```
-
-Field meanings: `name` is the provider identifier.
-`orgId` defaults to `1`.
-`folder` fixes the target folder and is mutually exclusive with `options.foldersFromFilesStructure`.
-`type` must be `file`.
-`disableDeletion` defaults to `false`.
-`updateIntervalSeconds` defaults to `30`.
-`allowUiUpdates` defaults to `false`.
-`options.path` must point at the dashboard JSON directory.
-`options.foldersFromFilesStructure` mirrors the directory hierarchy under `options.path` into Grafana folders, up to four levels deep, when provider-level `folder` and `folderUid` are unset.
-
-Use when: you need one stable provider file for dashboard JSON already tracked in Git, with all fields explicitly documented.
+When authoring or reviewing provider fields and defaults, read [provider configuration](./references/provider-schema.md).
+Use `type: file` with a readable `options.path`; provider-level `folder` or `folderUid` cannot be combined with `foldersFromFilesStructure`.
+The latter mirrors up to four directory levels when both fixed-folder fields are unset.
+Defaults are `orgId: 1`, `disableDeletion: false`, `updateIntervalSeconds: 30`, and `allowUiUpdates: false`.
 
 ## First Runnable Commands or Code Shape
 
@@ -111,316 +53,36 @@ uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafan
 Use when: the provider config was edited and you need a fast syntax check before treating it as ready for deployment.
 Replace the path with your actual provider file location.
 
-## Dashboard Source File Shape
+## Dashboard Source Shapes
 
-File provisioning reads dashboard files from the provider `options.path`.
-Current Grafana accepts classic dashboard wrapper files and Kubernetes resource-style files.
-The ordinary source-control path in this skill uses plain dashboard definitions so the provider YAML owns placement and sync behavior.
+When writing or translating raw, classic wrapper, or resource-style files, read [dashboard source shapes](./references/source-file-shapes.md).
+Document the chosen file shape; do not confuse provider-path files with HTTP API envelopes or add API-only fields such as `message` without explicit file-format support.
+Preserve the target Grafana schema version, remove instance-scoped `id` or set it to `null`, and use a stable `uid`.
+Provider YAML owns placement and sync behavior for raw dashboard files; align provider and wrapper folder placement for wrapped files.
 
-Representative source file:
-`"schemaVersion": 41` is an illustrative classic JSON value.
-Preserve or generate the schema version for the target Grafana instance.
+## Provider Examples
 
-```json
-{
-  "id": null,
-  "uid": "team-api-overview",
-  "title": "API Overview",
-  "tags": ["operations", "api"],
-  "timezone": "browser",
-  "schemaVersion": 41,
-  "version": 1,
-  "refresh": "30s",
-  "panels": []
-}
+When adapting fixed-folder, filesystem-driven folder, dashboard source, or environment-specific layouts, read [provider examples](./references/provider-examples.md).
 
-```
+## Environment Variables
 
-Field semantics in the source file:
+When parameterizing provider values, read [provider environment variables](./references/environment-variables.md).
+Substitution applies to provider YAML values, not dashboard JSON.
+Grafana resolves `${ENV_VAR}` before `$ENV_VAR`; use `$ENV_VAR` when the value may contain `$`, `${ENV_VAR}` to disambiguate adjacent text, and `$$` for a literal dollar sign.
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | integer/null | recommended | Remove it or set it to `null` before committing cross-instance source. Numeric IDs are database scoped and should not be treated as portable identifiers. |
-| `uid` | string | recommended | Stable identifier for this dashboard. Used in URLs (`/d/<uid>/...`) and cross-dashboard links. Auto-generated if omitted, but explicit UIDs are strongly recommended for reproducible deployments. |
-| `title` | string | yes | Human-readable dashboard title. |
-| `schemaVersion` | integer | yes | Classic dashboard JSON schema version for the file. |
-| `version` | integer | no | Dashboard revision metadata. Grafana ignores it as a conflict gate during file provisioning. |
-| `panels` | array | yes | Panel definitions that make up the dashboard. |
+## Sync and Deletion
 
-The provider YAML controls placement and sync behavior for this ordinary raw shape.
-Keep placement and sync fields in the provider config when the source file is a plain dashboard definition.
-Those fields include `folder`, provider-level `folderUid`, `disableDeletion`, `allowUiUpdates`, and `updateIntervalSeconds`.
-If the repository intentionally stores Grafana's classic wrapper shape, document that choice.
-Keep provider-level placement consistent with the wrapper's `folderUid`.
-
-Use when: you need the correct on-disk shape for dashboard files that Grafana loads from a provider path.
-
-## File Shapes and API Boundary
-
-Do not confuse the chosen provider-path file shape with HTTP API response envelopes.
-
-Grafana's classic file-provisioning wrapper uses a separate outer object:
-
-```json
-{
-  "dashboard": {
-    "id": null,
-    "uid": "team-api-overview",
-    "title": "API Overview",
-    "schemaVersion": 41,
-    "version": 1,
-    "panels": []
-  },
-  "folderUid": "operations",
-  "overwrite": true,
-  "message": "sync from automation"
-}
-
-```
-
-This wrapper can live under a provider `options.path` when the team chooses the classic wrapped file shape.
-Do not label it as a raw dashboard source file.
-HTTP API request bodies can add API-only fields such as `message`.
-Keep those API-only fields out of provider-path files unless the current Grafana file provisioning documentation explicitly supports them.
-
-Use when: the blocker is translating between provider-path source files and API or resource payloads that add `dashboard`, `folderUid`, `overwrite`, or `message` fields.
-
-## Ready-to-Adapt Templates
-
-Fixed-folder provider -- send one path into one Grafana folder:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: operations-dashboards
-    folder: Operations
-    type: file
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/operations
-
-```
-
-Use when: the dashboard set belongs in one explicit Grafana folder.
-
-Filesystem-driven folders -- mirror directories into Grafana folders:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: team-dashboards
-    type: file
-    options:
-      path: /var/lib/grafana/dashboards
-      foldersFromFilesStructure: true
-
-```
-
-Use when: repository directories already model the folder split and nested folder trees are not required.
-
-Dashboard JSON source file with explicit uid -- correct legacy file-provisioning shape:
-
-```json
-{
-  "id": null,
-  "uid": "ops-api-overview",
-  "title": "API Overview",
-  "tags": ["generated"],
-  "timezone": "browser",
-  "schemaVersion": 41,
-  "version": 1,
-  "refresh": "30s",
-  "panels": [
-    {
-      "id": 1,
-      "title": "Request Rate",
-      "type": "timeseries",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
-      "targets": [
-        {
-          "expr": "sum(rate(http_requests_total[5m])) by (method)",
-          "legendFormat": "{{method}}"
-        }
-      ]
-    }
-  ]
-}
-
-```
-
-Use when: you need a complete, copy-adaptable dashboard JSON file that can live directly under the provider path.
-
-Environment application split -- keep one reviewed dashboard source with environment-specific provider paths:
-
-```text
-grafana/
-  provisioning/
-    dashboards-dev.yaml
-    dashboards-prod.yaml
-  dashboards/
-    operations/
-      api-overview.json
-
-```
-
-Use when: the same dashboard JSON should be reviewed once but applied through different provider files or paths per environment.
-
-Dashboard source tree -- keep reviewed assets obvious:
-
-```text
-grafana/
-  provisioning/
-    dashboards.yaml
-  dashboards/
-    operations/
-      api-overview.json
-
-```
-
-Use when: you need one repository layout that makes provider config and provisioned dashboard files reviewable together.
-
-## Environment Variable Syntax
-
-Environment variable substitution works in provider YAML config values only, not inside dashboard JSON definition files.
-
-Syntax rules:
-
-| Syntax | Behavior |
-| --- | --- |
-| `$ENV_VAR` | Replaced with value of `ENV_VAR`. Prefer this form when the resolved value itself may contain `$`. |
-| `${ENV_VAR}` | Replaced with value of `ENV_VAR`. Use this form only when adjacent literal text would otherwise be parsed as part of the variable name. |
-| `$$` | Escapes a literal dollar sign. Produces `$` in the resolved value. |
-
-Two-pass replacement order:
-
-1. First pass: replace `${ENV_VAR}` patterns with environment variable values.
-2. Second pass: replace `$ENV_VAR` patterns.
-
-This means `${ENV_VAR}` can be reinterpreted if the substituted value itself contains `$`.
-Use `$ENV_VAR` for those cases because Grafana resolves it in the second pass and does not run a third substitution pass over the inserted value.
-
-Example provider using environment variables:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: '$DASHBOARD_PROVIDER_NAME'
-    type: file
-    options:
-      path: '${DASHBOARD_PATH}/dashboards'
-
-```
-
-Resolved at runtime with `DASHBOARD_PROVIDER_NAME=prod-dashboards` and `DASHBOARD_PATH=/opt/grafana`:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: 'prod-dashboards'
-    type: file
-    options:
-      path: '/opt/grafana/dashboards'
-
-```
-
-Constraints:
-
-- Substitution only occurs in provider YAML values, never in dashboard `.json` files.
-- Use `$ENV_VAR` instead of `${ENV_VAR}` when the resolved value may itself contain `$`.
-- Example: if `DASHBOARD_PROVIDER_NAME=ops$team`, `name: $DASHBOARD_PROVIDER_NAME` resolves to `ops$team`, but `name: ${DASHBOARD_PROVIDER_NAME}` resolves to `ops` when `team` is unset because the second pass treats `$team` as another variable.
-- Use `$$` only when the YAML value itself must contain a literal `$` character.
-
-Use when: the blocker is parameterizing provider configs across environments without maintaining duplicate YAML files.
-
-## Update Interval and Runtime Filesystem Behavior
-
-Treat `updateIntervalSeconds` as the configured rescan interval for provisioned dashboard files.
-
-Choose the value based on how quickly file changes need to appear and how predictable the deployment filesystem is:
-
-- values greater than 10 seconds make Grafana poll the provider path at that interval
-- values of 10 seconds or less make Grafana rely on filesystem watch events
-- Docker bind mounts, network filesystems, and other indirect filesystem paths should be validated in the real runtime path.
-  - Watch events may not reach Grafana on those filesystems.
-
-Example Docker provider with a 30-second rescan interval:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: docker-dashboards
-    type: file
-    updateIntervalSeconds: 30
-    options:
-      path: /var/lib/grafana/dashboards
-```
-
-Use when: the blocker is choosing an update interval or debugging why dashboard file changes are not picked up by a running Grafana instance.
-
-## Delete Behavior
-
-Removing a dashboard source file triggers deletion in Grafana unless `disableDeletion: true` is set on the provider.
-
-Default behavior (`disableDeletion: false`):
-
-```text
-1. api-overview.json exists in the provider path
-2. Grafana provisions the dashboard
-3. operator removes api-overview.json from the source directory
-4. next sync cycle detects the file is gone
-5. Grafana deletes the corresponding dashboard
-
-```
-
-With deletion disabled (`disableDeletion: true`):
-
-```text
-1. api-overview.json exists in the provider path
-2. Grafana provisions the dashboard
-3. operator removes api-overview.json from the source directory
-4. next sync cycle detects the file is gone
-5. Grafana keeps the dashboard (deletion blocked)
-6. re-adding the file later resumes normal update behavior
-
-```
-
-UI export workflows for moving a dashboard into provisioning:
-
-| Export method | Post-export step required |
-| --- | --- |
-| Dashboard menu -> Save JSON to file | Keep the raw dashboard JSON; normalize instance-specific fields such as `id` before committing |
-| Dashboard menu -> Copy JSON to clipboard | Paste the raw dashboard JSON into the source file and normalize `id` if present |
-| API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response and save that raw object as the source file |
-
-UI export methods already produce raw dashboard JSON.
-API responses add extra envelope fields such as `dashboard` and `meta`.
-Import requests may add `folderUid`, `overwrite`, or `message`.
-Extract the dashboard object for the ordinary raw-file path, or deliberately store Grafana's classic wrapper shape and document that choice.
-The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.
-
-Use when: the blocker is understanding what happens when dashboard files are added, modified, or removed from the source directory.
+When changing sync cadence, deletion, or export workflows, read [sync, deletion, and export behavior](./references/sync-and-deletion.md).
+Above 10 seconds Grafana polls at `updateIntervalSeconds`; at 10 seconds or less it uses filesystem events, which may not reach Grafana on bind mounts or network filesystems.
+Validate the actual runtime path. Removing a source file deletes the dashboard unless `disableDeletion: true`.
+UI exports are raw JSON; extract the dashboard object from API responses for a raw-file path, or deliberately document the classic wrapper choice.
 
 ## Validate the Result
 
-Review the affected provider and source-file relationships with these checks:
-
-- the provider YAML points at the actual dashboard file path that will ship
-- folder strategy is explicit and consistent with the file layout
-- environment-specific application is explicit and does not hide which file each environment loads
-- `allowUiUpdates` matches the intended workflow for UI edits versus Git-owned changes
-- reviewers can tell whether file content or Grafana UI state wins after drift
-- dashboard source files use one documented shape: raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource
-- fixed-folder providers use `folder` or provider-level `folderUid` deliberately when stable folder targeting is needed
-- `updateIntervalSeconds` matches the intended rescan cadence for the actual runtime filesystem
-- `foldersFromFilesStructure` providers do not also set `folder` or `folderUid` at the provider level
-- dashboard JSON files stay reviewable instead of opaque exports dropped into the tree
-- the provider YAML is internally consistent about path, folder mapping, and update behavior
-- environment variables in provider YAML use only supported Grafana substitution syntax: `$ENV_VAR`, `${ENV_VAR}`, and `$$`
-
+Check that provider paths resolve to the shipped files and runtime filesystem, folder strategy and environment application are explicit, and the chosen file shape is documented.
+Check folder exclusivity, UI merge-back and file-wins behavior, update cadence, supported provider substitution, and reviewable dashboard sources.
 Report local syntax and path checks separately from runtime discovery and sync evidence.
-Use existing deployment checks when rollout is authorized, and state any runtime behavior that remains unverified.
-A valid YAML file alone does not prove Grafana loaded the provider or synchronized its dashboards.
+Use existing deployment checks when rollout is authorized and state unverified runtime behavior; valid YAML alone does not prove synchronization.
 
 ## Output contract
 
@@ -436,7 +98,7 @@ Return:
 
 ## References
 
-| If the blocker is... | Read... |
+| When working on... | Read... |
 | --- | --- |
 | folder mirroring, file layout, or `foldersFromFilesStructure` tradeoffs | [`./references/folder-organization.md`](./references/folder-organization.md) |
 | UI edits, file-wins behavior, delete-on-remove, version property, or drift debugging | [`./references/drift-and-ui-updates.md`](./references/drift-and-ui-updates.md) |
@@ -444,48 +106,22 @@ Return:
 
 ## Invariants
 
-- `folder` and `options.foldersFromFilesStructure` are mutually exclusive.
-- Omitting both uses the default folder.
-- A provider using `foldersFromFilesStructure: true` MUST NOT set `folder` or `folderUid` at the provider level.
-- Provider-path source files MUST use one documented shape: raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource.
-- Dashboard `id` SHOULD be removed or set to `null` before a source file is reused across Grafana instances.
-- `options.path` MUST resolve to a readable directory at Grafana runtime.
-- `allowUiUpdates: true` MUST be accompanied by a documented merge-back workflow.
-- Dashboard source paths MUST be explicit and consistent across the provider config and the actual filesystem layout.
-- File content SHOULD remain the reviewable source of truth over UI state.
-- Drift behavior SHOULD be obvious before enabling UI edits.
-- Environment variable substitution MUST NOT be relied upon inside dashboard JSON files.
-- API-only payload fields such as `meta` and `message` MUST stay in API-specific sections.
-  - They MUST NOT be documented as raw provider-path file content.
+- A `foldersFromFilesStructure` provider MUST NOT set `folder` or `folderUid`. Without folder mirroring, omitting both uses the default folder.
+- Provider-path files MUST use a documented raw dashboard, classic wrapper, or Kubernetes resource shape.
+- Remove the instance-scoped `id` or set it to `null` before sharing across instances.
+- `options.path` MUST be explicit, consistent, and readable at runtime.
+- `allowUiUpdates: true` MUST have a documented merge-back workflow; file source and drift behavior SHOULD be clear.
+- Do not rely on environment substitution in dashboard JSON or present API-only fields such as `meta` and `message` as raw file content.
 
 ## Common Pitfalls
 
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| mixing raw dashboard files and wrapped dashboard files without a documented choice | reviewers cannot tell whether placement comes from provider YAML or the wrapper payload | choose one provider-path shape |
-| | | document whether it is raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource |
-| leaving `id` set to a numeric value from a UI export | numeric IDs are instance scoped and create portability problems across Grafana instances | remove `id` or set it to `null` before committing the shared source file |
-| managing `version` numbers in dashboard JSON files | Grafana ignores the `version` property during provisioning entirely | leave version as-is from export; do not attempt to bump it |
-| setting `updateIntervalSeconds` to 10 or less on a filesystem that drops watch events | Grafana relies on filesystem watch events at 10 seconds or less | set it above 10 seconds to force polling |
-| | | or fix the mount/sync path so watch events propagate |
-| mixing dashboard authoring guidance into provisioning docs | users lose the distinction between dashboard content and dashboard delivery | keep panel design and visualization authoring out of this skill, and keep file delivery here |
-| enabling `allowUiUpdates` without a clear merge-back workflow | UI edits appear to work and are later overwritten by files | document file-wins behavior and keep Git as the source of truth |
-| using `foldersFromFilesStructure` without unsetting `folder` | Grafana rejects the provider config at startup | ensure `folder` and `folderUid` are absent when `foldersFromFilesStructure: true` |
-| mirroring a directory hierarchy deeper than four levels | nested-folder provisioning supports up to four levels | keep the mirrored hierarchy within that depth |
-| putting environment variables inside dashboard JSON files | substitution only runs in provider YAML config values | parameterize at the provider level, not the dashboard level |
-| provisioning raw exports with no cleanup or review path | drift and noisy diffs accumulate quickly | keep provisioned dashboard files normalized and reviewable |
+Choose and document one file shape, normalize instance-specific IDs, and keep sources reviewable.
+Provisioning ignores dashboard `version` as a conflict gate.
+Document merge-back and file-wins behavior before enabling UI updates.
+Avoid dropped filesystem events by polling above 10 seconds or fixing the mount.
+Do not combine fixed folders with folder mirroring, exceed four mirrored levels, or rely on environment substitution in JSON.
 
 ## Scope Boundaries
 
-- Activate this skill for:
-  - Grafana dashboard provider YAML and dashboard-as-code delivery
-  - folder organization, drift control, and reviewability
-  - dashboard provisioning behavior and file ownership decisions
-  - Grafana config file locations and load order
-  - environment variable syntax in provider configs
-  - delete behavior and UI export workflows
-- Do not activate for:
-  - dashboard panel authoring and visualization design
-  - Prometheus alert-rule authoring or testing
-  - Alertmanager routing and notification design
-  - datasource provisioning configuration
+This skill covers dashboard provider YAML, file delivery, folder organization, drift, runtime sync, and exports.
+It excludes panel design, Prometheus alerts and tests, Alertmanager routing, and datasource provisioning.

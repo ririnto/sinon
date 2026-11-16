@@ -40,49 +40,13 @@ The `4.1.1` parent below illustrates the documented baseline.
 For a new parent, check `org.springframework.boot:spring-boot-starter-parent` on Maven Central for the latest stable release compatible with the project.
 Keep an existing parent, BOM, or version-catalog pin unless the task authorizes changing it.
 
-```xml
-<parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.1.1</version>
-    <relativePath/>
-</parent>
-
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-webmvc</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-webmvc-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
+For dependency baseline, see [example 1](references/configuration-examples.md#example-1-dependency-baseline).
 
 ## First safe configuration
 
 ### Minimal application shape
 
-```java
-/**
- * Entry point that boots the application through Spring Boot's auto-configuration.
- */
-@SpringBootApplication
-public class Application {
-    /**
-     * Launches the Spring application context.
-     */
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-}
-```
+For minimal application shape, see [example 2](references/configuration-examples.md#example-2-minimal-application-shape).
 
 ### Lifecycle shape
 
@@ -97,20 +61,7 @@ Use `ApplicationRunner` or `CommandLineRunner` for startup tasks that belong to 
 
 ### Configuration properties shape
 
-```java
-@Configuration
-@EnableConfigurationProperties(CatalogProperties.class)
-class CatalogConfiguration {
-}
-
-/**
- * Holds the validated {@code catalog} configuration properties.
- */
-@Validated
-@ConfigurationProperties("catalog")
-public record CatalogProperties(@NotBlank String region, int pageSize) {
-}
-```
+For configuration properties shape, see [example 3](references/configuration-examples.md#example-3-configuration-properties-shape).
 
 Register each `@ConfigurationProperties` type with `@EnableConfigurationProperties`, `@ConfigurationPropertiesScan`, or an equivalent Boot registration mechanism before injecting it.
 
@@ -174,29 +125,7 @@ Choose the narrowest Boot test that proves the behavior.
 | data repository behavior | repository or slice test |
 | full application integration | `@SpringBootTest` |
 
-```java
-@RestController
-@RequestMapping("/api/greetings")
-class GreetingController {
-    @GetMapping
-    Map<String, String> greet(@RequestParam(defaultValue = "world") String name) {
-        return Map.of("message", "Hello " + name);
-    }
-}
-
-@WebMvcTest(GreetingController.class)
-class GreetingControllerTests {
-    @Autowired
-    MockMvc mvc;
-
-    @Test
-    void greeting() throws Exception {
-        mvc.perform(get("/api/greetings").param("name", "Spring"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("Hello Spring"));
-    }
-}
-```
+For test strategy baseline, see [example 4](references/configuration-examples.md#example-4-test-strategy-baseline).
 
 ## Production guardrails
 
@@ -208,26 +137,28 @@ class GreetingControllerTests {
 
 ## References
 
-- Open [references/autoconfiguration-diagnostics.md](references/autoconfiguration-diagnostics.md) when the task is about why Boot did or did not wire a bean.
-- Open [references/config-data-order.md](references/config-data-order.md) when the blocker is config import order or imported config behavior.
-- Open [references/property-precedence.md](references/property-precedence.md) when the blocker is conflicting values across property sources.
-- Open [references/profile-activation.md](references/profile-activation.md) when the blocker is active-profile selection or profile-specific config loading.
-- Open [references/configuration-properties-binding.md](references/configuration-properties-binding.md) when the blocker is `@ConfigurationProperties` binding behavior.
-- Open [references/application-context-runner.md](references/application-context-runner.md) when the blocker is Boot-specific wiring diagnosis without starting the whole app.
-- Open [references/testcontainers.md](references/testcontainers.md) when tests need a real backing service through Testcontainers.
-- Open [references/service-connections.md](references/service-connections.md) when Boot should derive test service connection properties automatically.
-- Open [Docker Compose wiring](references/docker-compose-local-wiring.md) when local development depends on Boot-managed Docker Compose lifecycle or explicit `spring.docker.compose.*` wiring.
-- Open [references/health-groups.md](references/health-groups.md) when the task is about health groups.
-- Open [references/probes.md](references/probes.md) when the task is about liveness or readiness probe behavior.
-- Open [references/metrics.md](references/metrics.md) when the task is about metrics exports.
-- Open [references/tracing.md](references/tracing.md) when the task is about tracing exports, OTel SDK configuration, OTLP SSL bundles, or exemplar filtering.
-- Open [references/endpoint-exposure.md](references/endpoint-exposure.md) when the blocker is Actuator endpoint exposure policy.
-- Open [references/sanitization.md](references/sanitization.md) when the blocker is sanitizing sensitive Actuator values.
-- Open [references/layered-jars.md](references/layered-jars.md) when container rebuild speed depends on jar layers.
-- Open [references/buildpacks.md](references/buildpacks.md) when the application should produce an OCI image without a Dockerfile.
-- Open [references/dockerfiles.md](references/dockerfiles.md) when the platform requires explicit Dockerfile control.
-- Open [references/war-packaging.md](references/war-packaging.md) when a traditional servlet container is a hard requirement.
-- Open [references/aot-processing.md](references/aot-processing.md) when the blocker is AOT generation or runtime hints.
-- Open [references/native-image.md](references/native-image.md) when the blocker is native-image build or runtime behavior.
-- Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
-- Open [references/4.1-changes.md](references/4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.
+Read the relevant reference when the named condition applies:
+
+- [Auto-configuration diagnostics](references/autoconfiguration-diagnostics.md): why Boot did or did not wire a bean.
+- [Config data order](references/config-data-order.md): import order or imported config behavior.
+- [Property precedence](references/property-precedence.md): conflicting property sources.
+- [Profile activation](references/profile-activation.md): profile selection or profile-specific config loading.
+- [Configuration properties](references/configuration-properties-binding.md): `@ConfigurationProperties` binding.
+- [ApplicationContextRunner](references/application-context-runner.md): Boot wiring diagnosis without starting the whole app.
+- [Testcontainers](references/testcontainers.md): tests need a real backing service.
+- [Service connections](references/service-connections.md): automatically derive test service connection properties.
+- [Docker Compose](references/docker-compose-local-wiring.md): Boot-managed local lifecycle or `spring.docker.compose.*` wiring.
+- [Health groups](references/health-groups.md): health group configuration.
+- [Probes](references/probes.md): liveness or readiness behavior.
+- [Metrics](references/metrics.md): metrics exports.
+- [Tracing](references/tracing.md): tracing exports, OTel SDK, OTLP SSL bundles, or exemplar filtering.
+- [Endpoint exposure](references/endpoint-exposure.md): Actuator exposure policy.
+- [Sanitization](references/sanitization.md): sensitive Actuator values.
+- [Layered jars](references/layered-jars.md): container rebuild speed depends on jar layers.
+- [Buildpacks](references/buildpacks.md): produce an OCI image without a Dockerfile.
+- [Dockerfiles](references/dockerfiles.md): the platform requires explicit Dockerfile control.
+- [WAR packaging](references/war-packaging.md): a traditional servlet container is required.
+- [AOT](references/aot-processing.md): AOT generation or runtime hints.
+- [Native image](references/native-image.md): native-image build or runtime behavior.
+- [Jackson](references/jackson-configuration.md): multi-format features, factory constraints, or HandlerInstantiator wiring.
+- [Boot 4.1 changes](references/4.1-changes.md): migration from 4.0 or 4.1 behavior changes.

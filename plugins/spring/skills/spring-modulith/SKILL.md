@@ -47,140 +47,17 @@ Spring Modulith BOM `2.1.1` is a documented GA baseline compiled and tested agai
 For a new BOM, check `org.springframework.modulith:spring-modulith-bom` on Maven Central for the latest stable release compatible with the project's Boot line.
 Keep an existing BOM or version-catalog pin unless the task authorizes changing it.
 
-```xml
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-bom</artifactId>
-            <version>2.1.1</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
+For dependency configuration, see [examples](references/configuration-examples.md).
 
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.modulith</groupId>
-        <artifactId>spring-modulith-starter-core</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.modulith</groupId>
-        <artifactId>spring-modulith-runtime</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.modulith</groupId>
-        <artifactId>spring-modulith-starter-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
+## Module setup
 
-```groovy
-dependencyManagement {
-    imports {
-        mavenBom 'org.springframework.modulith:spring-modulith-bom:2.1.1'
-    }
-}
-
-dependencies {
-    implementation 'org.springframework.modulith:spring-modulith-starter-core'
-    runtimeOnly 'org.springframework.modulith:spring-modulith-runtime'
-    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
-}
-```
-
-## First safe configuration
-
-### First safe commands
-
-```sh
-./mvnw test -Dtest=ModularityTests
-```
-
-```sh
-./gradlew test --tests ModularityTests
-```
-
-### Application class shape
-
-```java
-@org.springframework.modulith.Modulithic
-@SpringBootApplication
-class Application {
-}
-```
-
-Use `@org.springframework.modulith.Modulithic` to define the application module arrangement.
-Runtime metadata, startup verification, and dependency-ordered `ApplicationModuleInitializer` execution additionally require `spring-modulith-runtime` and:
-
-```properties
-spring.modulith.runtime.verification-enabled=true
-```
-
+For module declarations, boundary verification, events, and detection, read [module setup](references/module-setup.md).
+Use `@Modulithic` to define module arrangement; runtime metadata, startup verification, and dependency-ordered initializers also need `spring-modulith-runtime` and `spring.modulith.runtime.verification-enabled=true`.
 Set `systemName` for human-readable documentation names.
-
-### Boundary verification shape
-
-```java
-ApplicationModules.of(Application.class).verify();
-```
-
-Exclude packages from inspection when needed:
-
-```java
-ApplicationModules.of(Application.class,
-    JavaClass.Predicates.resideInAPackage("com.example.db")).verify();
-```
-
-### Module event publication shape
-
-```java
-events.publishEvent(new OrderCompleted(order.id()));
-```
-
-### Module listener shape
-
-```java
-@Component
-class InventoryProjection {
-    @ApplicationModuleListener
-    void on(OrderCompleted event) {
-    }
-}
-```
-
-Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary.
-The annotation is syntactic sugar for `@Transactional(propagation = REQUIRES_NEW) @TransactionalEventListener`.
-
-### Package declaration shape
-
-```java
-@ApplicationModule
-package example.orders;
-```
-
-```java
-@NamedInterface("api")
-package example.orders.api;
-```
-
-Use these `package-info.java` declarations when the module boundary and the exported named interface should be explicit in code rather than implied only by package names.
-
-### Module detection strategy
-
-By default, direct sub-packages of the main application class package are modules.
-Switch to explicit annotation only:
-
-```properties
-spring.modulith.detection-strategy=explicitly-annotated
-```
-
-Or provide a custom `ApplicationModuleDetectionStrategy` implementation.
-
-Use boundary verification for structural changes and module tests for interactions that need a Spring runtime.
+Use `@ApplicationModuleListener` at cross-module event boundaries; it combines `@Transactional(propagation = REQUIRES_NEW)` and `@TransactionalEventListener`.
+Use `package-info.java` declarations when modules and named interfaces should be explicit.
+Direct subpackages of the main application package are modules by default; choose explicit annotations or a custom detection strategy when needed.
+Use boundary verification for structural changes and module tests for interactions needing a Spring runtime.
 
 ## Coding procedure
 
@@ -205,128 +82,13 @@ Use boundary verification for structural changes and module tests for interactio
 
 ## Implementation examples
 
-### Boundary verification test
-
-```java
-class ModularityTests {
-    @Test
-    void verifiesModuleBoundaries() {
-        ApplicationModules.of(Application.class).verify();
-    }
-}
-```
-
-### Module event publication
-
-```java
-@Service
-class Orders {
-    private final ApplicationEventPublisher events;
-
-    Orders(ApplicationEventPublisher events) {
-        this.events = events;
-    }
-
-    void complete(Order order) {
-        order.complete();
-        events.publishEvent(new OrderCompleted(order.id()));
-    }
-}
-```
-
-### Event listener in another module
-
-```java
-@Component
-class InventoryProjection {
-    private final InventoryReadModel readModel;
-
-    InventoryProjection(InventoryReadModel readModel) {
-        this.readModel = readModel;
-    }
-
-    @ApplicationModuleListener
-    void on(OrderCompleted event) {
-        readModel.markCompleted(event.orderId());
-    }
-}
-```
-
-### Module test shape
-
-```java
-@ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.STANDALONE)
-class OrdersModuleTest {
-    @Autowired
-    Orders orders;
-
-    @Test
-    void completesOrderAndPublishesModuleEvent(PublishedEvents publishedEvents) {
-        orders.complete(new Order("o-1"));
-        assertThat(publishedEvents.ofType(OrderCompleted.class)).hasSize(1);
-    }
-}
-```
-
-### Assertable published events test shape
-
-```java
-@ApplicationModuleTest
-class OrdersModuleTest {
-    @Autowired
-    Orders orders;
-
-    @Test
-    void publishesOrderCompleted(AssertablePublishedEvents events) {
-        orders.complete(new Order("o-1"));
-        assertThat(events)
-            .contains(OrderCompleted.class)
-            .matching(OrderCompleted::orderId, "o-1");
-    }
-}
-```
-
-### Named interface shape
-
-```text
-example.orders.api
-example.orders.internal
-```
-
-```java
-@ApplicationModule(allowedDependencies = "inventory::api")
-package example.orders;
-```
-
-### Documentation generation shape
-
-The `Documenter` test requires `spring-modulith-docs` in test scope:
-
-```xml
-<dependency>
-    <groupId>org.springframework.modulith</groupId>
-    <artifactId>spring-modulith-docs</artifactId>
-    <scope>test</scope>
-</dependency>
-```
-
-```java
-class DocumentationTests {
-    ApplicationModules modules = ApplicationModules.of(Application.class);
-
-    @Test
-    void writeDocumentationSnippets() {
-        new Documenter(modules)
-            .writeModulesAsPlantUml()
-            .writeIndividualModulesAsPlantUml()
-            .writeModuleCanvases()
-            .writeAggregatingDocument();
-    }
-}
-```
-
-Generate C4 component diagrams, per-module diagrams, module canvases, and an aggregating Asciidoctor file.
-Output goes to `spring-modulith-docs` in the build folder by default.
+- For boundary verification test, see [the example](references/implementation-examples.md#boundary-verification-test).
+- For module event publication, see [the example](references/implementation-examples.md#module-event-publication).
+- For event listener in another module, see [the example](references/implementation-examples.md#event-listener-in-another-module).
+- For module test shape, see [the example](references/implementation-examples.md#module-test-shape).
+- For assertable published events test shape, see [the example](references/implementation-examples.md#assertable-published-events-test-shape).
+- For named interface shape, see [the example](references/implementation-examples.md#named-interface-shape).
+- For documentation generation shape, see [the example](references/implementation-examples.md#documentation-generation-shape).
 
 ## Testing checklist
 

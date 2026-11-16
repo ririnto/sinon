@@ -62,34 +62,7 @@ Use the sections and references for the affected navigation, scope, integration,
 Place the flow at `src/main/webapp/WEB-INF/flows/registration/registration-flow.xml`.
 The `<var>` declaration creates `registration` in flow scope, so the same model survives both rendered steps.
 
-```xml
-<flow xmlns="http://www.springframework.org/schema/webflow"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.springframework.org/schema/webflow
-                          https://www.springframework.org/schema/webflow/spring-webflow.xsd">
-
-    <var name="registration" class="com.example.Registration"/>
-
-    <view-state id="details" view="registration/details" model="registration">
-        <transition on="next" to="review" validate="true"/>
-    </view-state>
-
-    <view-state id="review" view="registration/review" model="registration">
-        <transition on="back" to="details" validate="false"/>
-        <transition on="confirm" to="finished"/>
-    </view-state>
-
-    <end-state id="finished" view="registration/complete"/>
-
-    <view-state id="technicalError" view="registration/technical-error">
-        <transition on="retry" to="review" validate="false"/>
-    </view-state>
-
-    <global-transitions>
-        <transition on-exception="java.lang.Exception" to="technicalError"/>
-    </global-transitions>
-</flow>
-```
+For two-step flow, see [example 1](references/configuration-examples.md#example-1-two-step-flow).
 
 The flow id defaults to the filename without `.xml`, so this definition is addressed as `registration-flow`.
 Validation runs on `next`, backward navigation skips validation, and unexpected failures converge on one renderable recovery state.
@@ -166,58 +139,7 @@ Its negative order lets Web Flow claim registered flow IDs before `RequestMappin
 
 Keep Jupiter tests outside the JUnit 3-based Web Flow harness and expose only the small operations and assertions they need.
 
-```java
-final class RegistrationFlowHarness extends AbstractXmlFlowExecutionTests {
-    /**
-     * Locates the flow definition XML that this harness executes.
-     */
-    @Override
-    protected FlowDefinitionResource getResource(FlowDefinitionResourceFactory resources) {
-        return resources.createFileResource("src/main/webapp/WEB-INF/flows/registration/registration-flow.xml");
-    }
-
-    void start() {
-        startFlow(new MockExternalContext());
-    }
-
-    void registration(Registration registration) {
-        getFlowScope().put("registration", registration);
-    }
-
-    void signal(String eventId) {
-        MockExternalContext context = new MockExternalContext();
-        context.setEventId(eventId);
-        resumeFlow(context);
-    }
-
-    void assertState(String stateId) {
-        assertCurrentStateEquals(stateId);
-    }
-
-    void assertEnded() {
-        assertFlowExecutionEnded();
-    }
-
-    void assertOutcome(String outcome) {
-        assertFlowExecutionOutcomeEquals(outcome);
-    }
-}
-
-class RegistrationFlowTests {
-    private final RegistrationFlowHarness harness = new RegistrationFlowHarness();
-
-    @Test
-    void completesRegistration() {
-        harness.start();
-        harness.registration(validRegistration());
-        harness.assertState("details");
-        harness.signal("next");
-        harness.assertState("review");
-        harness.signal("confirm");
-        assertAll(harness::assertEnded, () -> harness.assertOutcome("finished"));
-    }
-}
-```
+For happy-path flow test, see [example 2](references/configuration-examples.md#example-2-happy-path-flow-test).
 
 Add separate tests for validation retention, backtracking, recovery, and subflow outcomes only when those branches are part of the flow contract.
 

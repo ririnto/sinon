@@ -51,17 +51,7 @@ Do not activate for:
 - framework-specific thread models such as Spring, Netty, or messaging runtimes
 - custom operator authoring
 
-## Coverage map
-
-| Reactor scheduling surface | Keep in this file | Open a reference when... |
-| --- | --- | --- |
-| default execution model | source runs on the subscription thread until a scheduler changes it | you are debugging assembly/runtime gaps across many chains |
-| scheduler choice | `parallel`, `boundedElastic`, `single`, `immediate` | shared defaults are not enough and you must create, tune, or replace schedulers explicitly |
-| `publishOn(...)` vs `subscribeOn(...)` | ordinary placement, effect, and when both are justified | hook-level scheduling instrumentation or shared scheduler replacement becomes the blocker |
-| blocking offload | one blocking boundary with `Mono.fromCallable(...)` + `subscribeOn(boundedElastic())` | queue caps, lifecycle, virtual threads, or custom executor bridges matter |
-| thread-affinity and context boundary | `Context` flows with the subscription, not the thread | `ThreadLocal` bridging or automatic context propagation becomes the blocker |
-| local scheduling diagnostics | `log(...)`, named `checkpoint(...)`, and visible thread logging | global hooks, assembly tracing, or debug-agent level tooling becomes the blocker |
-| virtual time boundary | recognize that time control belongs to testing | time simulation becomes the main job |
+When choosing a scheduling boundary or diagnosing a thread hop, read [the selection guide](references/scheduling-coverage.md).
 
 ## Operating rules
 
@@ -94,72 +84,9 @@ Shared scheduler or global-hook changes require authority covering all affected 
 | move downstream operators | `publishOn(...)` | affects work after that operator |
 | request metadata across async boundaries | `contextWrite(...)` + `deferContextual(...)` | survives thread switches without ThreadLocal assumptions |
 
-## Ready-to-adapt examples
+## Examples
 
-### Blocking boundary at the source
-
-```java
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-final class BlockingLookup {
-    Mono<String> readUser(String userId) {
-        return Mono.fromCallable(() -> blockingLookup(userId))
-            .subscribeOn(Schedulers.boundedElastic())
-            .map(String::trim);
-    }
-    private String blockingLookup(String userId) {
-        return "user-" + userId;
-    }
-}
-```
-
-### Downstream handoff with `publishOn(...)`
-
-```java
-import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
-final class PublishOnExample {
-    Flux<String> process() {
-        return Flux.just("a", "b", "c")
-            .map(String::toUpperCase)
-            .publishOn(Schedulers.parallel())
-            .map(value -> value + "-done");
-    }
-}
-```
-
-### Different upstream and downstream execution contexts
-
-```java
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-final class MixedExecutionExample {
-    Mono<String> loadAndTransform(String userId) {
-        return Mono.fromCallable(() -> blockingLookup(userId))
-            .subscribeOn(Schedulers.boundedElastic())
-            .publishOn(Schedulers.parallel())
-            .map(String::toUpperCase);
-    }
-    private String blockingLookup(String userId) {
-        return "user-" + userId;
-    }
-}
-```
-
-### Context survives thread hops
-
-```java
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.context.Context;
-final class ContextAcrossThreads {
-    Mono<String> handle(String input) {
-        return Mono.deferContextual(context -> Mono.just(context.get("requestId") + ":" + input))
-            .publishOn(Schedulers.parallel())
-            .contextWrite(Context.of("requestId", "req-42"));
-    }
-}
-```
+When placing source offload, downstream handoffs, or request context across threads, read [the examples](references/scheduling-examples.md).
 
 ## Common pitfalls
 
@@ -172,7 +99,7 @@ final class ContextAcrossThreads {
 | adding multiple `subscribeOn(...)` calls for control | only the closest relevant source placement matters | place one `subscribeOn(...)` at the real boundary |
 | placing `subscribeOn(...)` inside a `flatMap` lambda to affect the outer chain | `subscribeOn` inside `flatMap` scopes to the inner publisher only | place `subscribeOn` at the outer source or on the inner publisher deliberately |
 | using `Schedulers.immediate()` in production code | runs on the caller thread with no isolation | reserve for test code or when you explicitly want caller-thread execution |
-| placing `contextWrite(...)` before the operator that reads the context | `contextWrite` affects upstream operators, so the reader cannot see a write placed before it | place `contextWrite` downstream of the reader, as in the example above |
+| placing `contextWrite(...)` before the operator that reads the context | `contextWrite` affects upstream operators, so the reader cannot see a write placed before it | place `contextWrite` downstream of the reader, as shown in the linked context example |
 
 ## Completion
 

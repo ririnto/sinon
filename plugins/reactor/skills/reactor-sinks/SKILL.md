@@ -51,24 +51,14 @@ Do not activate for:
 - framework-specific event buses or transport integration details
 - legacy `Processor`-based designs
 
-## Coverage map
-
-| Reactor hot-source surface | Keep in this file | Open a reference when... |
-| --- | --- | --- |
-| hot vs cold distinction | ordinary difference between per-subscription work and shared/manual hot sources | the design depends on connection lifecycle rather than sink emission |
-| when to choose Sinks | choose Sinks for programmatic emission beyond sharing a cold source | the real problem is connect/disconnect and subscriber rendezvous |
-| sink shape | `Sinks.one()`, `Sinks.empty()`, `Sinks.many()` | internal contention or unsafe sink use becomes the blocker |
-| fan-out model | unicast vs multicast vs replay | replay policy or connection lifecycle becomes the blocker |
-| emission API | `tryEmit*` vs `emit*`, `EmitResult`, `EmitFailureHandler` | failure handling rules become the main problem |
-| backpressure implications | ordinary queueing, dropping, or replay behavior | overflow and concurrent emission are the main blockers |
-| ConnectableFlux boundary | recognize when `publish()`, `replay()`, `autoConnect(...)`, or `refCount(...)` is a better fit than Sinks | connection management is the design problem |
-| concurrency boundary | recognize that safe sinks detect non-serialized emission | external synchronization or `Sinks.unsafe()` becomes the blocker |
+When choosing a sink flavor, retention policy, or hot-source boundary, read [the selection guide](references/sink-selection.md).
 
 ## Operating rules
 
 - Use Sinks when you must emit programmatically into a Reactor publisher.
 - Prefer `Sinks.one()` for exactly one terminal value, `Sinks.empty()` for terminal-only completion/error, and `Sinks.many()` for multi-value streams.
 - Use unicast when there is exactly one subscriber, multicast for live fan-out, and replay when late subscribers must observe history.
+  A second unicast subscription receives `IllegalStateException`.
 - For multicast, choose `onBackpressureBuffer()` when retention is acceptable, `directAllOrNothing()` when all subscribers must advance together, and `directBestEffort()` when slow subscribers may miss values but fast ones should continue.
 - For replay, choose whether all history, the latest signal, or a bounded size/time window should be retained.
 - Use `tryEmit*` when the caller can inspect and branch on `EmitResult` immediately.
@@ -102,120 +92,9 @@ Use the [reference table](#references) for emission failures, connection lifecyc
 | retry-aware emission | `emitNext(..., handler)` | retries or fails by policy |
 | share existing cold source | `publish()`, `replay()`, `refCount(...)`, `autoConnect(...)` | no new sink required |
 
-## Multicast and replay choice points
+## Examples
 
-| If you need... | Use | Trade-off |
-| --- | --- | --- |
-| every active subscriber to stay aligned | `directAllOrNothing()` | one slow subscriber can cause drops for all |
-| fast subscribers to keep flowing while slow ones miss values | `directBestEffort()` | delivery diverges across subscribers |
-| demand-aware buffering for subscribers | `onBackpressureBuffer()` | retains elements in memory |
-| detect a no-demand overflow at the producer boundary | `tryEmitNext(...)` with `directAllOrNothing()` | inspect `FAIL_OVERFLOW` and choose the caller's response |
-| late subscribers to see the full retained stream | `replay().all()` | retention grows unless bounded externally |
-| late subscribers to see only the current state | `replay().latest()` | retains the latest emitted value; `replay().latestOrDefault(default)` supplies a value before the first emission, while `replay().limit(1)` and `replay().latest()` replay the same latest value after emission |
-| late subscribers to see bounded recent history | `replay().limit(...)` | history is explicit by size or time |
-
-## Ready-to-adapt examples
-
-### `Sinks.one()` for one callback result
-
-```java
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-final class CallbackBridge {
-    Mono<String> loadValue() {
-        Sinks.One<String> sink = Sinks.one();
-        completeLater(sink);
-        return sink.asMono();
-    }
-    private void completeLater(Sinks.One<String> sink) {
-        sink.emitValue("done", Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-}
-```
-
-### Multicast sink for live fan-out
-
-```java
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
-final class EventBus {
-    private final Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
-    Flux<String> events() {
-        return sink.asFlux();
-    }
-    void publish(String event) {
-        sink.emitNext(event, Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-}
-```
-
-### Replay sink for late subscribers
-
-```java
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
-final class ReplayFeed {
-    private final Sinks.Many<String> sink = Sinks.many().replay().limit(3);
-    Flux<String> feed() {
-        return sink.asFlux();
-    }
-    void record(String value) {
-        sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-}
-```
-
-### `emitNext(...)` with explicit failure policy
-
-```java
-import reactor.core.publisher.Sinks;
-final class RetriedEmission {
-    void publish(Sinks.Many<String> sink, String value) {
-        sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-}
-```
-
-### `Sinks.empty()` for terminal-only signals
-
-```java
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-final class CompletionSignal {
-    Mono<Void> shutdownSignal() {
-        Sinks.Empty<Void> sink = Sinks.empty();
-        triggerShutdownLater(sink);
-        return sink.asMono();
-    }
-    private void triggerShutdownLater(Sinks.Empty<Void> sink) {
-        sink.emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-}
-```
-
-Use `Sinks.empty()` when the only signals are completion or error -- no payload value is carried.
-Call `tryEmitEmpty()` for normal termination or `tryEmitError(...)` for abnormal termination.
-Use `emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST)` only when a convenience emit API is deliberate.
-
-### `Sinks.many().unicast()` for single-subscriber streams
-
-```java
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
-final class UnicastStream {
-    private final Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
-    Flux<String> stream() {
-        return sink.asFlux();
-    }
-    void send(String value) {
-        sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-}
-```
-
-Unicast allows exactly one subscriber.
-A second subscription attempt receives an `IllegalStateException`.
-Use it when the downstream consumer is known to be singular (e.g., a dedicated processing pipeline).
+When implementing one, empty, unicast, multicast, replay, or explicit-emission sinks, read [the examples](references/sink-examples.md).
 
 ## Common pitfalls
 

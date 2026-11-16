@@ -33,7 +33,7 @@ Author and review Grafana dashboards as version-controlled assets while keeping 
   Check the target instance before copying examples.
 - Schema details in the references are authored summaries, not verbatim copies.
 
-Select the supporting reference for the affected dashboard fields or generation path from References below.
+Select the supporting reference for the affected fields or generation path below.
 
 ## Task Focus
 
@@ -48,293 +48,51 @@ Default to Grafana's V2 Resource model when the task is about Grafana 13 Observa
 Keep classic dashboard JSON for file provisioning, UI export cleanup, grafana.com dashboard sharing, or repositories that already store classic dashboard files.
 When a classic example includes `schemaVersion`, treat it as an example/export value and preserve or regenerate it from the target Grafana version instead of asserting that one number is universally current.
 
-## Minimal Setup
+## First Runnable Command
 
-Minimal dashboard JSON -- smallest valid shape for syntax testing:
-
-```json
-{
-  "uid": "api-overview",
-  "title": "API Overview",
-  "schemaVersion": 41,
-  "version": 1,
-  "refresh": "30s",
-  "panels": []
-}
-```
-
-Use when: you need a minimal valid dashboard shell to validate JSON syntax before adding content.
-
-## First Runnable Commands or Code Shape
-
-Start by validating the JSON structure before the file is treated as a Git-owned dashboard asset:
+Validate edited JSON before treating it as a Git-owned asset, using the actual path:
 
 ```sh
 uv run -m json.tool grafana/dashboards/api-overview.json
 ```
 
-Use when: the dashboard JSON was edited manually and you need the first fast syntax check.
-Run this from the repository root shown in the path examples, or replace the path with the dashboard file location in your tree.
+## Dashboard Examples
 
-## Ready-to-Adapt Templates
+For a dashboard shell, repeated panels, links, annotations, or query options, read [dashboard examples](./references/dashboard-examples.md) when implementing those features.
+Query `timeFrom` and `timeShift` are panel-level, not target-level; use PromQL `offset` for a per-query comparison.
+Do not hand-author computed `intervalMs` and `maxDataPoints` export values.
 
-### Full Dashboard Shell
+## Panel Selection
 
-Stable `uid`, clear title, one time-picker baseline, and one working panel:
-
-```json
-{
-  "uid": "api-overview",
-  "title": "API Overview",
-  "schemaVersion": 41,
-  "version": 1,
-  "refresh": "30s",
-  "time": { "from": "now-30m", "to": "now" },
-  "timezone": "browser",
-  "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"],
-    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-  },
-  "templating": { "list": [] },
-  "annotations": { "list": [] },
-  "panels": [
-    {
-      "id": 1,
-      "title": "Request Rate",
-      "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [
-        { "expr": "round(sum(rate(http_requests_total{job=\"api\"}[5m])), 0.001)", "legendFormat": "req/s", "refId": "A" }
-      ],
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
-    }
-  ]
-}
-```
-
-Use when: you need a small but production-shaped dashboard asset to expand from Git.
-
-### Variable and Repeat Pattern
-
-Merge this fragment into the full dashboard shell to drive repeated panels from one bounded query variable:
-
-```json
-{
-  "templating": {
-    "list": [
-      {
-        "name": "instance",
-        "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "query": "label_values(up{job=\"api\"}, instance)",
-        "current": { "selected": false, "text": "All", "value": "$__all" },
-        "hide": 0
-      }
-    ]
-  },
-  "panels": [
-    {
-      "title": "Request Rate - ${instance}",
-      "repeat": "instance",
-      "repeatDirection": "h",
-      "maxPerRow": 3
-    }
-  ]
-}
-```
-
-Use when: one panel shape should repeat across a bounded variable set without copying panel JSON by hand.
-This is a fragment to merge into the full dashboard shell, not a standalone importable dashboard.
-
-### Links and Annotations
-
-Merge this fragment into the dashboard shell to attach one drilldown path and one event context source directly to the dashboard:
-
-```json
-{
-  "annotations": {
-    "list": [
-      {
-        "name": "Deployments",
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        }
-      }
-    ]
-  },
-  "links": [
-    {
-      "title": "API Runbook",
-      "url": "https://runbooks.example.com/api"
-    }
-  ]
-}
-```
-
-Use when: operators need one direct drilldown and one timeline context source while reading the dashboard.
-This is a fragment to merge into the full dashboard shell, not a complete dashboard by itself.
-
-### Query Options
-
-Per-target fields that control how a Prometheus query runs:
-
-| Field | Type | Purpose |
-| --- | --- | --- |
-| `format` | string | `"time_series"` (default), `"table"`, or `"heatmap"`; maps to the UI Format option |
-| `instant` / `range` | boolean | Selects an instant or range query (Both sets both `true`; omit `instant` for a range query) |
-| `interval` | string | Min step and `$__interval` override (e.g., `15s`, `1m`); also accepts `$__rate_interval` |
-| `intervalMs` / `maxDataPoints` | integer | Computed by Grafana per request and serialized into exports; not authored by hand |
-| `legendFormat` | string | Legend template such as `"{{job}}"` or a fixed label |
-
-Time-range overrides such as `timeFrom` and `timeShift` are panel-level fields, not per-target.
-For day-over-day comparison inside one panel, shift the second query in PromQL with `offset` (for example `rate(http_requests_total[5m] offset 1d)`) instead of a per-target time shift.
-
-## Panel Type Decision Guide
-
-Choose the panel type based on what the operator needs to see.
-The most common types are listed first.
-Full JSON schemas for every panel type, including option keys such as `drawStyle`, `textMode`, and `graphMode`, are in [`./references/panel-types.md`](./references/panel-types.md).
-
-| Operator Question | Panel Type | Key Distinguishing Feature |
-| --- | --- | --- |
-| How does this metric change over time? | `timeseries` | Line/area chart with X = time axis |
-| What is the single current value? | `stat` | Large number with optional sparkline |
-| What is the value relative to min/max? | `gauge` | Arc gauge with color zones |
-| How do categories compare? | `barchart` | Vertical/horizontal bars, grouped/stacked |
-| What is the distribution of values? | `histogram` | Bucketed frequency distribution |
-| Where is density in two dimensions? | `heatmap` | Color-coded grid (X and Y axes) |
-| How is a whole divided? | `piechart` | Proportional slices |
-| What are the raw rows? | `table` | Tabular data with sorting/filtering |
-| What state was active when? | `statetimeline` | Colored horizontal bands per state |
-| How often did states change? | `statushistory` | Timeline of discrete status events |
-| What log lines match? | `logs` | Log viewer with highlighting |
-| What is the trace detail? | `traces` | Trace waterfall/duration view |
-| What is the flame graph? | `flamegraph` | Hierarchical call-stack profiling |
+When choosing a panel, read [panel selection](./references/panel-decision-guide.md) for operator questions and data shapes, and [panel types](./references/panel-types.md) for options and schemas.
 
 ## Variables, Transformations, and Field Config
 
-The common path uses these defaults.
-Open the owning reference for complete schemas:
+Use query variables for dynamic lists, custom variables for small static enums, and textbox variables for ad-hoc input; sanitize textbox query values against injection.
+Apply transformations in order; each receives the previous result.
+Field config sets units, decimals, thresholds, mappings, and links: the first threshold step has `value: null`, percentage mode needs explicit `min` and `max`, overrides pair matchers with properties, and first matching value mapping wins.
+For variable types, global variables, formats, and transformations, read [variables](./references/variables.md) when configuring them.
+For units, overrides, mappings, and links, read [field config](./references/field-config.md) when configuring those fields.
 
-- Variables: query variables for dynamic lists, custom variables for small static enums, textbox variables for ad-hoc input.
-  - Sanitize textbox values in queries to prevent injection.
-  - All 7 standard classic variable types, global variables, and format modifiers: [`./references/variables.md`](./references/variables.md)
-- Transformations reshape query results before rendering.
-  - Apply them in order.
-  - Each transformation receives the output of the previous one.
-  - Full catalog of 20+ transformation types: [`./references/variables.md`](./references/variables.md)
-- Field config controls units, decimals, thresholds, mappings, and data links after queries return results.
-  - The first threshold step always has `value: null` (base color).
-  - Percentage mode requires explicit `min`/`max` on the field.
-  - Overrides pair matchers with properties.
-  - Value mappings are evaluated in order and the first match wins.
-  - Unit catalog (~60 specifiers), all 5 override matcher types, all 4 mapping types, and the data link variable catalog: [`./references/field-config.md`](./references/field-config.md)
+## Frameworks and Time Controls
 
-## Best Practice Frameworks
-
-Structure dashboards around proven observability frameworks so every panel answers a meaningful operational question.
-
-### USE Method
-
-Focus on Utilization, Saturation, and Errors for resource-centric views.
-
-| Dimension | Question | Example Metric |
-| --- | --- | --- |
-| Utilization | How busy is the resource? | `node_cpu_seconds_total` (non-idle %) |
-| Saturation | How much demand is queued? | `node_load_avg`, queue depth, conn count |
-| Errors | How many operations failed? | Error rate, 5xx count, error ratio |
-
-### RED Method
-
-Focus on Rate, Errors, and Duration for request-driven services.
-
-| Dimension | Question | Example Metric |
-| --- | --- | --- |
-| Rate | How many requests per second? | `rate(http_requests_total[5m])` |
-| Errors | How many are failing? | `rate(http_requests_total{status=~"5.."}[5m])` |
-| Duration | How long do requests take? | `histogram_quantile(0.99, ...)` |
-
-### Four Golden Signals
-
-Google's SRE framework: Latency, Traffic, Errors, and Saturation.
-
-| Signal | Question | Example Metric |
-| --- | --- | --- |
-| Latency | How long do requests take? | Service response time percentiles |
-| Traffic | How much demand is there? | Requests/sec, connections/sec |
-| Errors | How many are failing? | Error rate, failure percentage |
-| Saturation | How close to capacity? | CPU, memory, disk, connection pool usage |
-
-## Time Picker and Repeat Behavior
-
-Dashboard-level time controls:
-
-| Field | Values | Purpose |
-| --- | --- | --- |
-| `timezone` | `"browser"`, `"utc"`, `"America/New_York"` etc. | Which timezone to use for display |
-| `graphTooltip` | `0` (single), `1` (per series), `2` (all series) | Tooltip behavior on hover |
-| `timepicker.hidden` | `true`, `false` | Hide the time picker UI entirely |
-| `refresh` | `"5s"`, `"10s"`, `"30s"`, `"1m"`, `"5m"` etc. | Auto-refresh interval |
-
-Repeat fields on a panel or row:
-
-| Field | Values | Effect |
-| --- | --- | --- |
-| `repeat` | variable name | Which variable drives repetition |
-| `repeatDirection` | `"h"`, `"v"` | Horizontal or vertical layout |
-| `maxPerRow` | integer | Max panels per row (horizontal mode only) |
-
-Keep one repeat driver per repeating panel or row.
-If you still need a two-dimensional layout, compose it from supported building blocks such as a repeated row for the outer dimension and panels inside that row using regular variable interpolation for titles and queries.
+For resource views use USE (utilization, saturation, errors); for request services use RED (rate, errors, duration) or the four golden signals (latency, traffic, errors, saturation).
+When applying these frameworks or configuring time and repeat controls, read [dashboard frameworks and time controls](./references/dashboard-layout.md).
+Keep one repeat driver per panel or row; compose a repeated row with interpolated panels for two dimensions.
 
 ## JSON Model Boundary
 
-Keep dashboard authoring and dashboard delivery separated even when both are reviewed together:
-
-```text
-reviewed source of truth: grafana/dashboards/api-overview.json
-adjacent but separate concern: provisioning file that points at this dashboard
-```
-
-Dashboard authoring belongs here.
-Provisioning configuration and rollout concerns stay in the adjacent delivery domain.
-Read-only API inspection and local authoring do not authorize imports, API writes, or publication to a Grafana instance.
-Obtain explicit authorization for the target before changing live dashboards.
-
-Direct dashboard asset layout -- keep the repository path explicit:
-
-```text
-grafana/
-  dashboards/
-    api-overview.json
-```
-
-Use when: the team keeps reviewed dashboard JSON directly in the repository rather than generating it from Jsonnet.
-For mixin configuration, Jsonnet source patterns, and source-vs-rendered handoff, see [`./references/grafana-mixin.md`](./references/grafana-mixin.md).
-For export cleanup decisions and ownership boundaries after UI edits or rendering, see [`./references/structure.md`](./references/structure.md).
+Keep authoring separate from provisioning and rollout.
+Read-only inspection and local authoring do not authorize imports, API writes, or publication; obtain explicit target authorization before changing live dashboards.
+For direct-source layout, mixin generation, export cleanup, or UI-edit ownership, read [ownership and layout](./references/ownership-and-layout.md), [mixin](./references/grafana-mixin.md), and [structure](./references/structure.md) as applicable.
 
 ## Validate the Result
 
-Review the affected dashboard fields with these checks:
-
-- dashboard JSON is syntactically valid
-- the dashboard has a stable `uid` and explicit title
-- the dashboard structure and panel arrangement answer one operator question
-- query expressions and datasource references are deliberate rather than copied from a random export
-- variables and repeated panels are present only when they improve the normal read path
-- transformations, field config, units, thresholds, and legends improve readability instead of hiding query problems
-- links and annotations add operator context without turning the dashboard into a navigation maze
-- the default time range supports the operator question and fits the target's query cost and retention
-- panel types match the operator question instead of defaulting to timeseries for everything
-- variable types match the data source (query for dynamic lists, custom for static enums)
-- overrides target the correct fields with appropriate matchers
-- value mappings handle edge cases (null, NaN, empty) explicitly
-- JSON model ownership is explicit: either the dashboard JSON is reviewed directly, or a generated workflow is documented
-
-Run the existing JSON or renderer checks for the changed source.
-Use available query or rendering evidence when panel behavior changes, and state what remains unverified.
-JSON parsing proves syntax, not datasource access or correct rendering in the target Grafana instance.
+Check JSON syntax, stable `uid` and title, explicit datasource and source ownership, and a panel arrangement that answers the operator question.
+Check query expressions, panel and variable types, repeated panels, transformations, fields, thresholds, legends, links, and annotations against that question.
+Ensure the time range fits the question, query cost, and retention; overrides match the intended fields and mappings handle null, NaN, and empty values.
+Run existing JSON or renderer checks, use query or rendering evidence when behavior changes, and state what remains unverified.
+JSON parsing alone does not prove datasource access or correct rendering in the target Grafana instance.
 
 ## Output contract
 
@@ -348,51 +106,22 @@ Return:
 3. validation results for JSON structure, datasource explicitness, and layout/readability checks
 4. any remaining blockers, risks, or follow-up review points
 
-## References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| Complete JSON schema for any panel type and its options | [`./references/panel-types.md`](./references/panel-types.md) |
-| Complete variable reference: 7 classic types, global vars, format options, advanced patterns, boolean-toggle convention | [`./references/variables.md`](./references/variables.md) |
-| Complete field config, override property IDs, value mappings, data link variables, unit catalog | [`./references/field-config.md`](./references/field-config.md) |
-| Mixin configuration and Jsonnet generation | [`./references/grafana-mixin.md`](./references/grafana-mixin.md) |
-| Export cleanup decisions, normalization targets, ownership boundaries after UI edits or rendering | [`./references/structure.md`](./references/structure.md) |
-
 ## Invariants
 
-- MUST keep dashboard identity stable with an explicit `uid`.
-- MUST validate edited JSON before claiming the dashboard is ready.
-- MUST keep datasource references explicit.
-- MUST NOT include unstable runtime-only fields in Git-owned dashboard JSON.
-- SHOULD keep panels organized around one operator story rather than a random metric collection.
-- SHOULD use variables, repeat, transformations, field config, thresholds, legends, links, and annotations only when they serve the operator question directly.
-- SHOULD choose panel types that match the operator question, not default to timeseries for everything.
-- SHOULD follow USE, RED, or Four Golden Signals framework when structuring service dashboards.
+- MUST keep an explicit stable `uid`, validate edited JSON, and keep datasource references explicit.
+- MUST NOT include unstable runtime-only fields in Git-owned JSON.
+- SHOULD organize panels around one operator story, choose fitting panel types, and add variables, repeat, transformations, field config, thresholds, legends, links, or annotations only when useful to that question.
+- SHOULD use USE, RED, or Four Golden Signals for service dashboards.
 
 ## Common Pitfalls
 
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| copying a UI export with unstable metadata and no cleanup | reviews become noisy and identity drifts | normalize the JSON and keep a stable `uid`, title, and panel structure |
-| choosing a default range without considering the operator question or query cost | the dashboard can omit needed history or scan unnecessary data | select a range suited to the task and deployment |
-| treating generated or exported dashboard JSON as authoritative without checking the source workflow behind it | reviewers lose track of the asset source | keep direct JSON and mixin-generated workflows explicit and review the right source of truth |
-| mixing unrelated panels into one dashboard | operators cannot read the story quickly | group panels by one question such as traffic, latency, and errors |
-| leaving datasource references implicit or environment-specific without review | dashboards break when moved between environments | make datasource references explicit in the dashboard asset itself |
-| using timeseries panels for everything regardless of the question | single values look wrong on line charts, categorical data looks wrong on time axes | pick the panel type that matches the data shape and operator question |
-| using `$var` syntax with `=` for multi-value variables in PromQL label matchers | multi-value selections expand as a regex alternation, not as one literal label value | use `=~"${var:regex}"` and set a safe custom All value such as `.+` when needed |
-| forgetting to handle null/NaN in value mappings | missing data shows as ugly raw values or breaks visualizations | always include a `special` mapping for `null` and `NaN` |
-| putting thresholds on a field without setting min/max when using percentage mode | percentage thresholds have no basis and behave unpredictably | either use absolute mode, or set explicit `min` and `max` for percentage mode |
-| overriding by name on auto-generated field names like "Value #A" | field names change when queries are edited, breaking overrides | use `byRegexp` or `byFrameRefID` matchers for query-derived fields |
+Normalize UI exports and keep stable identity and the correct source of truth.
+Select the time range, panel type, and datasource for the operator question and target environment.
+For multivalue PromQL variables use `=~"${var:regex}"` and a safe custom All value such as `.+` when needed.
+Map null and NaN explicitly; percentage thresholds require field `min` and `max`.
+Use `byRegexp` or `byFrameRefID` for query-derived fields whose generated names may change.
 
 ## Scope Boundaries
 
-- Activate this skill for:
-  - Grafana dashboard JSON authoring and review
-  - dashboard identity, panel organization, variables, transformations, field config, thresholds, legends, units, links, annotations, panel types, overrides, value mappings, data links, query options, best practice frameworks, and JSON-model-aware review
-- Do not activate for:
-  - Prometheus rule files and rule evaluation guidance
-  - deep PromQL language design beyond what is needed to read or place a dashboard query
-  - dashboard provisioning configuration files and environment rollout policy
-  - application instrumentation choices
-  - generic UI styling choices outside observability dashboards
-  - Grafana alerting rules and contact routing (alert rule JSON is a separate concern)
+This skill covers Grafana dashboard assets, identity, layout, panel and query options, variables, transformations, field settings, and model-aware review.
+It excludes Prometheus rule files, deep PromQL design, provisioning and rollout, instrumentation, generic UI styling, and Grafana alerting or contact routing.
