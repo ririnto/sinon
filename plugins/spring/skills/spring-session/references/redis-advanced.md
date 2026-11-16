@@ -48,17 +48,25 @@ Spring Security's concurrent-session control does not require that method.
 ## JSON serialization
 
 The default serializer is Java serialization.
-Switch to JSON when multiple applications share the Redis instance or when class evolution between deployments makes default serialization fragile.
+Consider JSON when multiple applications share the Redis instance or class evolution makes Java serialization fragile. Test the serializer and mapper with the actual dependency versions and session attributes.
+The `springSessionDefaultRedisSerializer` bean selects the serializer; changing it does not migrate stored values.
+`GenericJackson2JsonRedisSerializer` is deprecated for removal in Spring Data Redis 4.0.
+A custom mapper must preserve the type information needed for polymorphic values and use the appropriate Spring Security Jackson modules when security objects are stored.
+Verify the actual authentication and principal types, including custom classes, rather than assuming that registering modules guarantees compatibility.
 
-```java
-@Configuration
-class SessionConfig {
-    @Bean
-    RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        return new GenericJackson2JsonRedisSerializer();
-    }
-}
-```
+### Serialization transition
+
+Before sharing a namespace during a rollout, test both directions with the old and new deployed versions, serializers, mapper settings, and representative attributes, including the security context.
+Test Java-to-JSON separately from JSON-to-JSON version changes.
+Use a real disposable Redis instance and the repository type in use to test partial field updates in the same session hash, mixed formats, expiration and rollback.
+A successful serializer-only round trip does not establish repository behavior.
+
+If either version cannot read all values the other can write, do not perform a mixed-version rollout in the same namespace.
+Choose a tested migration with an upgrade and rollback plan, isolate the new format in a separate namespace with reauthentication and old-session expiry or cleanup, or explicitly invalidate existing sessions and require reauthentication.
+Coordinate traffic cutover and drain or block old writers before invalidation so they cannot recreate incompatible sessions.
+Plan rollback after new-format writes for each choice.
+Account for traffic routing, old session expiry, and rollback after new-format writes; a namespace change alone does not transfer sessions.
+For indexed repositories also verify indexes, expiration keys and lifecycle events; their expiration handling differs from the default repository.
 
 ## Session events
 
@@ -163,8 +171,8 @@ session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,
 
 - Do not switch to the indexed repository just to get events.
   - Use explicit event handling only when the application has a concrete listener that acts on session lifecycle transitions.
-- Do not mix serialization strategies across applications sharing the same Redis namespace.
-  - Pick one and enforce it in every application.
+- Do not mix incompatible or unverified serialization strategies across applications sharing the same Redis namespace.
+  - Enforce one strategy or validate both directions and rollback for a transition.
 - Do not assume `SessionExpiredEvent` fires at the exact moment of TTL expiry.
   - Redis expiration is approximate and events may arrive with delay.
 - Do not use the in-memory Spring Security `SessionRegistryImpl` when concurrent-session limits must work across nodes.
