@@ -177,7 +177,7 @@ catalogs:
       specifier: ^0.4.0
       version: 0.4.0
     '@oxlint/plugins':
-      specifier: 1.93.0
+      specifier: ^1.93.0
       version: 1.93.0
     '@tsconfig/node24':
       specifier: ^24.0.6
