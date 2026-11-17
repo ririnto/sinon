@@ -75,7 +75,8 @@ Examples do not authorize public listeners, external connections, or changes to 
 ### Channel and future lifecycle
 
 - `bind(...)`, `connect(...)`, `writeAndFlush(...)`, and `close(...)` are asynchronous and return `ChannelFuture`.
-- Use `sync()` at process boundaries when straightforward startup and shutdown flow is wanted.
+- At process boundaries, `sync()` may simplify startup or shutdown.
+- Never wait on an unfinished `ChannelFuture` on an I/O thread.
 - Use listeners instead of blocking when you need non-blocking continuation.
 
 ### Bootstrap options
