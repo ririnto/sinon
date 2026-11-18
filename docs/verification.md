@@ -38,9 +38,9 @@ Start with the row matching the changed behavior, then run the complete gate bef
 
 | Changed surface | Command | Observable evidence |
 | --- | --- | --- |
-| Java launcher and Lombok discovery | `pnpm run check:test plugins/java/tests` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
-| Harness installation, profiles, and custom lint rules | `pnpm run check:test rules plugins/harness/tooling/pnpm plugins/harness/tests` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
-| Specification commands | `pnpm run check:test plugins/spec-driven-development/tests` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
+| Java launcher and Lombok discovery | `pnpm run check:test:unit plugins/java/tests` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
+| Harness installation, profiles, and custom lint rules | `pnpm run check:test:unit rules plugins/harness/tooling/pnpm plugins/harness/tests` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
+| Specification commands | `pnpm run check:test:unit plugins/spec-driven-development/tests` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
 | Promtool release verification and process handling | `pnpm run check:test:unit plugins/observability-assets/tests/promtool` | Local archive and process fixtures test integrity checks and child-process behavior. |
 | Promtool lifecycle models | `pnpm run check:promtool` | TLC checks bounded download and child lifecycle models. |
 | Prometheus rule examples | `pnpm run check:test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
