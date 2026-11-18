@@ -276,6 +276,10 @@ const addTypeScriptProfile = async (
     throw new TypeError("Expected compiler options.");
   }
   const compilerOptions = { ...fragment.compilerOptions };
+  if (typescriptProfile === "node") {
+    compilerOptions.outDir = "./dist";
+    compilerOptions.rewriteRelativeImportExtensions = true;
+  }
   if (typescriptProfile === "react-native") {
     delete compilerOptions.verbatimModuleSyntax;
     compilerOptions.moduleResolution = "bundler";

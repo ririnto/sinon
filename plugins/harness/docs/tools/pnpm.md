@@ -55,6 +55,8 @@ metadata:
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/exactOptionalPropertyTypes.html
+        - https://www.typescriptlang.org/tsconfig/outDir.html
+        - https://www.typescriptlang.org/tsconfig/rewriteRelativeImportExtensions.html
         - https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html
         - https://www.typescriptlang.org/tsconfig/verbatimModuleSyntax.html
     npm-run-all2:
@@ -354,6 +356,7 @@ Install the selected base as a target-owned development dependency and add its v
 Keep the Node runtime version independent of the TypeScript base package's version.
 A fresh root can use the configurator's `--typescript-profile` option; JavaScript-only roots omit the framework selection but still receive a non-emitting compiler configuration for type-aware linting.
 The configurator applies the strictness fragment while omitting options already supplied by the base.
+A fresh Node TypeScript profile writes JavaScript to `dist/` and rewrites relative TypeScript import extensions for the emitted modules.
 React Native uses bundler module resolution for Metro and omits `verbatimModuleSyntax`, which conflicts with the base's CommonJS module setting.
 Next source includes and the Vite build-info path are target-relative.
 The Vue profile selects TypeScript 6 through a named catalog for compatibility with Vue language tooling.

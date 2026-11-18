@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { configureBaseline } from "../../plugins/harness/scripts/configure.ts";
+import { readUltraciteResult } from "../../plugins/harness/tests/ultracite-fixture.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const run = (directory: string, args: string[]): void => {
@@ -59,23 +60,32 @@ const checkRenderer = async (renderer: "html" | "react"): Promise<void> => {
     run(directory, ["install"]);
     run(directory, ["run", "check:ultracite"]);
     run(directory, ["run", "check:storybook"]);
+    const boundary = path.join("src", "type-aware-boundary.ts");
     await writeFile(
-      path.join(directory, "src/type-aware-boundary.ts"),
+      path.join(directory, boundary),
       "void Promise.resolve();\n"
     );
-    const result = spawnSync(
-      "pnpm",
-      ["--dir", directory, "run", "check:ultracite"],
-      { encoding: "utf-8" }
+    const { status, diagnostics } = readUltraciteResult(
+      spawnSync("pnpm", [
+        "--dir",
+        directory,
+        "run",
+        "check:ultracite",
+        "--format",
+        "json"
+      ])
     );
-    const diagnostics = `${result.stdout}${result.stderr}`;
     if (
-      result.status !== 1 ||
-      !diagnostics.includes("type-aware-boundary.ts:") ||
-      !diagnostics.includes("typescript(no-floating-promises)")
+      status !== 1 ||
+      !diagnostics.some(
+        ({ code, filename }) =>
+          code === "typescript(no-floating-promises)" &&
+          filename !== undefined &&
+          path.normalize(filename) === boundary
+      )
     ) {
       throw new Error(
-        "The generated consumer did not enforce its type-aware promise policy"
+        `Missing no-floating-promises diagnostic for ${boundary}: ${JSON.stringify(diagnostics)}`
       );
     }
   } finally {
