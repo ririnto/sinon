@@ -104,7 +104,7 @@ Change it only to test another client line in the compatibility matrix; check th
 
 ## Testing checklist
 
-Select checks for affected delivery contracts and regression risks.
+Check delivery against the topic and subscription mode used by the listener.
 
 - Verify producer and consumer agree on topic name and payload shape.
 - Verify subscription behavior matches the intended processing model and concurrency setting.

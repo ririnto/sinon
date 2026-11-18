@@ -101,7 +101,7 @@ For message factory selection, endpoint URIs, payload-root mappings, or SOAP res
 
 ## Verification
 
-Use existing SOAP tests for the changed contract and regression risks.
+Send a representative XML message through the affected endpoint or client and inspect its reply or fault.
 Select server or client coverage for the affected side of the integration, using real XML payloads.
 Select the checks that apply:
 

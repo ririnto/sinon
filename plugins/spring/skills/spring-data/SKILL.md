@@ -88,7 +88,7 @@ For examples of queries, projections, paging, scrolling, fragments, callbacks, o
 
 ## Testing checklist
 
-Select checks for the changed contract and regression risks.
+Check the changed repository operation against the configured store.
 Use the existing native test setup.
 
 - Verify repository methods map to the intended query behavior.

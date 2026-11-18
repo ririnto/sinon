@@ -106,7 +106,7 @@ Run only the relevant checks below and report the command, result, and any unver
 - After `javac`, confirm the class output exists and `java -cp` starts successfully.
 - After `jshell`, confirm the target classes are loadable from `--class-path` and the first expression evaluates successfully.
 - After `jdeps`, confirm the reported modules match the application expectations.
-- After `jlink`, run `build/runtime/bin/java --version` to verify the image is usable.
+- After `jlink`, check the image runtime and exercise its application entry point when launchability is part of the deliverable.
 - After `jpackage`, verify the generated app image or installer exists for the target platform.
 
 Use [output shapes](./references/tool-output-shapes.md) when interpreting compiler, runtime, module, image, JShell, or Javadoc output.

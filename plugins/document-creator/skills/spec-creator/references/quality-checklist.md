@@ -132,7 +132,7 @@ If revision requires human judgment, record a focused open question instead of g
 ### When a checklist item fails
 
 1. Attempt to fix the issue directly (rewrite the section, add missing scenario, clarify vague term).
-2. If the fix requires human judgment, stop and record the issue as a focused open question instead of guessing.
+2. Record a decision that requires the owner as a focused open question and finish reviewing the independent requirements.
 3. Do not proceed to deliver the spec until all checklist failures are either fixed or explicitly captured as open questions.
 
 ### Example: missing scenario

@@ -96,4 +96,4 @@ Use [test templates](./references/test-templates.md) when implementing JUnit sce
 
 For test changes, run the affected native tests and fix failures caused by the change within scope.
 Report the behavior covered, exact command and result, and any unverified boundary.
-Do not stop after producing a failing test when the task also authorizes the fix.
+When the fix is in scope, rerun the failing scenario against the corrected production code.

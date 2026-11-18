@@ -51,7 +51,7 @@ If materially different history choices remain unresolved, return the choice and
 
 ## Completion
 
-Return the smallest justified workflow, needed commands, validation, and any precise blocker.
-Distinguish suggested actions from actions actually performed.
+Return the workflow justified by the observed Git state.
+Identify which command the caller can run under its grant and which outcome still requires verification.
 Do not include empty risk sections, repeated checklists, or a full Git tutorial unless requested.
 Keep change rationale self-contained and omit external work-item identifiers and review URLs.

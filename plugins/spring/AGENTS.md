@@ -10,6 +10,8 @@ metadata:
 # Repository Guidelines
 
 Open the affected skill before changing examples or version-specific guidance.
+Frame the task around the Spring contract its caller can observe, such as an HTTP response or a redelivered message.
+Route optional recipes by that contract so a narrow task can finish without configuring an unrelated integration.
 
 ## Release Sources
 

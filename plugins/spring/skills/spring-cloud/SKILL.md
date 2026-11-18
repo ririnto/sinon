@@ -96,7 +96,7 @@ Prefer Interface Clients for new Boot 4.x work when suitable; retain OpenFeign f
 
 ## Testing checklist
 
-Select checks for changed contracts and regression risks.
+Exercise the affected client under its normal and degraded service conditions.
 Runtime verification applies after authorized operations, not as a reason to deploy during an application-code task.
 
 ### Distributed-system wiring

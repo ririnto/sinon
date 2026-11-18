@@ -11,7 +11,7 @@ metadata:
 
 # Implement
 
-Complete the requested change with the minimum sufficient edit.
+Implement the requested behavior through the interface its caller uses.
 Use the [shared engineering rules](../../docs/rules.md) for instruction discovery, authority, planning, proof, and completion.
 From their index, load language guidance for changed source and tool guidance for affected build or validation profiles.
 Read design, interface, and test-quality sections when those surfaces change.

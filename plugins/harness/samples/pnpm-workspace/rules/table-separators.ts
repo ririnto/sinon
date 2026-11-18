@@ -1,5 +1,7 @@
 import type { MicromarkToken, Rule } from "markdownlint";
 
+import { protectedDocument } from "./markdown-prose.ts";
+
 const separatorFiller = "---";
 
 /**
@@ -27,28 +29,30 @@ const collect = (
 const rule: Rule = {
   description: "Markdown table separators must use exactly three hyphens",
   function: (params, onError) => {
-    const delimiterRows = collect(
-      params.parsers.micromark?.tokens ?? [],
-      "tableDelimiterRow"
-    );
-    for (const row of delimiterRows) {
-      for (const [index, cell] of collect(
-        row.children,
-        "tableDelimiter"
-      ).entries()) {
-        const [filler] = collect(cell.children, "tableDelimiterFiller");
-        if (filler !== undefined && filler.text !== separatorFiller) {
-          onError({
-            context: row.text.trim(),
-            detail: `Separator cell ${index + 1} must use exactly ${separatorFiller}.`,
-            fixInfo: {
-              deleteCount: filler.text.length,
-              editColumn: filler.startColumn,
-              insertText: separatorFiller
-            },
-            lineNumber: filler.startLine,
-            range: [filler.startColumn, filler.text.length]
-          });
+    if (!protectedDocument(params)) {
+      const delimiterRows = collect(
+        params.parsers.micromark?.tokens ?? [],
+        "tableDelimiterRow"
+      );
+      for (const row of delimiterRows) {
+        for (const [index, cell] of collect(
+          row.children,
+          "tableDelimiter"
+        ).entries()) {
+          const [filler] = collect(cell.children, "tableDelimiterFiller");
+          if (filler !== undefined && filler.text !== separatorFiller) {
+            onError({
+              context: row.text.trim(),
+              detail: `Separator cell ${index + 1} must use exactly ${separatorFiller}.`,
+              fixInfo: {
+                deleteCount: filler.text.length,
+                editColumn: filler.startColumn,
+                insertText: separatorFiller
+              },
+              lineNumber: filler.startLine,
+              range: [filler.startColumn, filler.text.length]
+            });
+          }
         }
       }
     }

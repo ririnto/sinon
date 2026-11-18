@@ -71,5 +71,4 @@ Do not invent version, module, or deployment assumptions.
 ## Result
 
 Return the design decision, supporting repository evidence, and material tradeoffs or blockers.
-Name the loaded skills and any boundary that limits the recommendation.
-The analysis is complete when it resolves the requested Spring decision or identifies the evidence needed to resolve it.
+Name the skills that informed the decision and the evidence needed for any unresolved compatibility or deployment question.

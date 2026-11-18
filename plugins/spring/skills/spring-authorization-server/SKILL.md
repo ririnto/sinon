@@ -73,7 +73,7 @@ Logout, device authorization, PAR, dynamic registration, introspection, and revo
 ## Validation and production
 
 Verify affected protocol and deployment contracts on success and rejection paths: metadata issuer and endpoints, registered and unregistered redirects, valid and invalid PKCE, the required valid verifier for public clients, approved scopes and claims, and unknown clients or invalid scopes.
-Before clustered production, verify keys, clients, authorization state, and consent survive restart.
+For a clustered rollout, verify keys, clients, authorization state, and consent after restart.
 Keep the issuer stable behind proxies and TLS; protect keys and plan overlapping rotation.
 Persist clients, authorizations, and consent when continuity matters.
 Provision redirect URIs, scopes, grants, and client authentication explicitly.

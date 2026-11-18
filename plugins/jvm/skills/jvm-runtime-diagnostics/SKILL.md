@@ -87,8 +87,7 @@ Use [diagnostic capture templates](./references/diagnostic-capture-templates.md)
 Tie the diagnosis to the target process and captured evidence, and separate confirmed causes from hypotheses.
 Validate only the capture used: thread detail, recording name and status, or enabled Native Memory Tracking, as applicable.
 Explain any escalation beyond `jcmd` and any missing evidence that prevents a diagnosis.
-Finish the authorized investigation.
-Do not gather unrelated captures to fill a checklist.
+Stop collecting when the existing evidence answers the operator’s question or further capture exceeds the grant.
 
 Use [output shapes](./references/diagnostic-output-shapes.md) when interpreting process discovery, thread, heap, histogram, native-memory, or JFR output.
 

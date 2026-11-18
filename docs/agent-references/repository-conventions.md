@@ -51,7 +51,7 @@ Do not count test references as production reuse.
 Preserve behavior, evaluation count and order, side effects, resource lifetime, and required production interfaces.
 Preserve exception timing, mutable snapshots, capture, and overload or receiver resolution.
 Retain bindings or helpers only for required production interfaces, preserved semantics, or configured lint.
-State the concrete reason for each retained binding or helper.
+Explain a retained binding or helper when removing it would change behavior in a way a reviewer could miss.
 Do not suppress, weaken, or reconfigure lint to satisfy these preferences.
 
 Change production code only for a real product requirement or an actual defect.

@@ -117,7 +117,7 @@ It also changes test-server behavior, HTTP client cookie handling, response comp
 
 ## Test strategy baseline
 
-Choose the narrowest Boot test that proves the behavior.
+Choose the smallest Boot test that loads the changed wiring.
 
 | Need | Start here |
 | --- | --- |

@@ -120,6 +120,9 @@ Check the relevant invariants below rather than testing every builder and protoc
 - [ ] error handling uses reactive operators such as `onErrorResume` or explicit response composition rather than blocking try/catch inside lambdas
 - [ ] response consumption shape (`.responseSingle()` vs `.responseContent()`) matches the use case
 
+Complete the authorized change and explain its builder, response, resource, or shutdown consequences.
+Report the checks run and any unverified transport or operational behavior.
+
 ## References
 
 Open these advanced references when the common path is not enough:
@@ -131,8 +134,3 @@ Open these advanced references when the common path is not enough:
 | HTTPS, custom trust, or mTLS | [ssl-tls.md](./references/ssl-tls.md) |
 | wiretap, metrics, or access logging | [metrics-and-observability.md](./references/metrics-and-observability.md) |
 | WebSocket client or server flow | [websocket.md](./references/websocket.md) |
-
-## Result
-
-Complete the authorized change and explain its builder, response, resource, or shutdown consequences.
-Report the checks run and any unverified transport or operational behavior.

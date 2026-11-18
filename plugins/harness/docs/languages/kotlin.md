@@ -151,7 +151,7 @@ Keep the original exception type, message, evaluation order, wrapper contract, a
 
 Follow the target project's lambda naming conventions.
 Name lambda parameters when doing so clarifies their role or avoids ambiguity.
-When active, the `harness:implicit-lambda-it` rule reports uses of implicit `it`.
+Check the expected function type before renaming `it`: a receiver or enclosing scope can supply that name to a parameterless lambda.
 Use `_` only for a genuinely unused parameter.
 Do not confuse the Kotest DSL form `it("description")` with an implicit lambda parameter.
 Use extension functions when ownership or the call site benefits.
@@ -191,7 +191,7 @@ Use raw strings (`"""`) for regular expressions and JSON fixtures.
 Use raw triple-quoted strings with `trimIndent()` for multiline code text instead of escaped newline strings.
 Preserve the intended indentation, newline data, and interpolation when changing string form.
 Prefer direct string helpers before regular expressions.
-Use `String.toRegex()` when a regular expression is required.
+Prefer `String.toRegex()` when constructing a standard Kotlin regular expression from a pattern string.
 Know whether the trailing newline before the closing delimiter is part of the value, and match the exact target.
 
 ## Filesystem Paths

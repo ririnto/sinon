@@ -139,7 +139,7 @@ The example becomes firing after the expression keeps returning a matching serie
 
 ## Output
 
-Return the decision, its operator question, and the matching namespaced skill.
+Lead with the operator question, the recommended asset change, and the namespaced skill that owns it.
 Include a query or asset shape with explicit units when needed to explain the decision.
 Name required validation and unresolved deployment assumptions without claiming checks this read-only agent cannot run.
 

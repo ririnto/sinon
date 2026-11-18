@@ -145,7 +145,7 @@ Add separate tests for validation retention, backtracking, recovery, and subflow
 
 ## Verification
 
-Use existing tests for the changed flow contract and regression risks.
+Drive the affected event from its source state and check navigation and flow-scoped data.
 Choose focused transition tests unless startup, mapping, or a complete conversation is the behavior under change.
 Select the checks that apply:
 

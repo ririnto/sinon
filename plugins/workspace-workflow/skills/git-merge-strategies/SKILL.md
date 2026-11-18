@@ -115,7 +115,8 @@ Resolve discrepancies before dependent work or task-owned branch and worktree cl
 
 ### Handoff
 
-Report source and target, merge mode, resulting commit, checks, and unresolved conflicts or blockers.
+Report source, target, merge mode, resulting commit, and checks.
+For a PR merge, distinguish the posted merge from synchronization of the base worktree.
 Do not push, delete remote branches, or rewrite published history without a separate applicable grant.
 Remove a completed local branch or worktree only when cleanup is authorized and retained work is verified.
 Use repository-relative paths and portable examples in committed descriptions.

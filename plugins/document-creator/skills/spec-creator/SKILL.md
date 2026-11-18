@@ -72,6 +72,6 @@ Remove irrelevant sections rather than leaving empty headings or placeholders.
 Continue through drafting, requirement-quality review, and authorized corrections.
 Use the applicable checklist sections once.
 Do not add implementation tests for spec prose.
-Deliver the requested content or save it to the requested path.
-Report only material unresolved decisions and validation limits.
+Deliver the requested content or file so an implementer can identify the contract and its acceptance criteria without the drafting conversation.
+Report material unresolved decisions and validation limits.
 A draft may retain explicit Open Questions, but MUST NOT present unresolved guesses as approved requirements.

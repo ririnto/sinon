@@ -209,4 +209,4 @@ public interface RetryStrategy {
 ## Result
 
 Explain the chosen type shape and material contract changes, with the Java baseline when relevant.
-For implementation tasks, complete the authorized change and verify affected callers and behavior.
+For implementation work, compile an affected caller and exercise the behavior its public type contract promises.

@@ -89,16 +89,10 @@ Use [GC capture templates](./references/gc-capture-templates.md) when gathering 
 
 ## Completion
 
-Check the conclusions relevant to the requested diagnosis or collector recommendation:
-
-- active collector known from runtime data, not assumption
-- Java version/LTS boundary known before collector availability discussed
-- operator knows whether runtime uses legacy or unified logging
-- collector flags checked against the actual runtime era
-- recommendation framed in pause/throughput/footprint, not collector branding
-- no collector switch until GC evidence shows default is a mismatch
-
-Report the evidence, recommendation, and any unresolved capture or rollout requirement.
+Identify the running JDK and collector from the capture and interpret flags against that version's logging and collector support.
+Tie the recommendation to the observed pause, throughput, or footprint requirement.
+Recommend a collector change only when the evidence shows the current collector misses that requirement.
+Name the measurement or authorized rollout decision still needed.
 
 Use [output shapes](./references/diagnostic-output-shapes.md) when interpreting GC heap, collector flags, JFR status, or GC log output.
 

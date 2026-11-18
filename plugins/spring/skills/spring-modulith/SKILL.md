@@ -92,7 +92,7 @@ Use boundary verification for structural changes and module tests for interactio
 
 ## Testing checklist
 
-Select checks for affected module boundaries, interactions, and regression risks.
+Verify the affected module boundary or cross-module event through the application.
 
 - Verify module verification runs in CI and fails on illegal dependencies.
 - Verify public entry points are the only paths other modules use.

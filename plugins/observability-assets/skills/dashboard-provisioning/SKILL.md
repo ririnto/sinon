@@ -86,15 +86,8 @@ Use existing deployment checks when rollout is authorized and state unverified r
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The recommended provider YAML or review decision
-2. The dashboard source path, folder strategy, and environment application shape
-3. Validation or deployment checks, including how Grafana will discover the provider file and dashboard path
-4. Remaining risks, assumptions, or drift-related caveats
+Give the provider file, dashboard source path, and expected Grafana folder for the target environment.
+Report which discovery or drift behavior was verified and whether deployment still requires action.
 
 ## References
 

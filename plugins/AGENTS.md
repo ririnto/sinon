@@ -20,7 +20,10 @@ Use each package README for its component inventory and supported runtime.
 
 ## Skill Content Authoring
 
-Local reference filenames omit parts redundant with the owning skill's subject while keeping the distinguishing topic or version.
+Make each discovery description distinguish the task from neighboring skills.
+Keep the deliverable, authority boundary, and first conditional reference visible when a skill loads.
+Name local references by their distinguishing topic or version.
+Check instructions from the installed package layout, including references opened by a host agent.
 
 ## Validation
 

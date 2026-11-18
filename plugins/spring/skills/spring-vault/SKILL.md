@@ -101,7 +101,7 @@ For custom CA trust, include Apache HttpClient 5; supply a custom `CredHubOperat
 
 ## Output contract
 
-Report the changed Vault or CredHub contract, authentication and failure behavior, and verification results.
+Identify the authentication or lookup path exercised and its observed success or failure.
 Identify unverified integration behavior or blockers without exposing secrets.
 Follow the task's required response format.
 

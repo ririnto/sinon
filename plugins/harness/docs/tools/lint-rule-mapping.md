@@ -64,17 +64,19 @@ An effective command enforces a row only in targets that materialize the owning 
 ## Oxlint Policies
 
 Each retained module remains self-contained and independently registrable through Oxlint `jsPlugins`.
-The root configuration registers the style modules through explicit unique aliases so their default `style` metadata cannot collide.
+The materialized pnpm configuration registers style modules under distinct aliases.
+Sinon's publishing-root configuration registers the React and TSDoc plugins separately.
 Each adopted rule runs in the same check and fix invocation.
+Punctuation in source strings may be a protocol identifier, a translation, or quoted content.
+Review source prose in context and keep punctuation diagnostics in Markdown where authored paragraphs are identifiable.
 
 | Custom ID | Upstream comparison | Decision and distinguishing behavior | Pillars | Effective enforcement |
 | --- | --- | --- | --- | --- |
-| `function-spacing/no-blank-lines-in-functions` | Stylistic empty-line, block-padding, and statement-padding rules | Retain because physical gaps inside function expressions and proven-registration exceptions differ from global or statement-level padding. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
-| `function-comments/no-inline-comments-in-functions` | Native `eslint/no-inline-comments` and `eslint-plugin-no-comments` | Retain because standalone explanatory comments, declaration attachment, directives, and licenses require different predicates without comment-removal fixes. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
-| `test-spacing/sibling-test-spacing` | Native Jest padding and Vitest or Jest `padding-around-all` | Retain because exactly one blank line between adjacent proven registrations differs from generic padding around calls. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
-| `prose-style/no-em-dash` | Native text-pattern bans on irregular or extended characters | Author a diagnostic-only rule because comment and string or JSX prose scoping with the standalone-glyph exemption exceeds character-pattern matching. | Consistency, maintainability | `check:ultracite` runs the root Oxlint configuration. |
-| `tsdoc/require-export-tsdoc` | JSDoc `require-jsdoc` and `multiline-blocks`, plus TSDoc `syntax` | Retain because export statements, effective class visibility, and every preceding block's delimiters exceed those rules' contracts. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
-| `react-effects/no-direct-use-effect` | React Compiler rules, including `set-state-in-effect` | Author a diagnostic-only rule because upstream accepts legitimate effects and does not prohibit every direct React effect call. | Stability, maintainability | `check:ultracite` runs the root Oxlint configuration. |
+| `function-spacing/no-blank-lines-in-functions` | Stylistic empty-line, block-padding, and statement-padding rules | Retain because physical gaps inside function expressions and proven-registration exceptions differ from global or statement-level padding. | Consistency, maintainability | `check:ultracite` runs the profile’s Oxlint configuration. |
+| `function-comments/no-inline-comments-in-functions` | Native `eslint/no-inline-comments` and `eslint-plugin-no-comments` | Retain because standalone explanatory comments, declaration attachment, directives, and licenses require different predicates without comment-removal fixes. | Consistency, maintainability | `check:ultracite` runs the profile’s Oxlint configuration. |
+| `test-spacing/sibling-test-spacing` | Native Jest padding and Vitest or Jest `padding-around-all` | Retain because exactly one blank line between adjacent proven registrations differs from generic padding around calls. | Consistency, maintainability | `check:ultracite` runs the profile’s Oxlint configuration. |
+| `tsdoc/require-export-tsdoc` | JSDoc `require-jsdoc` and `multiline-blocks`, plus TSDoc `syntax` | Retain because export statements, effective class visibility, and every preceding block's delimiters exceed those rules' contracts. | Stability, maintainability | `check:ultracite` runs the profile’s Oxlint configuration. |
+| `react-effects/no-direct-use-effect` | React Compiler rules, including `set-state-in-effect` | Author a diagnostic-only rule because upstream accepts legitimate effects and does not prohibit every direct React effect call. | Stability, maintainability | `check:ultracite` runs the profile’s Oxlint configuration. |
 
 The root configuration registers `eslint-plugin-react-hooks` through `jsPlugins` with `name: "react-hooks-js"` and `specifier: "eslint-plugin-react-hooks"`.
 Its five selected upstream rules and the native spread rule run in the same invocation as the custom modules.
@@ -103,7 +105,7 @@ The adopted standards reside in lint configuration instead of duplicate guidance
 | Previous custom ID | Upstream comparison | Decision and distinguishing behavior | Pillars | Effective enforcement |
 | --- | --- | --- | --- | --- |
 | `docs/no-box-drawing` | Configured `markdownlint-rule-search-replace` | Replace with `search-replace` because the configured pattern preserves the first box character per line, UTF-16 ranges, code coverage, and diagnostic-only behavior. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured search-replace rule in root and materialized pnpm profiles. |
-| `docs/table-separators` | Built-in `MD060/table-column-style` | Retain because compact table spacing permits delimiter cells longer than three hyphens. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured table rule in root and materialized pnpm profiles. |
+| `docs/table-separators` | Built-in `MD060/table-column-style` | Normalize delimiter cells in authored tables and preserve generated documents and license text. | Consistency, maintainability | `check:markdownlint-cli2` runs the configured table rule in root and materialized pnpm profiles. |
 | `docs/no-em-dash` | Text-scoped search-replace and extended-ASCII restrictions | Retain because authored-prose protections permit quotations, headings, and unrelated Unicode. | Consistency, maintainability | The root config scopes this rule to `plugins/harness/`, while the materialized pnpm profile applies it without that path restriction. |
 | `docs/no-relative-skill-links` | `markdownlint-rule-relative-links` | Retain because the policy prohibits selected relative skill destinations even when those files exist. | Consistency, maintainability | The root config scopes this rule to `plugins/harness/`, while the materialized pnpm profile applies it without that path restriction. |
 
@@ -123,7 +125,10 @@ Direct Markdownlint API consumers must supply their own supported parser factory
 
 These existing rules remain attached to the current KtLint ruleset.
 The comparisons do not authorize adding Kotlin enforcement through Oxlint or introducing a Detekt pipeline.
-The table covers all 26 registered custom IDs.
+The table lists the registered rules.
+Keep lambda naming in review because an unqualified `it` can refer to a receiver property and changing the lambda signature can break compilation.
+Review regular expression construction where the resolved Kotlin type is known.
+A syntax-only rule cannot distinguish a project’s `Regex` function from the standard constructor across file and receiver boundaries.
 
 | Custom ID | Upstream comparison | Retained difference | Pillars |
 | --- | --- | --- | --- |
@@ -134,21 +139,19 @@ The table covers all 26 registered custom IDs.
 | `harness:explicit-property-type` | Detekt `LibraryCodeMustSpecifyReturnType` | The policy includes private nonlocal properties instead of public library APIs alone. | Stability, maintainability |
 | `harness:explicit-unit-branch` | Detekt `ImplicitUnitReturnType` | The policy concerns branch results rather than inferred function return types. | Stability, consistency |
 | `harness:function-body-blank-lines` | KtLint `no-consecutive-blank-lines` | The policy rejects single interior blank lines with structural protections. | Consistency, maintainability |
-| `harness:implicit-lambda-it` | Detekt explicit-it and multiline-lambda rules | The policy diagnoses referenced implicit parameters across supported lambdas. | Consistency, maintainability |
 | `harness:import-over-fqn` | Detekt `UnnecessaryFullyQualifiedName` | The prerelease candidate uses resolved class and call symbols rather than collision-free type references alone. | Consistency, maintainability |
 | `harness:kotest-sibling-spacing` | Generic KtLint blank-line rules | The policy identifies proven Kotest sibling test and lifecycle registrations. | Consistency, maintainability |
 | `harness:kotest-test-assertions` | Detekt check and require idioms | The policy targets test assertions and Kotest matcher alternatives. | Stability, maintainability |
 | `harness:kotlin-top-level-declaration-count` | KtLint `filename` and Detekt `MatchingDeclarationName` | The policy counts top-level types with private-helper and main-function exceptions. | Consistency, maintainability |
 | `harness:leading-underscore` | KtLint property naming and Detekt naming rules | The policy also rejects underscore-prefixed private backing properties. | Consistency |
 | `harness:multiline-kdoc` | KtLint `kdoc-wrapping` | The policy requires multiline delimiters and reports Unicode box-drawing characters in KDoc. | Consistency, maintainability |
-| `harness:nested-data-class-last` | Detekt `ClassOrdering` | The policy specifically places nested data classes after other members. | Consistency, maintainability |
+| `harness:nested-data-class-last` | Detekt `ClassOrdering` | Report misplaced nested data classes without rebuilding the class body or moving comments and directives. | Consistency, maintainability |
 | `harness:no-import-alias` | Standard KtLint and Detekt catalogs | The policy rejects aliases repeating the imported simple name rather than banning distinct aliases. | Consistency, maintainability |
 | `harness:no-java-path-api` | Detekt `ForbiddenMethodCall` | The policy distinguishes Path and Files syntax and supported toFile chains while recommending Kotlin path APIs. | Stability, consistency, maintainability |
 | `harness:no-line-comment` | Detekt `ForbiddenComment` | Token distinctions and KDoc, directive, shebang, and license exemptions exceed text-pattern matching. | Consistency, maintainability |
 | `harness:non-null-assertion` | Detekt unsafe-call and unnecessary-not-null rules | The policy diagnoses every non-null assertion token regardless of resolved type. | Stability |
 | `harness:null-comparison-identity` | Detekt null-equality rules | The policy targets equality operators against null literals rather than equals calls or referential equality. | Stability |
 | `harness:public-declaration-doc-comment` | Detekt undocumented public class, function, and property rules | The visitor checks effective public and protected classes, functions, properties, primary-constructor properties, and named non-companion objects; it excludes companion objects and does not visit individual enum entries. | Stability, maintainability |
-| `harness:no-regex-constructor` | Detekt `StringShouldBeRawString` | The policy prefers toRegex calls rather than checking string escaping. | Consistency, maintainability |
 | `harness:slf-direct-logging` | Detekt `ForbiddenMethodCall` | Syntax-proven logging receivers and alias exclusions differ from resolved method signatures and callable references. | Stability, maintainability |
 | `harness:terminal-branch-when` | Detekt `UseIfInsteadOfWhen` | The policy recommends the opposite conversion for stable parameter comparison chains. | Consistency, maintainability |
 | `harness:unchecked-cast-suppression` | Detekt `ForbiddenSuppress` | Collection arguments and conditional safe annotation removal differ from upstream reporting without fixes. | Stability, maintainability |

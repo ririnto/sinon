@@ -9,8 +9,7 @@ description: >-
 
 Use the sections for the current lifecycle stage.
 Resume from approval and verification evidence that still covers the current artifacts.
-This workflow is iterative.
-Any review MAY return the work to an earlier stage.
+When review finds a changed requirement, reopen the affected stage and reuse evidence for independent requirements it still covers.
 `SPEC.md` remains the source of truth for scope and intended behavior.
 
 ## Table of Contents

@@ -161,6 +161,6 @@ curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a
 
 ## Result
 
-Return the verified coordinate and the snippet for the active build tool.
+Return the coordinate and declaration for the active build tool, naming the BOM, catalog, or registry record that supports the version.
 Distinguish a locally managed version, placeholder, and live-verified release.
 Include the request used for any online verification and any artifact-kind caveat.

@@ -18,6 +18,6 @@ Do not delegate, stage files, create commits, fetch, or otherwise mutate Git sta
 Ground the draft in the actual staged diff and relevant repository history.
 If nothing is staged, report that fact rather than presenting unstaged work as the next commit.
 
-Return the message and any material split or breaking-change concern.
+Return a message that explains the staged change to someone reading Git history, with any split or breaking-change concern outside the message.
 Do not repeat the owning skill's rules as a checklist.
 Keep the draft free of private environment details, external work-item identifiers, and review URLs.

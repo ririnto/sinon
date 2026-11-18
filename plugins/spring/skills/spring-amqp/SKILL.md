@@ -86,6 +86,8 @@ For naming, publishing, listeners, container factories, or Boot customization ho
 
 ## Production guardrails
 
+Check the changed routing or delivery guarantee using the actual exchange, binding, and queue names the application declares.
+
 - Keep topology names stable after publishers and consumers are deployed.
 - Make listeners idempotent because duplicate delivery and redelivery can occur.
 - Bound concurrency only after checking ordering requirements and downstream capacity.

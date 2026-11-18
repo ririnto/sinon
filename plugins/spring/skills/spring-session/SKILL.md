@@ -85,7 +85,7 @@ For Spring Security principal lookup, invalidation, or integration tests, read [
 
 ## Testing checklist
 
-Select checks for affected contracts and regression risks, including session or access protections where applicable.
+Exercise the affected session across requests, including expiry or invalidation when it changes.
 
 - Verify the second request reuses the same session id and sees state written by the first request.
 - Verify expiration behavior with the configured timeout instead of assuming the store default.

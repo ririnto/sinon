@@ -81,7 +81,7 @@ For LDAP search, writes, ODM mappings, repository queries, authentication checks
 
 ## Verification
 
-Use existing tests for changed directory behavior and regression risks.
+Exercise the changed directory operation against the target schema and access assumptions.
 Extend embedded LDAP coverage when real filters, mappings, binds, or server configuration define the contract.
 Select the checks that apply:
 

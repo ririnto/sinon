@@ -82,7 +82,7 @@ Do not edit `.git/worktrees/` records by hand.
 
 ## Completion
 
-Verify the requested path and branch binding, or removal/repair result.
+Read back the worktree registration and branch binding after creation, repair, or removal.
 Report the action, preserved work, and unresolved ownership or cleanup blockers.
 Run project checks only if the task also changes project content or requires runtime verification.
 Use repository-relative paths and portable examples in committed descriptions.

@@ -111,6 +111,9 @@ When implementing one, empty, unicast, multicast, replay, or explicit-emission s
 Verify the changed delivery contract with affected native tests, including demand, late subscribers, cancellation, or concurrent emission when relevant.
 Keep retention and emission-failure policy explicit without requiring every sink variant in each test suite.
 
+Complete the authorized change and explain the sink or sharing choice, subscriber model, and emission policy.
+Report the checks run and any unverified retention, lifecycle, or concurrency boundary.
+
 ## References
 
 | Open this when... | Reference |
@@ -118,8 +121,3 @@ Keep retention and emission-failure policy explicit without requiring every sink
 | `EmitResult`, retry policy, overflow, or terminated/cancelled emission is the blocker | [Sink Emission Failures](references/failures.md) |
 | the real problem is connect, disconnect, replay, or subscriber rendezvous for a shared cold source | [Connectable Flux Patterns](references/connectable-patterns.md) |
 | contention, external synchronization, or `Sinks.unsafe()` is the blocker | [Concurrent and Unsafe Emission](references/concurrent-and-unsafe-emission.md) |
-
-## Result
-
-Complete the authorized change and explain the sink or sharing choice, subscriber model, and emission policy.
-Report the checks run and any unverified retention, lifecycle, or concurrency boundary.

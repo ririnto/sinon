@@ -202,7 +202,7 @@ Reactive WebFlux:
 
 For focused web tests, see [example 7](references/configuration-examples.md#example-7-focused-web-tests).
 
-Keep web tests focused on HTTP semantics.
+Use the selected stack to verify the response status, headers, or body that the changed endpoint promises.
 Test service-level business behavior without the web infrastructure.
 
 ## Production checklist

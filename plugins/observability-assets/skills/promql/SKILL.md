@@ -93,15 +93,8 @@ Query inspection does not authorize server configuration changes, feature-flag c
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The recommended query or review decision
-2. The intended consumer context such as alert, dashboard, or recording rule
-3. Any required label-set, vector-matching, or function-choice rationale
-4. Remaining blockers, assumptions, or follow-up query risks
+Give the query or review decision in the context of its alert, dashboard, or recording rule.
+Explain the resulting units and label set, and state any unverified assumption about series matching or counter resets.
 
 ## References
 
