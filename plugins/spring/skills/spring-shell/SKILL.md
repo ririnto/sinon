@@ -119,7 +119,7 @@ exit code: 2
 
 ## Verification
 
-Use existing tests for the changed command contract and regression risks.
+Invoke the changed command in its supported terminal or non-interactive mode.
 Select the checks that apply:
 
 - Verify a valid command dispatches to the correct service and returns deterministic terminal output.

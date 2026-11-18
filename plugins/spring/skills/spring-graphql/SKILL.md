@@ -122,7 +122,7 @@ For query paths, endpoint paths, or field mapping examples, read [output shapes]
 
 ## Testing checklist
 
-Select checks for affected API, transport, and security contracts and their regression risks.
+Exercise the affected field through its schema, resolver, and access rules.
 
 - Verify the schema field names and resolver paths match what the client queries.
 - Verify GraphQlTester assertions cover both data paths and expected errors.

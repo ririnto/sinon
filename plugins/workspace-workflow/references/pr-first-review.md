@@ -9,4 +9,4 @@ Review the posted change when the change is published, and keep review evidence 
 When publication is not authorized, review the complete local candidate instead and mark integration pending.
 Ensure all required checks pass and resolve all acceptance blockers before normal integration.
 Review completion and passing checks do not authorize normal integration.
-Confirm the integration grant and follow the selected repository merge strategy.
+Use the existing integration grant when it covers this change and follow the selected repository merge strategy.

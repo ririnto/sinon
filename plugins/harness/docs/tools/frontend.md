@@ -1,6 +1,10 @@
 ---
 metadata:
   reference:
+    OpenAI model guidance:
+      url: https://developers.openai.com/api/docs/guides/latest-model
+    Prompting GPT-6.2 in Codex:
+      url: https://learn.chatgpt.com/guides/prompting-gpt-6-2-astra
     design.md:
       url: https://raw.githubusercontent.com/google-labs-code/design.md/main/README.md
     Ultracite:
@@ -31,6 +35,9 @@ Replace the generated starter before accepting product design work.
 Do not copy an example visual identity or invent product requirements.
 For an established project, preserve its existing design system and tokens.
 Adopt this profile's design baseline only when the task selects or establishes the baseline.
+Use supplied visual references and existing typography, imagery, and tokens to guide a change.
+Inspect the render at its intended display size and exercise the action the user needs to complete.
+Keep labels, instructions, and status text that support that action.
 Check semantics, keyboard and focus behavior, responsive layout, reduced motion, and measured rendering performance for the selected interface.
 Keep the [shared accessibility rules](../rules.md#frontend-and-accessible-interfaces) as the acceptance floor when an upstream preference differs.
 For non-React projects, apply only the relevant interface and JavaScript guidance.

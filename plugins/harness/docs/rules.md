@@ -7,6 +7,10 @@ metadata:
       url: https://learn.chatgpt.com/docs/agent-configuration/agents-md.md
     OpenAI instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    OpenAI model guidance:
+      url: https://developers.openai.com/api/docs/guides/latest-model
+    Prompting GPT-6.2 in Codex:
+      url: https://learn.chatgpt.com/guides/prompting-gpt-6-2-astra
     Anthropic code review:
       url: https://claude.dev/blog/solving-code-review-at-anthropic.md
     EditorConfig:
@@ -66,7 +70,10 @@ The target repository's own conventions govern package-manager choice, dependenc
 Treat conflicting shipped guidance as a defect, not permission to bypass a higher-priority rule.
 If a rule blocks progress, name its file and quote the relevant text.
 
-Load supporting references for the task's language, profile, or changed boundary rather than reading every document.
+Load the references for the language, profile, and consumer boundary affected by the request.
+Proceed through implementation and verification on reversible assumptions within scope.
+If one decision needs new authority, preserve the affected state and continue independent work.
+Give the caller a self-contained result with the observed behavior and any material assumption or gap.
 
 ## Supported LTS Policy
 
@@ -147,7 +154,9 @@ Source profile updates do not automatically update existing target projects.
 Prefer built-in rules and supported configuration before custom checks.
 Use AST-aware custom rules only in proven syntax contexts, with positive and negative fixtures covering violations and valid cases.
 Offer automatic fixes only when evaluation order, side effects, and observable behavior remain unchanged.
-Verify fix convergence with the target formatter.
+Run the native check and fix commands on the same inputs.
+Verify diagnostics, preservation of protected input, and a stable second fix pass.
+Use review guidance when syntax cannot distinguish valid usage or when another lint pass would cost more than the defect warrants.
 Stage new rules through read-only reports on representative source before enabling mandatory enforcement.
 Keep items with side-effect risk as policy text and record the risk instead of adding diagnostics or fixes.
 Never weaken configuration to make a rollout pass.

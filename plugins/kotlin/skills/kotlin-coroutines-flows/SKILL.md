@@ -78,7 +78,7 @@ Handle Flow failures with `catch` and `retry` at the appropriate upstream bounda
 ## Completion
 
 Explain the async shape, ownership, cancellation, and any dispatcher or delivery tradeoff relevant to the task.
-For implementation work, verify changed behavior with affected native tests rather than testing every coroutine pattern.
+For implementation work, drive the changed producer and collector through the affected lifecycle with native tests.
 Report any unverified lifecycle or concurrency boundary.
 
 ## Common Pitfalls

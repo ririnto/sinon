@@ -49,6 +49,7 @@ Do not silently fetch or invent a base.
 
 ## Draft The Required Detail
 
+Write for a reviewer who can see the diff but has not followed the working conversation.
 Follow the repository's format when one applies.
 Otherwise include only sections that help the requested review or handoff:
 

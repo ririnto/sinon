@@ -160,5 +160,5 @@ git -C /path/to/repo log --oneline -n 10
 
 If nothing is staged, say so rather than describing unstaged work as the next commit.
 A supplied diff can still support a clearly scoped message draft.
-Return the message and material cohesion or breaking-change concerns.
+Write the message for a future maintainer reading Git history and identify any breaking change or unrelated staged edit.
 Do not add runtime tests for commit-message prose or repeat its format as an output checklist.

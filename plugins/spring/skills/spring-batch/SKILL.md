@@ -52,7 +52,7 @@ Use `spring-batch` for jobs, chunk and tasklet steps, restarts, metadata, and la
 
 ## Task scope
 
-Preserve existing job identity and restart contracts unless changing them is in scope.
+Verify job identity and restart behavior using the same identifying parameters when those contracts change.
 For a new job, define names, parameter identity, metadata storage, and restart expectations before choosing its step model.
 
 ## Dependency baseline

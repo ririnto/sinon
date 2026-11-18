@@ -125,7 +125,8 @@ Report command results separately from routing and delivery evidence: a schema p
 
 ## Output contract
 
-Unless task, host, or dispatch requirements differ, return the config or review decision, intended route and receiver changes, validation results or tooling blockers, and remaining risks and upstream label dependencies.
+Identify the receiver that a representative label set should reach and any grouping, timing, or suppression change.
+Report configuration or route-test evidence and distinguish it from a notification actually delivered.
 
 ## Shared Types
 

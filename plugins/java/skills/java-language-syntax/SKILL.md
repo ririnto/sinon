@@ -110,4 +110,4 @@ Use [syntax templates](./references/syntax-templates.md) when choosing version-c
 ## Result
 
 State the baseline, recommended syntax, and any relevant fallback or preview limitation.
-For source edits, verify compatibility with the repository's affected native compile or test task.
+For source edits, use the consumer module's configured release and preview settings to compile or test the changed syntax.

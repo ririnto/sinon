@@ -354,7 +354,6 @@ describe("pnpm profile configuration", () => {
       );
       for (const code of [
         "function-spacing(no-blank-lines-in-functions)",
-        "prose-style(no-em-dash)",
         "function-comments(no-inline-comments-in-functions)",
         "test-spacing(sibling-test-spacing)"
       ]) {
@@ -362,6 +361,25 @@ describe("pnpm profile configuration", () => {
           diagnostics.filter((diagnostic) => diagnostic.code === code)
         ).toHaveLength(1);
       }
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  test("accepts punctuation inside external identifiers", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "sinon-protocol-id-"));
+    try {
+      await preparePackageRoot(directory);
+      const id = path.join(directory, "protocol.ts");
+      const source =
+        'const recordKey = "station\u2014platform";\nJSON.stringify({ recordKey });\n';
+      await writeFile(id, source);
+      const result = runPackageScript(directory, "fix:ultracite");
+      expect(
+        result.status,
+        result.stderr.toString() + result.stdout.toString()
+      ).toBe(0);
+      expect(await readFile(id, "utf-8")).toBe(source);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
@@ -432,9 +450,6 @@ describe("pnpm profile configuration", () => {
       expect(output).toContain("src/nested/style-fixture.ts");
       expect(output).toContain("Remove blank lines from function bodies.");
       expect(output).toContain(
-        "Replace the em dash with a comma, colon, or a separate sentence."
-      );
-      expect(output).toContain(
         "Use declaration documentation instead of explanatory comments."
       );
       expect(output).toContain(
@@ -476,7 +491,6 @@ describe("pnpm profile configuration", () => {
       const formatterPosition = output.indexOf("ultracite fix --type-aware");
       const diagnosticPositions = [
         "Remove blank lines from function bodies.",
-        "Replace the em dash with a comma, colon, or a separate sentence.",
         "Use declaration documentation instead of explanatory comments.",
         "Separate sibling tests and lifecycle registrations with one blank line."
       ].map((message) => output.indexOf(message));

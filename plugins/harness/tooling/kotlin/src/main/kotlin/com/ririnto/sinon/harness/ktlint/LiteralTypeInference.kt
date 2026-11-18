@@ -1,15 +1,12 @@
 package com.ririnto.sinon.harness.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.ElementType
-import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtConstantExpression
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
- * Shared PSI helpers for analyzing literal and string-template expressions across ktlint rules.
+ * Shared PSI helpers for analyzing literal expression types across ktlint rules.
  */
 internal object LiteralTypeInference {
     /**
@@ -76,17 +73,4 @@ internal object LiteralTypeInference {
                 null
             }
         }
-
-    /**
-     * Returns true when the template is a multiline raw string literal (`"""..."""` spanning newlines).
-     */
-    fun KtStringTemplateExpression.isMultilineRawString(): Boolean =
-        node.findChildByType(KtTokens.OPEN_QUOTE)?.text == "\"\"\"" &&
-            text.contains('\n')
-
-    /**
-     * Returns true when the declaration contains a multiline raw string literal.
-     */
-    fun KtDeclaration.containsMultilineRawString(): Boolean =
-        collectDescendantsOfType<KtStringTemplateExpression>().any { template -> template.isMultilineRawString() }
 }

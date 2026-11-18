@@ -117,7 +117,7 @@ For flow sketches, gateway channels, or poller shapes, read [output shapes](refe
 
 ## Testing checklist
 
-Select checks for the changed contract and regression risks.
+Follow a representative message through the changed endpoint and error path.
 Use the existing native test setup.
 
 - Verify the intended message path through the graph.

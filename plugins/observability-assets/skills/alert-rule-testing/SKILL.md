@@ -102,15 +102,8 @@ Report the tested behaviors and the exact command result before claiming those b
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The recommended test file or review decision.
-2. The rule file and test behaviors covered by the result.
-3. Validation results, including whether `promtool test rules` ran or is blocked by missing local tooling.
-4. Remaining risks, assumptions, or uncovered alert behaviors.
+Deliver the requested fixture or review decision with the rule path and the evaluation times that distinguish the expected states.
+Report the `promtool test rules` result and any uncovered transition.
 
 ## References
 

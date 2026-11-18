@@ -122,12 +122,15 @@ For TCP versus UDP startup, event loops, channels, and framing, read [transport 
 
 Verify the changed contract with the existing native tests.
 Use `EmbeddedChannel` for handler or codec behavior that does not require a real transport.
-Check only the relevant invariants below, including resource cleanup on changed error and cancellation paths.
+Check cleanup on changed error and cancellation paths.
 
-Check channel class, server socket versus child options, boss/worker groups, pipeline order, exact buffer release, and graceful group shutdown.
+For bootstrap changes, check the channel class, server versus child options, and event-loop ownership.
+For handler changes, trace pipeline order and buffer release through the affected path.
 If `AUTO_READ` is `false`, call `channel.read()` in `channelActive()` and after each processed message.
 
 Separate framing, decoding, encoding, and business handlers by responsibility.
+
+Report transport, pipeline, ownership, or shutdown consequences, checks, and unverified network or lifecycle behavior.
 
 ## References
 
@@ -143,7 +146,3 @@ Open these advanced references if needed:
 | testing handlers and pipelines with `EmbeddedChannel` | [testing-embedded-channel.md](./references/testing-embedded-channel.md) |
 | TLS or SSL pipeline setup | [tls-ssl.md](./references/tls-ssl.md) |
 | heartbeat, timeout, or stale connection handling | [idle-handling.md](./references/idle-handling.md) |
-
-## Result
-
-Report transport, pipeline, ownership, or shutdown consequences, checks, and unverified network or lifecycle behavior.

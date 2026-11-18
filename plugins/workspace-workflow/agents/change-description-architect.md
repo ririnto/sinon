@@ -21,7 +21,8 @@ Resolve the requested diff scope and, when needed, the target and comparison bas
 Use supplied validation evidence when it applies and mark missing evidence plainly.
 Return the draft even if integration is blocked, without implying merge readiness.
 
-Keep the draft self-contained with repository-relative paths and portable examples.
+Write for the receiving reviewer, who may see only the draft and diff.
+Use repository-relative paths and portable examples.
 Omit private environment details and credentials.
 Follow the task's and target repository's requirements for issue references and external links.
 Return only the requested description and material blockers to the user-facing session.

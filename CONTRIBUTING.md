@@ -10,6 +10,7 @@ Track new requirements separately in the task, pull request, or an issue when us
 Follow repository guidance supplied to the working context and consult component documentation as needed.
 Check open issues and pull requests for overlapping work before editing shared files.
 Keep one writer per shared resource and preserve unrelated changes.
+Record a material assumption with the result so the reviewer can evaluate it from the PR alone.
 
 ## Documentation
 

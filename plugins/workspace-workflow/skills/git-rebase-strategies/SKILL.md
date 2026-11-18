@@ -105,6 +105,6 @@ It does not prove that overwriting known remote changes is appropriate.
 
 ## Completion
 
-Report the selected range and base, rewrite result, checks, material conflicts, and any remaining publication decision.
+Identify the replayed range and new base, any conflict resolution that changed content, the checks covering it, and any publication decision still open.
 Do not recommend a push as an automatic final step.
 Keep committed descriptions self-contained, with portable paths and no private environment details, work-item identifiers, or review URLs.

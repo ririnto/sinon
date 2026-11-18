@@ -120,7 +120,7 @@ billing
 
 ## Testing checklist
 
-Select checks for the changed contract and regression risks.
+Exercise the affected delivery outcome, including redelivery when offset handling changes.
 Use the existing native test setup.
 
 - Verify producers write to the intended topic with the expected key.

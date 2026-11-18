@@ -132,7 +132,7 @@ Follow the task's required response format.
 
 ## Verification
 
-Use existing state-machine tests for changed transitions and regression risks.
+Send the affected event from its starting state and check the resulting state and side effects.
 Keep the JUnit 5 path for this Boot 3.5-based line.
 Select checks for affected events, guards, actions, and observation behavior:
 

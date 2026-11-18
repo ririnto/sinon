@@ -82,8 +82,8 @@ A 401 anonymous-request expectation applies to API, basic, or bearer-token chain
 
 ## Testing checklist
 
-Test the changed security boundary with both permitted and rejected requests.
-Select additional checks for affected client flows, token rules, and regression risks.
+Exercise both allowed and denied requests through the matching chain.
+Select additional checks for changed client flows and token rules.
 
 - Verify public endpoints remain accessible without authentication.
 - Verify protected endpoints deny unauthenticated requests and reject insufficient authority with the expected 401 or 403 status.

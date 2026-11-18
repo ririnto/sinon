@@ -29,7 +29,7 @@ Show the mapped-path preview before writing.
 The installation request permits missing guidance files and authorized profile merges.
 No separate preview approval is required for those actions.
 Ask before replacing conflicting content unless an explicit grant already covers the exact replacement.
-A prior installation or dirty worktree is not a replacement grant.
+Continue independent authorized mappings while a conflicting destination awaits a decision.
 
 ## Profiles And References
 
