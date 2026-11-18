@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { lint } from "markdownlint/sync";
+import { format } from "oxfmt";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { parseDocument } from "yaml";
 
@@ -20,6 +21,7 @@ import type {
   BaselineProfile,
   TypeScriptProfile
 } from "../scripts/configure.js";
+import formatter from "../tooling/pnpm/oxfmt.config.ts";
 import {
   valueAt,
   objectValue,
@@ -100,9 +102,13 @@ describe("fresh-root baseline", () => {
     async (selected, config, dependency) => {
       const directory = await targetDirectory();
       await configureBaseline(directory, "frontend", "eligible", selected);
-      const tsconfig: unknown = JSON.parse(
-        await readFile(path.join(directory, "tsconfig.json"), "utf-8")
+      const tsconfigSource = await readFile(
+        path.join(directory, "tsconfig.json"),
+        "utf-8"
       );
+      const { code } = await format("tsconfig.json", tsconfigSource, formatter);
+      expect(code).toBe(tsconfigSource);
+      const tsconfig: unknown = JSON.parse(tsconfigSource);
       const manifest: unknown = JSON.parse(
         await readFile(path.join(directory, "package.json"), "utf-8")
       );
