@@ -39,6 +39,7 @@
     "markdownlint-rule-search-replace",
     "rules/no-em-dash.ts",
     "rules/no-relative-skill-links.ts",
+    "rules/skill-frontmatter.ts",
     "rules/table-separators.ts"
   ],
   "gitignore": true
