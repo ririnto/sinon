@@ -11,9 +11,11 @@ The locked `tla-chaos-loop` dependency supplies TLC.
 Each command creates and removes its own temporary metadata directory.
 
 ```sh
-pnpm exec run-p check:promtool:download check:promtool:child
 pnpm run check:promtool
 ```
+
+From the plugin directory, run `pnpm run model ChildLifecycle` or `pnpm run model DownloadLifecycle` to check one model.
+Extra TLC arguments are forwarded and relative paths use the directory from which pnpm was invoked.
 
 ## Download lifecycle
 

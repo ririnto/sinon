@@ -27,7 +27,7 @@ pnpm run check:test:promtool
 ```
 
 The runner checks the rule file and then runs its unit test fixture.
-`package.json` owns the release pin in `config.promtoolVersion`.
+The [plugin manifest](../../package.json) owns the release pin in `config.promtoolVersion`.
 When updating the pin, prefer the latest compatible supported LTS release, or stable release when no LTS line exists and rerun the native fixture checks.
 The runner downloads the matching official Prometheus release and its checksum index.
 It verifies SHA-256 before reading the selected regular `promtool` executable from the archive.
@@ -46,7 +46,9 @@ pnpm run check:test:promtool check rules plugins/observability-assets/tests/prom
 pnpm run check:test:promtool test rules plugins/observability-assets/tests/promtool/alerts/api-errors.test.yaml
 ```
 
-Run the release-integrity regression tests and bounded lifecycle models without downloading a release:
+From the plugin directory, use `pnpm run promtool` with the same arguments and paths relative to that directory.
+
+Run the bounded lifecycle models without downloading a release:
 
 ```sh
 pnpm run check:promtool

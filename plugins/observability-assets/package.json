@@ -1,0 +1,17 @@
+{
+  "name": "@sinon/observability-assets",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "model": "sh tests/promtool/model/check.sh",
+    "promtool": "node --import tsx tests/promtool/run.ts"
+  },
+  "devDependencies": {
+    "tar": "catalog:",
+    "tla-chaos-loop": "catalog:",
+    "tsx": "catalog:"
+  },
+  "config": {
+    "promtoolVersion": "3.13.5"
+  }
+}

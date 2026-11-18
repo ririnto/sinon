@@ -4,10 +4,12 @@ set -e
 
 model_name=$1
 shift
+plugin_dir=$(CDPATH= cd "$(dirname "$0")/../../.." && pwd)
+cd "${INIT_CWD:-.}"
 model_dir=$(mktemp -d)
 trap 'rm -rf "$model_dir"' EXIT
 
-java -XX:+UseParallelGC -cp node_modules/tla-chaos-loop/tools/tla2tools.jar \
+java -XX:+UseParallelGC -cp "$plugin_dir/node_modules/tla-chaos-loop/tools/tla2tools.jar" \
   tlc2.TLC -workers 1 -metadir "$model_dir" \
-  -config "plugins/observability-assets/tests/promtool/model/$model_name.cfg" \
-  "plugins/observability-assets/tests/promtool/model/$model_name.tla" "$@"
+  -config "$plugin_dir/tests/promtool/model/$model_name.cfg" \
+  "$plugin_dir/tests/promtool/model/$model_name.tla" "$@"
