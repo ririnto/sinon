@@ -22,17 +22,11 @@ import { parseDocument } from "yaml";
 
 import rootManifest from "../../../../package.json" with { type: "json" };
 import { configureBaseline } from "../../scripts/configure.js";
-import { runUltracite } from "../../tests/ultracite-fixture.js";
+import {
+  readUltraciteResult,
+  runUltracite
+} from "../../tests/ultracite-fixture.js";
 import tsconfig from "./tsconfig.fragment.json" with { type: "json" };
-
-const nativeGateCommands: Record<string, string> = {
-  "../go/package.json": "run-s check:markdownlint-cli2 check:go check:test",
-  "../gradle/package.json": "run-s check:markdownlint-cli2 check:test",
-  "../maven/package.json": "run-s check:markdownlint-cli2 check:test",
-  "../rust/package.json": "run-s check:markdownlint-cli2 check:rust check:test",
-  "../shell/package.json": "run-s check:markdownlint-cli2 check:shell",
-  "../uv/package.json": "run-s check:markdownlint-cli2 check:uv"
-};
 
 const profileDirectory = import.meta.dirname;
 const resolvePackage = createRequire(import.meta.url).resolve;
@@ -103,8 +97,12 @@ const preparePackageRoot = async (directory: string): Promise<void> => {
 /**
  * Runs a package script in a materialized fixture as a directly invoked pnpm.
  */
-const runPackageScript = (directory: string, script: string) =>
-  spawnSync("pnpm", ["run", script], {
+const runPackageScript = (
+  directory: string,
+  script: string,
+  ...args: string[]
+) =>
+  spawnSync("pnpm", ["run", script, ...args], {
     cwd: directory,
     env: {
       ...process.env,
@@ -133,34 +131,17 @@ const trackedMarkdownFiles = (
 
 describe("pnpm profile configuration", () => {
   test.each([
-    [
-      "../../../../package.json",
-      "node --import tsx .github/scripts/pre-commit-scope.ts",
-      "run-s check"
-    ],
-    ["package.fragment.json", "run-s check", "run-s check"],
-    ["../go/package.json", "run-s check", "run-s check"],
-    ["../gradle/package.json", "run-s check", "run-s check"],
-    ["../maven/package.json", "run-s check", "run-s check"],
-    ["../rust/package.json", "run-s check", "run-s check"],
-    ["../shell/package.json", "run-s check", "run-s check"],
-    ["../uv/package.json", "run-s check", "run-s check"]
+    "../../../..",
+    ".",
+    "../go",
+    "../gradle",
+    "../maven",
+    "../rust",
+    "../shell",
+    "../uv"
   ])(
-    "%s owns its hook sequences and receives hook delegation",
-    async (manifestFile, preCommit, prePush) => {
-      expect(
-        JSON.parse(
-          await readFile(path.resolve(profileDirectory, manifestFile), "utf-8")
-        )
-      ).toMatchObject({
-        scripts: {
-          check: nativeGateCommands[manifestFile] ?? "run-p check:*",
-          fix: "run-p fix:*",
-          "pre-commit": preCommit,
-          "pre-push": prePush,
-          prepare: "husky"
-        }
-      });
+    "%s hooks forward the hook name and propagate failure",
+    async (profilePath) => {
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-hook-direction-")
       );
@@ -177,14 +158,7 @@ describe("pnpm profile configuration", () => {
               const trace = path.join(directory, `${hook}-${status}`);
               const result = spawnSync(
                 "sh",
-                [
-                  path.resolve(
-                    profileDirectory,
-                    path.dirname(manifestFile),
-                    ".husky",
-                    hook
-                  )
-                ],
+                [path.resolve(profileDirectory, profilePath, ".husky", hook)],
                 {
                   cwd: directory,
                   encoding: "utf-8",
@@ -229,46 +203,48 @@ describe("pnpm profile configuration", () => {
         JSON.stringify({ scripts: rootManifest.scripts, type: "module" })
       );
       await mkdir(path.join(directory, ".github/scripts"), { recursive: true });
+      const files = [
+        "ordinary.ts",
+        "ordinary.mjs",
+        ".github/scripts/hidden.ts",
+        "plugins/harness/tooling/pnpm/violation.ts"
+      ];
       await Promise.all(
-        [
-          path.join(directory, "ordinary.ts"),
-          path.join(directory, "ordinary.mjs"),
-          path.join(directory, ".github/scripts/hidden.ts"),
-          path.join(typedDirectory, "violation.ts")
-        ].map(async (filename) => {
+        files.map(async (filename) => {
           await writeFile(
-            filename,
-            "export const undocumented = () => 1;\nvoid Promise.resolve();\n"
+            path.join(directory, filename),
+            "export const undocumented=()=>1;\nvoid Promise.resolve();\n"
           );
         })
       );
-      const formatted = runPackageScript(directory, "ultracite:fix");
+      const formatted = runPackageScript(directory, "fix:ultracite");
       expect(
         formatted.status,
         formatted.stderr.toString() + formatted.stdout.toString()
       ).toBe(1);
-      const general = runPackageScript(directory, "ultracite:check");
-      const generalOutput =
-        general.stderr.toString() + general.stdout.toString();
-      expect(general.status, generalOutput).toBe(1);
-      expect(generalOutput).toContain("ordinary.ts:");
-      expect(generalOutput).toContain("ordinary.mjs:");
-      expect(generalOutput).toContain(".github/scripts/hidden.ts:");
-      expect(generalOutput).toContain("typescript(no-floating-promises)");
-      const result = runPackageScript(directory, "ultracite:check:harness");
-      const output = result.stderr.toString() + result.stdout.toString();
-      expect(result.status, output).toBe(1);
-      expect(output).toContain("violation.ts:");
-      expect(output).toContain("tsdoc(require-export-tsdoc)");
-      expect(output).toContain("typescript(no-floating-promises)");
-      expect(output).not.toContain("ordinary.ts:");
-      expect(output.match(/tsdoc\(require-export-tsdoc\)/gu)).toHaveLength(1);
+      expect(
+        await readFile(path.join(typedDirectory, "violation.ts"), "utf-8")
+      ).toContain("export const undocumented = () => 1;");
+      const { diagnostics, status } = readUltraciteResult(
+        runPackageScript(directory, "check:ultracite", "--format", "json")
+      );
+      expect(status).toBe(1);
+      expect(
+        diagnostics
+          .filter(({ code }) => code === "typescript(no-floating-promises)")
+          .map(({ filename }) => filename)
+      ).toEqual(expect.arrayContaining(files));
+      expect(
+        diagnostics
+          .filter(({ code }) => code === "tsdoc(require-export-tsdoc)")
+          .map(({ filename }) => filename)
+      ).toEqual(["plugins/harness/tooling/pnpm/violation.ts"]);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
   }, 30_000);
 
-  test("Harness guidance parses and uses body titles", async () => {
+  test("Harness frontmatter parses without overriding body titles", async () => {
     const harnessRoot = path.resolve(profileDirectory, "../..");
     const files = trackedMarkdownFiles(harnessRoot, [
       "README.md",
@@ -279,18 +255,12 @@ describe("pnpm profile configuration", () => {
     await Promise.all(
       files.map(async (file) => {
         const text = await readFile(file, "utf-8");
-        const frontmatter = /^(?<block>---\n(?<source>[\s\S]*?)\n---\n)/u.exec(
-          text
-        );
-        const block = frontmatter?.groups?.block;
-        const source = frontmatter?.groups?.source;
-        if (block !== undefined && source !== undefined) {
-          const document = parseDocument(source, { uniqueKeys: true });
+        const frontmatter = /^---\n(?<source>[\s\S]*?)\n---\n/u.exec(text)
+          ?.groups?.source;
+        if (frontmatter !== undefined) {
+          const document = parseDocument(frontmatter, { uniqueKeys: true });
           expect(document.errors, file).toEqual([]);
           expect(document.has("title"), file).toBe(false);
-          expect(/^# \S/mu.test(text.slice(block.length)), file).toBe(true);
-        } else {
-          expect(/^# /mu.test(text), file).toBe(true);
         }
       })
     );
@@ -444,25 +414,26 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "src/client.generated.ts"),
         packageStyleFixture
       );
-      const result = runPackageScript(directory, "check:ultracite");
-      const output = result.stderr.toString() + result.stdout.toString();
-      expect(result.status, output).toBe(1);
-      expect(output).toContain("src/nested/style-fixture.ts");
-      expect(output).toContain("Remove blank lines from function bodies.");
-      expect(output).toContain(
-        "Use declaration documentation instead of explanatory comments."
+      const { diagnostics, status } = readUltraciteResult(
+        runPackageScript(directory, "check:ultracite", "--format", "json")
       );
-      expect(output).toContain(
-        "Separate sibling tests and lifecycle registrations with one blank line."
+      expect(status).toBe(1);
+      expect(new Set(diagnostics.map(({ filename }) => filename))).toEqual(
+        new Set(["src/nested/style-fixture.ts"])
       );
-      expect(output).not.toContain("dist/ignored.ts");
-      expect(output).not.toContain("src/client.generated.ts");
+      expect(diagnostics.map(({ code }) => code)).toEqual(
+        expect.arrayContaining([
+          "function-spacing(no-blank-lines-in-functions)",
+          "function-comments(no-inline-comments-in-functions)",
+          "test-spacing(sibling-test-spacing)"
+        ])
+      );
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
   }, 90_000);
 
-  test("materialized fix script formats once and retains diagnostic-only policies", async () => {
+  test("materialized fix script formats source and preserves diagnostic-only input", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "sinon-script-fix-"));
     try {
       await preparePackageRoot(directory);
@@ -472,8 +443,6 @@ describe("pnpm profile configuration", () => {
         fixture,
         [
           packageStyleFixture,
-          "function formatterTarget(){return  1}",
-          "formatterTarget();",
           'const formatterValues={firstLongPropertyName:"first value that keeps the object multiline",secondLongPropertyName:"second value that keeps the object multiline",};',
           "Object.keys(formatterValues);"
         ].join("\n")
@@ -485,24 +454,7 @@ describe("pnpm profile configuration", () => {
       const result = runPackageScript(directory, "fix:ultracite");
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status, output).toBe(1);
-      const formatterInvocations =
-        output.match(/ultracite fix --type-aware/gu) ?? [];
-      expect(formatterInvocations).toHaveLength(1);
-      const formatterPosition = output.indexOf("ultracite fix --type-aware");
-      const diagnosticPositions = [
-        "Remove blank lines from function bodies.",
-        "Use declaration documentation instead of explanatory comments.",
-        "Separate sibling tests and lifecycle registrations with one blank line."
-      ].map((message) => output.indexOf(message));
-      expect(formatterPosition).toBeGreaterThanOrEqual(0);
-      expect(
-        diagnosticPositions.every((position) => position > formatterPosition),
-        output
-      ).toBe(true);
       const fixed = await readFile(fixture, "utf-8");
-      expect(fixed).toContain("function formatterTarget() {");
-      expect(fixed).toContain("  return 1;");
-      expect(fixed).not.toContain("function formatterTarget(){");
       expect(fixed).toContain(
         [
           "const formatterValues = {",

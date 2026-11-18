@@ -1,4 +1,5 @@
 packages:
+  - plugins/observability-assets
   - plugins/spec-driven-development
 
 allowBuilds:

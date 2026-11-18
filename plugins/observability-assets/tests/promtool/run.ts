@@ -109,10 +109,7 @@ export const downloadReleaseAssets = async (
 
 const installPromtool = async (directory: string): Promise<string> => {
   const manifest: unknown = JSON.parse(
-    await readFile(
-      new URL("../../../../package.json", import.meta.url),
-      "utf-8"
-    )
+    await readFile(new URL("../../package.json", import.meta.url), "utf-8")
   );
   if (
     typeof manifest !== "object" ||
@@ -170,9 +167,10 @@ const installPromtool = async (directory: string): Promise<string> => {
  */
 export const execute = async (
   binary: string,
-  args: readonly string[]
+  args: readonly string[],
+  cwd?: string
 ): Promise<number> => {
-  const child = spawn(binary, [...args], { stdio: "inherit" });
+  const child = spawn(binary, [...args], { cwd, stdio: "inherit" });
   let interruptedBy: "SIGINT" | "SIGTERM" | undefined;
   let spawnError: Error | undefined;
   let spawnListener: (() => void) | undefined;
@@ -266,7 +264,7 @@ const main = async (args: readonly string[]): Promise<number> => {
             ])
           : ruleExit;
     } else {
-      status = await execute(binary, args);
+      status = await execute(binary, args, process.env.INIT_CWD);
     }
     return status;
   } finally {

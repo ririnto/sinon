@@ -25,7 +25,7 @@ The Promtool fixture runner requires a separate command and network access.
 `check:consumers` installs the independent workspace sample from its lockfile and materializes fresh HTML and React projects.
 It checks unchanged Storybook fixtures with each consumer's own dependencies and compiler settings, then builds the HTML-Vite and React-Vite stories through each generated `check:storybook` script.
 The root `.eslintignore` separates these consumers from publishing-root configuration discovery.
-The Harness tooling gate runs from its own directory.
+The root lint command also checks Harness tooling using its nested Oxlint configuration.
 All lint-check invocations use `ultracite check --type-aware` without trailing arguments.
 This gate needs package registry access when the local store lacks a dependency.
 
@@ -38,10 +38,10 @@ Start with the row matching the changed behavior, then run the complete gate bef
 
 | Changed surface | Command | Observable evidence |
 | --- | --- | --- |
-| Java launcher and Lombok discovery | `pnpm run check:test plugins/java/tests` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
-| Harness installation, profiles, and custom lint rules | `pnpm run check:test rules plugins/harness/tooling/pnpm plugins/harness/tests` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
-| Specification commands | `pnpm run check:test plugins/spec-driven-development/tests` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
-| Promtool release verification and process handling | `pnpm run check:test plugins/observability-assets/tests/promtool` | Local archive and process fixtures test integrity checks and child-process behavior. |
+| Java launcher and Lombok discovery | `pnpm run check:test:unit plugins/java/tests` | Shell probes exercise project discovery, and compiled JVM agents verify launcher arguments and options. |
+| Harness installation, profiles, and custom lint rules | `pnpm run check:test:unit rules plugins/harness/tooling/pnpm plugins/harness/tests` | Materialized configurations, hook entry points, and lint diagnostics run against temporary consumer projects. |
+| Specification commands | `pnpm run check:test:unit plugins/spec-driven-development/tests` | Command fixtures exercise frontmatter queries, validation, links, filtering, and diagram generation. |
+| Promtool release verification and process handling | `pnpm run check:test:unit plugins/observability-assets/tests/promtool` | Local archive and process fixtures test integrity checks and child-process behavior. |
 | Promtool lifecycle models | `pnpm run check:promtool` | TLC checks bounded download and child lifecycle models. |
 | Prometheus rule examples | `pnpm run check:test:promtool` | The verified official executable checks the rules and runs their expected alert cases. |
 | TypeScript source | `pnpm run check:typescript` | The repository compiler configuration passes with emission disabled. |
@@ -53,7 +53,8 @@ The root [package scripts](../package.json) own command composition.
 The [Harness pnpm reference](../plugins/harness/docs/tools/pnpm.md) explains differences between root checks and installed profile checks.
 The [state-machine inventory](state-machines.md) maps maintained lifecycles to their source and verification.
 The [Promtool model reference](../plugins/observability-assets/tests/promtool/model/README.md) records model assumptions and source mappings.
-Run `pnpm exec run-p check:promtool:download check:promtool:child` to check those models alone.
+Run `pnpm run check:promtool` to check both models, or use the root `check:promtool:download` and `check:promtool:child` scripts individually.
+The [Observability Assets manifest](../plugins/observability-assets/package.json) owns the model and fixture commands, their dependencies, and the Promtool release pin.
 TLC checks the finite models without network access and removes its temporary state files after each run.
 The models supplement runtime tests and do not prove network cancellation, operating-system behavior, or source equivalence.
 

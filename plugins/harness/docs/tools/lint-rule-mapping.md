@@ -65,7 +65,7 @@ An effective command enforces a row only in targets that materialize the owning 
 
 Each retained module remains self-contained and independently registrable through Oxlint `jsPlugins`.
 The materialized pnpm configuration registers style modules under distinct aliases.
-Sinon's publishing-root configuration registers the React and TSDoc plugins separately.
+The root and nested Harness configurations use the same React effect module, and the Harness configuration owns its TSDoc rules.
 Each adopted rule runs in the same check and fix invocation.
 Punctuation in source strings may be a protocol identifier, a translation, or quoted content.
 Review source prose in context and keep punctuation diagnostics in Markdown where authored paragraphs are identifiable.
