@@ -13,6 +13,8 @@ metadata:
       url: https://learn.chatgpt.com/guides/prompting-gpt-6-2-astra
     GPT-6 instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
+    Agent Skills specification:
+      url: https://agentskills.io/specification
     Codex skills:
       url: https://learn.chatgpt.com/docs/build-skills.md
     Codex project instructions:
@@ -36,6 +38,9 @@ Identify its canonical owner and keep it available before the governed action.
 | Conditional support reference | Agents at a named stage or condition. | When its condition applies. | Hold stage-specific detail and link from the owning skill. |
 | Host agents and hooks | Agents running assigned roles or hooks. | At host-defined load points or hook events. | Keep host behavior with the host owner. |
 | Installed target copies | Agents in the target repository. | At target skill activation or reference access. | Verify installer rewrites in the target layout. |
+
+The repository Markdown check reads the YAML mapping at the start of each published `skills/<name>/SKILL.md`.
+It reports missing or malformed frontmatter, duplicate keys, and unresolved YAML aliases before publication.
 
 ## Keep Rules With Their Owners
 

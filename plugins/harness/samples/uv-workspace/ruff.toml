@@ -21,10 +21,16 @@ extend-select = [
   "D107",
   "D209",
   "D213",
+  "F722",
   "I",
+  "PLE0241",
+  "PLE0302",
   "PTH",
+  "RUF006",
   "UP"
 ]
+
+unfixable = ["PLE0241"]
 
 [lint.isort]
 split-on-trailing-comma = false

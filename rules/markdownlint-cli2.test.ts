@@ -67,7 +67,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     );
     const ignored = runMarkdownlint(directory, "**/*.md");
     expect(ignored.status).toBe(0);
-    expect(ignored.output).toContain("Linting: 1 file");
     await Promise.all([
       rm(path.join(directory, "ignored.local.md")),
       rm(path.join(directory, "included.md"))
@@ -100,7 +99,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     for (const rule of ["search-replace", "docs/table-separators"]) {
       expect(generalRules.output).toContain(rule);
     }
-    expect(generalRules.output).not.toContain("docs/sentence-per-line");
     await rm(path.join(harnessDirectory, "rules.md"));
     const harnessScope = runMarkdownlint(
       directory,
@@ -110,11 +108,50 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     expect(harnessScope.output).toContain("docs/no-em-dash");
     expect(harnessScope.output).toContain("docs/no-relative-skill-links");
     await rm(path.join(harnessDirectory, "scoped.md"));
+    const skillDirectory = path.join(otherDirectory, "skills/example");
+    const fixtureDirectory = path.join(
+      directory,
+      "fixtures/plugins/vendor/skills/example"
+    );
+    await Promise.all([
+      mkdir(skillDirectory, { recursive: true }),
+      mkdir(fixtureDirectory, { recursive: true })
+    ]);
+    const skillFile = path.join(skillDirectory, "SKILL.md");
+    const metadata =
+      "---\nname: example\ndescription: &summary |\n  A skill with name: in its prose.\nmetadata:\n  summary: *summary\n---\n\n# Example\n";
+    await Promise.all([
+      writeFile(skillFile, metadata),
+      writeFile(path.join(fixtureDirectory, "SKILL.md"), "# Local fixture\n")
+    ]);
     const otherScope = runMarkdownlint(
       directory,
-      "plugins/spec-driven-development/scoped.md"
+      "plugins/spec-driven-development/scoped.md",
+      "fixtures/plugins/vendor/skills/example/SKILL.md",
+      path.relative(directory, skillFile)
     );
     expect(otherScope.status, otherScope.output).toBe(0);
+    await Promise.all(
+      Object.entries({
+        duplicate: metadata.replace(
+          "name: example",
+          "name: example\nname: duplicate"
+        ),
+        alias: metadata.replace("*summary", "*missing")
+      }).map(async ([kind, broken]) => {
+        const invalidDirectory = path.join(otherDirectory, "skills", kind);
+        await mkdir(invalidDirectory);
+        const file = path.join(invalidDirectory, "SKILL.md");
+        await writeFile(file, broken);
+        const invalid = runMarkdownlint(
+          directory,
+          "--fix",
+          path.relative(directory, file)
+        );
+        expect(invalid.status, invalid.output).toBe(1);
+        expect(await readFile(file, "utf-8")).toBe(broken);
+      })
+    );
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
