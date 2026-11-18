@@ -233,8 +233,17 @@ const assertAncestors = async (
   );
 };
 
-const compilerConfiguration = (settings: Record<string, unknown>): string =>
-  `${JSON.stringify(settings, null, 2).slice(0, -2)},\n  "include": ["**/*", "**/.*/**/*"]\n}\n`;
+const compilerConfiguration = (
+  settings: Record<string, unknown>,
+  excludeNodeModules = false
+): string =>
+  [
+    `${JSON.stringify(settings, null, 2).slice(0, -2)},`,
+    ...(excludeNodeModules ? ['  "exclude": ["node_modules"],'] : []),
+    '  "include": ["**/*", "**/.*/**/*"]',
+    "}",
+    ""
+  ].join("\n");
 
 const addTypeScriptProfile = async (
   sources: Map<string, string>,
@@ -276,6 +285,10 @@ const addTypeScriptProfile = async (
     throw new TypeError("Expected compiler options.");
   }
   const compilerOptions = { ...fragment.compilerOptions };
+  if (typescriptProfile === "node") {
+    compilerOptions.outDir = "./dist";
+    compilerOptions.rewriteRelativeImportExtensions = true;
+  }
   if (typescriptProfile === "react-native") {
     delete compilerOptions.verbatimModuleSyntax;
     compilerOptions.moduleResolution = "bundler";
@@ -292,11 +305,13 @@ const addTypeScriptProfile = async (
   }
   sources.set(
     "tsconfig.json",
-    compilerConfiguration({
-      compilerOptions: { ...compilerOptions, allowJs: true },
-      extends: base.config,
-      ...(typescriptProfile === "next" ? { exclude: ["node_modules"] } : {})
-    })
+    compilerConfiguration(
+      {
+        compilerOptions: { ...compilerOptions, allowJs: true },
+        extends: base.config
+      },
+      typescriptProfile === "next"
+    )
   );
   if (typescriptProfile === "vue") {
     const vueCatalog = await readSource(
