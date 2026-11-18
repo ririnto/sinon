@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import type { SpawnSyncReturns } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 
@@ -20,31 +21,40 @@ export const runUltracite = (
   action: "check" | "fix" = "check",
   configuration?: string,
   extraArguments: readonly string[] = []
+) =>
+  readUltraciteResult(
+    spawnSync(
+      process.execPath,
+      [
+        ultraciteBin,
+        action,
+        "--format",
+        "json",
+        ...(configuration !== undefined && configuration !== ""
+          ? ["--config", configuration]
+          : []),
+        filename,
+        ...extraArguments
+      ],
+      {
+        cwd: directory,
+        env: {
+          ...process.env,
+          PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
+        }
+      }
+    )
+  );
+
+/**
+ * Read native rule IDs and affected filenames from a completed JSON-mode check or fix.
+ */
+export const readUltraciteResult = (
+  result: SpawnSyncReturns<Buffer>
 ): {
   diagnostics: { code?: string; filename?: string; message: string }[];
   status: number | null;
 } => {
-  const result = spawnSync(
-    process.execPath,
-    [
-      ultraciteBin,
-      action,
-      "--format",
-      "json",
-      ...(configuration !== undefined && configuration !== ""
-        ? ["--config", configuration]
-        : []),
-      filename,
-      ...extraArguments
-    ],
-    {
-      cwd: directory,
-      env: {
-        ...process.env,
-        PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
-      }
-    }
-  );
   const output = result.stdout.toString();
   const start = output.search(/\{\s*"diagnostics"\s*:/u);
   if (result.error || start < 0) {

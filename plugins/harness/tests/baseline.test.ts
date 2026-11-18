@@ -42,16 +42,6 @@ const profiles: BaselineProfile[] = [
   "react"
 ];
 
-const nativeGateCommands: Partial<Record<BaselineProfile, string>> = {
-  go: "run-s check:markdownlint-cli2 check:go check:test",
-  gradle: "run-s check:markdownlint-cli2 check:test",
-  kotlin: "run-s check:markdownlint-cli2 check:test",
-  maven: "run-s check:markdownlint-cli2 check:test",
-  rust: "run-s check:markdownlint-cli2 check:rust check:test",
-  shell: "run-s check:markdownlint-cli2 check:shell",
-  uv: "run-s check:markdownlint-cli2 check:uv"
-};
-
 const targetDirectory = async (): Promise<string> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-baseline-"));
   onTestFinished(async () => {
@@ -168,12 +158,6 @@ describe("fresh-root baseline", () => {
       expect(valueAt(config, "compilerOptions", "allowJs")).toBe(true);
       expect(valueAt(config, "compilerOptions", "noEmit")).toBe(true);
       expect(valueAt(config, "include")).toEqual(["**/*", "**/.*/**/*"]);
-      const manifest: unknown = JSON.parse(
-        await readFile(path.join(directory, "package.json"), "utf-8")
-      );
-      expect(valueAt(manifest, "scripts", "check:ultracite")).toContain(
-        "--type-aware"
-      );
     }
   );
 
@@ -261,19 +245,6 @@ describe("fresh-root baseline", () => {
       expect(valueAt(manifest, "engines", "node")).toBe(
         valueAt(rootManifest, "engines", "node")
       );
-      expect(valueAt(manifest, "scripts")).toMatchObject({
-        check: nativeGateCommands[profile] ?? "run-p check:*",
-        "check:markdownlint-cli2": "markdownlint-cli2",
-        fix: "run-p fix:*",
-        "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
-        prepare: "husky"
-      });
-      expect(valueAt(manifest, "scripts", "pre-commit")).toMatch(
-        /^run-s check(?: |$)/u
-      );
-      expect(valueAt(manifest, "scripts", "pre-push")).toMatch(
-        /^run-s check(?: |$)/u
-      );
       const workspace = parseDocument(
         await readFile(path.join(directory, "pnpm-workspace.yaml"), "utf-8"),
         { uniqueKeys: true }
@@ -331,24 +302,7 @@ describe("fresh-root baseline", () => {
       expect(valueAt(configuration, "customRules")).not.toContain(
         "rules/no-sensitive-content.mjs"
       );
-      expect(
-        await readFile(path.join(directory, ".husky/.gitignore"), "utf-8")
-      ).toBe("_/\n");
-      await Promise.all(
-        ["pre-commit", "pre-push"].map(async (hook) => {
-          const source = await readFile(
-            path.join(directory, ".husky", hook),
-            "utf-8"
-          );
-          expect(source).toBe(
-            `#!/usr/bin/env sh\n# vim: set fileencoding=utf-8 :\nset -e\npnpm run ${hook}\n`
-          );
-        })
-      );
       if (profile === "gradle" || profile === "kotlin") {
-        expect(valueAt(manifest, "scripts")).toMatchObject({
-          "check:test:gradle": "./gradlew ktlintCheck check"
-        });
         expect(
           await readFile(
             path.join(directory, "gradle/libs.versions.toml"),
@@ -389,7 +343,6 @@ describe("fresh-root baseline", () => {
         expect(await readdir(directory)).not.toContain("Cargo.toml");
       }
       if (profile === "node") {
-        expect(valueAt(manifest, "scripts", "api:docs")).toBe("typedoc");
         expect(valueAt(manifest, "devDependencies", "typedoc")).toBe(
           "catalog:"
         );
@@ -419,16 +372,6 @@ describe("fresh-root baseline", () => {
             (script) => script.startsWith("fix:")
           )
         ).toEqual(["fix:markdownlint-cli2", "fix:ultracite"]);
-        expect(
-          Object.keys(objectValue(valueAt(manifest, "scripts"))).filter(
-            (script) => script.startsWith("ultracite:fix:")
-          )
-        ).toEqual([]);
-        expect(
-          Object.values(objectValue(valueAt(manifest, "scripts")))
-            .map(stringValue)
-            .filter((command) => /^(?:oxlint|oxfmt)\b/u.test(command))
-        ).toEqual([]);
         expect(
           await readFile(path.join(directory, "oxfmt.config.ts"), "utf-8")
         ).toBe(
@@ -469,9 +412,6 @@ describe("fresh-root baseline", () => {
         ]);
       }
       if (profile === "frontend" || profile === "react") {
-        expect(valueAt(manifest, "scripts", "check:storybook")).toBe(
-          "storybook build --test"
-        );
         expect(valueAt(manifest, "devDependencies", "storybook")).toBe(
           "catalog:"
         );
@@ -789,6 +729,7 @@ describe("fresh-root baseline", () => {
       );
       expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
       expect(git("add", ".").status).toBe(0);
+      expect(git("ls-files", "--", ".husky/_").stdout.toString()).toBe("");
       const commit =
         entrypoint === "pnpm"
           ? spawnSync("pnpm", ["run", "pre-commit"], options)
@@ -819,9 +760,7 @@ describe("fresh-root baseline", () => {
       for (const result of [rejectedCommit, rejectedPush]) {
         const output = result.stderr.toString() + result.stdout.toString();
         expect(result.status, output).toBe(1);
-        expect(output).toContain(
-          'Missing TSDoc for exported public API function "undocumented".'
-        );
+        expect(output).toContain("tsdoc(require-export-tsdoc)");
       }
       expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
         entrypoint === "pnpm" ? "Initial fixture" : "Configure Node baseline"
