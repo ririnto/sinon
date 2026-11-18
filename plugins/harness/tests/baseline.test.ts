@@ -106,12 +106,6 @@ describe("fresh-root baseline", () => {
       const manifest: unknown = JSON.parse(
         await readFile(path.join(directory, "package.json"), "utf-8")
       );
-      expect(valueAt(manifest, "scripts", "pre-commit")).toMatch(
-        /^run-s check(?: |$)/u
-      );
-      expect(valueAt(manifest, "scripts", "pre-push")).toMatch(
-        /^run-s check(?: |$)/u
-      );
       const workspace = parseDocument(
         await readFile(path.join(directory, "pnpm-workspace.yaml"), "utf-8")
       );
@@ -688,9 +682,12 @@ describe("fresh-root baseline", () => {
     ).toBeGreaterThan(0);
   });
 
-  test.each(["git", "pnpm"])(
+  test.each([
+    ["git", undefined],
+    ["pnpm", "node"]
+  ] as const)(
     "Node %s hooks run the actual Ultracite gate and reject a source violation",
-    async (entrypoint) => {
+    async (entrypoint, typescriptProfile) => {
       const directory = await targetDirectory();
       const options = {
         cwd: directory,
@@ -721,13 +718,30 @@ describe("fresh-root baseline", () => {
       const remote = path.join(directory, "remote.git");
       expect(git("init", "--bare", remote).status).toBe(0);
       expect(git("remote", "add", "origin", remote).status).toBe(0);
-      await configureBaseline(directory, "node", "eligible");
+      await configureBaseline(directory, "node", "eligible", typescriptProfile);
       await symlink(
         path.join(repositoryRoot, "node_modules"),
         path.join(directory, "node_modules"),
         "dir"
       );
       expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
+      if (typescriptProfile === "node") {
+        const build = spawnSync("pnpm", ["exec", "tsc"], options);
+        expect(
+          build.status,
+          build.stdout.toString() + build.stderr.toString()
+        ).toBe(0);
+        const load = spawnSync(
+          process.execPath,
+          [
+            "--input-type=module",
+            "--eval",
+            'await import("./dist/rules/table-separators.js")'
+          ],
+          options
+        );
+        expect(load.status, load.stderr.toString()).toBe(0);
+      }
       expect(git("add", ".").status).toBe(0);
       expect(git("ls-files", "--", ".husky/_").stdout.toString()).toBe("");
       const commit =

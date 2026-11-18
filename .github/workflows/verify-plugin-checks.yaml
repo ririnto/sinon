@@ -14,10 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 849126a41a52c3eafff05686ef01969fe66e96a2
+          ref: e23c4b4b22e6e2e25d16ff423dc448043b271559
           persist-credentials: false
       - name: Confirm the reviewed commit
-        run: test "$(git rev-parse HEAD)" = "849126a41a52c3eafff05686ef01969fe66e96a2"
+        run: test "$(git rev-parse HEAD)" = "e23c4b4b22e6e2e25d16ff423dc448043b271559"
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json
