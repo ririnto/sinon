@@ -228,8 +228,8 @@ catalogs:
       specifier: ^7.0.2
       version: 7.0.2
     ultracite:
-      specifier: ^8.2.0
-      version: 8.2.0
+      specifier: ^8.2.1
+      version: 8.2.1
     vitest:
       specifier: ^5.1.0
       version: 5.1.0
@@ -288,7 +288,7 @@ importers:
         version: 7.0.2
       ultracite:
         specifier: 'catalog:'
-        version: 8.2.0(eslint@10.14.0)(oxfmt@0.78.0)(oxlint@1.93.0(oxlint-tsgolint@7.0.2007))
+        version: 8.2.1(eslint@10.14.0)(oxfmt@0.78.0)(oxlint@1.93.0(oxlint-tsgolint@7.0.2007))
       vitest:
         specifier: 'catalog:'
         version: 5.1.0(@types/node@24.19.2)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
@@ -2346,8 +2346,8 @@ packages:
   ufo@1.6.4:
     resolution: {integrity: sha512-JFNbkD1Svwe0KvGi8GOeLcP4kAWQ609twvCdcHxq1oSL8svv39ZuSvajcD8B+5D0eL4+s1Is2D/O6KN3qcTeRA==}
 
-  ultracite@8.2.0:
-    resolution: {integrity: sha512-4g7+Lnx3ICVhdNKs4UXGHbhw9rHiECDy0YuDaS7/XaZOxU3vVBdzF804C9X2K5d6to+/+J8GWJ+h54BhQRmnEg==}
+  ultracite@8.2.1:
+    resolution: {integrity: sha512-+HAwOkdpdNaf6Fr+JEh0YkikJU4vjRO977kMAvtOsk8YWk+VG3rdy7gyFLgbO1Edv+k5hhL/3CKAiEmUlvt3ow==}
     engines: {node: ^22.22.2 || >=24.15.0}
     hasBin: true
     peerDependencies:
@@ -4567,7 +4567,7 @@ snapshots:
 
   ufo@1.6.4: {}
 
-  ultracite@8.2.0(eslint@10.14.0)(oxfmt@0.78.0)(oxlint@1.93.0(oxlint-tsgolint@7.0.2007)):
+  ultracite@8.2.1(eslint@10.14.0)(oxfmt@0.78.0)(oxlint@1.93.0(oxlint-tsgolint@7.0.2007)):
     dependencies:
       '@clack/prompts': 1.9.0
       cli-truncate: 6.2.0
