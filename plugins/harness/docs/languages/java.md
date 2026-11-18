@@ -101,7 +101,7 @@ The mappings below record where Java has a safe language or tool equivalent.
 | `kotlin-top-level-declaration-count` | The Java compiler requires a public top-level type to match its file name. |
 | | - The Java compiler allows additional package-private top-level types. |
 | | - There is no exact Checkstyle equivalent for Kotlin's one-type rule. |
-| `companion-object-position`, `explicit-unit-branch`, `nested-data-class-last`, `no-import-alias`, `no-java-path-api`, `non-null-assertion`, `null-comparison-identity`, `no-regex-constructor`, `slf-direct-logging` | These rules depend on Kotlin syntax, Kotlin null semantics, Kotlin-specific constructs, or Kotlin APIs and have no direct Java equivalent. |
+| `companion-object-position`, `explicit-unit-branch`, `nested-data-class-last`, `no-import-alias`, `no-java-path-api`, `non-null-assertion`, `null-comparison-identity`, `slf-direct-logging` | These rules depend on Kotlin syntax, Kotlin null semantics, Kotlin-specific constructs, or Kotlin APIs and have no direct Java equivalent. |
 | | - Java null comparisons already use reference identity. |
 
 The Java profile permits wildcard imports.

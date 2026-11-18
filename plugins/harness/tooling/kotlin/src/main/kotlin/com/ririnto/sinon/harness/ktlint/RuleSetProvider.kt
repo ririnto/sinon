@@ -30,7 +30,6 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("harness")) {
             RuleProvider(::NonNullAssertion),
             RuleProvider(::NullComparisonIdentity),
             RuleProvider(::PublicDeclarationDocComment),
-            RuleProvider(::RegexConstructor),
             RuleProvider(::SlfDirectLogging),
             RuleProvider(::TerminalBranchWhen),
             RuleProvider(::UncheckedCastSuppression),

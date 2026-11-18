@@ -191,7 +191,7 @@ Use raw strings (`"""`) for regular expressions and JSON fixtures.
 Use raw triple-quoted strings with `trimIndent()` for multiline code text instead of escaped newline strings.
 Preserve the intended indentation, newline data, and interpolation when changing string form.
 Prefer direct string helpers before regular expressions.
-Use `String.toRegex()` when a regular expression is required.
+Prefer `String.toRegex()` when constructing a standard Kotlin regular expression from a pattern string.
 Know whether the trailing newline before the closing delimiter is part of the value, and match the exact target.
 
 ## Filesystem Paths

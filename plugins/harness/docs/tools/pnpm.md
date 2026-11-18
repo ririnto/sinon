@@ -192,7 +192,9 @@ Configured `search-replace` from `markdownlint-rule-search-replace` replaces the
 It reports the first U+2500 through U+257F character per line, including code, with its UTF-16 source column.
 The profile supplies no replacement text or automatic fix.
 Keep its dependency and catalog entry when merging the shared Markdown configuration.
-`docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and skips fenced code, data rows, generated documents, and licenses.
+`docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and skips fenced code, data rows, licenses, and documents marked as generated.
+The shared Markdown rules recognize generated flags in frontmatter and generated-file HTML comments starting within the first five lines, including `@generated` and `Code generated` headers.
+Exclude unmarked generator output through the target’s Markdownlint ignore configuration.
 Sentence-per-line formatting remains an authoring guideline rather than an enforced Markdownlint rule.
 `docs/no-em-dash` reports em dashes in authored prose in paragraphs, list items, and GitHub alerts.
 `docs/no-relative-skill-links` reports relative `SKILL.md` destinations in authored links and reference definitions.

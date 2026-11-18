@@ -127,6 +127,8 @@ These existing rules remain attached to the current KtLint ruleset.
 The comparisons do not authorize adding Kotlin enforcement through Oxlint or introducing a Detekt pipeline.
 The table lists the registered rules.
 Keep lambda naming in review because an unqualified `it` can refer to a receiver property and changing the lambda signature can break compilation.
+Review regular expression construction where the resolved Kotlin type is known.
+A syntax-only rule cannot distinguish a project’s `Regex` function from the standard constructor across file and receiver boundaries.
 
 | Custom ID | Upstream comparison | Retained difference | Pillars |
 | --- | --- | --- | --- |
@@ -150,7 +152,6 @@ Keep lambda naming in review because an unqualified `it` can refer to a receiver
 | `harness:non-null-assertion` | Detekt unsafe-call and unnecessary-not-null rules | The policy diagnoses every non-null assertion token regardless of resolved type. | Stability |
 | `harness:null-comparison-identity` | Detekt null-equality rules | The policy targets equality operators against null literals rather than equals calls or referential equality. | Stability |
 | `harness:public-declaration-doc-comment` | Detekt undocumented public class, function, and property rules | The visitor checks effective public and protected classes, functions, properties, primary-constructor properties, and named non-companion objects; it excludes companion objects and does not visit individual enum entries. | Stability, maintainability |
-| `harness:no-regex-constructor` | Detekt `StringShouldBeRawString` | The policy prefers toRegex calls rather than checking string escaping. | Consistency, maintainability |
 | `harness:slf-direct-logging` | Detekt `ForbiddenMethodCall` | Syntax-proven logging receivers and alias exclusions differ from resolved method signatures and callable references. | Stability, maintainability |
 | `harness:terminal-branch-when` | Detekt `UseIfInsteadOfWhen` | The policy recommends the opposite conversion for stable parameter comparison chains. | Consistency, maintainability |
 | `harness:unchecked-cast-suppression` | Detekt `ForbiddenSuppress` | Collection arguments and conditional safe annotation removal differ from upstream reporting without fixes. | Stability, maintainability |

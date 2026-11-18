@@ -42,7 +42,6 @@ class RuleSetProviderTest :
                     "harness:non-null-assertion",
                     "harness:null-comparison-identity",
                     "harness:public-declaration-doc-comment",
-                    "harness:no-regex-constructor",
                     "harness:slf-direct-logging",
                     "harness:terminal-branch-when",
                     "harness:unchecked-cast-suppression",
@@ -61,6 +60,21 @@ class RuleSetProviderTest :
                 """.trimIndent() + "\n"
             KtLintRuleEngine(ruleProviders = RuleSetProvider().getRuleProviders())
                 .format(Code.fromSnippet(source), rerunAfterAutocorrect = true) { AutocorrectDecision.ALLOW_AUTOCORRECT } shouldBe source
+        }
+
+        test("accepts project Regex calls from a sibling file or nullable receiver") {
+            val source =
+                """
+                private class Lookups {
+                    fun lookup(factory: Factory?): Record? = factory?.Regex(5)
+
+                    fun lookup(id: Int): Record = Regex(id)
+                }
+                """.trimIndent()
+            val diagnostics = mutableListOf<String>()
+            KtLintRuleEngine(ruleProviders = RuleSetProvider().getRuleProviders())
+                .lint(Code.fromSnippet(source)) { error -> diagnostics.add(error.detail) }
+            diagnostics.shouldBeEmpty()
         }
 
         test("registers no experimental rule so every rule runs by default") {
