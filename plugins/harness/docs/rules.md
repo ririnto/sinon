@@ -152,6 +152,9 @@ Source profile updates do not automatically update existing target projects.
 ## Rule Rollout
 
 Prefer built-in rules and supported configuration before custom checks.
+Each custom rule must run with every other custom rule disabled.
+A rule may use shared parsing helpers, but must not import another rule, consume its findings, or depend on its registration order or fixes.
+Exercise the rule on its own through the native lint engine and check interacting fixes together when they touch the same syntax.
 Use AST-aware custom rules only in proven syntax contexts, with positive and negative fixtures covering violations and valid cases.
 Offer automatic fixes only when evaluation order, side effects, and observable behavior remain unchanged.
 Run the native check and fix commands on the same inputs.
