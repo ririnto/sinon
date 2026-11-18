@@ -17,6 +17,10 @@ metadata:
         - https://github.com/astral-sh/ruff/releases/tag/0.17.3
         - https://docs.astral.sh/ruff/configuration/
         - https://docs.astral.sh/ruff/rules/
+        - https://docs.astral.sh/ruff/rules/forward-annotation-syntax-error/
+        - https://docs.astral.sh/ruff/rules/duplicate-bases/
+        - https://docs.astral.sh/ruff/rules/unexpected-special-method-signature/
+        - https://docs.astral.sh/ruff/rules/asyncio-dangling-task/
         - https://docs.astral.sh/ruff/rules/missing-type-function-argument/
         - https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function/
         - https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
@@ -74,7 +78,9 @@ Preserve existing target hook owners through the shared pnpm profile's bounded i
 Do not install a competing Python pre-commit configuration.
 
 The Ruff configuration extends native defaults with `B` for common bugs, `I` for imports, `UP` for supported syntax, and `ASYNC` for asynchronous code defects.
+Ruff also reports invalid forward annotations, duplicate base classes, incompatible special-method signatures, and unreferenced asyncio tasks.
 Merge `extend-select` entries with the target's existing selections.
+Add `PLE0241` to the target's existing `unfixable` list so the class author chooses which base to keep.
 Keep its `target-version` and `requires-python` constraints so syntax suggestions match the supported runtime.
 The profile adds `PTH` for pathlib replacements and explicit annotation and docstring rules.
 Read the [Python annotation requirements](../languages/python.md#syntax-and-style) when configuring the annotation checks.

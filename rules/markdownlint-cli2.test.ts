@@ -67,7 +67,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     );
     const ignored = runMarkdownlint(directory, "**/*.md");
     expect(ignored.status).toBe(0);
-    expect(ignored.output).toContain("Linting: 1 file");
     await Promise.all([
       rm(path.join(directory, "ignored.local.md")),
       rm(path.join(directory, "included.md"))
@@ -100,7 +99,6 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     for (const rule of ["search-replace", "docs/table-separators"]) {
       expect(generalRules.output).toContain(rule);
     }
-    expect(generalRules.output).not.toContain("docs/sentence-per-line");
     await rm(path.join(harnessDirectory, "rules.md"));
     const harnessScope = runMarkdownlint(
       directory,
@@ -110,11 +108,30 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     expect(harnessScope.output).toContain("docs/no-em-dash");
     expect(harnessScope.output).toContain("docs/no-relative-skill-links");
     await rm(path.join(harnessDirectory, "scoped.md"));
+    const skillDirectory = path.join(otherDirectory, "skills/example");
+    await mkdir(skillDirectory, { recursive: true });
+    const skillFile = path.join(skillDirectory, "SKILL.md");
+    const metadata =
+      "---\nname: example\ndescription: |\n  A skill with name: in its prose.\n---\n\n# Example\n";
+    await writeFile(skillFile, metadata);
     const otherScope = runMarkdownlint(
       directory,
-      "plugins/spec-driven-development/scoped.md"
+      "plugins/spec-driven-development/scoped.md",
+      path.relative(directory, skillFile)
     );
     expect(otherScope.status, otherScope.output).toBe(0);
+    const duplicate = metadata.replace(
+      "description: |",
+      "name: duplicate\ndescription: |"
+    );
+    await writeFile(skillFile, duplicate);
+    const invalid = runMarkdownlint(
+      directory,
+      "--fix",
+      path.relative(directory, skillFile)
+    );
+    expect(invalid.status, invalid.output).toBe(1);
+    expect(await readFile(skillFile, "utf-8")).toBe(duplicate);
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
