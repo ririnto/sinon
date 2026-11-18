@@ -325,13 +325,12 @@ The custom call diagnostic covers a separate requirement from the upstream check
 
 `check:ultracite` runs the root configuration with type awareness, including the React policy.
 The shared check and fix commands each run once, without additional formatter-writing passes.
-Sinon's publishing repository uses one root configuration but runs type-aware checks over repository scripts, tests, JavaScript, and TypeScript.
+Sinon runs `ultracite check --type-aware` once from the repository root across scripts, tests, and Harness tooling.
 The standalone workspace sample and Storybook fixtures use their own installed consumer dependencies through `check:consumers`, rather than the publishing repository's Node-only types.
-Both repository lint invocations enable type awareness.
-The second runs from the Harness tooling directory so its own configuration is discovered.
+Oxlint discovers the nested Harness configuration and applies its additional rules within that directory.
+Both configurations register the same React effect module from the Harness profile.
 The root `.eslintignore` keeps independently checked consumer configurations out of root discovery.
 Each consumer runs the same bare command from its own directory.
-Formatting may inspect files again.
 Verify both positive and negative target fixtures before claiming consumer adoption.
 
 ## Type-Aware Promise Checks
@@ -343,7 +342,6 @@ The rule diagnoses unhandled promises rather than every use of `void`.
 It accepts explicit rejection handling, awaited calls, and returned promises.
 It provides suggestions upstream, but normal Ultracite fixes do not rewrite `void` into `await`.
 Keep that conversion under the [common async policy](../rules.md#code-rules-common-to-all-languages) because scheduling and cancellation require semantic review.
-The Sinon root runs both general and Harness tooling checks and fixes with `--type-aware`.
 The consumer gate installs standalone dependencies before checking unchanged generated configurations and HTML and React stories in their target projects.
 The root `check:typescript` script runs `tsc --noEmit` independently of Ultracite's TypeScript checks.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
