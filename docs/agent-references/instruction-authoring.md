@@ -40,7 +40,7 @@ Identify its canonical owner and keep it available before the governed action.
 | Installed target copies | Agents in the target repository. | At target skill activation or reference access. | Verify installer rewrites in the target layout. |
 
 The repository Markdown check reads the YAML mapping at the start of each published `skills/<name>/SKILL.md`.
-It reports missing or malformed frontmatter and duplicate keys before publication.
+It reports missing or malformed frontmatter, duplicate keys, and unresolved YAML aliases before publication.
 
 ## Keep Rules With Their Owners
 
