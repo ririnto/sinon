@@ -91,7 +91,7 @@ For protobuf, server, client, interceptor, status, health, reflection, deadline,
 
 ## Testing checklist
 
-Select checks for affected API, transport, and security contracts and their regression risks.
+Exercise the changed RPC contract through a generated client or server stub.
 
 Verify `.proto` compilation, generated stubs and checked-in contract alignment, the expected server response, and the intended client channel.
 Verify deadlines, metadata, interceptors, and invalid-input status on representative calls.

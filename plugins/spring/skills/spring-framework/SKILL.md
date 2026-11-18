@@ -95,7 +95,7 @@ For caching, AOT hints, TestContext integration, context pausing, nested tests, 
 
 ## Testing checklist
 
-Select checks for affected framework contracts and regression risks.
+Exercise the affected bean, advice, or transaction through its caller.
 Do not require unrelated lifecycle, transaction, and validation tests for every change.
 
 - Verify the application context loads with the intended bean graph.

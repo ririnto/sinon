@@ -112,9 +112,8 @@ Use `kotlinx.serialization` for Kotlin-first encoding, `kotlinx.datetime` for ci
 
 ## Completion
 
-Explain material shape, nullability, collection, parsing, and interop effects.
-Verify with native checks.
-Do not review unrelated features for a checklist.
+Compile or test the affected caller.
+Explain changes to observable types, nullability, ordering, or interop when they affect that caller.
 
 ## Scope Boundaries
 

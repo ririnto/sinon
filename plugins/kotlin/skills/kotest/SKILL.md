@@ -89,8 +89,7 @@ For examples, matcher choices, and the `assertSoftly` exception interaction, rea
 
 Run the affected native tests and fix failures caused by the authorized change.
 Report the behavior proved, command and result, and any unverified boundary.
-Review only relevant coroutine, Flow, exception, or mocking decisions.
-Do not require every pattern for each test.
+For a regression, identify the input or event that distinguishes the corrected behavior.
 
 ## Common Pitfalls
 

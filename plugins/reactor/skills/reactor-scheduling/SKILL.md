@@ -107,6 +107,9 @@ For implementation work, verify affected thread placement, blocking isolation, a
 Virtual-time tests do not prove real thread affinity.
 Use existing execution evidence when sufficient, and add global instrumentation only when the remaining uncertainty requires it.
 
+Complete the authorized change and explain the workload, scheduler placement, and any ownership or context consequence.
+Report the checks run and any unverified capacity or runtime behavior.
+
 ## References
 
 | Open this when... | Reference |
@@ -114,8 +117,3 @@ Use existing execution evidence when sufficient, and add global instrumentation 
 | shared scheduler defaults are not enough and you must create, tune, or replace schedulers explicitly | [Scheduler Tuning and Custom Schedulers](references/scheduler-tuning.md) |
 | `ThreadLocal`-backed data must cross scheduler boundaries or automatic context propagation becomes the blocker | [ThreadLocal Context Bridging](references/threadlocal-context-bridging.md) |
 | local `log(...)` and `checkpoint(...)` are not enough and you need global debugging hooks or assembly tracing | [Debugging and Hooks](references/debugging-and-hooks.md) |
-
-## Result
-
-Complete the authorized change and explain the workload, scheduler placement, and any ownership or context consequence.
-Report the checks run and any unverified capacity or runtime behavior.

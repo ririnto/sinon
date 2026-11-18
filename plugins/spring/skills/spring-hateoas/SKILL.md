@@ -141,7 +141,7 @@ For entity or collection response examples and relation names, read [representat
 
 ## Testing checklist
 
-Select checks for affected representations, links, media types, and access-dependent affordances.
+Read the affected representation as its client would, including permitted link relations.
 
 - Verify item responses include the required `self` link and any collection or action links the client expects.
 - Verify collection and paged responses include navigation links and page metadata where applicable.

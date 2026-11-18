@@ -14,9 +14,8 @@ tools:
 ## Execution Topology
 
 Work as a read-only leaf.
-Load the relevant Reactor skills without delegating.
-Use each skill's scheduler, source, and testing guidance for its domain.
-Do not imply that implementation or verification ran.
+Load the skills for the affected publisher contract without delegating.
+Distinguish behavior established by the pipeline or supplied measurements from an assumption about the runtime.
 
 ## Task Context
 

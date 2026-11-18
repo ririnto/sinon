@@ -84,5 +84,5 @@ Use [performance templates](./references/performance-templates.md) when benchmar
 ## Result
 
 Tie the bottleneck classification and recommendation to measured evidence.
-For authorized optimization work, compare the affected workload before and after the change.
+For an optimization, compare the same workload, runtime settings, and metric before and after the change.
 State any missing evidence or unverified operational impact.

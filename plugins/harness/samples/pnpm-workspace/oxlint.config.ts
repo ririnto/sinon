@@ -18,7 +18,6 @@ export default defineConfig({
       name: "function-spacing",
       specifier: "./plugins/no-blank-lines-in-functions.ts"
     },
-    { name: "prose-style", specifier: "./plugins/no-em-dash.ts" },
     {
       name: "function-comments",
       specifier: "./plugins/no-inline-comments-in-functions.ts"
@@ -42,7 +41,6 @@ export default defineConfig({
     "function-comments/no-inline-comments-in-functions": "deny",
     "function-spacing/no-blank-lines-in-functions": "deny",
     "oxc/no-accumulating-spread": "deny",
-    "prose-style/no-em-dash": "deny",
     "react-effects/no-direct-use-effect": "deny",
     "react-hooks-js/immutability": "deny",
     "react-hooks-js/purity": "deny",

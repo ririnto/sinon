@@ -3,8 +3,8 @@
 ## Project Structure
 
 `skills/change-description/` owns Git-contained change-description guidance.
-Agents draft or route work.
-They do not publish.
+Read-only agents return the requested draft or Git decision to the calling session.
+Only the session holding the publication grant may act on that handoff.
 
 ## Change Description
 

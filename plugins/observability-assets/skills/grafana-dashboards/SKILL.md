@@ -96,15 +96,8 @@ JSON parsing alone does not prove datasource access or correct rendering in the 
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. the recommended dashboard asset or review decision
-2. the source-of-truth path or source-vs-rendered ownership decision
-3. validation results for JSON structure, datasource explicitness, and layout/readability checks
-4. any remaining blockers, risks, or follow-up review points
+Identify the dashboard source and the operator question the changed panel answers.
+Report the datasource, time range, and units used to check it, and distinguish a rendered result from a JSON-only check.
 
 ## Invariants
 

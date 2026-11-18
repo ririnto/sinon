@@ -101,6 +101,6 @@ Never force-push merely to resolve a rejected push.
 Verify the affected index, worktree, stash, or branch state after an authorized mutation.
 Reuse check evidence for unchanged content.
 Run affected native checks after conflict resolution or integration changes.
-Report the preserved baseline, action and result, and any unresolved blocker.
+Report where preserved edits are now and which requested operation, if any, remains blocked.
 Use repository-relative paths and portable examples in committed text.
 Do not include private local environment details, external work-item identifiers, or review URLs.

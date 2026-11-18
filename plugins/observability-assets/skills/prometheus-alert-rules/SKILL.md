@@ -94,15 +94,8 @@ Obtain explicit authorization for the target before either runtime action.
 
 ## Output contract
 
-Use the following as recommended defaults.
-Follow task, host, and dispatch requirements when they differ.
-
-Return:
-
-1. The recommended alert rule or review decision
-2. The rule-file path or rule-group placement decision
-3. Validation results for syntax, label/annotation contract, and recording-rule usage
-4. Any remaining blockers, follow-up test needs, or Alertmanager handoff risks
+Deliver the rule or review decision with its group and the condition that fires or clears the alert.
+Report syntax and behavioral checks separately, including any downstream routing label that changes.
 
 ## References
 

@@ -7,8 +7,10 @@ metadata:
       url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices.md
     ChatGPT best practices:
       url: https://learn.chatgpt.com/guides/best-practices
-    OpenAI latest-model guidance:
-      url: https://developers.openai.com/api/docs/guides/latest-model.md
+    OpenAI model guidance:
+      url: https://developers.openai.com/api/docs/guides/latest-model
+    Prompting GPT-6.2 in Codex:
+      url: https://learn.chatgpt.com/guides/prompting-gpt-6-2-astra
     GPT-6 instruction design:
       url: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra.md
     Codex skills:
@@ -61,21 +63,23 @@ Keep citation-placement policy in the `Official References` section of `reposito
 
 ## Compose Actionable Instructions
 
-Use direct verbs and specify the required output's audience, format, and level of detail.
-Give numbered steps when action order matters.
-Separate instructions from source material, examples, and variable inputs with clear headings or descriptive delimiters.
-Add relevant examples when the required behavior or output would otherwise be ambiguous.
-Describe the required result instead of adding blanket tool demands or escalating emphasis.
-Keep rules that change a relevant decision or action.
-Inspect the instructions agents actually receive for missing, stale, or conflicting rules.
+Start with the decision or artifact the reader must deliver and how its consumer will judge it.
+Keep always-loaded project instructions for conventions the code, tests, and package documentation cannot communicate.
+Give an ordered procedure when sequence affects correctness, permissions, or recovery.
+Move optional recipes behind the condition that makes them relevant.
+Distinguish examples and supplied data from requirements.
+
+Write handoffs for someone who has not seen the working conversation.
+Give the outcome, the evidence that supports it, and any decision the recipient still owns.
+When editing existing prose, preserve its technical claims, attribution, and the author's intended scope.
 
 ## Shared Principles And Local Limits
 
 State the requested outcome, relevant inputs and context, constraints, and authorized scope.
 Name the deliverable, observable completion criteria, and stop conditions before prescribing steps.
 Make approval boundaries explicit and continue work already authorized by the user.
-Ask focused questions when missing information could materially change the outcome or authority.
-Use available evidence for routine gaps within granted scope and report material assumptions.
+Proceed on reversible assumptions and keep independent work moving when one decision is blocked.
+Ask for a decision when it would change scope, authorize an irreversible action, or settle a material uncertainty the available evidence cannot resolve.
 
 Name required supporting references, their loading conditions, and paths available to the consumer before the governed action.
 Read each selected reference before applying its instructions.
@@ -93,7 +97,15 @@ Ask for a concise explanation or action summary instead of requesting hidden rea
 
 ## Prompt Evaluation
 
-Evaluate prompt behavior on the named model and workload.
+Exercise changed instructions with a representative request through their actual loading path.
+For example, a read-only reviewer can report a missing build result without claiming to have run it.
+For a routing change, also check a nearby request that belongs to a different skill.
+Record which host or model behavior was observed and which conclusions come from source inspection.
+
+In a workflow that controls reasoning effort, use the investigation depth and consequences to choose among the host's supported settings.
+For authorized parallel work, give each worker an independent question or exclusive write scope and the evidence its caller needs.
+Leave sequencing, final verification, and shared-state integration with the lead.
+Release task-owned temporary resources when their evidence is no longer needed.
 Effort names do not represent equal amounts of reasoning across models.
 API documentation describes API behavior and defaults, not the settings or capabilities of an installed host.
 Check the target host configuration before changing host defaults or relying on an API feature.

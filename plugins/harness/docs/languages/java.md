@@ -98,7 +98,6 @@ The mappings below record where Java has a safe language or tool equivalent.
 | | - Syntax-only rewrites cannot reliably preserve operand evaluation order, equality behavior, or control flow. |
 | `unchecked-cast-suppression` | No Java checker is selected for `@SuppressWarnings("unchecked")`. |
 | | - The repository rule against adding suppressions remains in force. |
-| `implicit-lambda-it` | Java requires an explicit lambda parameter name in source syntax. |
 | `kotlin-top-level-declaration-count` | The Java compiler requires a public top-level type to match its file name. |
 | | - The Java compiler allows additional package-private top-level types. |
 | | - There is no exact Checkstyle equivalent for Kotlin's one-type rule. |

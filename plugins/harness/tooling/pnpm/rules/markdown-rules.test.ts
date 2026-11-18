@@ -373,6 +373,18 @@ describe("docs/table-separators", () => {
     ).toEqual([]);
   });
 
+  test.each([
+    ["LICENSE.md", ""],
+    ["generated.md", "<!-- generated file -->\n\n"],
+    ["reference.md", "---\ngenerated: true\n---\n\n"]
+  ])("preserves protected tables in %s", (name, prefix) => {
+    const source = `${prefix}| A |\n| :-----: |\n| 1 |\n`;
+    expect(violations(tableSeparators, source, name)).toEqual({
+      fixed: source,
+      found: []
+    });
+  });
+
   test("checks pipeless tables", () => {
     expect(
       violations(tableSeparators, "A | B\n-- | ---\n1 | 2\n").found

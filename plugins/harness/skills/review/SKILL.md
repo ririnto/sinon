@@ -14,7 +14,7 @@ metadata:
 Use the [shared engineering rules](../../docs/rules.md) for instruction discovery, authority, validation, evidence, and review criteria.
 From their index, load language and tool guidance only for affected files, profiles, or suspected findings.
 
-## Review
+## Findings
 
 Read the complete scoped diff, surrounding code, relevant callers, and existing validation evidence.
 Verify each suspected finding with a concrete failure scenario or a violated explicit requirement.

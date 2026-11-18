@@ -29,7 +29,6 @@ class RuleSetProviderTest :
                     "harness:explicit-property-type",
                     "harness:explicit-unit-branch",
                     "harness:function-body-blank-lines",
-                    "harness:implicit-lambda-it",
                     "harness:import-over-fqn",
                     "harness:kotest-sibling-spacing",
                     "harness:kotlin-top-level-declaration-count",
@@ -49,6 +48,19 @@ class RuleSetProviderTest :
                     "harness:unchecked-cast-suppression",
                     "harness:unstructured-logging"
                 )
+        }
+
+        test("preserves a receiver property named it in a parameterless lambda") {
+            val source =
+                """
+                interface Labels {
+                    val it: String
+                }
+
+                fun label(): Labels.() -> String = { it }
+                """.trimIndent() + "\n"
+            KtLintRuleEngine(ruleProviders = RuleSetProvider().getRuleProviders())
+                .format(Code.fromSnippet(source), rerunAfterAutocorrect = true) { AutocorrectDecision.ALLOW_AUTOCORRECT } shouldBe source
         }
 
         test("registers no experimental rule so every rule runs by default") {

@@ -151,7 +151,7 @@ Keep the original exception type, message, evaluation order, wrapper contract, a
 
 Follow the target project's lambda naming conventions.
 Name lambda parameters when doing so clarifies their role or avoids ambiguity.
-When active, the `harness:implicit-lambda-it` rule reports uses of implicit `it`.
+Check the expected function type before renaming `it`: a receiver or enclosing scope can supply that name to a parameterless lambda.
 Use `_` only for a genuinely unused parameter.
 Do not confuse the Kotest DSL form `it("description")` with an implicit lambda parameter.
 Use extension functions when ownership or the call site benefits.

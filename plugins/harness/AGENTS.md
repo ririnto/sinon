@@ -21,4 +21,5 @@ Do not add legacy compatibility surfaces, scratch plan files, or bundled target 
 ## Validation
 
 For routing changes, check published links and the installer's remapped regular files.
-Run native profile checks when their implementation or integration changes, not for unrelated guidance edits.
+Exercise rule and configuration changes through the materialized profile.
+Use representative accepted and rejected inputs and inspect the output of the native fix command whenever a rule can rewrite files.

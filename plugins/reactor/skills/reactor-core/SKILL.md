@@ -104,6 +104,9 @@ Verify the changed publisher contract with affected native tests and reuse exist
 Review the relevant cardinality, ordering, empty/error, cancellation, cleanup, demand, and Context behavior.
 Do not require every operator pattern or exactly one reference for each task.
 
+Complete the authorized change and explain the source, operator, and runtime decisions that affect its contract.
+Report checks and unresolved demand, lifecycle, or integration boundaries.
+
 ## References
 
 | Open this when... | Reference |
@@ -118,8 +121,3 @@ Do not require every operator pattern or exactly one reference for each task.
 | one blocking boundary is not enough and you need multiple boundaries, fromRunnable/fromFuture bridges, terminal edges, or virtual-thread considerations | [Advanced Blocking Bridges](references/blocking-bridges.md) |
 | signal-level inspection (per-signal Context, conditional value inspection, tap observer) is needed | [Signal-Level Diagnostics](references/debugging-and-observability.md) |
 | assembly tracing, global hooks, or thread-hop debugging is the real blocker | Open the `reactor-scheduling` skill. |
-
-## Result
-
-Complete the authorized change and explain the source, operator, and runtime decisions that affect its contract.
-Report checks and unresolved demand, lifecycle, or integration boundaries.

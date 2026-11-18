@@ -75,7 +75,7 @@ Include token accounting in the application contract.
 
 ## Minimal validation
 
-Select checks for the model-facing behavior under change and its regression risks.
+Use a local fixture for the prompt, tool call, or response format the feature consumes.
 Prefer deterministic local checks.
 Use live-provider evaluation only when the required evidence and authority justify it.
 

@@ -38,29 +38,29 @@ class RegexConstructor :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)?.accept(RegexConstructorVisitor(emit))
+        (node.psi as? KtFile)?.let { file -> file.accept(RegexConstructorVisitor(file, emit)) }
     }
 
     private class RegexConstructorVisitor(
+        file: KtFile,
         private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) : KtTreeVisitorVoid() {
+        private val unqualifiedRegexIsUnambiguous: Boolean by lazy(LazyThreadSafetyMode.NONE) { file.hasNoConflictingRegexName() }
+
         override fun visitCallExpression(expression: KtCallExpression) {
             super.visitCallExpression(expression)
             val callee = expression.calleeExpression as? KtNameReferenceExpression
-            val file = expression.containingFile as? KtFile
-            val qualifiedParent = expression.parent as? KtDotQualifiedExpression
-            val isKotlinTextRegex = qualifiedParent?.selectorExpression == expression && qualifiedParent.isKotlinTextReceiver()
-            val isUnqualifiedRegex = qualifiedParent?.selectorExpression != expression && file?.hasNoConflictingRegexName() == true
-            if (callee !== null &&
-                file !== null &&
-                callee.getReferencedName() == REGEX_NAME &&
-                (isKotlinTextRegex || isUnqualifiedRegex)
-            ) {
-                emit(
-                    callee.textOffset,
-                    "avoid `Regex(...)` constructor; use `String.toRegex()` instead",
-                    false
-                )
+            if (callee?.getReferencedName() == REGEX_NAME) {
+                val parent = expression.parent as? KtDotQualifiedExpression
+                val matches =
+                    if (parent?.selectorExpression == expression) {
+                        parent.isKotlinTextReceiver()
+                    } else {
+                        unqualifiedRegexIsUnambiguous
+                    }
+                if (matches) {
+                    emit(callee.textOffset, "avoid `Regex(...)` constructor; use `String.toRegex()` instead", false)
+                }
             }
         }
 

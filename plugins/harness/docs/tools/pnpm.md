@@ -91,7 +91,9 @@ Merge its settings into an existing root Oxlint configuration without replacing 
 Keep relative JavaScript plugin registrations at the top level because Oxlint rejects relative plugin specifiers inside extended configurations.
 Preserve both configurations' plugins, overrides, environment, and ignore patterns during the merge.
 Use scoped overrides for file-specific policy instead of adding configuration files or repeated lint passes.
-The four style modules use explicit, unique aliases: `function-spacing`, `function-comments`, `test-spacing`, and `prose-style`.
+The style modules register under the distinct aliases `function-spacing`, `function-comments`, and `test-spacing`.
+When adopting this profile over an older one, remove the former `prose-style/no-em-dash` setting and its `jsPlugins` entry together in the authorized config merge.
+Preserve independently configured punctuation rules and any plugin file another configuration still loads.
 Copy `plugins/` next to the root Oxlint configuration because its `jsPlugins` entries use `./plugins/*.ts` paths.
 Copy `rules/` next to `.markdownlint-cli2.jsonc` because its `customRules` entries use `rules/*.ts` paths.
 Omit the `*.test.ts` files from both copies.
@@ -163,7 +165,7 @@ Verify actual Git commit and push invocations in a disposable repository, includ
 Manual script execution alone does not prove hook installation.
 
 The root configuration extends the target-installed Ultracite Oxc core preset and preserves `core.env` and `core.ignorePatterns`.
-Its explicit JS-plugin aliases let the four self-contained style modules run together without a namespace collision.
+Its explicit JS-plugin aliases let the self-contained style modules run together without a namespace collision.
 The blank-line rule checks physical blank lines inside executable function bodies.
 The inline-comment rule diagnoses explanatory comments and preserves declaration documentation, required directives, and license markers.
 The sibling-spacing rule requires one blank line only when an unshadowed named import from Vitest, Jest globals, or Bun proves a registration boundary.
@@ -190,7 +192,7 @@ Configured `search-replace` from `markdownlint-rule-search-replace` replaces the
 It reports the first U+2500 through U+257F character per line, including code, with its UTF-16 source column.
 The profile supplies no replacement text or automatic fix.
 Keep its dependency and catalog entry when merging the shared Markdown configuration.
-`docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and ignores fenced code and ordinary data rows.
+`docs/table-separators` requires exactly three hyphens in the delimiter row that follows a table header, allows alignment colons, and skips fenced code, data rows, generated documents, and licenses.
 Sentence-per-line formatting remains an authoring guideline rather than an enforced Markdownlint rule.
 `docs/no-em-dash` reports em dashes in authored prose in paragraphs, list items, and GitHub alerts.
 `docs/no-relative-skill-links` reports relative `SKILL.md` destinations in authored links and reference definitions.

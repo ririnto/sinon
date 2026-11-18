@@ -463,7 +463,6 @@ describe("fresh-root baseline", () => {
         expect(pluginFiles.toSorted()).toEqual([
           "no-blank-lines-in-functions.ts",
           "no-direct-use-effect.ts",
-          "no-em-dash.ts",
           "no-inline-comments-in-functions.ts",
           "sibling-test-spacing.ts",
           "tsdoc-plugin.ts"
@@ -821,7 +820,7 @@ describe("fresh-root baseline", () => {
         const output = result.stderr.toString() + result.stdout.toString();
         expect(result.status, output).toBe(1);
         expect(output).toContain(
-          "Replace the em dash with a comma, colon, or a separate sentence."
+          'Missing TSDoc for exported public API function "undocumented".'
         );
       }
       expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(

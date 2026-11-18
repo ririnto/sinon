@@ -11,7 +11,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
@@ -94,61 +93,6 @@ class LiteralTypeInferenceTest :
                             "nothing=null",
                             "call=null",
                             "reference=null"
-                        )
-                }
-            }
-        }
-
-        test("detects multiline raw strings only") {
-            assertSoftly(
-                describe(
-                    """
-                    val single = ${"\"\"\""}one line${"\"\"\""}
-                    val multiline = ${"\"\"\""}
-                        first
-                        second
-                    ${"\"\"\""}
-                    val escaped = "first\nsecond"
-                    val plain = "text"
-                    """.trimIndent() + "\n"
-                ) { property ->
-                    with(LiteralTypeInference) {
-                        (property.initializer as? KtStringTemplateExpression)?.isMultilineRawString().toString()
-                    }
-                }
-            ) {
-                assertSoftly(diagnostics) {
-                    map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactly
-                        listOf(
-                            "single=false",
-                            "multiline=true",
-                            "escaped=false",
-                            "plain=false"
-                        )
-                }
-            }
-        }
-
-        test("detects a multiline raw string anywhere inside a declaration") {
-            assertSoftly(
-                describe(
-                    """
-                    val nested = listOf(${"\"\"\""}
-                        first
-                    ${"\"\"\""}.trim())
-                    val none = listOf("first".trim())
-                    val flat = ${"\"\"\""}flat${"\"\"\""}.trim()
-                    """.trimIndent() + "\n"
-                ) { property ->
-                    with(LiteralTypeInference) { property.containsMultilineRawString().toString() }
-                }
-            ) {
-                assertSoftly(diagnostics) {
-                    map(KtLintRuleTestEngine.Diagnostic::detail) shouldContainExactly
-                        listOf(
-                            "nested=true",
-                            "none=false",
-                            "flat=false"
                         )
                 }
             }

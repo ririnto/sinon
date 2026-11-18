@@ -11,70 +11,41 @@ metadata:
 
 # Repository Guidelines
 
-Sinon publishes Claude Code and Codex plugins with portable Agent Skills.
-
-## Project Structure
-
-- `plugins/` contains Sinon-maintained plugins.
-- `.claude-plugin/marketplace.json` contains Claude package roots and external catalog registrations.
-- `.agents/plugins/marketplace.json` is the independently maintained Codex catalog.
-- `docs/agent-references/` contains repository authoring conventions.
-- The root `package.json` composes repository checks and owns shared development tools.
-- Each plugin owns its test suites under `plugins/<plugin>/tests/`.
-- `.markdownlint-cli2.jsonc` loads root `rules/` entry points that re-export canonical implementations from `plugins/harness/tooling/pnpm/rules/`.
-- `.github/` contains GitHub repository automation configuration.
-
-Keep one documented responsibility per top-level component.
-Update architecture, dependencies, consumers, and documentation when adding, removing, or moving a component.
-Do not add legacy parallel surfaces or compatibility shims without an external contract.
-
-Do not add a local Herdr package or copy the upstream skill.
+Sinon publishes independently installable Claude Code and Codex plugins.
+Keep each package's runtime, tests, assets, and instruction dependencies inside its package root.
+Maintain the Claude and Codex marketplaces separately.
+Herdr is an external catalog entry.
+Keep general orchestration profiles outside published packages.
 
 ## Authoring
 
-Use [contribution guidance](CONTRIBUTING.md) for issue and PR templates, commit bodies, and documentation formatting.
+Write repository guidance and agent handoffs in English.
+Follow [repository conventions](docs/agent-references/repository-conventions.md) for the affected file type and [TypeScript conventions](docs/agent-references/typescript.md) for TypeScript tools, rules, and tests.
+For skills, hooks, prompts, or agent roles, use [instruction authoring](docs/agent-references/instruction-authoring.md).
+Keep one owner for each responsibility and migrate affected callers, documentation, and dependencies together.
+Retain a compatibility path only for an external contract.
+Source technical claims from the vendor for the relevant host, model, or runtime and identify Sinon preferences as local policy.
 
-Write all repository guidance and agent-to-agent communication in English.
-Use official OpenAI documentation for Codex behavior and shared instruction design.
-Use matching host and model documentation for host-specific or model-specific behavior.
-Use official vendor documentation for technical claims, and identify repository preferences as local rules.
+## Delivery
 
-## Task References
+Follow [contribution guidance](CONTRIBUTING.md) for formatting, commit bodies, PR review, and integration.
+Use the [verification map](docs/verification.md) for focused checks and the full pre-push gate.
+After an authorized dependency change, run `pnpm install`.
+Report commands, exit status, the behavior observed, and any outstanding evidence.
 
-Use [repository conventions](docs/agent-references/repository-conventions.md) for the language or file type under change.
-Use [TypeScript conventions](docs/agent-references/typescript.md) for repository tools, component tests, skill-internal scripts, `rules/`, and `plugins/harness/tooling/pnpm/rules/`.
-Use [instruction authoring](docs/agent-references/instruction-authoring.md) when changing agent guidance, skill activation or content, host hooks, or model prompts.
-
-## Completion And Checks
-
-Make the smallest complete change that meets the acceptance criteria.
-Continue through implementation, relevant proof, and proportional diff review.
-Preserve unrelated work and report a precise blocker when required evidence or authority is missing.
-When guidance blocks progress, name its file, quote the relevant instruction, and distinguish the requirement from your interpretation.
-Use the existing TypeScript, Node.js, and pnpm commands.
-Choose checks for changed behavior and explicit acceptance criteria.
-Reuse passing evidence for unaffected checks.
-Run `pnpm install` after authorized dependency changes.
-The repository-wide check is `pnpm run check`.
-Its named `check:*` commands support narrower validation.
-The pre-commit hook runs only the checks selected for the staged paths by `.github/scripts/pre-commit-scope.ts`.
-The pre-push hook runs the full repository check, so every push leaves the machine fully verified.
-Report exact commands, exit codes, and any required check that could not run.
+Carry authorized work through the requested outcome and verify it from the consumer's entry point.
+Use a reversible assumption for routine gaps and report it when it affects the result.
+When a decision needs new authority, continue independent work and identify the specific decision or blocker.
+If guidance blocks delivery, name the file, quote the requirement, and explain how it applies.
 
 ## Authority And Publication
 
-Explicit user instructions override this guidance within system, safety, and tool constraints.
-Read-only inspection does not authorize changing the inspected resource.
-Continue authorized edits and checks without asking again for each step.
-The user-facing root session owns integration and publication, and grants any delegated Git actions explicitly.
-Publish only capability-scoped plugin components.
-Keep general orchestration profiles out of plugins.
+User instructions govern scope within system, safety, and tool limits.
+Inspection grants read access only.
+The user-facing session owns integration and publication and must explicitly grant any delegated Git action.
+Leave credentials, local configuration, caches, and vendored files alone unless the task names them.
+Review changes across command, filesystem, network, credential, and publication boundaries.
 
-## Security And Configuration
-
-Do not edit credentials, local configuration, caches, or vendored files unless the task names them.
-Keep task rationale and evidence self-contained in Git, without work-item identifiers, review URLs, or local environment details.
-Use repository-relative paths and portable examples in committed content and messages.
-Use branch names for work tracking, handoffs, and GitHub tracking content.
-Do not base tracking documents or links on fixed commit, file, or content hashes.
-Review changes that cross command, filesystem, network, credential, or publication boundaries for safety risks.
+Use repository-relative paths and portable examples in committed material.
+Record rationale and evidence in Git without work-item identifiers, review URLs, or private environment details.
+Use branch names for tracking and handoffs, including links to tracked work.

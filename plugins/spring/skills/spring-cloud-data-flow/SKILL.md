@@ -30,7 +30,7 @@ Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new applica
 Confirm the target server, platform account, and requested operation before changing runtime state.
 Inspection and preparation do not authorize registration, deployment, launch, scheduling, rollback, or deletion.
 Continue operations within an explicit grant without asking again for each authorized step.
-After a change, verify the affected runtime state and report observed results or a precise blocker.
+Read back the affected registration, deployment, execution, or schedule from the named server and report its observed state.
 
 ## Registration and launch example
 
