@@ -229,40 +229,44 @@ describe("pnpm profile configuration", () => {
         JSON.stringify({ scripts: rootManifest.scripts, type: "module" })
       );
       await mkdir(path.join(directory, ".github/scripts"), { recursive: true });
+      const files = [
+        "ordinary.ts",
+        "ordinary.mjs",
+        ".github/scripts/hidden.ts",
+        "plugins/harness/tooling/pnpm/violation.ts"
+      ];
       await Promise.all(
-        [
-          path.join(directory, "ordinary.ts"),
-          path.join(directory, "ordinary.mjs"),
-          path.join(directory, ".github/scripts/hidden.ts"),
-          path.join(typedDirectory, "violation.ts")
-        ].map(async (filename) => {
+        files.map(async (filename) => {
           await writeFile(
-            filename,
-            "export const undocumented = () => 1;\nvoid Promise.resolve();\n"
+            path.join(directory, filename),
+            "export const undocumented=()=>1;\nvoid Promise.resolve();\n"
           );
         })
       );
-      const formatted = runPackageScript(directory, "ultracite:fix");
+      const formatted = runPackageScript(directory, "fix:ultracite");
       expect(
         formatted.status,
         formatted.stderr.toString() + formatted.stdout.toString()
       ).toBe(1);
-      const general = runPackageScript(directory, "ultracite:check");
-      const generalOutput =
-        general.stderr.toString() + general.stdout.toString();
-      expect(general.status, generalOutput).toBe(1);
-      expect(generalOutput).toContain("ordinary.ts:");
-      expect(generalOutput).toContain("ordinary.mjs:");
-      expect(generalOutput).toContain(".github/scripts/hidden.ts:");
-      expect(generalOutput).toContain("typescript(no-floating-promises)");
-      const result = runPackageScript(directory, "ultracite:check:harness");
+      expect(
+        await readFile(path.join(typedDirectory, "violation.ts"), "utf-8")
+      ).toContain("export const undocumented = () => 1;");
+      const result = runPackageScript(directory, "check:ultracite");
       const output = result.stderr.toString() + result.stdout.toString();
       expect(result.status, output).toBe(1);
-      expect(output).toContain("violation.ts:");
-      expect(output).toContain("tsdoc(require-export-tsdoc)");
-      expect(output).toContain("typescript(no-floating-promises)");
-      expect(output).not.toContain("ordinary.ts:");
-      expect(output.match(/tsdoc\(require-export-tsdoc\)/gu)).toHaveLength(1);
+      const diagnostics = output.split("\n");
+      expect(
+        diagnostics
+          .filter((line) => line.includes("typescript(no-floating-promises)"))
+          .map((line) => line.split(":")[0])
+      ).toEqual(expect.arrayContaining(files));
+      const docDiagnostics = diagnostics.filter((line) =>
+        line.includes("tsdoc(require-export-tsdoc)")
+      );
+      expect(docDiagnostics).toHaveLength(1);
+      expect(docDiagnostics[0]).toContain(
+        "plugins/harness/tooling/pnpm/violation.ts:"
+      );
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
