@@ -1,0 +1,31 @@
+name: Verify Sinon plugin-owned checks
+on:
+  push:
+    branches:
+      - verify/plugin-check-ownership
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 6d17f629a9a38f2f740e628f8338072b558f8db4
+          persist-credentials: false
+      - name: Confirm the reviewed commit
+        run: test "$(git rev-parse HEAD)" = "6d17f629a9a38f2f740e628f8338072b558f8db4"
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Install the repository package manager
+        run: npm install --global "$(node --print 'require("./package.json").packageManager')"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check
