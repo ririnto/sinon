@@ -102,13 +102,12 @@ class KotestTestAssertions :
         val callName = reference.getReferencedName()
         val qualified = parent as? KtQualifiedExpression
         if (qualified?.selectorExpression === this) {
-            return if (
+            return when (
                 file.isKotlinPackageReceiver(qualified.receiverExpression) &&
-                callName in ASSERTION_FUNCTIONS
+                    callName in ASSERTION_FUNCTIONS
             ) {
-                callName
-            } else {
-                null
+                true -> callName
+                false -> null
             }
         }
         if (mayBeShadowedByInheritedMember(callName, file)) {
@@ -122,10 +121,9 @@ class KotestTestAssertions :
                 .mapNotNull { directive ->
                     val path = directive.importedFqName?.asString() ?: return@mapNotNull null
                     val importedName = directive.aliasName ?: path.substringAfterLast('.')
-                    if (importedName == callName) {
-                        path
-                    } else {
-                        null
+                    when (importedName) {
+                        callName -> path
+                        else -> null
                     }
                 }.distinct()
         if (imported.isNotEmpty()) {

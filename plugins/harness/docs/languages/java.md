@@ -76,7 +76,7 @@ The mappings below record where Java has a safe language or tool equivalent.
 | | - Checkstyle does not match every Kotlin whitespace case. |
 | `trailing-comma-on-call-site`, `trailing-comma-on-declaration-site` | Java does not allow trailing commas in calls or parameter lists. |
 | | - Checkstyle also rejects them in array initializers and enum constant lists. |
-| `no-wildcard-imports` | The Kotlin profile disables this rule because wildcard imports are permitted in both languages. |
+| `no-wildcard-imports` | The Kotlin profile applies ktlint's standard wildcard-import rule. Java permits wildcard imports. |
 | `function-expression-body`, `multiline-if-else` | Java has no Kotlin expression-body declaration. |
 | | - Palantir formats Java branches according to its Java style rather than ktlint's Kotlin-specific layout. |
 | `explicit-function-return-type`, `explicit-property-type` | Java requires declared return types and field types in these positions. |
