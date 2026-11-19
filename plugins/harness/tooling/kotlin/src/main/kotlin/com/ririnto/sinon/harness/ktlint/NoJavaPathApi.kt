@@ -740,38 +740,33 @@ class NoJavaPathApi :
 
         companion object {
             fun path(nullable: Boolean): KnownType =
-                if (nullable) {
-                    NULLABLE_PATH
-                } else {
-                    PATH
+                when (nullable) {
+                    true -> NULLABLE_PATH
+                    false -> PATH
                 }
 
             fun string(nullable: Boolean): KnownType =
-                if (nullable) {
-                    NULLABLE_STRING
-                } else {
-                    STRING
+                when (nullable) {
+                    true -> NULLABLE_STRING
+                    false -> STRING
                 }
 
             fun int(nullable: Boolean): KnownType =
-                if (nullable) {
-                    NULLABLE_INT
-                } else {
-                    INT
+                when (nullable) {
+                    true -> NULLABLE_INT
+                    false -> INT
                 }
 
             fun uri(nullable: Boolean): KnownType =
-                if (nullable) {
-                    NULLABLE_URI
-                } else {
-                    URI
+                when (nullable) {
+                    true -> NULLABLE_URI
+                    false -> URI
                 }
 
             fun linkOption(nullable: Boolean): KnownType =
-                if (nullable) {
-                    NULLABLE_LINK_OPTION
-                } else {
-                    LINK_OPTION
+                when (nullable) {
+                    true -> NULLABLE_LINK_OPTION
+                    false -> LINK_OPTION
                 }
 
             fun nullableIf(

@@ -70,10 +70,9 @@ class MultilineKdoc :
                             .substring(3, comment.text.length - 2)
                             .trimEnd()
                             .let { text ->
-                                if (openingDelimiterHasOwnLine) {
-                                    text.trimStart()
-                                } else {
-                                    text.removePrefix(" ")
+                                when (openingDelimiterHasOwnLine) {
+                                    true -> text.trimStart()
+                                    false -> text.removePrefix(" ")
                                 }
                             }.lines()
                     val canCorrect =
@@ -96,10 +95,9 @@ class MultilineKdoc :
 ${
                                         documentedLines
                                             .mapIndexed { index, line ->
-                                                if (index == 0 && !openingDelimiterHasOwnLine) {
-                                                    line
-                                                } else {
-                                                    line.trimStart().removePrefix("*").removePrefix(" ")
+                                                when (index == 0 && !openingDelimiterHasOwnLine) {
+                                                    true -> line
+                                                    false -> line.trimStart().removePrefix("*").removePrefix(" ")
                                                 }
                                             }.joinToString("\n") { line ->
                                                 " *${line.takeIf(String::isNotEmpty)?.let { text ->
