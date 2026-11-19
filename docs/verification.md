@@ -93,6 +93,15 @@ HARNESS_GO_WORKSPACE_TEST=1 pnpm exec vitest run plugins/harness/tests/go-worksp
 
 The fixture needs Go and dependency access for the pinned Task tool.
 
+For shell profile changes, run the native integration fixture:
+
+```sh
+HARNESS_SHELL_PROFILE_TEST=1 pnpm exec vitest run plugins/harness/tests/shell-profile.test.ts
+```
+
+The fixture needs ShellCheck, shfmt, and access to the pnpm dependencies.
+It runs a real Husky hook and the GitLab job's script locally against tracked shell files.
+
 After changing packaged plugin content, run the host validator in that package, for example:
 
 ```sh
