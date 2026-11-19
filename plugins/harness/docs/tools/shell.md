@@ -36,8 +36,9 @@ The profile introduces no shell test harness.
 
 | Source file | Destination | Write rule |
 | --- | --- | --- |
-| `tooling/shell/.editorconfig` | merge into existing `.editorconfig` | merge only missing sections and keys |
+| `tooling/shell/.editorconfig` | `.editorconfig` | create when absent, otherwise merge only missing sections and keys during native integration |
 
+The fresh-root configurator creates this file when it is absent and keeps an existing file verbatim.
 The shell section selects two-space indentation through EditorConfig.
 Without parser or printer flags, shfmt reads these settings instead of using its default tab indentation.
 When the target already owns an `.editorconfig`, keep its shell section and resolve conflicts in favor of the target.

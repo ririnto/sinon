@@ -327,9 +327,51 @@ const addTypeScriptProfile = async (
   return workspace;
 };
 
+const addNativeConfigurations = async (
+  sources: Map<string, string>,
+  root: string,
+  profile: BaselineProfile
+): Promise<void> => {
+  if (profile !== "rust" && profile !== "shell") {
+    return;
+  }
+  const configurationNames =
+    profile === "rust"
+      ? ([
+          [".editorconfig"],
+          ["rustfmt.toml", ".rustfmt.toml"],
+          ["clippy.toml", ".clippy.toml"],
+          ["rust-toolchain.toml", "rust-toolchain"]
+        ] as const)
+      : ([[".editorconfig"]] as const);
+  const configurations = await Promise.all(
+    configurationNames.map(async (names) => {
+      const entries = await Promise.all(
+        names.map(async (relative) => {
+          const target = path.join(root, relative);
+          const entry = await inspect(target);
+          if (entry && (!entry.isFile() || entry.isSymbolicLink())) {
+            throw new Error(`Unsafe destination ${relative}.`);
+          }
+          return entry
+            ? ([relative, await readFile(target, "utf-8")] as const)
+            : undefined;
+        })
+      );
+      const existing = entries.filter((entry) => entry !== undefined);
+      return existing.length > 0
+        ? existing
+        : [[names[0], await readSource(`${profile}/${names[0]}`)] as const];
+    })
+  );
+  for (const [relative, content] of configurations.flat()) {
+    sources.set(relative, content);
+  }
+};
+
 /**
  * Materialize the eligible fresh-root baseline after a complete conflict preview.
- * Preserve identical files, native version catalogs and Rust configuration on repeated runs.
+ * Preserve identical files, native version catalogs and target-owned Rust and shell configuration.
  * Reject differing files or symlink destinations before creating any source.
  * The installer owns eligibility verification, dependency installation and native build integration.
  */
@@ -475,38 +517,7 @@ export const configureBaseline = async (
       )
     );
   }
-  if (profile === "rust") {
-    const configurations = await Promise.all(
-      (
-        [
-          [".editorconfig"],
-          ["rustfmt.toml", ".rustfmt.toml"],
-          ["clippy.toml", ".clippy.toml"],
-          ["rust-toolchain.toml", "rust-toolchain"]
-        ] as const
-      ).map(async (names) => {
-        const entries = await Promise.all(
-          names.map(async (relative) => {
-            const target = path.join(root, relative);
-            const entry = await inspect(target);
-            if (entry && (!entry.isFile() || entry.isSymbolicLink())) {
-              throw new Error(`Unsafe destination ${relative}.`);
-            }
-            return entry
-              ? ([relative, await readFile(target, "utf-8")] as const)
-              : undefined;
-          })
-        );
-        const existing = entries.filter((entry) => entry !== undefined);
-        return existing.length > 0
-          ? existing
-          : [[names[0], await readSource(`rust/${names[0]}`)] as const];
-      })
-    );
-    for (const [relative, content] of configurations.flat()) {
-      sources.set(relative, content);
-    }
-  }
+  await addNativeConfigurations(sources, root, profile);
   const result: BaselineResult = {
     created: [],
     kept: [],
