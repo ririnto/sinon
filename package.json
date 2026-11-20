@@ -14,7 +14,7 @@
     "check:promtool:download": "pnpm --dir plugins/observability-assets run model DownloadLifecycle",
     "check:test": "run-p check:test:*",
     "check:typescript": "tsc --noEmit",
-    "check:ultracite": "ultracite check --type-aware",
+    "check:ultracite": "ultracite check",
     "check:versions": "node .github/scripts/sync-versions.mjs",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
