@@ -32,7 +32,7 @@ An unexported helper needs no TSDoc.
 
 ## Function Bodies And Comments
 
-Tool directive comments such as `@ts-expect-error` and `oxlint-disable-next-line` are the only inline comments allowed in a function body.
+The inline-comment rule rejects explanatory comments inside function bodies but preserves recognized type-checking, lint, formatting, coverage, source, and license directives.
 Put braces around every `if` and `else` branch, including guard returns and one-line branches.
 Use no trailing comma in TypeScript.
 
