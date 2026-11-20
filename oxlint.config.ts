@@ -12,6 +12,15 @@ export default defineConfig({
     { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
     "./plugins/harness/tooling/pnpm/plugins/no-direct-use-effect.ts"
   ],
+  overrides: [
+    {
+      files: ["plugins/observability-assets/tests/promtool/**/*.test.ts"],
+      plugins: [...(core.plugins ?? []), "vitest"],
+      rules: {
+        "vitest/require-to-throw-message": "deny"
+      }
+    }
+  ],
   rules: {
     "typescript/no-floating-promises": ["error", { ignoreVoid: false }],
     "oxc/no-accumulating-spread": "deny",
