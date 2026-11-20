@@ -7,7 +7,7 @@ allowBuilds:
   pnpm: true
 
 catalog:
-  "@oxlint/plugins": ^1.93.0
+  "@oxlint/plugins": ^1.94.0
   "@radix-ui/colors": ^3.0.0
   "@radix-ui/react-icons": ^1.3.2
   "@radix-ui/themes": ^3.3.0
@@ -29,8 +29,8 @@ catalog:
   markdownlint-cli2: ^0.24.1
   markdownlint-rule-search-replace: ^1.2.0
   npm-run-all2: ^9.0.4
-  oxfmt: ^0.78.0
-  oxlint: ^1.93.0
+  oxfmt: ^0.79.0
+  oxlint: ^1.94.0
   oxlint-tsgolint: ^7.0.2007
   radix-ui: ^1.8.1
   react: ^19.3.1
@@ -40,7 +40,7 @@ catalog:
   tla-chaos-loop: ^1.1.0
   tsx: ^4.23.15
   typescript: ^7.0.2
-  ultracite: ^8.2.0
+  ultracite: ^8.2.1
   vite: ^8.3.8
   vitest: ^5.1.0
   yaml: ^2.9.1
