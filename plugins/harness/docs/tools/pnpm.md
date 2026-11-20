@@ -175,7 +175,7 @@ Direct `describe` callbacks and program-level registrations are recognized, incl
 Global names, namespace calls, unknown factories, shadowed bindings, ordinary callbacks, and gaps containing comments remain outside the registration-spacing diagnostic.
 Required directives between registrations stay intact because moving them can change their target.
 The built-in test-padding rule supplies padding around test calls but does not express this exact sibling lifecycle and proven-binding contract, so the AST-aware diagnostic handles it without an automatic fix.
-The inline-comment rule exempts recognized tool directive comments, such as `@ts-expect-error`, `@ts-ignore`, `eslint-disable*`, `oxlint-disable*`, `oxfmt-ignore`, `prettier-ignore`, and `v8 ignore`.
+The inline-comment rule exempts recognized type-checking and tool directive comments, including lint, formatting, and coverage controls.
 The TSDoc plugin checks the [TypeScript declaration documentation requirements](../languages/typescript.md#exports-and-tsdoc).
 Read those requirements when configuring TypeScript documentation checks.
 Protected, private, and `#private` members and constructors are exempt.
