@@ -12,6 +12,7 @@ export default defineConfig({
     { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
     "./plugins/harness/tooling/pnpm/plugins/no-direct-use-effect.ts"
   ],
+  options: { typeAware: true },
   overrides: [
     {
       files: ["plugins/observability-assets/tests/promtool/**/*.test.ts"],
