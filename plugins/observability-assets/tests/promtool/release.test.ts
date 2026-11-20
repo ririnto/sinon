@@ -94,7 +94,7 @@ const serveOpenResponses = (
 
 const waitForResponseClosures = async (
   allClosed: Promise<null>,
-  closedPaths: Set<string>
+  closedPaths: ReadonlySet<string>
 ): Promise<void> => {
   const controller = new AbortController();
   const result = await Promise.race([
