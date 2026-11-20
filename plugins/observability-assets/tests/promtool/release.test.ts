@@ -170,7 +170,7 @@ test("closes a sibling body when release body consumption fails", async () => {
     async (baseUrl) => {
       await expect(
         downloadReleaseAssets(`${baseUrl}/archive`, `${baseUrl}/checksums`)
-      ).rejects.toThrow();
+      ).rejects.toMatchObject({ cause: { code: "UND_ERR_SOCKET" } });
       await waitForResponseClosures(tracker.allClosed, tracker.closedPaths);
     }
   );
@@ -377,5 +377,5 @@ test("rejects a verified archive with truncated gzip data", async () => {
       "release.tar.gz",
       "release/promtool"
     )
-  ).rejects.toThrow();
+  ).rejects.toMatchObject({ code: "Z_BUF_ERROR" });
 });
