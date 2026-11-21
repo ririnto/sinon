@@ -253,47 +253,74 @@ test.each(
           source: `${doc}${declaration} {\n${documented ? doc : ""}run() { return this.#internal(); }\nprivate hidden() {}\nprotected inherited() {}\n#internal() {}\n};\nconst _Helper = class { run() {} };\n${statement}\n`
         }))
       );
+      const undocumentedFixtures = fixtures.filter(
+        ({ documented }) => !documented
+      );
+      const documentedFilenames = fixtures
+        .filter(({ documented }) => documented)
+        .map(({ filename }) => filename);
       await Promise.all(
         fixtures.map(async ({ filename, source }) => {
           await writeFile(path.join(directory, filename), source);
         })
       );
-      for (const { documented, filename } of fixtures) {
-        if (documented) {
-          expect(runUltracite(directory, filename, "fix").status).toBe(0);
-        }
-        const result = runUltracite(directory, filename);
-        expect(result.status).toBe(documented ? 0 : 1);
-        expect(result.diagnostics.map(({ message }) => message)).toEqual(
-          documented
-            ? []
-            : ['Missing TSDoc for exported public API method "run".']
-        );
-      }
+      const directFilename = `direct.${extension}`;
+      const indirectFilename = `indirect.${extension}`;
+      const indirectValuesFilename = `indirect-values.${extension}`;
       await writeFile(
-        path.join(directory, `direct.${extension}`),
+        path.join(directory, directFilename),
         "export class Service { run() {} }\n"
       );
-      expect(
-        runUltracite(directory, `direct.${extension}`).diagnostics
-      ).toHaveLength(2);
       await writeFile(
-        path.join(directory, `indirect.${extension}`),
+        path.join(directory, indirectFilename),
         `class Service {}\nexport { Service };\nexport default Service;\n`
       );
-      expect(
-        runUltracite(directory, `indirect.${extension}`).diagnostics.map(
-          ({ message }) => message
-        )
-      ).toEqual(['Missing TSDoc for exported public API class "Service".']);
       await writeFile(
-        path.join(directory, `indirect-values.${extension}`),
+        path.join(directory, indirectValuesFilename),
         "function lookup() {}\ntype Key = string;\nconst value = 1;\nconst load = () => 1;\nexport { lookup, Key, value, load };\nexport { lookup as find };\n"
       );
+      expect(runUltracite(directory, documentedFilenames, "fix").status).toBe(
+        0
+      );
+      const documentedResult = runUltracite(directory, documentedFilenames);
+      expect(documentedResult.status).toBe(0);
+      expect(documentedResult.diagnostics).toEqual([]);
+      const otherFilenames = [
+        ...undocumentedFixtures.map(({ filename }) => filename),
+        directFilename,
+        indirectFilename,
+        indirectValuesFilename
+      ];
+      const otherResult = runUltracite(directory, otherFilenames);
+      expect(otherResult.status).toBe(1);
       expect(
-        runUltracite(directory, `indirect-values.${extension}`).diagnostics.map(
-          ({ message }) => message
+        otherResult.diagnostics.filter(
+          ({ filename }) => !otherFilenames.includes(filename ?? "")
         )
+      ).toEqual([]);
+      for (const { filename } of undocumentedFixtures) {
+        expect(
+          otherResult.diagnostics
+            .filter((diagnostic) => diagnostic.filename === filename)
+            .map(({ message }) => message)
+        ).toEqual(['Missing TSDoc for exported public API method "run".']);
+      }
+      expect(
+        otherResult.diagnostics.filter(
+          (diagnostic) => diagnostic.filename === directFilename
+        )
+      ).toHaveLength(2);
+      expect(
+        otherResult.diagnostics
+          .filter((diagnostic) => diagnostic.filename === indirectFilename)
+          .map(({ message }) => message)
+      ).toEqual(['Missing TSDoc for exported public API class "Service".']);
+      expect(
+        otherResult.diagnostics
+          .filter(
+            (diagnostic) => diagnostic.filename === indirectValuesFilename
+          )
+          .map(({ message }) => message)
       ).toEqual([
         'Missing TSDoc for exported public API function "lookup".',
         'Missing TSDoc for exported public API variable "load".'
