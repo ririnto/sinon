@@ -17,7 +17,7 @@ const ultraciteBin = path.resolve(
  */
 export const runUltracite = (
   directory: string,
-  filename: string,
+  filenames: string | readonly string[],
   action: "check" | "fix" = "check",
   configuration?: string,
   extraArguments: readonly string[] = []
@@ -33,7 +33,7 @@ export const runUltracite = (
         ...(configuration !== undefined && configuration !== ""
           ? ["--config", configuration]
           : []),
-        filename,
+        ...(typeof filenames === "string" ? [filenames] : filenames),
         ...extraArguments
       ],
       {
