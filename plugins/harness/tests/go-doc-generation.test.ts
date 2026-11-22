@@ -9,7 +9,6 @@ import { setTimeout as delay } from "node:timers/promises";
 import { expect, onTestFinished, test } from "vitest";
 
 import { configureBaseline } from "../scripts/configure.js";
-import { valueAt, stringValue } from "./structured-value.ts";
 
 const fetchDocumentation = async (
   url: string,
@@ -44,9 +43,11 @@ test.skipIf(
       recursive: true
     });
     await configureBaseline(directory, "go", "eligible");
-    const manifest: unknown = JSON.parse(
-      await readFile(path.join(directory, "package.json"), "utf-8")
-    );
+    const setup = spawnSync("pnpm", ["run", "go:tools"], {
+      cwd: directory,
+      encoding: "utf-8"
+    });
+    expect(setup.status, setup.stderr).toBe(0);
     const server = net.createServer();
     server.listen(0, "127.0.0.1");
     await once(server, "listening");
@@ -57,12 +58,14 @@ test.skipIf(
     server.close();
     await once(server, "close");
     const child = spawn(
-      "sh",
-      [
-        "-c",
-        `exec env ${stringValue(valueAt(manifest, "scripts", "go:docs"))} -http=127.0.0.1:${address.port}`
-      ],
-      { cwd: directory, detached: true, stdio: "pipe" }
+      "pnpm",
+      ["run", "go:docs", `-http=127.0.0.1:${address.port}`],
+      {
+        cwd: directory,
+        detached: true,
+        env: { ...process.env, GOWORK: "off" },
+        stdio: "pipe"
+      }
     );
     let output = "";
     child.stderr.on("data", (chunk: Buffer) => {
@@ -97,30 +100,23 @@ test.skipIf(
     await cp(path.join(import.meta.dirname, "fixtures/go-api"), directory, {
       recursive: true
     });
-    const configuration = path.join(
-      import.meta.dirname,
-      "../tooling/go/.golangci.yaml"
+    await configureBaseline(directory, "go", "eligible");
+    await cp(
+      path.join(import.meta.dirname, "../tooling/go/.golangci.yaml"),
+      path.join(directory, ".golangci.yaml")
     );
-    const tool = spawnSync(
-      "go",
-      [
-        "-C",
-        path.join(import.meta.dirname, "../tooling/go/tools"),
-        "tool",
-        "-n",
-        "golangci-lint"
-      ],
-      { encoding: "utf-8", env: { ...process.env, GOWORK: "off" } }
-    );
-    expect(tool.status, tool.stderr).toBe(0);
-    const lint = () =>
-      spawnSync(tool.stdout.trim(), ["run", "-c", configuration, "./..."], {
+    const run = (script: string) =>
+      spawnSync("pnpm", ["run", script], {
         cwd: directory,
-        encoding: "utf-8"
+        encoding: "utf-8",
+        env: { ...process.env, GOWORK: "off" }
       });
+    const setup = run("go:tools");
+    expect(setup.status, setup.stderr).toBe(0);
     const source = path.join(directory, "lookup.go");
     const correct = await readFile(source, "utf-8");
-    expect(lint().status).toBe(0);
+    const passing = run("check:go:lint");
+    expect(passing.status, passing.stdout + passing.stderr).toBe(0);
     await writeFile(
       source,
       correct.replace(
@@ -128,11 +124,11 @@ test.skipIf(
         "// It returns [ErrEmptyID] when id is empty.\n//\n// [unused]: https://example.com\n"
       )
     );
-    const warning = lint();
-    expect(warning.status).toBe(1);
+    const warning = run("check:go:lint");
+    expect(warning.status).not.toBe(0);
     expect(warning.stdout).toContain("godoc has unused link");
     await writeFile(source, correct);
-    expect(lint().status).toBe(0);
+    expect(run("check:go:lint").status).toBe(0);
   },
   120_000
 );

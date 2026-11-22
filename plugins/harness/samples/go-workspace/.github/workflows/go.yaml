@@ -19,7 +19,7 @@ jobs:
             go.work
             go.work.sum
       - run: |-
-          HARNESS_GOWORK="$(go env GOWORK)" GOWORK=off go -C tools tool task --dir .. check
+          HARNESS_GOWORK="$(go env GOWORK)" GOWORK=off go tool -modfile=go.mod github.com/go-task/task/v3/cmd/task check
 
 permissions:
   contents: read

@@ -4,9 +4,9 @@ This sample contains an application module and a sibling greeting module.
 The application declares its dependency and local replacement in its own `go.mod`, so it works with or without `go.work`.
 The project's golangci-lint configuration permits that local replacement.
 Copy this directory into a project to own its configuration.
-Install Go 1.27.3, Node and pnpm as declared in `package.json`.
+Install Go 1.27.0 or newer and the Node and pnpm versions declared in `package.json`.
 Install project dependencies with `pnpm install`.
-The separate `tools/go.mod` pins the Go tools used by the Taskfile.
+The root `go.mod` pins the Go tools used by the Taskfile.
 
 Then run:
 
