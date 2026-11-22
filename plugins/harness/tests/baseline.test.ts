@@ -352,6 +352,10 @@ describe("fresh-root baseline", () => {
         expect(first.created).toContain("docs/conf.py");
         expect(first.created).toContain("docs/index.rst");
       }
+      if (profile === "go") {
+        expect(first.created).toContain("Taskfile.yaml");
+        expect(await readdir(directory)).not.toContain("tools");
+      }
       if (profile === "node" || profile === "frontend" || profile === "react") {
         expect(
           Object.keys(objectValue(valueAt(manifest, "scripts"))).filter(
@@ -651,6 +655,9 @@ describe("fresh-root baseline", () => {
     ]);
     expect(invalid.status).toBe(1);
     expect(await readdir(directory)).toEqual([]);
+    const moduleFile = path.join(directory, "go.mod");
+    const module = "module example.com/target\n\ngo 1.27.0\n";
+    await writeFile(moduleFile, module);
     const result = spawnSync(process.execPath, [
       script,
       "--target",
@@ -664,6 +671,7 @@ describe("fresh-root baseline", () => {
     expect(valueAt(JSON.parse(result.stdout.toString()), "status")).toBe(
       "configured"
     );
+    expect(await readFile(moduleFile, "utf-8")).toBe(module);
   });
 
   test("the frontend design gate rejects an invalid color token", async () => {
@@ -796,6 +804,12 @@ describe("fresh-root baseline", () => {
 });
 
 describe("Maven and Go hook entrypoints", () => {
+  const goTaskCalls = ["lint", "format", "nilaway", "test"]
+    .map(
+      (task) =>
+        `go tool -modfile=go.mod github.com/go-task/task/v3/cmd/task ${task}`
+    )
+    .join("\n");
   test.each(
     (
       [
@@ -812,15 +826,13 @@ describe("Maven and Go hook entrypoints", () => {
           valid: true
         },
         {
-          calls:
-            "go task lint\ngo task format\ngo task nilaway\ngo task test\n",
+          calls: goTaskCalls,
           hook: "pre-commit",
           profile: "go",
           valid: true
         },
         {
-          calls:
-            "go task lint\ngo task format\ngo task nilaway\ngo task test\n",
+          calls: goTaskCalls,
           hook: "pre-push",
           profile: "go",
           valid: true
@@ -874,7 +886,7 @@ describe("Maven and Go hook entrypoints", () => {
           await writeFile(
             path.join(directory, name === "mvnw" ? name : `.bin/${name}`),
             name === "go"
-              ? `#!/usr/bin/env sh\nif [ "$1" = env ]; then echo off; else printf 'go task %s\\n' "$7" >> '${path.join(directory, "native-calls.txt")}'; fi\n`
+              ? `#!/usr/bin/env sh\nif [ "$1" = env ]; then\n  echo off\nelse\n  printf 'go %s\\n' "$*" >> '${path.join(directory, "native-calls.txt")}'\nfi\n`
               : `#!/usr/bin/env sh\nprintf 'mvnw %s\\n' "$*" >> '${path.join(directory, "native-calls.txt")}'\n`,
             { mode: 0o755 }
           );

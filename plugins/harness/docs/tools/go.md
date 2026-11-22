@@ -9,7 +9,9 @@ metadata:
     NilAway:
       url: https://github.com/uber-go/nilaway
     Go tool dependencies:
-      url: https://go.dev/doc/modules/managing-dependencies#tools
+      url:
+        - https://go.dev/doc/modules/managing-dependencies#tools
+        - https://go.dev/ref/mod#go-work-file
     Go package documentation server:
       version: v0.6.0
       url: https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite
@@ -24,16 +26,37 @@ Native configuration sources live under `tooling/go/`.
 ## Scope And Detection
 
 Select the `go` profile for a root that has a `go.mod` or `go.work` file.
-The application module path, Go version line, and dependency list stay target-owned.
-The profile does not edit application `go.mod` or `go.work` files.
-The target owns module requirements and replacements, including those needed with `GOWORK=off`.
-The profile creates a separate `tools/go.mod` and `tools/go.sum` to pin Task, golangci-lint, NilAway, and pkgsite as Go tools.
-The `go` toolchain in `PATH` builds and runs these tools.
+The root `go.mod` owns Task, golangci-lint, NilAway, and pkgsite through Go tool directives.
+The configurator generates the Taskfile and package scripts and leaves native module changes to the installer.
+
+## Install The Tools
+
+If the root has only a `go.work`, explicitly create a root module with a project-owned module path using `GOWORK=off go mod init <module-path>`.
+Keep the root module out of the workspace's `use` list when it only owns tools.
+The existing workspace modules still provide the packages checked by the Taskfile.
+Go needs this root module to store tool directives.
+
+Run the following from the root to add the profile's recommended tool versions:
+
+```sh
+pnpm run go:tools
+```
+
+The script runs `go get -tool` with workspace mode disabled and writes the root `go.mod` and `go.sum`.
+If the project already selects a compatible version of a tool, use that version in the `go get -tool` arguments.
+Review the module diff before staging it.
+Keep the module path, compatible Go version, requirements, and replacements, including replacements needed with `GOWORK=off`.
+Go can raise the minimum Go version and change shared dependency versions to resolve the tools.
+If the root is a workspace member and its minimum Go version increases past the workspace version, review the corresponding `go.work` version update while preserving its module list and replacements.
+Commit the reviewed module and checksum files together.
+
+For an existing Harness installation, merge the updated Taskfile, package scripts, and CI commands.
+Verify them against the root module before removing the old generated tool module.
 
 ## Toolchain
 
-- Go: use a toolchain compatible with both the target's `go` directive and `tools/go.mod`.
-  The supplied tools module requires Go 1.27.3.
+- Go: use a toolchain compatible with the target's `go` directive and the selected tools.
+  Task v3.54.0 requires at least Go 1.26.4.
 - golangci-lint: v2.15.0.
 - NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
 - pkgsite: v0.6.0 for local API documentation, built with Go 1.26 or newer.
@@ -51,7 +74,6 @@ Review the current upstream commit and target Go compatibility before proposing 
 | `tooling/go/.golangci.yaml` | `.golangci.yaml` at the module root | create; merge `linters` and `formatters` entries when a config already exists |
 | `tooling/go/.editorconfig` | merge into existing `.editorconfig` | merge only missing sections and keys |
 | `tooling/go/Taskfile.yaml` | `Taskfile.yaml` | create |
-| `tooling/go/tools/go.mod` and `go.sum` | `tools/go.mod` and `tools/go.sum` | create |
 
 The configuration is a real curated v2 config, not a starter.
 When the target already runs golangci-lint, keep its existing `version`, linter set, and thresholds, and merge only missing Harness invariants.
@@ -73,9 +95,9 @@ These checks enforce Go-specific contracts rather than multiline comment delimit
 Use the [project baseline](baseline.md) for the root pnpm manifest, Markdownlint configuration, catalog, and real Husky hooks.
 The hooks in `tooling/go/.husky/` run the shared check before native lint, formatting, and NilAway on commit.
 Both hooks run the race-enabled test gate after Markdown validation and the Go checks.
-The hooks use the tools pinned in `tools/go.mod`.
+The hooks use the tools declared in the root `go.mod`.
 
-Run at the module or workspace root:
+Run at the root that owns the tools:
 
 ```sh
 pnpm check:go:lint
@@ -84,20 +106,19 @@ pnpm check:go:nilaway
 pnpm check:test:go
 ```
 
-The Taskfile enumerates the active main modules and runs each check from its module root.
+The scripts capture the active `GOWORK` before launching Task with workspace mode disabled.
+The Taskfile resolves its tools from the root module and restores the captured workspace for project checks.
+It enumerates the active main modules and runs each check from its module root.
 NilAway receives each module's own path while analysis retains workspace dependency selection.
 Place a golangci-lint configuration where each module can discover it, including modules outside the workspace root.
-Test each module with `GOWORK=off` as well to detect dependencies supplied only by the workspace.
+Run `GOWORK=off go test ./...` from each application module to detect dependencies supplied only by the workspace.
 
 The `check` command runs all four tasks alongside Markdown checks.
-The Go toolchain resolves and builds Task and the other tools from the separate tools module.
-Update tool versions in that module after checking compatibility with the target's Go directive.
-NilAway has no stable release tag.
-Review the current upstream commit and target Go compatibility before proposing a replacement for its reviewed pseudo-version.
+Update tool versions in the root module after checking compatibility with the target's Go directive.
 
 ## API Documentation
 
-Run `pnpm go:docs` from the module root, then open the local address printed by pkgsite.
+Run `pnpm go:docs` from the root that owns the tools, then open the local address printed by pkgsite.
 The command generates and serves the module's documentation as HTML and does not publish it.
 `-list=false` disables serving required dependency modules.
 Use `go doc -all <package>` to print one package's documentation as text without pkgsite.
@@ -107,7 +128,7 @@ The documentation server does not report every missing or unclear contract, so r
 ## CI Behavior
 
 The GitHub catalog `ci/github/go.yaml` and GitLab catalog `ci/gitlab/go.gitlab-ci.yaml` run the same four checks in one job.
-Both use the versions in the tools module and keep application module downloads read-only through the config.
+Both use the versions declared in the root module and keep application module downloads read-only through the config.
 Before adopting the catalog's `golang:1.27` image or GitHub actions, check their official releases against the target's `go.mod` and CI policy.
 Keep compatible target pins.
 The GitLab job declares `stage: validate`.
