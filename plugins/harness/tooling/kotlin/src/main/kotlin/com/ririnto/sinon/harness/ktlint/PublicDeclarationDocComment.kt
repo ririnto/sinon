@@ -13,16 +13,15 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtModifierListOwner
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * Requires KDoc on effective public and protected types, objects, and functions.
+ * Requires KDoc on effectively public and protected types and named non-companion objects.
  *
  * The rule runs by default. Opt out with `ktlint_harness_public-declaration-doc-comment = disabled` in `.editorconfig`.
- * Overrides inherit their contract. Property documentation is reviewed with its enclosing API contract.
+ * Property documentation is reviewed with its enclosing API contract.
  */
 class PublicDeclarationDocComment :
     Rule(
@@ -54,16 +53,6 @@ class PublicDeclarationDocComment :
                 klass.docComment === null
             ) {
                 report(klass, klass.name ?: "unknown")
-            }
-        }
-
-        override fun visitNamedFunction(function: KtNamedFunction) {
-            super.visitNamedFunction(function)
-            if (!function.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
-                shouldCheck(function, function.parent, KtTokens.FUN_KEYWORD) &&
-                function.docComment === null
-            ) {
-                report(function, function.name ?: "unknown")
             }
         }
 
@@ -99,8 +88,7 @@ class PublicDeclarationDocComment :
                 else -> false
             } &&
                 !isEnclosedByNonPublic(scopeStart) &&
-                declarationTokens.any { token -> declaration.node.findChildByType(token) !== null } &&
-                (declaration !is KtNamedFunction || declaration.parent !is KtBlockExpression)
+                declarationTokens.any { token -> declaration.node.findChildByType(token) !== null }
 
         private fun isEnclosedByNonPublic(scopeStart: PsiElement?): Boolean =
             generateSequence(scopeStart, PsiElement::getParent)

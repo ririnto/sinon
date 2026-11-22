@@ -6,6 +6,10 @@ metadata:
       url: https://raw.githubusercontent.com/palantir/palantir-java-format/2.103.0/README.md
     Checkstyle LineLength:
       url: https://checkstyle.org/checks/sizes/linelength.html
+    Checkstyle Javadoc:
+      url:
+        - https://checkstyle.org/checks/javadoc/missingjavadoctype.html
+        - https://checkstyle.org/checks/javadoc/missingjavadocmethod.html
     Java language:
       version: JDK 25
       url:
@@ -64,7 +68,7 @@ The Java profile maps rules to Java syntax and uses Checkstyle with Spotless.
 `tooling/java/.editorconfig` preserves UTF-8, LF endings, four-space indentation, a final newline, and trimmed trailing whitespace.
 Spotless supplies Palantir Java Format and removes unused imports.
 Its Java layout is not a byte-for-byte port of ktlint's Kotlin style.
-Checkstyle enforces braces, method and constructor separation, public and protected type and callable Javadoc presence, naming, line length, and array or enum comma rules.
+Checkstyle enforces braces, method and constructor separation, public and protected type and annotation element Javadoc presence, naming, line length, and array or enum comma rules.
 The mappings below record where Java has a safe language or tool equivalent.
 
 | Kotlin rule | Java profile behavior |
@@ -81,7 +85,7 @@ The mappings below record where Java has a safe language or tool equivalent.
 | | - Palantir formats Java branches according to its Java style rather than ktlint's Kotlin-specific layout. |
 | `explicit-function-return-type`, `explicit-property-type` | Java requires declared return types and field types in these positions. |
 | | - Local `var` remains valid. |
-| `public-declaration-doc-comment`, `multiline-kdoc` | Checkstyle requires Javadoc on public and protected types, methods, and constructors, with an exception for property accessors. |
+| `public-declaration-doc-comment`, `multiline-kdoc` | Checkstyle requires Javadoc on public and protected types and on annotation elements in those types. |
 | | - Checkstyle does not enforce multiline delimiters or English contract quality. |
 | `leading-underscore` | Checkstyle name checks enforce lower camel case for Java bindings, upper camel case for types and type parameters, and standard camel or upper-snake case for constants. |
 | | - `_` remains allowed for unnamed lambda, local, catch, pattern, or parameter bindings. |

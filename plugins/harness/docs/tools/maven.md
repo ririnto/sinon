@@ -100,7 +100,7 @@ The fragment's `configLocation` path must remain aligned with the installed targ
 Set the Checkstyle engine to `14.3.0` through the plugin dependency when the target permits a managed engine override.
 Bind the `checkstyle:check` goal to the target's existing validation phase without replacing its lifecycle.
 
-The native configuration enforces braces, unused-import hygiene, public type and callable Javadoc, Java naming, line length, and prohibited direct standard streams.
+The native configuration enforces braces, unused-import hygiene, Javadoc for public and protected types and their annotation elements, Java naming, line length, and prohibited direct standard streams.
 It does not invent Maven coordinates, Java packages, release levels, module names, or test runners.
 
 Merge the Javadoc plugin and its version property from `pom.xml.fragment` into the existing build, retaining a compatible target-managed version when present.

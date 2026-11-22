@@ -114,7 +114,7 @@ Set the Checkstyle engine to `14.3.0` through the target's existing Gradle confi
 Apply the `checkstyle` plugin in the same target build before using the `checkstyle` block.
 Gradle's Java plugin wires `checkstyleMain` and `checkstyleTest` into `check`.
 
-The native source fragment enforces braces, unused-import hygiene, public type and callable Javadoc, Java naming, line length, and prohibited direct standard streams.
+The native source fragment enforces braces, unused-import hygiene, Javadoc for public and protected types and their annotation elements, Java naming, line length, and prohibited direct standard streams.
 It does not invent package names, coordinates, source roots, or toolchain versions.
 
 Merge `javadoc.gradle.kts.fragment` into the Java project build and run `./gradlew javadoc` to generate Java API documentation in `build/docs/javadoc`.

@@ -29,7 +29,8 @@ Run Ultracite, Markdownlint, TypeScript, and Vitest through the repository's pnp
 
 ## Exports And TSDoc
 
-Every exported declaration, exported type, re-export, and default export carries a TSDoc comment.
+Document exported functions and other callables with TSDoc when callers need details beyond the signature.
+For non-callable exports, attach TSDoc to the declaration, type, re-export, or default export.
 Write TSDoc in English in the multiline form: an opening `/**` line, meaningful English sentences on lines that begin with an asterisk, and a closing `*/` line.
 Concise TSDoc states the contract, not a restatement of the name.
 Add `@param` only when it clarifies a constraint, unit, nullability, or other meaning beyond the identifier and type.

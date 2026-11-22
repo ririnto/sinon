@@ -43,7 +43,7 @@ const nodeName = (node: ESTree.Node): string =>
   "[anonymous]";
 
 /**
- * Narrow a class element to public members that require TSDoc.
+ * Narrow a class element to public members whose TSDoc is checked.
  *
  * @param element Class body element to inspect.
  * @returns True for non-constructor public methods, including abstract ones,
@@ -179,7 +179,8 @@ const exportTsdocRule = {
               element.type.endsWith("PropertyDefinition")
                 ? "property"
                 : "method",
-              nodeName(element)
+              nodeName(element),
+              false
             );
           }
         }
@@ -211,12 +212,11 @@ const exportTsdocRule = {
               ? variableName(node)
               : nodeName(node),
             node.type !== "TSTypeAliasDeclaration" &&
+              node.type !== "FunctionDeclaration" &&
+              node.type !== "TSDeclareFunction" &&
               (node.type !== "VariableDeclaration" ||
                 node.declarations.some(
-                  ({ init }) =>
-                    init?.type === "ArrowFunctionExpression" ||
-                    init?.type === "FunctionExpression" ||
-                    init?.type === "ClassExpression"
+                  ({ init }) => init?.type === "ClassExpression"
                 ))
           );
           if (node.type === "VariableDeclaration") {
@@ -239,10 +239,6 @@ const exportTsdocRule = {
           declarator.id.type === "Identifier" &&
           declarator.id.name === name
         ) {
-          const requirePresence =
-            declarator.init?.type === "ArrowFunctionExpression" ||
-            declarator.init?.type === "FunctionExpression" ||
-            declarator.init?.type === "ClassExpression";
           if (
             !checkedDeclarations.has(declaration) &&
             !checkedVariableDeclarators.has(declarator)
@@ -254,7 +250,12 @@ const exportTsdocRule = {
               if (tsdocComments(documentationNode).length > 0) {
                 checkedVariableComments.add(documentationNode);
               }
-              report(documentationNode, "variable", name, requirePresence);
+              report(
+                documentationNode,
+                "variable",
+                name,
+                declarator.init?.type === "ClassExpression"
+              );
             }
           }
           if (declarator.init?.type === "ClassExpression") {

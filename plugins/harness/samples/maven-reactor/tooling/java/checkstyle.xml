@@ -31,7 +31,7 @@
     </module>
     <module name="MissingJavadocMethod">
       <property name="scope" value="protected" />
-      <property name="allowMissingPropertyJavadoc" value="true" />
+      <property name="tokens" value="ANNOTATION_FIELD_DEF" />
     </module>
     <module name="JavadocVariable">
       <property name="accessModifiers" value="public,protected" />

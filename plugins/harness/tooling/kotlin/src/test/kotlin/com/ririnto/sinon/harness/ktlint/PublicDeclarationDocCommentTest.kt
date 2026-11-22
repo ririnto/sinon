@@ -10,7 +10,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 /**
- * Verifies KDoc requirements on public types and functions.
+ * Verifies KDoc requirements on effectively public types.
  */
 class PublicDeclarationDocCommentTest :
     FunSpec({
@@ -56,7 +56,7 @@ class PublicDeclarationDocCommentTest :
             }
         }
 
-        test("is enabled by default for effective public declarations") {
+        test("requires KDoc on a public class and accepts its undocumented method") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
@@ -71,8 +71,7 @@ class PublicDeclarationDocCommentTest :
                 assertSoftly(diagnostics) {
                     shouldContainExactlyInAnyOrder(
                         listOf(
-                            KtLintRuleTestEngine.Diagnostic(1, 7, "harness:public-declaration-doc-comment", false),
-                            KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
+                            KtLintRuleTestEngine.Diagnostic(1, 7, "harness:public-declaration-doc-comment", false)
                         )
                     )
                 }
@@ -98,7 +97,7 @@ class PublicDeclarationDocCommentTest :
             }
         }
 
-        test("requires documentation on public interfaces") {
+        test("requires KDoc on a public interface and accepts its undocumented method") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
@@ -112,8 +111,7 @@ class PublicDeclarationDocCommentTest :
                 assertSoftly(diagnostics) {
                     shouldContainExactlyInAnyOrder(
                         listOf(
-                            KtLintRuleTestEngine.Diagnostic(1, 11, "harness:public-declaration-doc-comment", false),
-                            KtLintRuleTestEngine.Diagnostic(2, 9, "harness:public-declaration-doc-comment", false)
+                            KtLintRuleTestEngine.Diagnostic(1, 11, "harness:public-declaration-doc-comment", false)
                         )
                     )
                 }
