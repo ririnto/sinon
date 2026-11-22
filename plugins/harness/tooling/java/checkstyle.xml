@@ -31,7 +31,7 @@
     </module>
     <module name="MissingJavadocMethod">
       <property name="scope" value="protected" />
-      <property name="allowMissingPropertyJavadoc" value="true" />
+      <property name="tokens" value="ANNOTATION_FIELD_DEF" />
     </module>
     <module name="TypeName">
       <property name="format" value="^(?!_)[A-Z][a-zA-Z0-9]*$" />

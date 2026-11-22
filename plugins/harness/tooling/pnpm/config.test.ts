@@ -213,7 +213,7 @@ describe("pnpm profile configuration", () => {
         files.map(async (filename) => {
           await writeFile(
             path.join(directory, filename),
-            "export const undocumented=()=>1;\nvoid Promise.resolve();\n"
+            "/** Invalid delimiters. */\nexport const undocumented=()=>1;\nvoid Promise.resolve();\n"
           );
         })
       );
@@ -310,7 +310,7 @@ describe("pnpm profile configuration", () => {
       );
       await writeFile(
         path.join(directory, "sample.ts"),
-        `${packageStyleFixture}\nexport function undocumented() { return 1; }\n`
+        `${packageStyleFixture}\nexport interface Undocumented { value: string; }\n`
       );
       const { diagnostics, status } = runUltracite(
         directory,
@@ -373,7 +373,7 @@ describe("pnpm profile configuration", () => {
       );
       await writeFile(
         path.join(directory, "sample.tsx"),
-        'export function image() { return <img src="example.png" />; }\nconsole.log(image);\n'
+        '/** Display an image. */\nexport function image() { return <img src="example.png" />; }\nconsole.log(image);\n'
       );
       const { diagnostics, status } = runUltracite(
         directory,

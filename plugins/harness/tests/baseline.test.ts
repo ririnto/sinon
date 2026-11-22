@@ -748,6 +748,10 @@ describe("fresh-root baseline", () => {
         );
         expect(load.status, load.stderr.toString()).toBe(0);
       }
+      await writeFile(
+        path.join(directory, "good.ts"),
+        "export const isReady = (): boolean => true;\n"
+      );
       expect(git("add", ".").status).toBe(0);
       expect(git("ls-files", "--", ".husky/_").stdout.toString()).toBe("");
       const commit =
@@ -766,7 +770,7 @@ describe("fresh-root baseline", () => {
       ).toBe(0);
       await writeFile(
         path.join(directory, "bad.ts"),
-        "// Bad \u2014 prose\nexport function undocumented(): boolean {\n  return true;\n}\n"
+        "// Bad \u2014 prose\n/** Incorrect delimiters. */\nexport const invalidDocumentation = (): boolean => true;\n"
       );
       expect(git("add", "bad.ts").status).toBe(0);
       const rejectedCommit =
@@ -781,6 +785,7 @@ describe("fresh-root baseline", () => {
         const output = result.stderr.toString() + result.stdout.toString();
         expect(result.status, output).toBe(1);
         expect(output).toContain("tsdoc(require-export-tsdoc)");
+        expect(output).toContain("Use multiline TSDoc");
       }
       expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
         entrypoint === "pnpm" ? "Initial fixture" : "Configure Node baseline"

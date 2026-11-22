@@ -73,7 +73,8 @@ Use compatible managed serialization and datetime versions; for new dependencies
 - SHOULD prefer `kotlin.io.path.div` for JVM `Path` composition when stdlib is available, read-only public collection interfaces, string helpers before `Regex`, and `String.toRegex()` when needed.
 - SHOULD keep short calls within one line when they fit and use infix functions only when natural and unambiguous.
 - Name lambda parameters when this clarifies their role or avoids ambiguity.
-- SHOULD document every effectively public declaration with KDoc, considering enclosing visibility; private helpers and local callbacks need no documentation unless their contract is surprising.
+- SHOULD document effectively public declarations other than functions with KDoc, considering enclosing visibility.
+- SHOULD document functions with KDoc when their contract needs detail beyond the signature.
 - SHOULD prefer `tailrec` over loops only for real tail calls with preserved semantics and readability.
 - SHOULD keep collection pipelines eager unless `Sequence` materially helps; prefer simple `map`, `filter`, `associate`, and `groupBy` when equally clear, and name intermediate values when chains obscure meaning.
 - MUST confine local result-building mutation to `buildList`, `buildSet`, or `buildMap` lambdas and prevent receiver escape. This excludes owned long-lived mutable state, stateful delegates, recursive visited sets, and algorithmic worklists.

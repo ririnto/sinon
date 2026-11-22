@@ -15,10 +15,11 @@ The [pnpm tool reference](../tools/pnpm.md) owns commands and configuration.
 
 ## Documentation
 
-Document exported functions, classes, and other public declarations with JSDoc when the declaration has a public contract.
+Document exported classes and other public non-callable declarations with JSDoc when they have a public contract.
+Document exported functions and public methods when callers need details beyond the declaration.
 Use `@param` and `@returns` tags when they clarify the accepted inputs or returned value.
 Do not add a type tag when the JavaScript syntax already expresses the type through a stable public contract.
-Document public class methods unless the class member is private or a constructor.
+Keep JSDoc type annotations that tools use to check JavaScript.
 Use multiline JSDoc in maintained source and code samples.
 Put the opening `/**` and closing `*/` delimiters on separate lines.
 

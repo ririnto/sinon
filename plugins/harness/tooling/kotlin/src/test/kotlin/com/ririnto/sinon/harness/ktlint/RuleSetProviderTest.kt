@@ -130,7 +130,25 @@ class RuleSetProviderTest :
             }
         }
 
-        test("reports an undocumented public declaration without any configuration") {
+        test("accepts an undocumented public function with all Harness rules enabled") {
+            val diagnostics = mutableListOf<String>()
+            KtLintRuleEngine(ruleProviders = RuleSetProvider().getRuleProviders())
+                .lint(
+                    Code.fromSnippet(
+                        """
+                        /**
+                         * Provides an integer answer.
+                         */
+                        class Probe {
+                            fun answer(): Int = 42
+                        }
+                        """.trimIndent() + "\n"
+                    )
+                ) { error -> diagnostics.add(error.detail) }
+            diagnostics.shouldBeEmpty()
+        }
+
+        test("reports an undocumented public class without any configuration") {
             val rules: MutableList<String> = mutableListOf()
             KtLintRuleEngine(ruleProviders = RuleSetProvider().getRuleProviders())
                 .lint(Code.fromSnippet("class Service\n")) { error -> rules.add(error.ruleId.value) }

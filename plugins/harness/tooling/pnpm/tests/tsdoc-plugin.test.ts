@@ -20,7 +20,7 @@ const writeConfig = async (directory: string): Promise<void> => {
 };
 
 test.each([false, true])(
-  "Ultracite checks public methods on a directly exported class expression (documented=%s)",
+  "Ultracite accepts public methods on a directly exported class expression (documented=%s)",
   async (documented) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-tsdoc-exported-class-")
@@ -40,12 +40,8 @@ test.each([false, true])(
         expect(runUltracite(directory, filename, "fix").status).toBe(0);
       }
       const result = runUltracite(directory, filename);
-      expect(result.status).toBe(documented ? 0 : 1);
-      expect(result.diagnostics.map(({ message }) => message)).toEqual(
-        documented
-          ? []
-          : ['Missing TSDoc for exported public API method "read".']
-      );
+      expect(result.status).toBe(0);
+      expect(result.diagnostics).toEqual([]);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
@@ -154,11 +150,11 @@ test("Ultracite checks declarations and members without requiring export wrapper
     );
     await writeFile(
       path.join(directory, "default-function.ts"),
-      "export default function () { return 1; }\n"
+      "export default function () {\n  return 1;\n}\n"
     );
     await writeFile(
       path.join(directory, "default-class.ts"),
-      `${doc}export default class { read() { return 1; } }\n`
+      `${doc}export default class {\n  read() {\n    return 1;\n  }\n}\n`
     );
     expect(runUltracite(directory, "valid.ts", "fix").status).toBe(0);
     const valid = runUltracite(directory, "valid.ts");
@@ -167,32 +163,20 @@ test("Ultracite checks declarations and members without requiring export wrapper
     const invalid = runUltracite(directory, "invalid.ts");
     expect(invalid.status).toBe(1);
     expect(invalid.diagnostics.map(({ message }) => message)).toEqual([
-      'Missing TSDoc for exported public API function "parse".',
       'Missing TSDoc for exported public API interface "Shape".',
       'Missing TSDoc for exported public API enum "Mode".',
-      'Missing TSDoc for exported public API namespace "Space".',
-      'Missing TSDoc for exported public API function "overload".',
-      'Missing TSDoc for exported public API method "run".',
-      'Missing TSDoc for exported public API property "handler".',
-      'Missing TSDoc for exported public API property "build".'
+      'Missing TSDoc for exported public API namespace "Space".'
     ]);
     expect(
       runUltracite(directory, "assignment.ts").diagnostics.map(
         ({ message }) => message
       )
     ).toEqual([]);
-    expect(
-      runUltracite(directory, "default-function.ts").diagnostics.map(
-        ({ message }) => message
-      )
-    ).toEqual([
-      'Missing TSDoc for exported public API function "[anonymous]".'
-    ]);
-    expect(
-      runUltracite(directory, "default-class.ts").diagnostics.map(
-        ({ message }) => message
-      )
-    ).toEqual(['Missing TSDoc for exported public API method "read".']);
+    for (const filename of ["default-function.ts", "default-class.ts"]) {
+      const { diagnostics, status } = runUltracite(directory, filename);
+      expect(diagnostics, filename).toEqual([]);
+      expect(status, filename).toBe(0);
+    }
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
@@ -204,14 +188,14 @@ test("Ultracite checks each indirectly exported variable in a shared declaration
     await writeConfig(directory);
     await writeFile(
       path.join(directory, "source.ts"),
-      "const label = 1, compute = () => 42;\n" +
+      "const label = 1, compute = () => 42, Service = class {};\n" +
         "/**\n * Expose the label.\n */\nexport { label };\n" +
-        "export { compute };\nexport { compute as calculate };\n"
+        "export { compute };\nexport { compute as calculate, Service };\n"
     );
     const result = runUltracite(directory, "source.ts");
     expect(result.status).toBe(1);
     expect(result.diagnostics.map(({ message }) => message)).toEqual([
-      'Missing TSDoc for exported public API variable "compute".'
+      'Missing TSDoc for exported public API variable "Service".'
     ]);
     await writeFile(
       path.join(directory, "documented.ts"),
@@ -303,13 +287,13 @@ test.each(
           otherResult.diagnostics
             .filter((diagnostic) => diagnostic.filename === filename)
             .map(({ message }) => message)
-        ).toEqual(['Missing TSDoc for exported public API method "run".']);
+        ).toEqual([]);
       }
       expect(
         otherResult.diagnostics.filter(
           (diagnostic) => diagnostic.filename === directFilename
         )
-      ).toHaveLength(2);
+      ).toHaveLength(1);
       expect(
         otherResult.diagnostics
           .filter((diagnostic) => diagnostic.filename === indirectFilename)
@@ -321,10 +305,7 @@ test.each(
             (diagnostic) => diagnostic.filename === indirectValuesFilename
           )
           .map(({ message }) => message)
-      ).toEqual([
-        'Missing TSDoc for exported public API function "lookup".',
-        'Missing TSDoc for exported public API variable "load".'
-      ]);
+      ).toEqual([]);
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
