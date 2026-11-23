@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { isMap, isScalar, isSeq, parseDocument } from "yaml";
+import { isMap, isScalar, parseDocument } from "yaml";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const write = process.argv.includes("--write");
@@ -87,43 +87,23 @@ const runtimeSnapshot = {
   target: runtimePath,
   updated: `${JSON.stringify(updatedRuntime, null, 2)}\n`
 };
-const ciSnapshots = await Promise.all(
-  [
-    ["plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", "gitlab"],
-    ["plugins/harness/ci/github/pnpm.yaml", "github"]
-  ].map(async ([file, type]) => {
-    const target = path.join(root, file);
-    const original = await readFile(target, "utf-8");
-    const document = parseDocument(original);
-    const steps = document.getIn(["jobs", "pnpm", "steps"], true);
-    const step = isSeq(steps)
-      ? steps.items.find((item) => {
-          if (!isMap(item)) {
-            return false;
-          }
-          const uses = item.get("uses");
-          return (
-            typeof uses === "string" && uses.startsWith("actions/setup-node@")
-          );
-        })
-      : null;
-    const nodeVersion = isMap(step)
-      ? step.getIn(["with", "node-version"], true)
-      : null;
-    const scalar =
-      type === "gitlab" ? document.getIn(["pnpm", "image"], true) : nodeVersion;
-    const value = type === "gitlab" ? `node:${major}` : Number(major);
-    if (!isScalar(scalar) || scalar.range === undefined) {
-      throw new Error(`Missing Node runtime in ${file}`);
-    }
-    const updated =
-      scalar.value === value
-        ? original
-        : `${original.slice(0, scalar.range[0])}${value}${original.slice(scalar.range[1])}`;
-    return { file, original, target, updated };
-  })
-);
-const changes = [...snapshots, runtimeSnapshot, ...ciSnapshots].filter(
+const gitlabFile = "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml";
+const gitlabPath = path.join(root, gitlabFile);
+const originalGitlab = await readFile(gitlabPath, "utf-8");
+const image = parseDocument(originalGitlab).getIn(["pnpm", "image"], true);
+if (!isScalar(image) || image.range === undefined) {
+  throw new Error(`Missing Node runtime in ${gitlabFile}`);
+}
+const gitlabSnapshot = {
+  file: gitlabFile,
+  original: originalGitlab,
+  target: gitlabPath,
+  updated:
+    image.value === `node:${major}`
+      ? originalGitlab
+      : `${originalGitlab.slice(0, image.range[0])}node:${major}${originalGitlab.slice(image.range[1])}`
+};
+const changes = [...snapshots, runtimeSnapshot, gitlabSnapshot].filter(
   ({ original, updated }) => original !== updated
 );
 if (write) {

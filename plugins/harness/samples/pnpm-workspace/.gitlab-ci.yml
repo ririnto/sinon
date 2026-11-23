@@ -5,7 +5,7 @@ pnpm:
   stage: validate
   image: node:24
   before_script:
-    - npm install --global "$(node --print 'require("./package.json").packageManager')"
+    - corepack enable pnpm
   script:
     - pnpm install --frozen-lockfile
     - pnpm run check

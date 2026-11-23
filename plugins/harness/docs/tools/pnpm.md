@@ -19,6 +19,14 @@ metadata:
         - https://typedoc.org/documents/Options.Validation.html
     Node.js:
       url: https://nodejs.org/en/about/previous-releases
+    setup-node:
+      tag: v7.1.0
+      url: https://raw.githubusercontent.com/actions/setup-node/v7.1.0/docs/advanced-usage.md
+    pnpm/action-setup:
+      tag: v6.1.1
+      url: https://raw.githubusercontent.com/pnpm/action-setup/v6.1.1/README.md
+    Corepack:
+      url: https://github.com/nodejs/corepack
     Oxlint:
       version: 1.94.0
       url:
@@ -393,16 +401,14 @@ Select the development runtime from the target's manifest and explicit requireme
 Check tool and custom plugin compatibility before changing the target's selected runtime.
 Keep source execution requirements separate from development dependency engine requirements.
 
-pnpm 12 is a native executable and does not require Node.js after installation.
-Installing pnpm 12 through npm requires Node.js 22.13 or newer.
-Bootstrap it with a compatible development Node.js version or use its standalone installer.
 Pin pnpm through the target's `packageManager` field.
-The GitHub and GitLab catalogs install the version specified in the target's `packageManager` field through npm.
-Both catalogs select Node.js 24.
-Replace that runtime selection when the target requires another compatible version.
-The npm installation does not verify integrity suffixes in the `packageManager` field.
-Adapt runtime versions, working directories, and image pins to the target's existing CI requirements.
-CI runs `pnpm install --frozen-lockfile` when `pnpm-lock.yaml` exists, then the target's `pnpm run check` script.
+The GitHub catalog uses `actions/setup-node` to read the Node.js version from `package.json`.
+The catalog uses `pnpm/action-setup` to install the pnpm version declared in the same manifest.
+The GitLab catalog uses the Node.js 24 image and runs `corepack enable pnpm` to put the pnpm shim on `PATH`.
+Corepack selects the pnpm version from the target's `packageManager` field when a job calls `pnpm`.
+If your GitLab image changes, verify that it includes Corepack or supply a repository-owned pnpm bootstrap that puts the declared version on `PATH`.
+Adapt working directories and image pins to the target's existing CI requirements.
+Each catalog runs one `pnpm install --frozen-lockfile` followed by the target's `pnpm run check` script.
 Require a committed lockfile for a frozen installation.
 Replace the install mode only for an authorized dependency update job or an explicit target requirement.
 CI must run `pnpm run test` only when the target has a native test owner.

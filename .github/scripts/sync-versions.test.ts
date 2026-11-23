@@ -71,16 +71,9 @@ test("version snapshots detect drift, update, and remain self-contained", async 
   await mkdir(path.join(fixture, "plugins/harness/ci/gitlab"), {
     recursive: true
   });
-  await mkdir(path.join(fixture, "plugins/harness/ci/github"), {
-    recursive: true
-  });
   await writeFile(
     path.join(fixture, "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml"),
     "pnpm:\n  image: node:24\n"
-  );
-  await writeFile(
-    path.join(fixture, "plugins/harness/ci/github/pnpm.yaml"),
-    "jobs:\n  pnpm:\n    steps:\n      - uses: actions/setup-node@v7\n        with:\n          node-version: 24\n"
   );
   await writeFile(
     path.join(fixture, "plugins/harness/tooling/pnpm/runtime.fragment.json"),
@@ -134,13 +127,4 @@ test("version snapshots detect drift, update, and remain self-contained", async 
     )
   );
   expect(valueAt(ci, "pnpm", "image")).toBe("node:26");
-  const github: unknown = parse(
-    await readFile(
-      path.join(fixture, "plugins/harness/ci/github/pnpm.yaml"),
-      "utf-8"
-    )
-  );
-  expect(
-    valueAt(github, "jobs", "pnpm", "steps", 0, "with", "node-version")
-  ).toBe(26);
 });
