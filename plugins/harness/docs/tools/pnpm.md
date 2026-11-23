@@ -20,24 +20,24 @@ metadata:
     Node.js:
       url: https://nodejs.org/en/about/previous-releases
     Oxlint:
-      version: 1.90.0
+      version: 1.94.0
       url:
         - https://oxc.rs/docs/guide/usage/linter/config.md
         - https://oxc.rs/docs/guide/usage/linter/writing-js-plugins.md
-        - https://www.npmjs.com/package/oxlint/v/1.90.0
+        - https://registry.npmjs.org/oxlint/1.94.0
     Oxfmt:
-      version: 0.75.0
+      version: 0.79.0
       url:
         - https://oxc.rs/docs/guide/usage/formatter/config.md
-        - https://www.npmjs.com/package/oxfmt/v/0.75.0
+        - https://registry.npmjs.org/oxfmt/0.79.0
     Markdownlint CLI2:
-      version: 0.24.0
-      url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.24.0/README.md
+      version: 0.24.2
+      url: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.24.2/README.md
     Markdownlint:
-      version: 0.42.0
+      version: 0.42.2
       url:
-        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.42.0/doc/Rules.md
-        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.42.0/doc/CustomRules.md
+        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.42.2/doc/Rules.md
+        - https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.42.2/doc/CustomRules.md
     Search-replace rule:
       version: 1.2.0
       url: https://raw.githubusercontent.com/OnkarRuikar/markdownlint-rule-search-replace/main/README.md
@@ -50,8 +50,8 @@ metadata:
     Oxlint React Compiler rules:
       url: https://oxc.rs/docs/guide/usage/linter/rules/react/set-state-in-render.html
     Ultracite:
-      version: 8.1.0
-      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%408.1.0/packages/cli/README.md
+      version: 8.3.1
+      url: https://raw.githubusercontent.com/haydenbleasel/ultracite/ultracite%408.3.1/packages/cli/README.md
     TypeScript compiler options:
       url:
         - https://www.typescriptlang.org/tsconfig/exactOptionalPropertyTypes.html
@@ -60,16 +60,16 @@ metadata:
         - https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html
         - https://www.typescriptlang.org/tsconfig/verbatimModuleSyntax.html
     npm-run-all2:
-      version: 9.0.4
-      url: https://registry.npmjs.org/npm-run-all2/9.0.4
+      version: 9.1.0
+      url: https://registry.npmjs.org/npm-run-all2/9.1.0
     Husky:
       version: 9.1.7
       url:
         - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/get-started.md
         - https://raw.githubusercontent.com/typicode/husky/v9.1.7/docs/how-to.md
     Oxlint Plugin API:
-      version: 1.92.0
-      url: https://registry.npmjs.org/@oxlint/plugins/1.92.0
+      version: 1.94.0
+      url: https://registry.npmjs.org/@oxlint/plugins/1.94.0
 ---
 
 # pnpm
@@ -257,7 +257,7 @@ Merge these entries into the consumer's existing `.markdownlint-cli2.jsonc`, pre
 
 Keep the consumer's existing Markdownlint CLI2 dependency and check command.
 Run `pnpm exec markdownlint-cli2` through its normal configuration.
-Package subpath loading and CLI2 diagnostics were verified with Markdownlint CLI2 `0.24.0` and Markdownlint `0.42.0`.
+Package subpath loading and CLI2 diagnostics were verified with Markdownlint CLI2 `0.24.2` and Markdownlint `0.42.2`.
 Keep an existing consumer implementation until the exported rule passes its complete applicable current Markdown corpus and security controls.
 Remove the superseded local implementation and loader entry together during the consumer's authorized migration.
 The portable profile and Sinon root do not enable this rule automatically.
@@ -347,7 +347,7 @@ Keep that conversion under the [common async policy](../rules.md#code-rules-comm
 The consumer gate installs standalone dependencies before checking unchanged generated configurations and HTML and React stories in their target projects.
 The root `check:typescript` script runs `tsc --noEmit` independently of Ultracite's TypeScript checks.
 Use the target's real TypeScript project configuration and verify type-aware execution before relying on this diagnostic.
-The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.90.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.1.0/packages/cli/src/commands/check.ts).
+The tested backend contract is documented in the [Oxlint rule implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.94.0/crates/oxc_linter/src/rules/typescript/no_floating_promises.rs) and the [Ultracite command implementation](https://github.com/haydenbleasel/ultracite/blob/ultracite%408.3.1/packages/cli/src/commands/check.ts).
 
 ## TypeScript Strictness Merge
 
