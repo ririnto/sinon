@@ -13,7 +13,7 @@ metadata:
         - https://go.dev/doc/modules/managing-dependencies#tools
         - https://go.dev/ref/mod#go-work-file
     Go package documentation server:
-      version: v0.6.0
+      version: v0.7.0
       url: https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite
 ---
 
@@ -58,8 +58,8 @@ Verify them against the root module before removing the old generated tool modul
 - Go: use a toolchain compatible with the target's `go` directive and the selected tools.
   Task v3.54.0 requires at least Go 1.26.4.
 - golangci-lint: v2.15.0.
-- NilAway: pinned pseudo-version `v0.0.0-20260918162853-acb8859b9031` from the upstream default branch.
-- pkgsite: v0.6.0 for local API documentation, built with Go 1.26 or newer.
+- NilAway: pinned pseudo-version `v0.0.0-20261123022048-6b0faf5d8520` from the upstream default branch.
+- pkgsite: v0.7.0 for local API documentation, built with Go 1.26 or newer.
 - Task: v3.54.0.
 
 The Go module proxy and upstream release tags determine the latest stable golangci-lint version at installation time.
