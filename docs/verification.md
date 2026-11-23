@@ -99,8 +99,8 @@ For shell profile changes, run the native integration fixture:
 HARNESS_SHELL_PROFILE_TEST=1 pnpm exec vitest run plugins/harness/tests/shell-profile.test.ts
 ```
 
-The fixture needs ShellCheck, shfmt, and access to the pnpm dependencies.
-It runs a real Husky hook and the GitLab job's script locally against tracked shell files.
+The fixture needs Go and access to the pnpm and Go dependencies.
+It registers shfmt in the consumer root module and runs the package format check, both Husky hooks, and the GitLab job's script locally against tracked shell files.
 
 After changing packaged plugin content, run the host validator in that package, for example:
 

@@ -73,7 +73,8 @@ Maven requires its wrapper and the selected Spotless and Checkstyle goals.
 Go requires a compatible toolchain and [tools installed into the root module](go.md#install-the-tools).
 Rust requires the target-owned Cargo project and its selected toolchain with Clippy and rustfmt.
 uv requires the target-owned Python project and its synced Ruff dependency.
-Shell requires ShellCheck and shfmt on the hook's `PATH` and checks Git-tracked scripts only.
+Shell requires Go on the hook's `PATH` and [shfmt registered in the root module](shell.md#install-the-formatter).
+The shell format check reads only Git-tracked scripts.
 Java configuration assets use the selected Gradle or Maven manifest, and the Kotlin ruleset module uses its selected native build owner.
 These support directories do not introduce competing root manifests.
 The frontend selections require their matching Storybook renderer and real component stories.
