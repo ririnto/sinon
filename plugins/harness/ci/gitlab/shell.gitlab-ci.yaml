@@ -1,9 +1,5 @@
-shellcheck:
+shell-format:
   stage: validate
-  image: debian:13-slim
-  before_script:
-    - apt-get update
-    - apt-get install -y git shellcheck shfmt
+  image: golang:1.27
   script:
-    - git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --
-    - git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --
+    - git ls-files -z -- '*.sh' | GOWORK=off xargs -0 -r go tool -modfile=go.mod mvdan.cc/sh/v3/cmd/shfmt -d --

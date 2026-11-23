@@ -1,9 +1,8 @@
 ---
 metadata:
   reference:
-    ShellCheck:
-      version: 0.11.0
-      url: https://github.com/koalaman/shellcheck/releases/tag/v0.11.0
+    Go tool dependencies:
+      url: https://go.dev/doc/modules/managing-dependencies#tools
     shfmt:
       version: 3.14.1
       url: https://raw.githubusercontent.com/mvdan/sh/v3.14.1/cmd/shfmt/shfmt.1.scd
@@ -24,13 +23,23 @@ The profile introduces no shell test harness.
 
 ## Toolchain
 
-- ShellCheck: any maintained release.
-  The profile was checked against 0.11.
-- shfmt: any maintained release.
-  The profile was checked against 3.14.1.
-- Before installing either tool, check its upstream releases and the platform package repository for the latest stable version compatible with the target runner.
-- Install through the platform package manager.
-  Do not install global tools to conceal a missing dependency on a target machine.
+The profile registers shfmt v3.14.1 as a Go tool in the target's root `go.mod`.
+Use a Go toolchain compatible with the root module and shfmt, which requires Go 1.26 or later.
+
+## Install The Formatter
+
+If the target has no root `go.mod`, run `GOWORK=off go mod init <module-path>` from the repository root with a project-owned module path.
+For a Go project, reuse its root module and keep its existing module path, requirements, and replacements.
+Run the setup command from the repository root after the baseline supplies the package scripts:
+
+```sh
+pnpm run shell:tools
+```
+
+The command adds shfmt to the root module with `go get -tool`.
+If the module already selects a compatible shfmt version, use that version in the `go get -tool` arguments.
+Review the changes and commit `go.mod` and `go.sum` together.
+For an existing profile installation, update the shell package scripts and the selected CI job together.
 
 ## Native Configuration Sources
 
@@ -46,42 +55,29 @@ When the target already owns an `.editorconfig`, keep its shell section and reso
 ## Validation Commands
 
 Use the [project baseline](baseline.md) for the root pnpm manifest, catalog, Markdownlint configuration and real Husky hooks.
-The hooks in `tooling/shell/.husky/` run the shared check before ShellCheck and shfmt on both commit and push.
+The hooks in `tooling/shell/.husky/` run the shared Markdown check before the shell format check on both commit and push.
 
 Run at the repository root, over git-tracked scripts only:
 
 ```sh
-git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --
-git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --
+pnpm run check:shell:format
 ```
 
-`shfmt -w` applies approved formatting fixes in place.
+The check resolves shfmt from the root module with Go workspace mode disabled.
+Run `GOWORK=off go tool mvdan.cc/sh/v3/cmd/shfmt -w -- <path>` to apply approved formatting fixes in place.
 Read the [shell path-handling rules](../languages/shell.md#files-and-paths) when adapting these pipelines.
-Missing ShellCheck or shfmt fails visibly.
-Never substitute a weaker check.
 
 ## Dialect Selection
 
-ShellCheck and shfmt infer the dialect from the shebang line.
+shfmt infers the dialect from the shebang line.
 A `#!/usr/bin/env sh` shebang checks as POSIX `sh`.
 A `bash` shebang checks as Bash and permits Bash-only syntax.
 When a script's shebang and its syntax disagree, fix the shebang or the syntax at the root cause instead of adding per-file exemptions.
-Per-file directives such as `# shellcheck shell=bash` are for generated or multi-dialect files only.
 
 ## CI Behavior
 
-The GitHub catalog `ci/github/shell.yaml` and GitLab catalog `ci/gitlab/shell.gitlab-ci.yaml` install the two tools from the system package repository and run the same two commands.
-The GitLab catalog uses the versioned `debian:13-slim` Debian 13 baseline.
+The GitHub catalog `ci/github/shell.yaml` selects Go from the root `go.mod`.
+The GitLab catalog `ci/gitlab/shell.gitlab-ci.yaml` uses the `golang:1.27` image.
+Both jobs use the root module's shfmt version and check the same Git-tracked `*.sh` files as the package script.
 The GitLab job declares `stage: validate`.
 Add that stage to the target's pipeline stages when it does not exist.
-No working-directory adjustment exists for this profile.
-The file list is repository-wide by design.
-
-## Known Limitations
-
-- Package-manager versions of ShellCheck and shfmt lag upstream releases.
-  The checks remain valid, but new checks appear only after a runner image update.
-- For the source profile baselines, Ubuntu 24.04 supplies shfmt 3.8.0 and ShellCheck 0.9.0, and Debian 13 supplies shfmt 3.8.0 and ShellCheck 0.10.0.
-  Check the target package archive before installation.
-- `debian:13-slim` selects the Debian 13 release line.
-  Rebuild freshness follows the image, and a target needing exact pins must install release archives instead.

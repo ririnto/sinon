@@ -9,7 +9,12 @@ import { configureBaseline } from "../scripts/configure.js";
 import { arrayValue, stringValue } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
-const trackedScripts = ["-leading.sh", "script with spaces.sh", "star*.sh"];
+const trackedScripts = [
+  "-leading.sh",
+  "line\nbreak.sh",
+  "script with spaces.sh",
+  "star*.sh"
+];
 const nativeProfiles = [
   {
     executables: ["cargo"],
@@ -41,10 +46,17 @@ const nativeProfiles = [
     testCalls: []
   },
   {
-    executables: ["shellcheck", "shfmt"],
+    executables: ["go"],
     nativeCalls: [
-      ["shellcheck", "-S", "warning", "--", ...trackedScripts],
-      ["shfmt", "-d", "--", ...trackedScripts]
+      [
+        "go",
+        "tool",
+        "-modfile=go.mod",
+        "mvdan.cc/sh/v3/cmd/shfmt",
+        "-d",
+        "--",
+        ...trackedScripts
+      ]
     ],
     profile: "shell",
     testCalls: []
@@ -149,7 +161,7 @@ describe("remaining native profile Git gates", () => {
       if (profile === "shell") {
         await writeFile(
           path.join(directory, "untracked.sh"),
-          "untracked scripts are not native lint inputs\n"
+          "untracked scripts are not formatter inputs\n"
         );
       }
       expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);

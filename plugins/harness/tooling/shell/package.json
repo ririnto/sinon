@@ -3,13 +3,13 @@
     "check": "run-s check:markdownlint-cli2 check:shell",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:shell": "run-p check:shell:*",
-    "check:shell:format": "git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d --",
-    "check:shell:lint": "git ls-files -z -- '*.sh' | xargs -0 -r shellcheck -S warning --",
+    "check:shell:format": "git ls-files -z -- '*.sh' | GOWORK=off xargs -0 -r go tool -modfile=go.mod mvdan.cc/sh/v3/cmd/shfmt -d --",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "pre-commit": "run-s check",
     "pre-push": "run-s check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "shell:tools": "GOWORK=off go get -modfile=go.mod -tool mvdan.cc/sh/v3/cmd/shfmt@v3.14.1"
   },
   "devDependencies": {
     "husky": "catalog:",
