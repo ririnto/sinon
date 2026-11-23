@@ -15,7 +15,7 @@ dependencies {
     testImplementation("com.pinterest.ktlint:ktlint-cli-ruleset-core")
     testImplementation("com.pinterest.ktlint:ktlint-rule-engine")
     testImplementation("com.pinterest.ktlint:ktlint-rule-engine-core")
-    testImplementation(platform("io.kotest:kotest-bom:6.2.6"))
+    testImplementation(platform("io.kotest:kotest-bom:6.2.7"))
     testImplementation("io.kotest:kotest-runner-junit5-jvm")
     testImplementation("io.kotest:kotest-assertions-core-jvm")
     testRuntimeOnly("org.slf4j:slf4j-simple:2.0.20")

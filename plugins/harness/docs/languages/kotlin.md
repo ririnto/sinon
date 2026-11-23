@@ -22,7 +22,7 @@ metadata:
     Kotlin Collection Builders:
       url: https://kotlinlang.org/docs/constructing-collections.html
     Kotest:
-      version: 6.2.5
+      version: 6.2.7
       url:
         - https://kotest.io/docs/framework/project-setup.html
         - https://kotest.io/docs/framework/testing-styles.html
