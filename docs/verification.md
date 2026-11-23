@@ -81,7 +81,7 @@ HARNESS_GO_DOCS_TEST=1 pnpm exec vitest run plugins/harness/tests/go-doc-generat
 ```
 
 The first fixture installs its temporary Node and Python dependencies and needs Cargo and uv.
-The JVM fixture needs a JDK, Gradle, Maven, and dependency access.
+The JVM fixture is verified with JDK 21 and needs Gradle, Maven, and dependency access.
 The Go fixture needs Go and dependency access for the pinned tools.
 These fixtures generate documentation and exercise diagnostic failures; the default Go test run skips the external-tool checks.
 

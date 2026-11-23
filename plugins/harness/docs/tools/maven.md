@@ -26,7 +26,7 @@ metadata:
       version: 3.12.0
       url: https://maven.apache.org/plugins/maven-javadoc-plugin/javadoc-mojo.html
     Dokka Maven:
-      version: 2.2.0
+      version: 2.3.0
       url: https://kotlinlang.org/docs/dokka-maven.html
     Checkstyle Checks:
       url: https://checkstyle.org/checks.html
