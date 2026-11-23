@@ -3,7 +3,7 @@ stages:
 
 pnpm:
   stage: validate
-  image: node:26
+  image: node:24
   before_script:
     - npm install --global "$(node --print 'require("./package.json").packageManager')"
   script:

@@ -398,7 +398,7 @@ Installing pnpm 12 through npm requires Node.js 22.13 or newer.
 Bootstrap it with a compatible development Node.js version or use its standalone installer.
 Pin pnpm through the target's `packageManager` field.
 The GitHub and GitLab catalogs install the version specified in the target's `packageManager` field through npm.
-Both catalogs supply Node.js 26 as a source example.
+Both catalogs select Node.js 24.
 Replace that runtime selection when the target requires another compatible version.
 The npm installation does not verify integrity suffixes in the `packageManager` field.
 Adapt runtime versions, working directories, and image pins to the target's existing CI requirements.
