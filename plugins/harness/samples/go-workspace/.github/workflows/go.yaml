@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-go@v7.0.0
+      - uses: actions/setup-go@v7.1.0
         with:
           go-version-file: ${{ hashFiles('go.work') != '' && 'go.work' || 'go.mod' }}
           cache: true

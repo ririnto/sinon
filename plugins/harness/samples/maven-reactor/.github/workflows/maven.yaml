@@ -12,10 +12,11 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-java@v6.1.0
+      - uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: "25"
+          problem-matcher: true
           cache: maven
       - name: Run the target Maven verification
         run: ./mvnw verify
