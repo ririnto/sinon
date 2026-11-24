@@ -4,11 +4,11 @@ This sample uses pnpm workspaces and a shared dependency catalog.
 The invoice package validates line items and imports the money package through a workspace dependency.
 The build bundles the invoice CLI, and the tests exercise both packages and the built CLI.
 
-Install Node.js 24.22.3 or a later Node.js 24 release with Corepack available.
-Enable the pnpm shim so Corepack uses the `packageManager` version declared in `package.json`, then run the sample:
+Install Node.js 24.22.3 or a later Node.js 24 release.
+Use the [pnpm installation guide](https://pnpm.io/installation#installing-a-specific-version) to install the version declared in `package.json` under `packageManager`.
+Run these commands from the sample root.
 
 ```sh
-corepack enable pnpm
 pnpm install --frozen-lockfile
 pnpm run check
 node packages/invoice/dist/invoice.js '[{"unitCents":199,"quantity":3}]'

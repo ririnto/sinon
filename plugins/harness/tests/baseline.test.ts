@@ -194,9 +194,9 @@ describe("fresh-root baseline", () => {
         expect(valueAt(steps, 3, "run")).toBe("pnpm install --frozen-lockfile");
         expect(valueAt(steps, 4, "run")).toBe("pnpm run check");
       } else {
-        expect(valueAt(ci, "pnpm", "before_script")).toEqual([
-          "corepack enable pnpm"
-        ]);
+        expect(valueAt(ci, "pnpm", "before_script")).toEqual(
+          expect.arrayContaining([expect.stringContaining("packageManager")])
+        );
         expect(valueAt(ci, "pnpm", "script")).toEqual([
           "pnpm install --frozen-lockfile",
           "pnpm run check"

@@ -25,8 +25,8 @@ metadata:
     pnpm/action-setup:
       tag: v6.1.1
       url: https://raw.githubusercontent.com/pnpm/action-setup/v6.1.1/README.md
-    Corepack:
-      url: https://github.com/nodejs/corepack
+    npm install:
+      url: https://docs.npmjs.com/cli/v11/commands/npm-install/
     Oxlint:
       version: 1.94.0
       url:
@@ -404,9 +404,9 @@ Keep source execution requirements separate from development dependency engine r
 Pin pnpm through the target's `packageManager` field.
 The GitHub catalog uses `actions/setup-node` to read the Node.js version from `package.json`.
 The catalog uses `pnpm/action-setup` to install the pnpm version declared in the same manifest.
-The GitLab catalog uses the Node.js 24 image and runs `corepack enable pnpm` to put the pnpm shim on `PATH`.
-Corepack selects the pnpm version from the target's `packageManager` field when a job calls `pnpm`.
-If your GitLab image changes, verify that it includes Corepack or supply a repository-owned pnpm bootstrap that puts the declared version on `PATH`.
+The GitLab catalog uses the official Node.js 24 image.
+It reads the pnpm version from `packageManager`, installs it into a temporary directory with npm, and adds that directory's executable path to the job's `PATH`.
+The job checks `pnpm --version` against the manifest before installing workspace dependencies.
 Adapt working directories and image pins to the target's existing CI requirements.
 Each catalog runs one `pnpm install --frozen-lockfile` followed by the target's `pnpm run check` script.
 Require a committed lockfile for a frozen installation.
