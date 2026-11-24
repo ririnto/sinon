@@ -288,3 +288,53 @@ test("a copied local box drawing rule preserves its diagnostics through CLI2", a
     await rm(directory, { force: true, recursive: true });
   }
 });
+
+test("the copied prose rule reports sentence and clause joins without fixing them", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "sinon-copied-prose-"));
+  try {
+    await Promise.all([
+      cp(
+        path.join(repositoryRoot, "rules/prose-format.ts"),
+        path.join(directory, "prose-format.ts")
+      ),
+      writeFile(
+        path.join(directory, ".markdownlint-cli2.jsonc"),
+        JSON.stringify({
+          config: { default: false, "docs/prose-format": true },
+          customRules: ["prose-format.ts"]
+        })
+      ),
+      ...["valid", "invalid"].map(async (name) => {
+        await cp(
+          path.join(
+            repositoryRoot,
+            `rules/fixtures/prose-format/${name}.md.txt`
+          ),
+          path.join(directory, `${name}.md`)
+        );
+      })
+    ]);
+    const valid = runMarkdownlint(directory, "valid.md");
+    expect(valid.status, valid.output).toBe(0);
+    const invalid = runMarkdownlint(directory, "--fix", "invalid.md");
+    expect(invalid.status, invalid.output).toBe(1);
+    expect(
+      invalid.output
+        .split("\n")
+        .filter((line) => line.startsWith("invalid.md:"))
+    ).toEqual(
+      [1, 3, 5, 7, 9].map(
+        (line) =>
+          `invalid.md:${line} error docs/prose-format Prose sentences must be separated by source lines [${line === 7 ? "Do not join prose with semicolons." : "Put each sentence on its own source line."}]`
+      )
+    );
+    expect(await readFile(path.join(directory, "invalid.md"), "utf-8")).toBe(
+      await readFile(
+        path.join(repositoryRoot, "rules/fixtures/prose-format/invalid.md.txt"),
+        "utf-8"
+      )
+    );
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+});

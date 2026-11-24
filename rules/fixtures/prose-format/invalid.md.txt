@@ -1,0 +1,10 @@
+# Start the service. Check its status.
+
+Save the output. Share the result.
+
+- Inspect the log. Record the result.
+
+Read the guide; it has instructions.
+
+Close the file. Save the output
+---
