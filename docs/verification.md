@@ -50,7 +50,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |
 
 The root [package scripts](../package.json) own command composition.
-See [the box-drawing rule guide](no-box-drawing.md) to verify either rule and copy the local rule source.
+See [Copy Markdownlint rules](copy-markdown-rules.md) for the copyable sources and loader checks.
 The [Harness pnpm reference](../plugins/harness/docs/tools/pnpm.md) explains differences between root checks and installed profile checks.
 The [state-machine inventory](state-machines.md) maps maintained lifecycles to their source and verification.
 The [Promtool model reference](../plugins/observability-assets/tests/promtool/model/README.md) records model assumptions and source mappings.
