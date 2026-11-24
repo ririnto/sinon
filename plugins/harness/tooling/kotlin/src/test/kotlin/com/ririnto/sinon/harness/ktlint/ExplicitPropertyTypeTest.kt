@@ -20,7 +20,14 @@ class ExplicitPropertyTypeTest :
                 """class C { val name = "foo" }""" to """class C { val name: kotlin.String = "foo" }""",
                 "class C { val sep = ',' }" to "class C { val sep: kotlin.Char = ',' }",
                 "class C { val r = 3.14f }" to "class C { val r: kotlin.Float = 3.14f }",
-                "class C { val pi = 3.14 }" to "class C { val pi: kotlin.Double = 3.14 }"
+                "class C { val pi = 3.14 }" to "class C { val pi: kotlin.Double = 3.14 }",
+                "class C { val grouped = 1_000 }" to "class C { val grouped: kotlin.Int = 1_000 }",
+                "class C { val hex = 0xFF }" to "class C { val hex: kotlin.Int = 0xFF }",
+                "class C { val binary = 0b101 }" to "class C { val binary: kotlin.Int = 0b101 }",
+                "class C { val hexOverflow = 0xFFFFFFFFF }" to "class C { val hexOverflow: kotlin.Long = 0xFFFFFFFFF }",
+                "class C { val lowerLong = 42l }" to "class C { val lowerLong: kotlin.Long = 42l }",
+                "class C { val upperFloat = 3.14F }" to "class C { val upperFloat: kotlin.Float = 3.14F }",
+                "class C { val exponent = 1e3 }" to "class C { val exponent: kotlin.Double = 1e3 }"
             ).forEach { (source, expected) ->
                 val name = source.substringAfter("val ").substringBefore(" =")
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
@@ -80,7 +87,9 @@ class ExplicitPropertyTypeTest :
                 "class C { val x by lazy { 1 } }",
                 "class C { val x = null }",
                 "class C { val x = 1u }",
-                "class C { val x = 1UL }"
+                "class C { val x = 1UL }",
+                "class C { val x = 99999999999999999999 }",
+                "class C { val x = other; val other: Int = 1 }"
             ).forEach { source ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                     assertSoftly(diagnostics) {
@@ -95,6 +104,7 @@ class ExplicitPropertyTypeTest :
                             )
                         )
                     }
+                    formattedCode shouldBe source
                 }
             }
         }
@@ -119,7 +129,19 @@ class ExplicitPropertyTypeTest :
             listOf(
                 "val top = 42" to "val top: kotlin.Int = 42",
                 "private val top = \"text\"" to "private val top: kotlin.String = \"text\"",
-                "internal var top = true" to "internal var top: kotlin.Boolean = true"
+                "internal var top = true" to "internal var top: kotlin.Boolean = true",
+                """
+                val top = ${"\"\"\""}
+                    first
+                      second
+                ${"\"\"\""}
+                """.trimIndent() to
+                    """
+                    val top: kotlin.String = ${"\"\"\""}
+                        first
+                          second
+                    ${"\"\"\""}
+                    """.trimIndent()
             ).forEach { (source, expected) ->
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                     assertSoftly(diagnostics) {

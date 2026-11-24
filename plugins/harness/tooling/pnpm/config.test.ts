@@ -329,7 +329,7 @@ describe("pnpm profile configuration", () => {
       ]) {
         expect(
           diagnostics.filter((diagnostic) => diagnostic.code === code)
-        ).toHaveLength(1);
+        ).toMatchObject([{ code, severity: "error" }]);
       }
     } finally {
       await rm(directory, { force: true, recursive: true });

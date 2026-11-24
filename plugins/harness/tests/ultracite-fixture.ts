@@ -46,13 +46,15 @@ export const runUltracite = (
     )
   );
 
-/**
- * Read native rule IDs and affected filenames from a completed JSON-mode check or fix.
- */
 export const readUltraciteResult = (
   result: SpawnSyncReturns<Buffer>
 ): {
-  diagnostics: { code?: string; filename?: string; message: string }[];
+  diagnostics: {
+    code?: string;
+    filename?: string;
+    message: string;
+    severity: string;
+  }[];
   status: number | null;
 } => {
   const output = result.stdout.toString();
@@ -70,6 +72,7 @@ export const readUltraciteResult = (
       const diagnostic = objectValue(entry);
       return {
         message: stringValue(diagnostic.message),
+        severity: stringValue(diagnostic.severity),
         ...(diagnostic.code === undefined
           ? {}
           : { code: stringValue(diagnostic.code) }),
