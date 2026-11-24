@@ -33,7 +33,7 @@ class NoLineComment :
         ) {
             emit(
                 node.psi.textOffset,
-                "remove the comment; put the rationale in KDoc on the declaration",
+                "Keep required notices. Put discretionary rationale in KDoc on the declaration.",
                 false
             )
         }

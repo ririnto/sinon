@@ -55,12 +55,13 @@ class NoLineCommentTest :
             }
         }
 
-        test("leading copyright and SPDX markers preserve a multiline notice") {
+        test("preserves a modified-file notice inside a copyright and license header") {
             val source =
                 """
                 /*
-                 * Copyright (c) 2026 ririnto
-                 * SPDX-License-Identifier: MIT
+                 * Copyright (c) 2026 Example contributors
+                 * SPDX-License-Identifier: Apache-2.0
+                 * This file was modified to support local configuration.
                  */
                 fun work() {}
                 """.trimIndent() + "\n"
@@ -68,6 +69,21 @@ class NoLineCommentTest :
                 assertSoftly(diagnostics) {
                     shouldContainExactlyInAnyOrder(emptyList())
                 }
+                formattedCode shouldBe source
+            }
+        }
+
+        test("reports unmarked provenance for review and preserves the source") {
+            val source =
+                """
+                // This file was modified to support local configuration.
+                /* Modified for the local package and rule ID. */
+                class Example
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(1, 1), comment(2, 1)))
+                diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldBe
+                    List(2) { "Keep required notices. Put discretionary rationale in KDoc on the declaration." }
                 formattedCode shouldBe source
             }
         }
