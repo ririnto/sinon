@@ -6,14 +6,16 @@ import { expect, test } from "vitest";
 import claudeManifest from "../.claude-plugin/plugin.json" with { type: "json" };
 import codexManifest from "../.codex-plugin/plugin.json" with { type: "json" };
 
-test("tlaplus-mcp selects the same tlaplus stdio launch on Claude Code and Codex", () => {
-  const claudeServer = claudeManifest.mcpServers.tlaplus;
+test("Claude Code and Codex declare the documented tlaplus stdio launch", () => {
+  const expectedServer = {
+    type: "stdio",
+    command: "npx",
+    args: ["--yes", "--ignore-scripts", "tlaplus-mcp@1.0.3"]
+  };
   expect(
-    claudeServer,
-    "Claude Code must declare the tlaplus stdio server"
-  ).toHaveProperty("type", "stdio");
-  expect(claudeServer.command).toMatch(/\S/u);
-  expect(claudeServer.args).toBeInstanceOf(Array);
+    claudeManifest.mcpServers.tlaplus,
+    "Claude Code must declare the documented tlaplus launch"
+  ).toMatchObject(expectedServer);
   const codexConfig: unknown = JSON.parse(
     readFileSync(
       path.join(import.meta.dirname, "..", codexManifest.mcpServers),
@@ -22,14 +24,10 @@ test("tlaplus-mcp selects the same tlaplus stdio launch on Claude Code and Codex
   );
   expect(
     codexConfig,
-    "Codex must match the Claude Code tlaplus stdio command and arguments"
+    "Codex must declare the documented tlaplus launch"
   ).toMatchObject({
     mcpServers: {
-      tlaplus: {
-        type: "stdio",
-        command: claudeServer.command,
-        args: claudeServer.args
-      }
+      tlaplus: expectedServer
     }
   });
 });
