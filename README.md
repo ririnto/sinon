@@ -157,9 +157,6 @@ Sinon selects external plugins through its marketplace catalog.
 - [ddgs](https://github.com/ririnto/ddgs-plugin): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the DDGS web search and content extraction MCP tools and their version.
   Install it with `claude plugin install ddgs-plugin@sinon`.
-- [stop-slop](https://github.com/hardikpandya/stop-slop): the Sinon catalog follows the upstream default branch.
-  The upstream repository owns the prose skill, its MIT license, and its version.
-  Install it as `stop-slop@sinon` in either host.
 - [tlaplus](https://github.com/tlaplus/AgentSkills): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the TLA+ skills and their MIT license.
   Install it as `tlaplus@sinon` in either host.
