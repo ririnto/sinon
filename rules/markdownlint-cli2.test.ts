@@ -157,6 +157,42 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
   }
 }, 30_000);
 
+const boxes = [
+  "# Box coverage",
+  "",
+  "  \u{1F600} \u2500\u2501 and \u257F",
+  "",
+  "`\u257F`",
+  "",
+  "<!-- -->\u2500 \u257F",
+  "",
+  "<!-- --> \u2500",
+  "",
+  "<!-- note",
+  "end -->\u2500 \u257F",
+  "",
+  "<!-- \u2500 -->",
+  "",
+  "<!-- markdownlint-disable-next-line docs/no-box-drawing -->",
+  "\u2500",
+  "",
+  "<!-- markdownlint-disable-next-line search-replace -->",
+  "\u257F",
+  "",
+  "```text",
+  ...Array.from({ length: 128 }, (_, index) =>
+    String.fromCodePoint(0x25_00 + index)
+  ),
+  "ASCII +-- | and \u24FF\u2580",
+  "```",
+  ""
+].join("\r\n");
+
+const rangeLocations = Array.from({ length: 128 }, (_, index) => [
+  index + 23,
+  1
+]);
+
 test("upstream box drawing configuration preserves Unicode coverage, columns and no fixes", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-upstream-boxes-"));
   try {
@@ -178,33 +214,24 @@ test("upstream box drawing configuration preserves Unicode coverage, columns and
         path.join(repositoryRoot, "node_modules"),
         path.join(directory, "node_modules"),
         "dir"
-      )
-    ]);
-    const boxes = [
-      "# Box coverage",
-      "",
-      "```text",
-      "Plain box: ─━ and ╿",
-      "Emoji \u{1F600} ─",
-      ...Array.from({ length: 128 }, (_, index) =>
-        String.fromCodePoint(0x25_00 + index)
       ),
-      "ASCII +-- | and ⓿▀",
-      "```",
-      ""
-    ].join("\n");
-    await writeFile(path.join(directory, "boxes.md"), boxes);
-    const boxResult = runMarkdownlint(directory, "boxes.md");
-    expect(boxResult.status).toBe(1);
+      writeFile(path.join(directory, "boxes.md"), boxes)
+    ]);
+    const result = runMarkdownlint(directory, "--fix", "boxes.md");
+    expect(result.status, result.output).toBe(1);
+    const diagnostics = result.output
+      .split("\n")
+      .filter((line) => line.startsWith("boxes.md:"));
     expect(
-      boxResult.output
-        .split("\n")
-        .filter((line) => line.includes("search-replace"))
-    ).toHaveLength(130);
-    expect(boxResult.output).toContain("boxes.md:4:12");
-    expect(boxResult.output).toContain("boxes.md:5:10");
-    const fixed = runMarkdownlint(directory, "--fix", "boxes.md");
-    expect(fixed.status).toBe(1);
+      diagnostics.map((line) => line.split(" error search-replace ")[0])
+    ).toEqual(
+      [[3, 6], [5, 2], [9, 10], [17, 1], ...rangeLocations].map(
+        ([line, column]) => `boxes.md:${line}:${column}`
+      )
+    );
+    expect(diagnostics[0]).toBe(
+      "boxes.md:3:6 error search-replace Custom rule [no-box-drawing: Use ASCII tree markers such as +-- and | instead.] [Context: \"column: 6 text:'\u2500'\"]"
+    );
     expect(await readFile(path.join(directory, "boxes.md"), "utf-8")).toBe(
       boxes
     );
@@ -212,3 +239,52 @@ test("upstream box drawing configuration preserves Unicode coverage, columns and
     await rm(directory, { force: true, recursive: true });
   }
 }, 30_000);
+
+test("a copied local box drawing rule preserves its diagnostics through CLI2", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "sinon-copied-boxes-"));
+  try {
+    await Promise.all([
+      cp(
+        path.join(repositoryRoot, "rules/no-box-drawing.mjs"),
+        path.join(directory, "no-box-drawing.mjs")
+      ),
+      writeFile(
+        path.join(directory, ".markdownlint-cli2.jsonc"),
+        JSON.stringify({ customRules: ["no-box-drawing.mjs"] })
+      ),
+      writeFile(path.join(directory, "boxes.md"), boxes),
+      writeFile(
+        path.join(directory, "valid.md"),
+        "# Valid\n\nASCII +-- | \u24FF \u2580\n"
+      )
+    ]);
+    const valid = runMarkdownlint(directory, "valid.md");
+    expect(valid.status, valid.output).toBe(0);
+    const invalid = runMarkdownlint(directory, "--fix", "boxes.md");
+    expect(invalid.status, invalid.output).toBe(1);
+    const diagnostics = invalid.output
+      .split("\n")
+      .filter((line) => line.startsWith("boxes.md:"));
+    expect(
+      diagnostics.map((line) => line.split(" error docs/no-box-drawing ")[0])
+    ).toEqual(
+      [
+        [3, 6],
+        [5, 2],
+        [7, 9],
+        [9, 10],
+        [12, 8],
+        [20, 1],
+        ...rangeLocations
+      ].map(([line, column]) => `boxes.md:${line}:${column}`)
+    );
+    expect(diagnostics[0]).toBe(
+      'boxes.md:3:6 error docs/no-box-drawing Unicode box drawing characters are not allowed in Markdown [Use ASCII tree markers such as +-- and | instead.] [Context: "\u{1F600} \u2500\u2501 and \u257F"]'
+    );
+    expect(await readFile(path.join(directory, "boxes.md"), "utf-8")).toBe(
+      boxes
+    );
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+});
