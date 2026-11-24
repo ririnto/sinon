@@ -406,6 +406,7 @@ The GitHub catalog uses `actions/setup-node` to read the Node.js version from `p
 The catalog uses `pnpm/action-setup` to install the pnpm version declared in the same manifest.
 The GitLab catalog uses the official Node.js 24 image.
 It reads the pnpm version from `packageManager`, installs it into a temporary directory with npm, and adds that directory's executable path to the job's `PATH`.
+The bootstrap uses npm's registry integrity metadata for the download and discards any integrity suffix from `packageManager`.
 The job checks `pnpm --version` against the manifest before installing workspace dependencies.
 Adapt working directories and image pins to the target's existing CI requirements.
 Each catalog runs one `pnpm install --frozen-lockfile` followed by the target's `pnpm run check` script.
