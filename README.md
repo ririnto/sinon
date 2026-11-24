@@ -160,12 +160,9 @@ Sinon selects external plugins through its marketplace catalog.
 - [stop-slop](https://github.com/hardikpandya/stop-slop): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the prose skill, its MIT license, and its version.
   Install it as `stop-slop@sinon` in either host.
-- [tlaplus](https://github.com/tlaplus/AgentSkills): the Sinon catalog follows the upstream default branch.
-  The upstream repository owns the TLA+ skills and their MIT license.
-  Install it as `tlaplus@sinon` in either host.
-  The TLA+ MCP tools referenced by the skills come from `tlaplus-plugin@sinon`.
 - [tlaplus-plugin](https://github.com/ririnto/tlaplus-plugin): the Sinon catalog follows the upstream default branch.
   Install it as `tlaplus-plugin@sinon` in either host to use the upstream TLA+ MCP server.
+  To use the modeling skills, follow the [upstream checkout instructions](https://github.com/ririnto/tlaplus-plugin#install-the-editor-plugin-from-a-checkout).
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the runtime, Skills, and version.
 
