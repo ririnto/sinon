@@ -1,6 +1,8 @@
 ---
 metadata:
   reference:
+    Apache License 2.0:
+      url: https://www.apache.org/licenses/LICENSE-2.0.txt
     Kotlin Coding Conventions:
       url: https://kotlinlang.org/docs/_llms/coding-conventions.txt
     Kotlin Callable References:
@@ -116,7 +118,9 @@ The `harness:no-line-comment` rule reports ordinary `//` and `/* */` comment tok
 KDoc remains outside its token set and is checked by ktlint's standard `kdoc` rule and Harness declaration-documentation rules.
 Shebangs also remain outside this rule's token set.
 The rule accepts recognized formatter and lint-suppression directives and license headers.
-It reports unmarked modification notices for review because their wording alone cannot establish a licensing obligation.
+An opening block comment may put a modification notice before its copyright notice when the same block contains a dated `Copyright` line and the Apache 2.0 boilerplate license declaration.
+The opening block can follow a script shebang.
+The rule reports standalone unmarked modification notices for review, including those next to a license header.
 The rule makes no automatic edits.
 Keep required notices in the file and put discretionary rationale in KDoc on its declaration.
 The `harness:unstructured-logging` rule reports `print`, `println`, `System.out` and `System.err` print calls, and `printStackTrace`.
