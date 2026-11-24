@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tlaplus": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--yes", "--ignore-scripts", "tlaplus-mcp@1.0.3"]
+    }
+  }
+}

@@ -235,6 +235,18 @@
     },
     {
       "category": "Development",
+      "name": "tlaplus-mcp",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/tlaplus-mcp",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Development",
       "name": "workgraph",
       "policy": {
         "authentication": "ON_INSTALL",
