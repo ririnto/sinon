@@ -91,9 +91,12 @@ test("a mixed staging selects every touched suite without duplicates", () => {
   ]);
 });
 
-test.each([0, 7])(
-  "the hook runs one filtered test task and respects test exit %s",
-  async (status) => {
+test.each([
+  { stagedPath: "plugins/java/README.md", status: 0 },
+  { stagedPath: "plugins/java/skills/junit/SKILL.md", status: 7 }
+])(
+  "the selector runs one filtered test task for $stagedPath and respects test exit $status",
+  async ({ stagedPath, status }) => {
     const fixture = await mkdtemp(path.join(tmpdir(), "sinon-hook-scope-"));
     onTestFinished(async () => {
       await rm(fixture, { force: true, recursive: true });
@@ -103,11 +106,9 @@ test.each([0, 7])(
       path.join(fixture, "node_modules"),
       "dir"
     );
-    await mkdir(path.join(fixture, "plugins/java"), { recursive: true });
-    await writeFile(
-      path.join(fixture, "plugins/java/example.ts"),
-      "export {};\n"
-    );
+    const manifest = path.join(fixture, stagedPath);
+    await mkdir(path.dirname(manifest), { recursive: true });
+    await writeFile(manifest, "{}\n");
     await writeFile(
       path.join(fixture, "package.json"),
       JSON.stringify({
@@ -145,7 +146,7 @@ test.each([0, 7])(
         .status
     ).toBe(0);
     expect(
-      spawnSync("git", ["add", "plugins/java/example.ts"], {
+      spawnSync("git", ["add", stagedPath], {
         cwd: fixture,
         env: environment
       }).status

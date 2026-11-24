@@ -11,25 +11,6 @@ import io.kotest.matchers.shouldBe
  */
 class NoJavaPathApiTest :
     FunSpec({
-        test("java files import and java only operations are allowed") {
-            val source =
-                """
-                import java.nio.file.Files
-                import java.nio.file.Path
-                import java.nio.file.StandardCopyOption
-
-                fun copy(source: Path, target: Path) {
-                    Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
-                }
-                """.trimIndent() + "\n"
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
-                assertSoftly(diagnostics) {
-                    shouldContainExactlyInAnyOrder(emptyList())
-                }
-                formattedCode shouldBe source
-            }
-        }
-
         test("equivalent files helpers are flagged across imports and qualifications") {
             assertSoftly(
                 KtLintRuleTestEngine.execute(

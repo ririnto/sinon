@@ -1,0 +1,26 @@
+---
+title: "First sentence. Second sentence."
+---
+
+# Release guide
+
+Start the service.
+Check its status.
+
+1. Inspect the output.
+2. Select red; green; or blue.
+
+The command uses `a; it has options` and [First sentence. Second sentence.](https://example.org/a;b).
+Use <span title="First sentence. Second sentence.">the label</span>.
+
+The status text can wrap
+across source lines.
+
+| Status |
+| --- |
+| First sentence. Second sentence. |
+
+```text
+First sentence. Second sentence.
+A clause; it must continue.
+```

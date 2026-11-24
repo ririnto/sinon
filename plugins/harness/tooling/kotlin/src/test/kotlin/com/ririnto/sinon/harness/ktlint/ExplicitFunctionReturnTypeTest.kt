@@ -25,10 +25,22 @@ class ExplicitFunctionReturnTypeTest :
                 "fun overflow() = 3000000000" to "fun overflow(): kotlin.Long = 3000000000",
                 "fun bigCount() = 42L" to "fun bigCount(): kotlin.Long = 42L",
                 "fun ratio() = 3.14" to "fun ratio(): kotlin.Double = 3.14",
-                "fun precise() = 3.14f" to "fun precise(): kotlin.Float = 3.14f"
-            ).forEach { (sourceLine, expectedLine) ->
-                val source = "$sourceLine\n"
-                val name = sourceLine.substringAfter("fun ").substringBefore("(")
+                "fun precise() = 3.14f" to "fun precise(): kotlin.Float = 3.14f",
+                """
+                fun text() = ${"\"\"\""}
+                    first
+                      second
+                ${"\"\"\""}
+                """.trimIndent() to
+                    """
+                    fun text(): kotlin.String = ${"\"\"\""}
+                        first
+                          second
+                    ${"\"\"\""}
+                    """.trimIndent()
+            ).forEach { (input, expected) ->
+                val source = "$input\n"
+                val name = input.substringAfter("fun ").substringBefore("(")
                 assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                     assertSoftly(diagnostics) {
                         shouldContainExactlyInAnyOrder(
@@ -42,7 +54,7 @@ class ExplicitFunctionReturnTypeTest :
                             )
                         )
                     }
-                    formattedCode shouldBe "$expectedLine\n"
+                    formattedCode shouldBe "$expected\n"
                 }
             }
         }

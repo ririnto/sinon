@@ -50,6 +50,7 @@ Start with the row matching the changed behavior, then run the complete gate bef
 | Markdown and skill prose | `pnpm run check:markdownlint-cli2` | Markdown files satisfy the configured prose and structure rules. |
 
 The root [package scripts](../package.json) own command composition.
+See [Copy Markdownlint rules](copy-markdown-rules.md) for the copyable sources and loader checks.
 The [Harness pnpm reference](../plugins/harness/docs/tools/pnpm.md) explains differences between root checks and installed profile checks.
 The [state-machine inventory](state-machines.md) maps maintained lifecycles to their source and verification.
 The [Promtool model reference](../plugins/observability-assets/tests/promtool/model/README.md) records model assumptions and source mappings.
@@ -81,7 +82,7 @@ HARNESS_GO_DOCS_TEST=1 pnpm exec vitest run plugins/harness/tests/go-doc-generat
 ```
 
 The first fixture installs its temporary Node and Python dependencies and needs Cargo and uv.
-The JVM fixture needs a JDK, Gradle, Maven, and dependency access.
+The JVM fixture is verified with JDK 21 and needs Gradle, Maven, and dependency access.
 The Go fixture needs Go and dependency access for the pinned tools.
 These fixtures generate documentation and exercise diagnostic failures; the default Go test run skips the external-tool checks.
 

@@ -139,8 +139,8 @@
       "license": "Apache-2.0",
       "name": "herdr",
       "source": {
-        "source": "github",
-        "repo": "herdrdev/herdr"
+        "source": "url",
+        "url": "https://github.com/herdrdev/herdr.git"
       },
       "homepage": "https://herdr.dev/docs/agent-skill/",
       "keywords": ["herdr", "agent-skill", "terminal-multiplexer"],
@@ -358,19 +358,15 @@
     },
     {
       "author": {
-        "name": "tlaplus"
+        "name": "ririnto"
       },
       "category": "development",
-      "description": "Skills for creating and modifying TLA+ specifications.",
-      "license": "MIT",
-      "name": "tlaplus",
+      "description": "Parse TLA+ specifications, check models with TLC, and read TLA+ modeling guidance.",
+      "name": "tlaplus-plugin",
       "source": {
         "source": "url",
-        "url": "https://github.com/tlaplus/AgentSkills.git"
-      },
-      "homepage": "https://github.com/tlaplus/AgentSkills",
-      "keywords": ["tla-plus", "formal-methods", "model-checking"],
-      "repository": "https://github.com/tlaplus/AgentSkills"
+        "url": "https://github.com/ririnto/tlaplus-plugin.git"
+      }
     },
     {
       "author": {

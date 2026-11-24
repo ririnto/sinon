@@ -160,10 +160,9 @@ Sinon selects external plugins through its marketplace catalog.
 - [stop-slop](https://github.com/hardikpandya/stop-slop): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the prose skill, its MIT license, and its version.
   Install it as `stop-slop@sinon` in either host.
-- [tlaplus](https://github.com/tlaplus/AgentSkills): the Sinon catalog follows the upstream default branch.
-  The upstream repository owns the TLA+ skills and their MIT license.
-  Install it as `tlaplus@sinon` in either host.
-  The TLA+ MCP tools referenced by the skills require a separate server.
+- [tlaplus-plugin](https://github.com/ririnto/tlaplus-plugin): the Sinon catalog follows the upstream default branch.
+  Install it as `tlaplus-plugin@sinon` in either host to use the upstream TLA+ MCP server.
+  To use the modeling skills, follow the [upstream checkout instructions](https://github.com/ririnto/tlaplus-plugin#install-the-editor-plugin-from-a-checkout).
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the runtime, Skills, and version.
 
@@ -172,7 +171,7 @@ Sinon selects external plugins through its marketplace catalog.
 Install pstack through the official `cursor/plugins` marketplace in Claude Code:
 
 ```sh
-claude plugin marketplace add cursor/plugins
+claude plugin marketplace add https://github.com/cursor/plugins.git
 claude plugin install pstack@cursor-plugins
 ```
 
@@ -182,7 +181,7 @@ The upstream marketplace owns pstack packaging, compatibility, and updates.
 
 Claude Code supports registering marketplaces from GitHub repositories, generic git URLs, direct URLs to `marketplace.json`, and local paths.
 
-For this repository, use a GitHub repository, git URL, or local path.
+For this repository, use a Git URL or local path.
 Sinon uses relative sources such as `./plugins/java` inside `.claude-plugin/marketplace.json`, which require the plugin files from a checkout.
 A direct HTTP URL fetches only the catalog and cannot resolve these relative plugin sources.
 
@@ -198,13 +197,7 @@ Register this marketplace from a local checkout:
 claude plugin marketplace add /path/to/sinon
 ```
 
-Register this marketplace from GitHub:
-
-```sh
-claude plugin marketplace add ririnto/sinon
-```
-
-Register this marketplace from a generic git URL:
+Register this marketplace from its HTTPS Git URL:
 
 ```sh
 claude plugin marketplace add https://github.com/ririnto/sinon.git
@@ -243,8 +236,8 @@ You can also preconfigure the marketplace in `~/.claude/settings.json`:
   "extraKnownMarketplaces": {
     "sinon": {
       "source": {
-        "source": "github",
-        "repo": "ririnto/sinon"
+        "source": "git",
+        "url": "https://github.com/ririnto/sinon.git"
       }
     }
   }
@@ -259,8 +252,8 @@ To enable a plugin by default, add it to `enabledPlugins`:
   "extraKnownMarketplaces": {
     "sinon": {
       "source": {
-        "source": "github",
-        "repo": "ririnto/sinon"
+        "source": "git",
+        "url": "https://github.com/ririnto/sinon.git"
       }
     }
   },
@@ -297,7 +290,7 @@ claude --plugin-dir /path/to/sinon/plugins/java
 Add the repository marketplace and install a plugin with the supported Codex CLI:
 
 ```sh
-codex plugin marketplace add ririnto/sinon
+codex plugin marketplace add https://github.com/ririnto/sinon.git
 codex plugin list --available --marketplace sinon
 codex plugin add java@sinon
 ```

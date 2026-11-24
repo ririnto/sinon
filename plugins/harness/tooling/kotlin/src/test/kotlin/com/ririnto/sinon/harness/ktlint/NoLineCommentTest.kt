@@ -55,12 +55,13 @@ class NoLineCommentTest :
             }
         }
 
-        test("leading copyright and SPDX markers preserve a multiline notice") {
+        test("preserves a modified-file notice inside a copyright and license header") {
             val source =
                 """
                 /*
-                 * Copyright (c) 2026 ririnto
-                 * SPDX-License-Identifier: MIT
+                 * Copyright (c) 2026 Example contributors
+                 * SPDX-License-Identifier: Apache-2.0
+                 * This file was modified to support local configuration.
                  */
                 fun work() {}
                 """.trimIndent() + "\n"
@@ -69,6 +70,84 @@ class NoLineCommentTest :
                     shouldContainExactlyInAnyOrder(emptyList())
                 }
                 formattedCode shouldBe source
+            }
+        }
+
+        test("reports unmarked provenance for review and preserves the source") {
+            val source =
+                """
+                // This file was modified to support local configuration.
+                /* Modified for the local package and rule ID. */
+                class Example
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(1, 1), comment(2, 1)))
+                diagnostics.map(KtLintRuleTestEngine.Diagnostic::detail) shouldBe
+                    List(2) { "Keep required notices. Put discretionary rationale in KDoc on the declaration." }
+                formattedCode shouldBe source
+            }
+        }
+
+        context("a modification notice before the copyright in an Apache 2.0 header") {
+            val header =
+                """
+                /*
+                 * This file was modified to support local configuration.
+                 *
+                 * Original license terms:
+                 *
+                 * Copyright 2026 Example contributors
+                 *
+                 * Licensed under the Apache License, Version 2.0 (the "License");
+                 */
+                """.trimIndent()
+
+            test("preserves the opening block and still reports a neighboring provenance comment") {
+                val source = "$header\n// This file was modified to support local configuration.\npackage example\n"
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(10, 1)))
+                    formattedCode shouldBe source
+                }
+            }
+
+            test("preserves the opening block after a script shebang") {
+                val source = "#!/usr/bin/env kotlin\n$header\nprintln(42)\n"
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source, isKotlinScript = true)) {
+                    diagnostics.shouldContainExactlyInAnyOrder(emptyList())
+                    formattedCode shouldBe source
+                }
+            }
+
+            test("reports the same block below the package declaration") {
+                val source = "package example\n$header\nclass Example\n"
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(2, 1)))
+                    formattedCode shouldBe source
+                }
+            }
+
+            test("reports a leading block that lacks the Apache license declaration") {
+                val source = "$header\nclass Example\n".replace("Licensed under the Apache License,", "See the Apache License,")
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(1, 1)))
+                    formattedCode shouldBe source
+                }
+            }
+
+            test("reports a leading block that lacks a copyright notice") {
+                val source = "$header\nclass Example\n".replace("Copyright 2026 Example contributors", "Copyright is documented elsewhere.")
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(1, 1)))
+                    formattedCode shouldBe source
+                }
+            }
+
+            test("reports a comment that quotes the entire header in a nested block") {
+                val source = "/* A former header is shown here.\n$header\n*/\nclass Example\n"
+                assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                    diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(1, 1)))
+                    formattedCode shouldBe source
+                }
             }
         }
 
@@ -87,20 +166,16 @@ class NoLineCommentTest :
             }
         }
 
-        test("standalone line comment in a function body is flagged") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    fun foo() {
-                        // comment
-                    }
-                    """.trimIndent() + "\n"
-                )
-            ) {
-                assertSoftly(diagnostics) {
-                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+        test("reports a standalone line comment in a function body and preserves source") {
+            val source =
+                """
+                fun foo() {
+                    // comment
                 }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+                formattedCode shouldBe source
             }
         }
 
@@ -355,18 +430,6 @@ class NoLineCommentTest :
                 assertSoftly(diagnostics) {
                     shouldContainExactlyInAnyOrder(emptyList())
                 }
-                formattedCode shouldBe source
-            }
-        }
-
-        test("format leaves commented source unchanged") {
-            val source =
-                """
-                fun foo() {
-                    // comment
-                }
-                """.trimIndent() + "\n"
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 formattedCode shouldBe source
             }
         }

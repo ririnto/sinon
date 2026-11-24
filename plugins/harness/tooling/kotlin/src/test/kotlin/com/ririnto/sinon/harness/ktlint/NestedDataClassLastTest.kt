@@ -31,6 +31,34 @@ class NestedDataClassLastTest :
             }
         }
 
+        test("reports misplaced data classes without rewriting multiline raw strings") {
+            val source =
+                """
+                class Direct {
+                    data class Item(val text: String = ${"\"\"\""}
+                        first
+                          second
+                    ${"\"\"\""})
+                    fun load(): Item = Item()
+                }
+
+                class Indirect {
+                    data class Row(val id: Int)
+                    val text = listOf(${"\"\"\""}
+                        first
+                          second
+                    ${"\"\"\""}.trim())
+                }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(
+                    KtLintRuleTestEngine.Diagnostic(2, 16, "harness:nested-data-class-last", canBeAutoCorrected = false),
+                    KtLintRuleTestEngine.Diagnostic(10, 16, "harness:nested-data-class-last", canBeAutoCorrected = false)
+                )
+                formattedCode shouldBe source
+            }
+        }
+
         test("accepts trailing data classes and leaves enum bodies alone") {
             val source =
                 """

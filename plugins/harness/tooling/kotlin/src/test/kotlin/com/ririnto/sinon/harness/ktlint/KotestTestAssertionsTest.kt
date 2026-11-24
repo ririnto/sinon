@@ -524,27 +524,32 @@ class KotestTestAssertionsTest :
             }
         }
 
-        test("flags safe calls asserted by direct and wildcard Kotest should matchers") {
-            val result =
+        test("flags a safe call to a directly imported Kotest matcher") {
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import io.kotest.matchers.collections.shouldHaveSize\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
                     sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            val wildcardResult =
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
+                }
+            }
+        }
+
+        test("flags a safe call to a wildcard-imported Kotest matcher") {
+            assertSoftly(
                 KtLintRuleTestEngine.execute(
                     ruleProvider,
                     "import io.kotest.matchers.collections.*\nfun verify(items: List<String>?) { items?.shouldHaveSize(1) }\n",
                     sourcePath = Path("src/test/kotlin/SampleTest.kt")
                 )
-            assertSoftly(result) {
-                assertSoftly(diagnostics) directDiagnostics@{
-                    assertSoftly(wildcardResult) {
-                        assertSoftly(diagnostics) {
-                            (this@directDiagnostics + this).map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
-                                listOf("harness:kotest-test-assertions", "harness:kotest-test-assertions")
-                        }
-                    }
+            ) {
+                assertSoftly(diagnostics) {
+                    map(KtLintRuleTestEngine.Diagnostic::ruleId) shouldContainExactlyInAnyOrder
+                        listOf("harness:kotest-test-assertions")
                 }
             }
         }

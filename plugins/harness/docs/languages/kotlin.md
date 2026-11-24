@@ -1,10 +1,12 @@
 ---
 metadata:
   reference:
+    Apache License 2.0:
+      url: https://www.apache.org/licenses/LICENSE-2.0.txt
     Kotlin Coding Conventions:
       url: https://kotlinlang.org/docs/_llms/coding-conventions.txt
     Kotlin Callable References:
-      url: https://kotlinlang.org/docs/reflection.html#callable-references
+      url: https://kotlinlang.org/docs/lambdas.html#callable-reference
     Kotlin Java Interoperability:
       url: https://kotlinlang.org/docs/java-interop.html#getters-and-setters
     Kotlin Equality:
@@ -22,7 +24,7 @@ metadata:
     Kotlin Collection Builders:
       url: https://kotlinlang.org/docs/constructing-collections.html
     Kotest:
-      version: 6.2.5
+      version: 6.2.7
       url:
         - https://kotest.io/docs/framework/project-setup.html
         - https://kotest.io/docs/framework/testing-styles.html
@@ -115,9 +117,12 @@ It leaves Kotest registration scopes to `harness:kotest-sibling-spacing`.
 The `harness:no-line-comment` rule reports ordinary `//` and `/* */` comment tokens at every source placement.
 KDoc remains outside its token set and is checked by ktlint's standard `kdoc` rule and Harness declaration-documentation rules.
 Shebangs also remain outside this rule's token set.
-The rule preserves recognized formatter, lint-suppression, and license directives without an automatic fix.
-Other comment placement remains subject to the common declaration-documentation policy.
-Put rationale in KDoc on the declaration instead.
+The rule accepts recognized formatter and lint-suppression directives and license headers.
+An opening block comment may put a modification notice before its copyright notice when the same block contains a dated `Copyright` line and the Apache 2.0 boilerplate license declaration.
+The opening block can follow a script shebang.
+The rule reports standalone unmarked modification notices for review, including those next to a license header.
+The rule makes no automatic edits.
+Keep required notices in the file and put discretionary rationale in KDoc on its declaration.
 The `harness:unstructured-logging` rule reports `print`, `println`, `System.out` and `System.err` print calls, and `printStackTrace`.
 It skips console functions and stream roots shadowed by lexical declarations or conflicting imports.
 The `harness:slf-direct-logging` rule reports `trace`, `debug`, `info`, `warn`, and `error` calls only on receivers that resolve lexically to an SLF4J logger.

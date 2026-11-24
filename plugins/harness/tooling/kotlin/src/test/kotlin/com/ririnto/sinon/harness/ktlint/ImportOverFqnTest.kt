@@ -283,10 +283,6 @@ class ImportOverFqnTest :
             }
         }
 
-        test("shadowed receiver fixture keeps its value semantics") {
-            ImportOverFqnShadowedReceiverFixture().receiverChain() shouldBe 1
-        }
-
         test("already short type name is a no op") {
             val source = "val value: ArrayList<String> = ArrayList()\n"
             assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {

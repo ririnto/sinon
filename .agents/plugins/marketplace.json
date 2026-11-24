@@ -223,14 +223,14 @@
     },
     {
       "category": "Development",
-      "name": "tlaplus",
+      "name": "tlaplus-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
       },
       "source": {
         "source": "url",
-        "url": "https://github.com/tlaplus/AgentSkills.git"
+        "url": "https://github.com/ririnto/tlaplus-plugin.git"
       }
     },
     {

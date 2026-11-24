@@ -6,11 +6,9 @@ import path from "node:path";
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, expect, test } from "vitest";
 
-import rootConfiguration from "../../../../../oxlint.config.js";
 import plugin from "../../../../no-direct-use-effect.js";
 import { configureBaseline } from "../../../scripts/configure.js";
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
-import profileConfiguration from "../oxlint.config.js";
 
 const pluginSources = [
   new URL("../../../../no-direct-use-effect.ts", import.meta.url),
@@ -159,18 +157,7 @@ new RuleTester({
   }
 );
 
-test("root and materialized configs retain adopted policies and load their plugins", async () => {
-  for (const configuration of [rootConfiguration, profileConfiguration]) {
-    expect(configuration.rules).toMatchObject({
-      "oxc/no-accumulating-spread": "deny",
-      "react-effects/no-direct-use-effect": "deny",
-      "react-hooks-js/immutability": "deny",
-      "react-hooks-js/purity": "deny",
-      "react-hooks-js/rules-of-hooks": "deny",
-      "react-hooks-js/set-state-in-effect": "deny",
-      "react-hooks-js/set-state-in-render": "deny"
-    });
-  }
+test("root and materialized configs report adopted policies as errors", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-compiler-"));
   try {
     await configureBaseline(directory, "node", "eligible");
@@ -180,7 +167,7 @@ test("root and materialized configs retain adopted policies and load their plugi
       path.join(directory, "node_modules"),
       "dir"
     );
-    const compilerCases = [
+    const policyCases = [
       [
         "direct.tsx",
         'import { useEffect } from "react"; useEffect(() => {});',
@@ -188,14 +175,44 @@ test("root and materialized configs retain adopted policies and load their plugi
         'import { useMount } from "framework"; useMount(() => {});'
       ],
       [
+        "render.tsx",
+        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
+        "react-hooks-js(set-state-in-render)",
+        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }'
+      ],
+      [
+        "effect.tsx",
+        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { setCount(1); }, []); return <div>{count}</div>; }',
+        "react-hooks-js(set-state-in-effect)",
+        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => setCount(c => c + 1), 1000); return () => clearInterval(id); }, []); return <div>{count}</div>; }'
+      ],
+      [
+        "mutation.tsx",
+        "export function Counter({ value }: { value: { count: number } }) { value.count += 1; return <div>{value.count}</div>; }",
+        "react-hooks-js(immutability)",
+        "export function Counter({ value }: { value: { count: number } }) { const local = { ...value }; local.count += 1; return <div>{local.count}</div>; }"
+      ],
+      [
         "random.tsx",
         "export function Counter() { return <div>{Math.random()}</div>; }",
         "react-hooks-js(purity)",
         "export function Counter() { return <div>{42}</div>; }"
+      ],
+      [
+        "hooks.tsx",
+        'import { useState } from "react"; export function Counter({ ready }: { ready: boolean }) { if (ready) { const [count] = useState(0); return <div>{count}</div>; } return null; }',
+        "react-hooks-js(rules-of-hooks)",
+        'import { useState } from "react"; export function Counter() { const [count] = useState(0); return <div>{count}</div>; }'
+      ],
+      [
+        "spread.ts",
+        "const items = [1, 2]; items.reduce((acc: number[], item) => [...acc, item], []);",
+        "oxc(no-accumulating-spread)",
+        "const items = [1, 2]; const copy = [...items]; copy.reduce((acc: number[], item) => { acc.push(item); return acc; }, []);"
       ]
     ] as const;
     await Promise.all(
-      compilerCases.flatMap(([filename, text, , negative]) => [
+      policyCases.flatMap(([filename, text, , negative]) => [
         writeFile(path.join(directory, filename), `${text}\n`),
         writeFile(path.join(directory, `valid-${filename}`), `${negative}\n`)
       ])
@@ -219,14 +236,14 @@ test("root and materialized configs retain adopted policies and load their plugi
           ({ code }) => code?.startsWith("react(") === true
         )
       ).toEqual([]);
-      for (const [filename, , code] of compilerCases) {
+      for (const [filename, , code] of policyCases) {
         expect(
-          result.diagnostics.some(
+          result.diagnostics.filter(
             (diagnostic) =>
               diagnostic.filename === filename && diagnostic.code === code
           ),
           `${filename}: ${code}`
-        ).toBe(true);
+        ).toMatchObject([{ code, severity: "error" }]);
         expect(
           result.diagnostics.filter(
             (diagnostic) =>
@@ -252,7 +269,7 @@ test("root and materialized configs retain adopted policies and load their plugi
   }
 }, 60_000);
 
-test("Harness materializes the React policy dependency and package-script execution path", async () => {
+test("Harness package scripts diagnose direct React effects without rewriting source", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-install-"));
   try {
     await configureBaseline(directory, "react", "eligible");
@@ -274,20 +291,23 @@ test("Harness materializes the React policy dependency and package-script execut
         "check:ultracite": "ultracite check --type-aware"
       }
     });
-    await writeFile(
-      path.join(directory, "sample.ts"),
-      'import { useEffect } from "react"; useEffect(() => {});\n'
-    );
-    const result = spawnSync("pnpm", ["run", "check:ultracite"], {
-      cwd: directory,
-      encoding: "utf-8",
-      timeout: 60_000
-    });
-    expect(result.error).toBeUndefined();
-    expect(result.status).toBe(1);
-    expect(`${result.stdout}\n${result.stderr}`).toContain(
-      "react-effects(no-direct-use-effect)"
-    );
+    const sample = path.join(directory, "sample.ts");
+    const source =
+      'import { useEffect } from "react";\n\nuseEffect(() => {});\n';
+    await writeFile(sample, source);
+    for (const script of ["check:ultracite", "fix:ultracite"]) {
+      const result = spawnSync("pnpm", ["run", script], {
+        cwd: directory,
+        encoding: "utf-8",
+        timeout: 60_000
+      });
+      expect(result.error).toBeUndefined();
+      expect(result.status, script).toBe(1);
+      expect(`${result.stdout}\n${result.stderr}`, script).toContain(
+        "react-effects(no-direct-use-effect)"
+      );
+    }
+    expect(await readFile(sample, "utf-8")).toBe(source);
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
@@ -295,13 +315,10 @@ test("Harness materializes the React policy dependency and package-script execut
 
 test("standalone and Harness copies preserve one canonical plugin without local imports", async () => {
   const [standalone, harness] = await Promise.all(
-    pluginSources.map(async (source) => await readFile(source, "utf-8"))
+    pluginSources.map(async (source) => await readFile(source))
   );
-  expect(standalone).toBe(harness);
-  expect(standalone).not.toMatch(/from\s*["']\./u);
+  expect(standalone).toEqual(harness);
+  expect(standalone.toString("utf-8")).not.toMatch(/from\s*["']\./u);
   expect(plugin.meta.name).toBe("react-effects");
   expect(Object.keys(plugin.rules)).toEqual(["no-direct-use-effect"]);
-  expect(plugin.rules["no-direct-use-effect"].meta).not.toHaveProperty(
-    "fixable"
-  );
 });

@@ -28,7 +28,7 @@ metadata:
     Kotlin Gradle Compatibility:
       url: https://kotlinlang.org/docs/gradle-configure-project.html
     Kotest:
-      version: 6.2.5
+      version: 6.2.7
       url:
         - https://kotest.io/docs/framework/project-setup.html
         - https://kotest.io/docs/framework/testing-styles.html
@@ -45,7 +45,7 @@ metadata:
     Checkstyle Checks:
       url: https://checkstyle.org/checks.html
     Dokka Gradle:
-      version: 2.2.0
+      version: 2.3.0
       url:
         - https://kotlinlang.org/docs/dokka-gradle.html
         - https://kotlinlang.org/docs/dokka-gradle-configuration-options.html
@@ -138,7 +138,7 @@ The Kotlin ruleset remains a separate native integration and must not be replace
 ## Kotlin API documentation
 
 For a Kotlin Gradle project, add `alias(libs.plugins.dokka)` to its existing `plugins` block and merge `dokka.gradle.kts.fragment` into the project build.
-The catalog fragment supplies Dokka `2.2.0`.
+The catalog fragment supplies Dokka `2.3.0`.
 Use a compatible existing catalog alias or version when the target already manages Dokka.
 Dokka requires Gradle 7.6 or newer and Kotlin Gradle plugin 1.9 or newer.
 Apply Dokka to each project whose API should be documented.
