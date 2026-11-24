@@ -6,7 +6,7 @@ metadata:
     Kotlin Coding Conventions:
       url: https://kotlinlang.org/docs/_llms/coding-conventions.txt
     Kotlin Callable References:
-      url: https://kotlinlang.org/docs/reflection.html#callable-references
+      url: https://kotlinlang.org/docs/lambdas.html#callable-reference
     Kotlin Java Interoperability:
       url: https://kotlinlang.org/docs/java-interop.html#getters-and-setters
     Kotlin Equality:
