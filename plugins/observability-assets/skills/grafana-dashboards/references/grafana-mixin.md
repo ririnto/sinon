@@ -187,7 +187,7 @@ Install Grafonnet only when the source imports Grafonnet.
 Check the official Grafonnet repository for a stable compatible release tag at use time.
 If none exists, choose a reviewed commit instead of tracking the moving `main` branch.
 Keep the project's existing locked revision unless an update is authorized.
-For a new install, append `@` and the reviewed tag or commit to `github.com/grafana/grafonnet/gen/grafonnet-latest`, then pass that spec to `jb install`.
+For a new install, append `@` and the reviewed tag or commit to `https://github.com/grafana/grafonnet/gen/grafonnet-latest`, then pass that spec to `jb install`.
 Do not hand-maintain dependency lock data when jsonnet-bundler already owns it.
 
 Minimal render step: render mixin or Jsonnet source into a reviewed dashboard asset:

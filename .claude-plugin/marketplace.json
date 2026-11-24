@@ -139,8 +139,8 @@
       "license": "Apache-2.0",
       "name": "herdr",
       "source": {
-        "source": "github",
-        "repo": "herdrdev/herdr"
+        "source": "url",
+        "url": "https://github.com/herdrdev/herdr.git"
       },
       "homepage": "https://herdr.dev/docs/agent-skill/",
       "keywords": ["herdr", "agent-skill", "terminal-multiplexer"],
