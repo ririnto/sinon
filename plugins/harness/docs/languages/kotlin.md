@@ -115,9 +115,10 @@ It leaves Kotest registration scopes to `harness:kotest-sibling-spacing`.
 The `harness:no-line-comment` rule reports ordinary `//` and `/* */` comment tokens at every source placement.
 KDoc remains outside its token set and is checked by ktlint's standard `kdoc` rule and Harness declaration-documentation rules.
 Shebangs also remain outside this rule's token set.
-The rule preserves recognized formatter, lint-suppression, and license directives without an automatic fix.
-Other comment placement remains subject to the common declaration-documentation policy.
-Put rationale in KDoc on the declaration instead.
+The rule accepts recognized formatter and lint-suppression directives and license headers.
+It reports unmarked modification notices for review because their wording alone cannot establish a licensing obligation.
+The rule makes no automatic edits.
+Keep required notices in the file and put discretionary rationale in KDoc on its declaration.
 The `harness:unstructured-logging` rule reports `print`, `println`, `System.out` and `System.err` print calls, and `printStackTrace`.
 It skips console functions and stream roots shadowed by lexical declarations or conflicting imports.
 The `harness:slf-direct-logging` rule reports `trace`, `debug`, `info`, `warn`, and `error` calls only on receivers that resolve lexically to an SLF4J logger.
