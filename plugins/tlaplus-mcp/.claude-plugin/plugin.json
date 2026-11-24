@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "tlaplus-mcp",
+  "version": "2026.11.24.01",
+  "description": "TLA+ parsing with SANY, PlusCal translation, and model checking with TLC over MCP.",
+  "author": {
+    "name": "ririnto"
+  },
+  "license": "MIT",
+  "mcpServers": {
+    "tlaplus": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--yes", "--ignore-scripts", "tlaplus-mcp@1.0.3"]
+    }
+  }
+}

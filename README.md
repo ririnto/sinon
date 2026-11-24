@@ -133,6 +133,7 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [reactor](./plugins/reactor/README.md)
 - [spec-driven-development](./plugins/spec-driven-development/README.md)
 - [spring](./plugins/spring/README.md)
+- [tlaplus-mcp](./plugins/tlaplus-mcp/README.md)
 - [workspace-workflow](./plugins/workspace-workflow/README.md)
 
 ## External Plugins
