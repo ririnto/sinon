@@ -235,14 +235,14 @@
     },
     {
       "category": "Development",
-      "name": "tlaplus-mcp",
+      "name": "tlaplus-plugin",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"
       },
       "source": {
-        "path": "./plugins/tlaplus-mcp",
-        "source": "local"
+        "source": "url",
+        "url": "https://github.com/ririnto/tlaplus-plugin.git"
       }
     },
     {

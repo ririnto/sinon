@@ -92,8 +92,8 @@ test("a mixed staging selects every touched suite without duplicates", () => {
 });
 
 test.each([
-  { stagedPath: "plugins/tlaplus-mcp/.claude-plugin/plugin.json", status: 0 },
-  { stagedPath: "plugins/tlaplus-mcp/.codex-plugin/mcp.json", status: 7 }
+  { stagedPath: "plugins/java/README.md", status: 0 },
+  { stagedPath: "plugins/java/skills/junit/SKILL.md", status: 7 }
 ])(
   "the selector runs one filtered test task for $stagedPath and respects test exit $status",
   async ({ stagedPath, status }) => {
@@ -164,7 +164,7 @@ test.each([
       status === 0 ? 0 : 1
     );
     expect(await readFile(path.join(fixture, "calls.jsonl"), "utf-8")).toBe(
-      '[".github/scripts/sync-versions.test.ts","plugins/tlaplus-mcp/tests"]\n'
+      '[".github/scripts/sync-versions.test.ts","plugins/java/tests"]\n'
     );
   }
 );

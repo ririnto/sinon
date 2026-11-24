@@ -133,7 +133,6 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - [reactor](./plugins/reactor/README.md)
 - [spec-driven-development](./plugins/spec-driven-development/README.md)
 - [spring](./plugins/spring/README.md)
-- [tlaplus-mcp](./plugins/tlaplus-mcp/README.md)
 - [workspace-workflow](./plugins/workspace-workflow/README.md)
 
 ## External Plugins
@@ -164,7 +163,9 @@ Sinon selects external plugins through its marketplace catalog.
 - [tlaplus](https://github.com/tlaplus/AgentSkills): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the TLA+ skills and their MIT license.
   Install it as `tlaplus@sinon` in either host.
-  The TLA+ MCP tools referenced by the skills require a separate server.
+  The TLA+ MCP tools referenced by the skills come from `tlaplus-plugin@sinon`.
+- [tlaplus-plugin](https://github.com/ririnto/tlaplus-plugin): the Sinon catalog follows the upstream default branch.
+  Install it as `tlaplus-plugin@sinon` in either host to use the upstream TLA+ MCP server.
 - [workgraph](https://github.com/ririnto/workgraph): the Sinon catalog follows the upstream default branch.
   The upstream repository owns the runtime, Skills, and version.
 
