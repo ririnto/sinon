@@ -10,6 +10,7 @@ import {
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { applyFixes } from "markdownlint";
 import type { Rule } from "markdownlint";
@@ -246,16 +247,14 @@ describe("sensitive-content semantics", () => {
 });
 
 describe("sensitive-content package loading", () => {
-  test("resolves the package subpath to canonical native ESM", async () => {
-    const resolved = createRequire(import.meta.url).resolve(
-      "sinon/rules/no-sensitive-content"
+  test("resolves the package subpath to the canonical ESM file", () => {
+    const subpath = "sinon/rules/no-sensitive-content";
+    const canonical = path.join(
+      import.meta.dirname,
+      "no-sensitive-content.mjs"
     );
-    expect(resolved).toBe(
-      path.join(import.meta.dirname, "no-sensitive-content.mjs")
-    );
-    expect(await import(resolved)).toBe(
-      await import("./no-sensitive-content.mjs")
-    );
+    expect(createRequire(import.meta.url).resolve(subpath)).toBe(canonical);
+    expect(import.meta.resolve(subpath)).toBe(pathToFileURL(canonical).href);
     expect(() =>
       createRequire(import.meta.url).resolve("sinon/rules/missing")
     ).toThrow();
