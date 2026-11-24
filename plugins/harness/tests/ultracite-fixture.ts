@@ -46,9 +46,6 @@ export const runUltracite = (
     )
   );
 
-/**
- * Read native rule IDs, severities, and affected filenames from a completed JSON-mode check or fix.
- */
 export const readUltraciteResult = (
   result: SpawnSyncReturns<Buffer>
 ): {
