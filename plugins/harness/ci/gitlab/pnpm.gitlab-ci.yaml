@@ -5,7 +5,12 @@ pnpm:
   stage: validate
   image: node:24
   before_script:
-    - npm install --global "$(node --print 'require("./package.json").packageManager')"
+    - pnpm_spec=$(node --print 'require("./package.json").packageManager.split("+", 1)[0]')
+    - pnpm_dir=$(mktemp -d)
+    - >-
+      npm install --prefix "$pnpm_dir" --no-global --no-save --no-package-lock --no-audit --no-fund --ignore-scripts "$pnpm_spec"
+    - export PATH="$pnpm_dir/node_modules/.bin:$PATH"
+    - test "$(pnpm --version)" = "${pnpm_spec#pnpm@}"
   script:
     - pnpm install --frozen-lockfile
     - pnpm run check

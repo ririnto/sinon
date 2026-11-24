@@ -57,7 +57,7 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 
 ## Workspace Samples
 
-Create an empty directory and copy a sample into it with Node 26:
+Create an empty directory and copy a sample into it with Node.js 24:
 
 ```sh
 node scripts/materialize-sample.ts --sample go-workspace --target <empty-directory>

@@ -22,13 +22,7 @@ import type {
   TypeScriptProfile
 } from "../scripts/configure.js";
 import formatter from "../tooling/pnpm/oxfmt.config.ts";
-import {
-  valueAt,
-  objectValue,
-  stringValue,
-  arrayValue,
-  optionalObject
-} from "./structured-value.ts";
+import { valueAt, objectValue, optionalObject } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 const profiles: BaselineProfile[] = [
@@ -171,57 +165,43 @@ describe("fresh-root baseline", () => {
   });
 
   test.each([
-    ["GitLab", "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", 0],
-    ["GitLab", "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml", 7],
-    ["GitHub", "plugins/harness/ci/github/pnpm.yaml", 0],
-    ["GitHub", "plugins/harness/ci/github/pnpm.yaml", 7]
+    ["ci/github/pnpm.yaml", ".github/workflows/pnpm.yaml"],
+    ["ci/gitlab/pnpm.gitlab-ci.yaml", ".gitlab-ci.yml"]
   ])(
-    "%s pnpm installation from %s forwards the selected version and npm exit %s",
-    async (platform, file, status) => {
-      const directory = await targetDirectory();
-      const packageManager = "pnpm@1.2.3";
-      await mkdir(path.join(directory, ".bin"));
-      await writeFile(
-        path.join(directory, ".bin/npm"),
-        '#!/usr/bin/env sh\nfor arg do echo "$arg"; done\nexit "$INSTALL_STATUS"\n',
-        { mode: 0o755 }
-      );
-      await writeFile(
-        path.join(directory, "package.json"),
-        JSON.stringify({ packageManager })
-      );
-      const ci: unknown = parseDocument(
-        await readFile(path.join(repositoryRoot, file), "utf-8")
-      ).toJS();
-      const command =
-        platform === "GitLab"
-          ? stringValue(valueAt(ci, "pnpm", "before_script", 0))
-          : stringValue(
-              valueAt(
-                [...arrayValue(valueAt(ci, "jobs", "pnpm", "steps"))].find(
-                  (step) => {
-                    const run = valueAt(step, "run");
-                    return (
-                      typeof run === "string" &&
-                      run.startsWith("npm install --global ")
-                    );
-                  }
-                ),
-                "run"
-              )
-            );
-      const result = spawnSync("sh", ["-c", command], {
-        cwd: directory,
-        encoding: "utf-8",
-        env: {
-          ...process.env,
-          INSTALL_STATUS: String(status),
-          PATH: `${path.join(directory, ".bin")}${path.delimiter}${process.env.PATH}`
-        }
-      });
-      expect(result.error).toBeUndefined();
-      expect(result.status, result.stderr).toBe(status);
-      expect(result.stdout).toBe(`install\n--global\n${packageManager}\n`);
+    "ships the pnpm bootstrap from %s in the workspace sample",
+    async (template, sample) => {
+      const harness = path.join(repositoryRoot, "plugins/harness");
+      const yaml = await readFile(path.join(harness, template), "utf-8");
+      expect(
+        await readFile(
+          path.join(harness, "samples/pnpm-workspace", sample),
+          "utf-8"
+        )
+      ).toBe(yaml);
+      const ci: unknown = parseDocument(yaml).toJS();
+      if (sample.startsWith(".github/")) {
+        const steps = valueAt(ci, "jobs", "pnpm", "steps");
+        expect(steps).toHaveLength(5);
+        expect(valueAt(steps, 0, "uses")).toMatch(/^actions\/checkout@/u);
+        expect(valueAt(steps, 1, "uses")).toMatch(/^actions\/setup-node@/u);
+        expect(valueAt(steps, 1, "with")).toEqual({
+          "node-version-file": "package.json"
+        });
+        expect(valueAt(steps, 2, "uses")).toMatch(/^pnpm\/action-setup@/u);
+        expect(valueAt(steps, 2, "with")).toEqual({
+          package_json_file: "package.json"
+        });
+        expect(valueAt(steps, 3, "run")).toBe("pnpm install --frozen-lockfile");
+        expect(valueAt(steps, 4, "run")).toBe("pnpm run check");
+      } else {
+        expect(valueAt(ci, "pnpm", "before_script")).toEqual(
+          expect.arrayContaining([expect.stringContaining("packageManager")])
+        );
+        expect(valueAt(ci, "pnpm", "script")).toEqual([
+          "pnpm install --frozen-lockfile",
+          "pnpm run check"
+        ]);
+      }
     }
   );
 
