@@ -42,6 +42,10 @@ const testScopes: readonly {
   {
     patterns: [/^plugins\/observability-assets\//u],
     tests: ["plugins/observability-assets/tests/promtool/release.test.ts"]
+  },
+  {
+    patterns: [/^plugins\/tlaplus-mcp\//u],
+    tests: ["plugins/tlaplus-mcp/tests"]
   }
 ];
 
