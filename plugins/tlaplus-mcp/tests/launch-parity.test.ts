@@ -14,7 +14,6 @@ test("tlaplus-mcp selects the same tlaplus stdio launch on Claude Code and Codex
   ).toHaveProperty("type", "stdio");
   expect(claudeServer.command).toMatch(/\S/u);
   expect(claudeServer.args).toBeInstanceOf(Array);
-
   const codexConfig: unknown = JSON.parse(
     readFileSync(
       path.join(import.meta.dirname, "..", codexManifest.mcpServers),
