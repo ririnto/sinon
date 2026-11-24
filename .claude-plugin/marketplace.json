@@ -377,14 +377,12 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "TLA+ parsing with SANY, PlusCal translation, and model checking with TLC over MCP.",
-      "license": "MIT",
-      "name": "tlaplus-mcp",
-      "source": "./plugins/tlaplus-mcp",
-      "version": "2026.11.24.01",
-      "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/tlaplus-mcp",
-      "keywords": ["tla-plus", "formal-methods", "model-checking", "mcp"],
-      "repository": "https://github.com/ririnto/sinon"
+      "description": "Parse TLA+ specifications, check models with TLC, and read TLA+ modeling guidance.",
+      "name": "tlaplus-plugin",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ririnto/tlaplus-plugin.git"
+      }
     },
     {
       "author": {
