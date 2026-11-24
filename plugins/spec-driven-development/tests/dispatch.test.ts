@@ -5,18 +5,26 @@ import path from "node:path";
 import { expect, onTestFinished, test, vi } from "vitest";
 
 import { main } from "../skills/spec-driven-development/scripts/sdd/cli.js";
-import { generateMermaid } from "../skills/spec-driven-development/scripts/sdd/graph.js";
 import { repositoryPaths } from "./test-support/paths.js";
 
-test("generateMermaid preserves linked fixture output", () => {
-  expect(generateMermaid(repositoryPaths.sddFixtureRoot)).toBe(
+test("generate-diagram prints the linked fixture", () => {
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+  expect(main(["generate-diagram", repositoryPaths.sddFixtureRoot])).toBe(0);
+  expect(output.mock.calls).toEqual([
     [
-      "flowchart TD",
-      '  domain_ingest_SPEC_md["Domain Ingest"]',
-      '  domain_SPEC_md["Domain Capability"]',
-      "  domain_SPEC_md --> domain_ingest_SPEC_md"
-    ].join("\n")
-  );
+      [
+        "flowchart TD",
+        '  domain_ingest_SPEC_md["Domain Ingest"]',
+        '  domain_SPEC_md["Domain Capability"]',
+        "  domain_SPEC_md --> domain_ingest_SPEC_md"
+      ].join("\n")
+    ]
+  ]);
+  expect(errors).not.toHaveBeenCalled();
 });
 
 test("diagram generation keeps colliding path IDs distinct", () => {
@@ -202,7 +210,7 @@ test("validate reports an invalid status and exits nonzero", () => {
   expect(errors.mock.calls.flat().join("\n")).toContain("status");
 });
 
-test("diagram generation uses the containing directory when the title is empty", () => {
+test("generate-diagram prints the containing directory when the title is missing", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "sinon-sdd-untitled-"));
   onTestFinished(() => {
     rmSync(directory, { force: true, recursive: true });
@@ -213,7 +221,14 @@ test("diagram generation uses the containing directory when the title is empty",
     path.join(specDirectory, "SPEC.md"),
     "---\nstatus: draft\n---\n"
   );
-  expect(generateMermaid(directory)).toBe(
-    'flowchart TD\n  untitled_SPEC_md["untitled"]'
-  );
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+  expect(main(["generate-diagram", directory])).toBe(0);
+  expect(output.mock.calls).toEqual([
+    ['flowchart TD\n  untitled_SPEC_md["untitled"]']
+  ]);
+  expect(errors).not.toHaveBeenCalled();
 });
