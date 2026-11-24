@@ -87,20 +87,16 @@ class NoLineCommentTest :
             }
         }
 
-        test("standalone line comment in a function body is flagged") {
-            assertSoftly(
-                KtLintRuleTestEngine.execute(
-                    ruleProvider,
-                    """
-                    fun foo() {
-                        // comment
-                    }
-                    """.trimIndent() + "\n"
-                )
-            ) {
-                assertSoftly(diagnostics) {
-                    shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+        test("reports a standalone line comment in a function body and preserves source") {
+            val source =
+                """
+                fun foo() {
+                    // comment
                 }
+                """.trimIndent() + "\n"
+            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
+                diagnostics.shouldContainExactlyInAnyOrder(listOf(comment(2, 5)))
+                formattedCode shouldBe source
             }
         }
 
@@ -355,18 +351,6 @@ class NoLineCommentTest :
                 assertSoftly(diagnostics) {
                     shouldContainExactlyInAnyOrder(emptyList())
                 }
-                formattedCode shouldBe source
-            }
-        }
-
-        test("format leaves commented source unchanged") {
-            val source =
-                """
-                fun foo() {
-                    // comment
-                }
-                """.trimIndent() + "\n"
-            assertSoftly(KtLintRuleTestEngine.execute(ruleProvider, source)) {
                 formattedCode shouldBe source
             }
         }
