@@ -10,10 +10,8 @@ import {
   waitForFixtureTasks
 } from "./fixture-command.ts";
 
-/**
- * Longest wait in milliseconds for an overlapping failure, a settled write, or a failure result.
- */
-const waitBoundMs = 1000;
+const failureResultBoundMs = 1000;
+const overlapWindowMs = 400;
 
 test.skipIf(process.platform === "win32")(
   "fixture teardown after a failed assertion drains an aborted command",
@@ -96,11 +94,11 @@ test("a bounded wait settles with its operation and rejects when the operation o
   const failure = new Error("operation failed");
   const never = Promise.withResolvers<never>().promise;
   await expect(
-    settleWithin(waitBoundMs, Promise.resolve("settled"))
+    settleWithin(failureResultBoundMs, Promise.resolve("settled"))
   ).resolves.toBe("settled");
-  await expect(settleWithin(waitBoundMs, Promise.reject(failure))).rejects.toBe(
-    failure
-  );
+  await expect(
+    settleWithin(failureResultBoundMs, Promise.reject(failure))
+  ).rejects.toBe(failure);
   await expect(settleWithin(10, never)).rejects.toBeInstanceOf(Error);
 });
 
@@ -111,24 +109,28 @@ test("a configurator write failure leaves the fixture alive through a late write
   const failure = Object.assign(new Error("Cannot write the manifest"), {
     code: "EACCES"
   });
-  const failureStarted = Promise.withResolvers<null>();
-  const lateStarted = Promise.withResolvers<null>();
-  const releaseLate = Promise.withResolvers<null>();
-  let lateInvoked = false;
+  const failureInvoked = Promise.withResolvers<null>();
+  const siblingInvoked = Promise.withResolvers<null>();
+  const releaseSibling = Promise.withResolvers<null>();
   let workspace: string | undefined;
+  let failed = false;
+  let failedAfterWrite = false;
+  let siblingStarted = false;
   using mock = vi.doMock("node:fs/promises", async (importOriginal) => {
     const fs = await importOriginal<typeof import("node:fs/promises")>();
     return {
       ...fs,
       writeFile: vi.fn<typeof fs.writeFile>(async (file, data, options) => {
         if (file === failedTarget) {
-          failureStarted.resolve(null);
+          failed = true;
+          failedAfterWrite = workspace !== undefined;
+          failureInvoked.resolve(null);
           throw failure;
         }
         if (file === lateTarget) {
-          lateInvoked = true;
-          lateStarted.resolve(null);
-          await releaseLate.promise;
+          siblingStarted = true;
+          siblingInvoked.resolve(null);
+          await releaseSibling.promise;
           await fs.writeFile(file, data, options);
           workspace = await readFile(file, "utf-8");
         } else {
@@ -147,27 +149,37 @@ test("a configurator write failure leaves the fixture alive through a late write
       reported = true;
     }
   })();
-  const overlapping = (async () => {
-    await Promise.all([failureStarted.promise, lateStarted.promise]);
-    return true;
+  const failureResult = (async () => {
+    try {
+      await settleWithin(failureResultBoundMs, configuration);
+      return null;
+    } catch (error) {
+      return error;
+    }
   })();
-  const settled = (async () => {
-    await Promise.allSettled([configuration]);
-    return false;
+  const invoked = [failureInvoked.promise, siblingInvoked.promise];
+  const overlapping = Promise.all(invoked);
+  const windowClosed = (async () => {
+    await Promise.race(invoked);
+    await delay(overlapWindowMs, false, { ref: false });
   })();
-  const overlapped = await Promise.race([
-    overlapping,
-    settled,
-    delay(waitBoundMs, false, { ref: false })
-  ]);
+  await Promise.race([overlapping, windowClosed, failureResult]);
   await setImmediate();
+  const failedWhileHeld = failed;
+  const siblingHeld = siblingStarted;
   const reportedWhileHeld = reported;
-  releaseLate.resolve(null);
-  if (overlapped) {
+  releaseSibling.resolve(null);
+  expect(await failureResult).toBe(failure);
+  if (siblingHeld) {
     expect(reportedWhileHeld).toBe(false);
+    expect(failedWhileHeld || failedAfterWrite).toBe(true);
+  } else {
+    expect(
+      failedWhileHeld && reportedWhileHeld,
+      "the failure stayed pending and no sibling write started within the overlap window"
+    ).toBe(true);
   }
-  await expect(settleWithin(waitBoundMs, configuration)).rejects.toBe(failure);
-  expect(workspace?.includes("catalog:") ?? false).toBe(lateInvoked);
+  expect(workspace?.includes("catalog:") ?? false).toBe(siblingStarted);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
   });
@@ -211,7 +223,9 @@ test("a configurator write failure reports its failure within the bound when wri
     await using ownedFixture = fixture;
     await configureBaseline(ownedFixture.directory, "node", "eligible");
   })();
-  await expect(settleWithin(waitBoundMs, configuration)).rejects.toBe(failure);
+  await expect(settleWithin(failureResultBoundMs, configuration)).rejects.toBe(
+    failure
+  );
   expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"

@@ -24,10 +24,8 @@ import {
   waitForFixtureTasks
 } from "./fixture-command.ts";
 
-/**
- * Longest wait in milliseconds for an overlapping failure, a settled write, or a failure result.
- */
-const waitBoundMs = 1000;
+const failureResultBoundMs = 1000;
+const overlapWindowMs = 400;
 
 const samples = [
   ["cargo-workspace", "Cargo.toml"],
@@ -142,34 +140,37 @@ test("rejects unsafe inputs before writing and excludes generated files", async 
 
 test("a failed copy settles a started sibling copy before the materializer rejects", async () => {
   const fixture = await createCommandFixture("sinon-sample-copy-");
-  const { directory } = fixture;
-  const failedTarget = path.join(directory, "README.md");
-  const lateTarget = path.join(directory, "Taskfile.yaml");
+  const failedTarget = path.join(fixture.directory, "README.md");
+  const lateTarget = path.join(fixture.directory, "Taskfile.yaml");
   const failure = Object.assign(new Error("Cannot copy the sample entry"), {
     code: "EACCES"
   });
-  const failureStarted = Promise.withResolvers<null>();
-  const lateStarted = Promise.withResolvers<null>();
-  const releaseLate = Promise.withResolvers<null>();
   const expected = await readFile(
     path.resolve(import.meta.dirname, "../samples/go-workspace/Taskfile.yaml"),
     "utf-8"
   );
-  let lateInvoked = false;
+  const failureInvoked = Promise.withResolvers<null>();
+  const siblingInvoked = Promise.withResolvers<null>();
+  const releaseSibling = Promise.withResolvers<null>();
   let copied: string | undefined;
+  let failed = false;
+  let failedAfterCopy = false;
+  let siblingStarted = false;
   using mock = vi.doMock("node:fs/promises", async (importOriginal) => {
     const fs = await importOriginal<typeof import("node:fs/promises")>();
     return {
       ...fs,
       cp: vi.fn<typeof fs.cp>(async (source, destination, options) => {
         if (destination === failedTarget) {
-          failureStarted.resolve(null);
+          failed = true;
+          failedAfterCopy = copied !== undefined;
+          failureInvoked.resolve(null);
           throw failure;
         }
         if (destination === lateTarget) {
-          lateInvoked = true;
-          lateStarted.resolve(null);
-          await releaseLate.promise;
+          siblingStarted = true;
+          siblingInvoked.resolve(null);
+          await releaseSibling.promise;
           await fs.cp(source, destination, options);
           copied = await readFile(lateTarget, "utf-8");
         } else {
@@ -190,27 +191,37 @@ test("a failed copy settles a started sibling copy before the materializer rejec
       reported = true;
     }
   })();
-  const overlapping = (async () => {
-    await Promise.all([failureStarted.promise, lateStarted.promise]);
-    return true;
+  const failureResult = (async () => {
+    try {
+      await settleWithin(failureResultBoundMs, materializing);
+      return null;
+    } catch (error) {
+      return error;
+    }
   })();
-  const settled = (async () => {
-    await Promise.allSettled([materializing]);
-    return false;
+  const invoked = [failureInvoked.promise, siblingInvoked.promise];
+  const overlapping = Promise.all(invoked);
+  const windowClosed = (async () => {
+    await Promise.race(invoked);
+    await delay(overlapWindowMs, false, { ref: false });
   })();
-  const overlapped = await Promise.race([
-    overlapping,
-    settled,
-    delay(waitBoundMs, false, { ref: false })
-  ]);
+  await Promise.race([overlapping, windowClosed, failureResult]);
   await setImmediate();
+  const failedWhileHeld = failed;
+  const siblingHeld = siblingStarted;
   const reportedWhileHeld = reported;
-  releaseLate.resolve(null);
-  if (overlapped) {
+  releaseSibling.resolve(null);
+  expect(await failureResult).toBe(failure);
+  if (siblingHeld) {
     expect(reportedWhileHeld).toBe(false);
+    expect(failedWhileHeld || failedAfterCopy).toBe(true);
+  } else {
+    expect(
+      failedWhileHeld && reportedWhileHeld,
+      "the failure stayed pending and no sibling copy started within the overlap window"
+    ).toBe(true);
   }
-  await expect(settleWithin(waitBoundMs, materializing)).rejects.toBe(failure);
-  expect(copied === expected).toBe(lateInvoked);
+  expect(copied === expected).toBe(siblingStarted);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
   });
@@ -255,7 +266,9 @@ test("a failed copy reports its failure within the bound when copies are seriali
     await using ownedFixture = fixture;
     await materialize("go-workspace", ownedFixture.directory);
   })();
-  await expect(settleWithin(waitBoundMs, materializing)).rejects.toBe(failure);
+  await expect(settleWithin(failureResultBoundMs, materializing)).rejects.toBe(
+    failure
+  );
   expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
