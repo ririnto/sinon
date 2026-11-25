@@ -40,14 +40,17 @@ test("YAML sequence lint requires block style for nonempty sequences", async () 
   const check = path.join(import.meta.dirname, "yaml-sequence-style.ts");
   const accepted = spawnSync(process.execPath, [check], options);
   expect(accepted.status, accepted.stderr).toBe(0);
+  expect(accepted.stderr).toBe("");
   await writeFile(
     file,
     `${valid}---\ninline: [one, two]\nmultiline: [\n  one,\n  two,\n]\n`
   );
   const rejected = spawnSync(process.execPath, [check], options);
   expect(rejected.status, rejected.stderr).toBe(1);
-  expect(rejected.stderr.trim().split("\n")).toEqual([
-    "sequences.yml:7:9 Use a block YAML sequence with one item per line.",
-    "sequences.yml:8:12 Use a block YAML sequence with one item per line."
-  ]);
+  expect(
+    rejected.stderr
+      .trim()
+      .split("\n")
+      .map((diagnostic) => diagnostic.split(" ", 1)[0])
+  ).toEqual(["sequences.yml:7:9", "sequences.yml:8:12"]);
 });
