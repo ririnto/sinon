@@ -3,6 +3,7 @@ import type { SpawnOptions, SpawnSyncReturns } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 type CommandOptions = Pick<SpawnOptions, "env" | "signal">;
 type CommandResult = Pick<
@@ -91,4 +92,17 @@ export const waitForFixtureTasks = async (
         : new Error("Fixture task failed", { cause });
     }
   }
+};
+
+/**
+ * Wait for a fixture operation to settle and reject when it outlives its bound.
+ */
+export const settleWithin = async <T>(
+  boundMs: number,
+  operation: Promise<T>
+): Promise<T> => {
+  const expired = delay(boundMs, boundMs, { ref: false }).then((elapsed) => {
+    throw new Error(`A fixture operation outlived its ${elapsed} ms bound`);
+  });
+  return await Promise.race([operation, expired]);
 };

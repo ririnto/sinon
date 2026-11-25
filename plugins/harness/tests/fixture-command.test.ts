@@ -1,13 +1,19 @@
 import { readFile, stat, watch } from "node:fs/promises";
 import path from "node:path";
-import { setImmediate } from "node:timers/promises";
+import { setImmediate, setTimeout as delay } from "node:timers/promises";
 
 import { expect, test, vi } from "vitest";
 
 import {
   createCommandFixture,
+  settleWithin,
   waitForFixtureTasks
 } from "./fixture-command.ts";
+
+/**
+ * Longest wait in milliseconds for an overlapping failure, a settled write, or a failure result.
+ */
+const waitBoundMs = 1000;
 
 test.skipIf(process.platform === "win32")(
   "fixture teardown after a failed assertion drains an aborted command",
@@ -86,6 +92,18 @@ test("a fixture setup failure waits for sibling work and removes the directory",
   });
 });
 
+test("a bounded wait settles with its operation and rejects when the operation outlives the bound", async () => {
+  const failure = new Error("operation failed");
+  const never = Promise.withResolvers<never>().promise;
+  await expect(
+    settleWithin(waitBoundMs, Promise.resolve("settled"))
+  ).resolves.toBe("settled");
+  await expect(settleWithin(waitBoundMs, Promise.reject(failure))).rejects.toBe(
+    failure
+  );
+  await expect(settleWithin(10, never)).rejects.toBeInstanceOf(Error);
+});
+
 test("a configurator write failure leaves the fixture alive through a late write", async () => {
   const fixture = await createCommandFixture("sinon-configure-write-");
   const failedTarget = path.join(fixture.directory, "package.json");
@@ -93,10 +111,10 @@ test("a configurator write failure leaves the fixture alive through a late write
   const failure = Object.assign(new Error("Cannot write the manifest"), {
     code: "EACCES"
   });
-  const lateStarted = Promise.withResolvers<null>();
   const failureStarted = Promise.withResolvers<null>();
+  const lateStarted = Promise.withResolvers<null>();
   const releaseLate = Promise.withResolvers<null>();
-  const lateFinished = Promise.withResolvers<null>();
+  let lateInvoked = false;
   let workspace: string | undefined;
   using mock = vi.doMock("node:fs/promises", async (importOriginal) => {
     const fs = await importOriginal<typeof import("node:fs/promises")>();
@@ -104,19 +122,15 @@ test("a configurator write failure leaves the fixture alive through a late write
       ...fs,
       writeFile: vi.fn<typeof fs.writeFile>(async (file, data, options) => {
         if (file === failedTarget) {
-          await lateStarted.promise;
           failureStarted.resolve(null);
           throw failure;
         }
         if (file === lateTarget) {
+          lateInvoked = true;
           lateStarted.resolve(null);
-          try {
-            await releaseLate.promise;
-            await fs.writeFile(file, data, options);
-            workspace = await readFile(file, "utf-8");
-          } finally {
-            lateFinished.resolve(null);
-          }
+          await releaseLate.promise;
+          await fs.writeFile(file, data, options);
+          workspace = await readFile(file, "utf-8");
         } else {
           await fs.writeFile(file, data, options);
         }
@@ -133,17 +147,72 @@ test("a configurator write failure leaves the fixture alive through a late write
       reported = true;
     }
   })();
-  const rejection = expect(configuration).rejects.toBe(failure);
-  try {
-    await failureStarted.promise;
-    await setImmediate();
-    expect(reported).toBe(false);
-  } finally {
-    releaseLate.resolve(null);
-    await lateFinished.promise;
-    await rejection;
+  const overlapping = (async () => {
+    await Promise.all([failureStarted.promise, lateStarted.promise]);
+    return true;
+  })();
+  const settled = (async () => {
+    await Promise.allSettled([configuration]);
+    return false;
+  })();
+  const overlapped = await Promise.race([
+    overlapping,
+    settled,
+    delay(waitBoundMs, false, { ref: false })
+  ]);
+  await setImmediate();
+  const reportedWhileHeld = reported;
+  releaseLate.resolve(null);
+  if (overlapped) {
+    expect(reportedWhileHeld).toBe(false);
   }
-  expect(workspace).toContain("catalog:");
+  await expect(settleWithin(waitBoundMs, configuration)).rejects.toBe(failure);
+  expect(workspace?.includes("catalog:") ?? false).toBe(lateInvoked);
+  await expect(stat(fixture.directory)).rejects.toMatchObject({
+    code: "ENOENT"
+  });
+});
+
+test("a configurator write failure reports its failure within the bound when writes are serialized", async () => {
+  const fixture = await createCommandFixture("sinon-configure-serial-");
+  const { directory } = fixture;
+  const failedTarget = path.join(fixture.directory, "package.json");
+  const failure = Object.assign(new Error("Cannot write the manifest"), {
+    code: "EACCES"
+  });
+  let turn: Promise<unknown> = Promise.resolve();
+  let writesAfterRemoval = 0;
+  using mock = vi.doMock("node:fs/promises", async (importOriginal) => {
+    const fs = await importOriginal<typeof import("node:fs/promises")>();
+    return {
+      ...fs,
+      writeFile: vi.fn<typeof fs.writeFile>(async (file, data, options) => {
+        const writing = (async () => {
+          await Promise.allSettled([turn]);
+          const present = await stat(directory)
+            .then(() => true)
+            .catch(() => false);
+          if (!present) {
+            writesAfterRemoval += 1;
+          }
+          if (file === failedTarget) {
+            throw failure;
+          }
+          await fs.writeFile(file, data, options);
+        })();
+        turn = writing;
+        await writing;
+      })
+    };
+  });
+  vi.resetModules();
+  const { configureBaseline } = await import("../scripts/configure.js");
+  const configuration = (async () => {
+    await using ownedFixture = fixture;
+    await configureBaseline(ownedFixture.directory, "node", "eligible");
+  })();
+  await expect(settleWithin(waitBoundMs, configuration)).rejects.toBe(failure);
+  expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
   });

@@ -13,15 +13,21 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { setImmediate } from "node:timers/promises";
+import { setImmediate, setTimeout as delay } from "node:timers/promises";
 
 import { expect, onTestFinished, test, vi } from "vitest";
 
 import { materializeSample } from "../scripts/materialize-sample.js";
 import {
   createCommandFixture,
+  settleWithin,
   waitForFixtureTasks
 } from "./fixture-command.ts";
+
+/**
+ * Longest wait in milliseconds for an overlapping failure, a settled write, or a failure result.
+ */
+const waitBoundMs = 1000;
 
 const samples = [
   ["cargo-workspace", "Cargo.toml"],
@@ -134,7 +140,7 @@ test("rejects unsafe inputs before writing and excludes generated files", async 
   expect(await readdir(path.join(target, ".husky"))).toEqual([]);
 });
 
-test("a failed copy settles sibling copies before the materializer rejects", async () => {
+test("a failed copy settles a started sibling copy before the materializer rejects", async () => {
   const fixture = await createCommandFixture("sinon-sample-copy-");
   const { directory } = fixture;
   const failedTarget = path.join(directory, "README.md");
@@ -142,10 +148,14 @@ test("a failed copy settles sibling copies before the materializer rejects", asy
   const failure = Object.assign(new Error("Cannot copy the sample entry"), {
     code: "EACCES"
   });
-  const lateStarted = Promise.withResolvers<null>();
   const failureStarted = Promise.withResolvers<null>();
+  const lateStarted = Promise.withResolvers<null>();
   const releaseLate = Promise.withResolvers<null>();
-  const lateFinished = Promise.withResolvers<null>();
+  const expected = await readFile(
+    path.resolve(import.meta.dirname, "../samples/go-workspace/Taskfile.yaml"),
+    "utf-8"
+  );
+  let lateInvoked = false;
   let copied: string | undefined;
   using mock = vi.doMock("node:fs/promises", async (importOriginal) => {
     const fs = await importOriginal<typeof import("node:fs/promises")>();
@@ -153,19 +163,15 @@ test("a failed copy settles sibling copies before the materializer rejects", asy
       ...fs,
       cp: vi.fn<typeof fs.cp>(async (source, destination, options) => {
         if (destination === failedTarget) {
-          await lateStarted.promise;
           failureStarted.resolve(null);
           throw failure;
         }
         if (destination === lateTarget) {
+          lateInvoked = true;
           lateStarted.resolve(null);
-          try {
-            await releaseLate.promise;
-            await fs.cp(source, destination, options);
-            copied = await readFile(lateTarget, "utf-8");
-          } finally {
-            lateFinished.resolve(null);
-          }
+          await releaseLate.promise;
+          await fs.cp(source, destination, options);
+          copied = await readFile(lateTarget, "utf-8");
         } else {
           await fs.cp(source, destination, options);
         }
@@ -184,25 +190,73 @@ test("a failed copy settles sibling copies before the materializer rejects", asy
       reported = true;
     }
   })();
-  const rejection = expect(materializing).rejects.toBe(failure);
-  try {
-    await failureStarted.promise;
-    await setImmediate();
-    expect(reported).toBe(false);
-  } finally {
-    releaseLate.resolve(null);
-    await lateFinished.promise;
-    await rejection;
+  const overlapping = (async () => {
+    await Promise.all([failureStarted.promise, lateStarted.promise]);
+    return true;
+  })();
+  const settled = (async () => {
+    await Promise.allSettled([materializing]);
+    return false;
+  })();
+  const overlapped = await Promise.race([
+    overlapping,
+    settled,
+    delay(waitBoundMs, false, { ref: false })
+  ]);
+  await setImmediate();
+  const reportedWhileHeld = reported;
+  releaseLate.resolve(null);
+  if (overlapped) {
+    expect(reportedWhileHeld).toBe(false);
   }
-  expect(copied).toBe(
-    await readFile(
-      path.resolve(
-        import.meta.dirname,
-        "../samples/go-workspace/Taskfile.yaml"
-      ),
-      "utf-8"
-    )
-  );
+  await expect(settleWithin(waitBoundMs, materializing)).rejects.toBe(failure);
+  expect(copied === expected).toBe(lateInvoked);
+  await expect(stat(fixture.directory)).rejects.toMatchObject({
+    code: "ENOENT"
+  });
+});
+
+test("a failed copy reports its failure within the bound when copies are serialized", async () => {
+  const fixture = await createCommandFixture("sinon-sample-serial-");
+  const { directory } = fixture;
+  const failedTarget = path.join(directory, "README.md");
+  const failure = Object.assign(new Error("Cannot copy the sample entry"), {
+    code: "EACCES"
+  });
+  let turn: Promise<unknown> = Promise.resolve();
+  let writesAfterRemoval = 0;
+  using mock = vi.doMock("node:fs/promises", async (importOriginal) => {
+    const fs = await importOriginal<typeof import("node:fs/promises")>();
+    return {
+      ...fs,
+      cp: vi.fn<typeof fs.cp>(async (source, destination, options) => {
+        const writing = (async () => {
+          await Promise.allSettled([turn]);
+          const present = await stat(directory)
+            .then(() => true)
+            .catch(() => false);
+          if (!present) {
+            writesAfterRemoval += 1;
+          }
+          if (destination === failedTarget) {
+            throw failure;
+          }
+          await fs.cp(source, destination, options);
+        })();
+        turn = writing;
+        await writing;
+      })
+    };
+  });
+  vi.resetModules();
+  const { materializeSample: materialize } =
+    await import("../scripts/materialize-sample.js");
+  const materializing = (async () => {
+    await using ownedFixture = fixture;
+    await materialize("go-workspace", ownedFixture.directory);
+  })();
+  await expect(settleWithin(waitBoundMs, materializing)).rejects.toBe(failure);
+  expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
   });
