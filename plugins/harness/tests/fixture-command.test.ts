@@ -6,6 +6,8 @@ import { expect, test, vi } from "vitest";
 
 import {
   createCommandFixture,
+  disposalBoundMs,
+  drainWithin,
   settleWithin,
   waitForFixtureTasks
 } from "./fixture-command.ts";
@@ -63,22 +65,151 @@ test.skipIf(process.platform === "win32")(
   }
 );
 
-test("a fixture setup failure waits for sibling work and removes the directory", async () => {
+test.skipIf(process.platform === "win32")(
+  "a command that never exits is stopped with its process tree when its fixture is removed",
+  async ({ signal }) => {
+    const fixture = await createCommandFixture("sinon-command-hang-");
+    const ready = (async () => {
+      for await (const { filename } of watch(fixture.directory, { signal })) {
+        if (filename === "ready") {
+          break;
+        }
+      }
+    })();
+    const stopped = fixture.run(
+      process.execPath,
+      [
+        "-e",
+        `
+        const { spawn } = require("node:child_process");
+
+        spawn(
+          process.execPath,
+          [
+            "-e",
+            'require("node:fs").writeFileSync("ready", ""); setInterval(() => {}, 1000);'
+          ],
+          { stdio: "inherit" }
+        );
+        setInterval(() => {}, 1000);
+        `
+      ],
+      { signal }
+    );
+    await settleWithin(failureResultBoundMs, ready);
+    await settleWithin(
+      disposalBoundMs,
+      expect(fixture[Symbol.asyncDispose]()).rejects.toThrow("disposal bound")
+    );
+    await expect(stat(fixture.directory)).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    const result = await settleWithin(failureResultBoundMs, stopped);
+    expect(result.status).toBe(null);
+  }
+);
+
+/**
+ * Leader and descendant that both ignore the default stop signal. The descendant reports readiness.
+ */
+const stubbornLeader = `
+  const { spawn } = require("node:child_process");
+  process.on("SIGTERM", () => {});
+
+  spawn(
+    process.execPath,
+    [
+      "-e",
+      'require("node:fs").writeFileSync("ready", "");process.on("SIGTERM", () => {}); setInterval(() => {}, 1000);'
+    ],
+    { stdio: "inherit" }
+  );
+  setInterval(() => {}, 1000);
+`;
+
+test.skipIf(process.platform === "win32")(
+  "a command that ignores the default stop signal is stopped within the disposal bound",
+  async ({ signal }) => {
+    const fixture = await createCommandFixture("sinon-command-stubborn-");
+    const ready = (async () => {
+      for await (const { filename } of watch(fixture.directory, { signal })) {
+        if (filename === "ready") {
+          break;
+        }
+      }
+    })();
+    const stopped = fixture.run(process.execPath, ["-e", stubbornLeader], {
+      signal
+    });
+    await settleWithin(failureResultBoundMs, ready);
+    await settleWithin(
+      disposalBoundMs,
+      expect(fixture[Symbol.asyncDispose]()).rejects.toThrow("disposal bound")
+    );
+    expect(
+      await Promise.race([stopped.then(() => "settled"), setImmediate("open")])
+    ).toBe("settled");
+    await expect(stat(fixture.directory)).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    const result = await stopped;
+    expect(result.status).toBe(null);
+  }
+);
+
+test.skipIf(process.platform === "win32")(
+  "a command that ignores the default stop signal is stopped when its signal aborts",
+  async () => {
+    await using fixture = await createCommandFixture(
+      "sinon-command-abort-stubborn-"
+    );
+    const controller = new AbortController();
+    const ready = (async () => {
+      for await (const { filename } of watch(fixture.directory, {
+        signal: controller.signal
+      })) {
+        if (filename === "ready") {
+          break;
+        }
+      }
+    })();
+    const stopped = fixture.run(process.execPath, ["-e", stubbornLeader], {
+      signal: controller.signal
+    });
+    try {
+      await settleWithin(failureResultBoundMs, ready);
+    } finally {
+      controller.abort();
+    }
+    const result = await settleWithin(failureResultBoundMs, stopped);
+    expect(result.error?.name).toBe("AbortError");
+    expect(result.status).toBe(null);
+  }
+);
+
+test("a fixture setup failure waits for sibling work and removes the directory", async ({
+  signal
+}) => {
   const fixture = await createCommandFixture("sinon-command-setup-");
   const failure = new Error("fixture setup failed");
   let completed = false;
   await expect(async () => {
     await using ownedFixture = fixture;
     const finishSetup = async (): Promise<void> => {
-      const write = await ownedFixture.run(process.execPath, [
-        "-e",
-        'require("node:fs").writeFileSync("prepared", "sibling ready")'
-      ]);
+      const write = await ownedFixture.run(
+        process.execPath,
+        ["-e", 'require("node:fs").writeFileSync("prepared", "sibling ready")'],
+        { signal }
+      );
       expect(write.status).toBe(0);
-      const read = await ownedFixture.run(process.execPath, [
-        "-e",
-        'process.stdout.write(require("node:fs").readFileSync("prepared"))'
-      ]);
+      const read = await ownedFixture.run(
+        process.execPath,
+        [
+          "-e",
+          'process.stdout.write(require("node:fs").readFileSync("prepared"))'
+        ],
+        { signal }
+      );
       expect(read.stdout.toString()).toBe("sibling ready");
       completed = true;
     };
@@ -169,7 +300,9 @@ test("a configurator write failure leaves the fixture alive through a late write
   const siblingHeld = siblingStarted;
   const reportedWhileHeld = reported;
   releaseSibling.resolve(null);
-  expect(await failureResult).toBe(failure);
+  const outcome = await failureResult;
+  await drainWithin(failureResultBoundMs, configuration);
+  expect(outcome).toBe(failure);
   if (siblingHeld) {
     expect(reportedWhileHeld).toBe(false);
     expect(failedWhileHeld || failedAfterWrite).toBe(true);
@@ -223,9 +356,11 @@ test("a configurator write failure reports its failure within the bound when wri
     await using ownedFixture = fixture;
     await configureBaseline(ownedFixture.directory, "node", "eligible");
   })();
-  await expect(settleWithin(failureResultBoundMs, configuration)).rejects.toBe(
-    failure
+  const outcome = await settleWithin(failureResultBoundMs, configuration).catch(
+    (error: unknown) => error
   );
+  await drainWithin(failureResultBoundMs, configuration);
+  expect(outcome).toBe(failure);
   expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"

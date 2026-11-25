@@ -161,7 +161,9 @@ new RuleTester({
   }
 );
 
-test("root and materialized configs report adopted policies as errors", async () => {
+test("root and materialized configs report adopted policies as errors", async ({
+  signal
+}) => {
   await using fixture = await createCommandFixture("sinon-react-compiler-");
   const { directory } = fixture;
   await configureBaseline(directory, "node", "eligible");
@@ -234,7 +236,13 @@ test("root and materialized configs report adopted policies as errors", async ()
       path.resolve(import.meta.dirname, "../../../../../oxlint.config.ts"),
       path.join(directory, "oxlint.config.ts")
     ].map(async (configuration) => {
-      const result = await runUltracite(fixture, ".", "check", configuration);
+      const result = await runUltracite(
+        fixture,
+        ".",
+        signal,
+        "check",
+        configuration
+      );
       expect(result.status).toBe(1);
       expect(
         result.diagnostics.filter(

@@ -12,7 +12,9 @@ const findings = (result: Awaited<ReturnType<typeof runUltracite>>) =>
     ({ code }) => code?.includes("no-floating-promises") === true
   );
 
-test("Harness promise policy reports unhandled work without rewriting void", async () => {
+test("Harness promise policy reports unhandled work without rewriting void", async ({
+  signal
+}) => {
   await using fixture = await createCommandFixture("sinon-promises-");
   const { directory } = fixture;
   await writeFile(
@@ -41,7 +43,7 @@ test("Harness promise policy reports unhandled work without rewriting void", asy
   );
   expect(
     findings(
-      await runUltracite(fixture, "sample.ts", "fix", configuration, [
+      await runUltracite(fixture, "sample.ts", signal, "fix", configuration, [
         "--type-aware"
       ])
     )
@@ -51,7 +53,7 @@ test("Harness promise policy reports unhandled work without rewriting void", asy
   expect(text).toContain("void work().catch(");
   expect(
     findings(
-      await runUltracite(fixture, "sample.ts", "check", configuration, [
+      await runUltracite(fixture, "sample.ts", signal, "check", configuration, [
         "--type-aware"
       ])
     )

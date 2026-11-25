@@ -302,7 +302,9 @@ describe("pnpm profile configuration", () => {
     }
   });
 
-  test("Ultracite runs every installed policy together without duplicate diagnostics", async () => {
+  test("Ultracite runs every installed policy together without duplicate diagnostics", async ({
+    signal
+  }) => {
     await using fixture = await createCommandFixture("sinon-profile-lint-");
     const { directory } = fixture;
     await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
@@ -319,6 +321,7 @@ describe("pnpm profile configuration", () => {
     const { diagnostics, status } = await runUltracite(
       fixture,
       "sample.ts",
+      signal,
       "check",
       path.join(directory, "oxlint.config.ts")
     );
@@ -356,7 +359,9 @@ describe("pnpm profile configuration", () => {
     }
   });
 
-  test("Ultracite composes the base with a framework preset and target rules", async () => {
+  test("Ultracite composes the base with a framework preset and target rules", async ({
+    signal
+  }) => {
     await using fixture = await createCommandFixture("sinon-profile-compose-");
     const { directory } = fixture;
     await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
@@ -377,6 +382,7 @@ describe("pnpm profile configuration", () => {
     const { diagnostics, status } = await runUltracite(
       fixture,
       "sample.tsx",
+      signal,
       "check",
       path.join(directory, "composed.config.ts")
     );
@@ -472,7 +478,9 @@ describe("pnpm profile configuration", () => {
     }
   }, 90_000);
 
-  test("Ultracite keeps implied-eval diagnostics in root and materialized configs", async () => {
+  test("Ultracite keeps implied-eval diagnostics in root and materialized configs", async ({
+    signal
+  }) => {
     await using fixture = await createCommandFixture("sinon-implied-eval-");
     const { directory } = fixture;
     await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
@@ -489,6 +497,7 @@ describe("pnpm profile configuration", () => {
         const { diagnostics, status } = await runUltracite(
           fixture,
           "sample.js",
+          signal,
           "check",
           configuration
         );

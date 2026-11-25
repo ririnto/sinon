@@ -20,6 +20,7 @@ import { expect, onTestFinished, test, vi } from "vitest";
 import { materializeSample } from "../scripts/materialize-sample.js";
 import {
   createCommandFixture,
+  drainWithin,
   settleWithin,
   waitForFixtureTasks
 } from "./fixture-command.ts";
@@ -211,7 +212,9 @@ test("a failed copy settles a started sibling copy before the materializer rejec
   const siblingHeld = siblingStarted;
   const reportedWhileHeld = reported;
   releaseSibling.resolve(null);
-  expect(await failureResult).toBe(failure);
+  const outcome = await failureResult;
+  await drainWithin(failureResultBoundMs, materializing);
+  expect(outcome).toBe(failure);
   if (siblingHeld) {
     expect(reportedWhileHeld).toBe(false);
     expect(failedWhileHeld || failedAfterCopy).toBe(true);
@@ -266,9 +269,11 @@ test("a failed copy reports its failure within the bound when copies are seriali
     await using ownedFixture = fixture;
     await materialize("go-workspace", ownedFixture.directory);
   })();
-  await expect(settleWithin(failureResultBoundMs, materializing)).rejects.toBe(
-    failure
+  const outcome = await settleWithin(failureResultBoundMs, materializing).catch(
+    (error: unknown) => error
   );
+  await drainWithin(failureResultBoundMs, materializing);
+  expect(outcome).toBe(failure);
   expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
