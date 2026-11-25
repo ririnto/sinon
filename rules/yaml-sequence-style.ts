@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
 
 import { LineCounter, parseAllDocuments, visit } from "yaml";
 
@@ -19,8 +19,22 @@ const files = execFileSync(
   .filter(Boolean);
 
 for (const file of files) {
+  let source: string;
+  try {
+    source = readFileSync(file, "utf-8");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ENOENT" &&
+      lstatSync(file, { throwIfNoEntry: false }) === undefined
+    ) {
+      continue;
+    }
+    throw error;
+  }
   const lineCounter = new LineCounter();
-  for (const document of parseAllDocuments(readFileSync(file, "utf-8"), {
+  for (const document of parseAllDocuments(source, {
     lineCounter,
     prettyErrors: false
   })) {

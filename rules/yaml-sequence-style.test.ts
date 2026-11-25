@@ -29,16 +29,19 @@ test("YAML sequence lint requires block style for nonempty sequences", async () 
   } satisfies SpawnSyncOptionsWithStringEncoding;
   execFileSync("git", ["init", "--quiet"], options);
   const file = path.join(directory, "sequences.yml");
+  const deletedFile = path.join(directory, "deleted.yml");
   const valid = 'block:\n  - one\n  - two\nempty: []\nquoted: "[one, two]"\n';
   await Promise.all([
     writeFile(file, valid),
+    writeFile(deletedFile, "deleted: [one, two]\n"),
     writeFile(path.join(directory, "pnpm-lock.yaml"), "cpu: [arm64]\n")
   ]);
   execFileSync(
     "git",
-    ["add", "--", "sequences.yml", "pnpm-lock.yaml"],
+    ["add", "--", "sequences.yml", "deleted.yml", "pnpm-lock.yaml"],
     options
   );
+  await rm(deletedFile);
   const check = path.join(import.meta.dirname, "yaml-sequence-style.ts");
   const accepted = spawnSync(process.execPath, [check], options);
   expect(accepted.status, accepted.stderr).toBe(0);
