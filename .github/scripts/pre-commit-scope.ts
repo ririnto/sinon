@@ -6,7 +6,8 @@ const alwaysRunChecks = [
   "check:markdownlint-cli2",
   "check:typescript",
   "check:ultracite",
-  "check:versions"
+  "check:versions",
+  "check:yaml-sequences"
 ];
 
 const testScopes: readonly {
