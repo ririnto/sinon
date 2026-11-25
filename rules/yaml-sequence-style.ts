@@ -3,18 +3,6 @@ import { readFileSync } from "node:fs";
 
 import { LineCounter, parseAllDocuments, visit } from "yaml";
 
-/**
- * The Git exclusion below covers these pnpm-generated lockfiles.
- *
- * - pnpm-lock.yaml
- * - plugins/harness/samples/cargo-workspace/pnpm-lock.yaml
- * - plugins/harness/samples/go-workspace/pnpm-lock.yaml
- * - plugins/harness/samples/gradle-multi-module/pnpm-lock.yaml
- * - plugins/harness/samples/maven-reactor/pnpm-lock.yaml
- * - plugins/harness/samples/pnpm-workspace/pnpm-lock.yaml
- * - plugins/harness/samples/uv-workspace/pnpm-lock.yaml
- * - plugins/spec-driven-development/pnpm-lock.yaml
- */
 const files = execFileSync(
   "git",
   [
