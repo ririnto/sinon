@@ -1,12 +1,13 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { describe, expect, test } from "vitest";
 
-import { configureBaseline } from "../scripts/configure.js";
-import { runFixtureCommand } from "./fixture-command.ts";
+import {
+  createCommandFixture,
+  waitForFixtureTasks
+} from "./fixture-command.ts";
 import { arrayValue, stringValue } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
@@ -102,50 +103,77 @@ const profileTest = test
     "profileRoot",
     { scope: "file" },
     async ({ environment }, { onCleanup }) => {
-      const root = await mkdtemp(path.join(tmpdir(), "sinon-native-profiles-"));
-      onCleanup(async () => {
-        await rm(root, { force: true, recursive: true });
-      });
-      await Promise.all(
-        nativeProfiles.map(async ({ profile, executables }) => {
-          const directory = path.join(root, profile);
-          await mkdir(directory);
-          const options = { cwd: directory, env: environment };
-          expect(git(options, "init", "--initial-branch=main").status).toBe(0);
-          await writeFile(path.join(directory, "README.md"), "# Target\n");
-          if (profile === "shell") {
-            await Promise.all(
-              trackedScripts.map(async (name) => {
+      const fixture = await createCommandFixture("sinon-native-profiles-");
+      try {
+        await waitForFixtureTasks(
+          nativeProfiles.map(async ({ profile, executables }) => {
+            const directory = path.join(fixture.directory, profile);
+            await mkdir(directory);
+            const options = { cwd: directory, env: environment };
+            expect(git(options, "init", "--initial-branch=main").status).toBe(
+              0
+            );
+            await writeFile(path.join(directory, "README.md"), "# Target\n");
+            if (profile === "shell") {
+              await waitForFixtureTasks(
+                trackedScripts.map(async (name) => {
+                  await writeFile(
+                    path.join(directory, name),
+                    "#!/usr/bin/env sh\n"
+                  );
+                })
+              );
+            }
+            expect(git(options, "add", ".").status).toBe(0);
+            expect(git(options, "commit", "-m", "Initial fixture").status).toBe(
+              0
+            );
+            expect(git(options, "init", "--bare", "remote.git").status).toBe(0);
+            expect(
+              git(options, "remote", "add", "origin", "remote.git").status
+            ).toBe(0);
+            const configuration = await fixture.run(
+              process.execPath,
+              [
+                path.join(
+                  repositoryRoot,
+                  "plugins/harness/scripts/configure.ts"
+                ),
+                "--target",
+                directory,
+                "--profile",
+                profile,
+                "--eligibility",
+                "eligible"
+              ],
+              { env: environment }
+            );
+            expect(configuration.status, configuration.stderr.toString()).toBe(
+              0
+            );
+            await mkdir(path.join(directory, ".bin"));
+            await waitForFixtureTasks(
+              executables.map(async (name) => {
                 await writeFile(
-                  path.join(directory, name),
-                  "#!/usr/bin/env sh\n"
+                  path.join(directory, ".bin", name),
+                  `#!/usr/bin/env node\nimport { appendFileSync } from "node:fs";\nappendFileSync(process.env.HARNESS_FIXTURE_TRACE, JSON.stringify(["${name}", ...process.argv.slice(2)]) + "\\n");\nif (process.env.HARNESS_FIXTURE_FAIL === "${name}") process.exit(7);\n`,
+                  { mode: 0o755 }
                 );
               })
             );
-          }
-          expect(git(options, "add", ".").status).toBe(0);
-          expect(git(options, "commit", "-m", "Initial fixture").status).toBe(
-            0
-          );
-          expect(git(options, "init", "--bare", "remote.git").status).toBe(0);
-          expect(
-            git(options, "remote", "add", "origin", "remote.git").status
-          ).toBe(0);
-          await configureBaseline(directory, profile, "eligible");
-          await mkdir(path.join(directory, ".bin"));
-          await Promise.all(
-            executables.map(async (name) => {
-              await writeFile(
-                path.join(directory, ".bin", name),
-                `#!/usr/bin/env node\nimport { appendFileSync } from "node:fs";\nappendFileSync(process.env.HARNESS_FIXTURE_TRACE, JSON.stringify(["${name}", ...process.argv.slice(2)]) + "\\n");\nif (process.env.HARNESS_FIXTURE_FAIL === "${name}") process.exit(7);\n`,
-                { mode: 0o755 }
-              );
-            })
-          );
-          expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
-        })
-      );
-      return root;
+            expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(
+              0
+            );
+          })
+        );
+      } catch (error) {
+        await fixture[Symbol.asyncDispose]();
+        throw error;
+      }
+      onCleanup(async () => {
+        await fixture[Symbol.asyncDispose]();
+      });
+      return fixture.directory;
     }
   );
 
@@ -168,14 +196,10 @@ describe("remaining native profile Git gates", () => {
     { timeout: 30_000 },
     async (
       { profile, entrypoint, hook, state, executables, nativeCalls, testCalls },
-      { environment, expect: check, onTestFinished, profileRoot, signal }
+      { environment, expect: check, profileRoot, signal }
     ) => {
-      const directory = await mkdtemp(
-        path.join(tmpdir(), "sinon-native-gate-")
-      );
-      onTestFinished(async () => {
-        await rm(directory, { force: true, recursive: true });
-      });
+      await using fixture = await createCommandFixture("sinon-native-gate-");
+      const { directory } = fixture;
       await cp(path.join(profileRoot, profile), directory, { recursive: true });
       const trace = path.join(directory, "native-calls.txt");
       const options = {
@@ -202,7 +226,7 @@ describe("remaining native profile Git gates", () => {
         hook === "pre-commit"
           ? ["commit", "-m", "Changed fixture"]
           : ["push", "origin", "main"];
-      const result = await runFixtureCommand(
+      const result = await fixture.run(
         entrypoint === "pnpm" ? "pnpm" : "git",
         entrypoint === "pnpm"
           ? ["run", hook]

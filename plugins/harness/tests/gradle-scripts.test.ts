@@ -6,7 +6,7 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { parseDocument } from "yaml";
 
-import { runFixtureCommand } from "./fixture-command.ts";
+import { createCommandFixture } from "./fixture-command.ts";
 import {
   arrayValue,
   objectValue,
@@ -120,122 +120,109 @@ describe("Gradle Node-side script integration", () => {
       { buildSrc, entrypoint, hook, valid },
       { expect: check, signal }
     ) => {
-      const directory = await mkdtemp(
-        path.join(tmpdir(), "sinon-gradle-scripts-")
+      await using fixture = await createCommandFixture("sinon-gradle-scripts-");
+      const { directory } = fixture;
+      const manifest: unknown = JSON.parse(
+        await readFile(path.join(gradleProfile, "package.json"), "utf-8")
       );
-      try {
-        const manifest: unknown = JSON.parse(
-          await readFile(path.join(gradleProfile, "package.json"), "utf-8")
-        );
-        const scripts = {
-          ...objectValue(valueAt(manifest, "scripts")),
-          ...(buildSrc
-            ? { "check:test:gradle": "./gradlew :check :buildSrc:check" }
-            : {})
-        };
-        await writeFile(
-          path.join(directory, "package.json"),
-          JSON.stringify({ private: true, scripts })
-        );
-        await cp(
-          path.join(pnpmProfile, ".markdownlint-cli2.jsonc"),
-          path.join(directory, ".markdownlint-cli2.jsonc")
-        );
-        await cp(
-          path.join(pnpmProfile, "rules"),
-          path.join(directory, "rules"),
-          {
-            filter: (source) => !source.endsWith(".test.ts"),
-            recursive: true
-          }
-        );
-        await writeFile(
-          path.join(directory, "README.md"),
-          "# Target\n\nReady.\n"
-        );
-        await writeFile(
-          path.join(directory, "gradlew"),
-          "#!/usr/bin/env sh\n# vim: set fileencoding=utf-8 :\nset -e\nprintf '%s\\n' \"$*\" >> gradle-calls.txt\n"
-        );
-        await chmod(path.join(directory, "gradlew"), 0o755);
-        const options = {
-          cwd: directory,
-          signal,
-          env: {
-            ...fixtureEnvironment(),
-            PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
-          }
-        };
-        const identity = [
-          "-c",
-          "user.name=Hook Fixture",
-          "-c",
-          "user.email=fixture@example.invalid"
-        ];
-        const git = (...args: string[]) =>
-          spawnSync("git", [...identity, ...args], options);
-        check(git("init", "--initial-branch=main").status).toBe(0);
-        check(git("add", ".").status).toBe(0);
-        check(git("commit", "-m", "Initial fixture").status).toBe(0);
-        const remote = path.join(directory, "remote.git");
-        check(git("init", "--bare", remote).status).toBe(0);
-        check(git("remote", "add", "origin", remote).status).toBe(0);
-        await cp(
-          path.join(gradleProfile, ".husky"),
-          path.join(directory, ".husky"),
-          {
-            recursive: true
-          }
-        );
-        const preparation = await runFixtureCommand(
-          "pnpm",
-          ["run", "prepare"],
-          options
-        );
-        check(preparation.status).toBe(0);
-        check(
-          git("config", "--get", "core.hooksPath").stdout.toString().trim()
-        ).toBe(".husky/_");
-        await writeFile(
-          path.join(directory, "README.md"),
-          valid ? "# Target\n\nChanged.\n" : "# First\n\n# Second\n"
-        );
-        check(git("add", "README.md").status).toBe(0);
-        const gitArguments =
-          hook === "pre-commit"
-            ? ["commit", "-m", "Changed fixture"]
-            : ["push", "origin", "main"];
-        const result =
-          entrypoint === "pnpm"
-            ? await runFixtureCommand("pnpm", ["run", hook], options)
-            : await runFixtureCommand(
-                "git",
-                [...identity, ...gitArguments],
-                options
-              );
-        check(result.error).toBeUndefined();
-        if (valid) {
-          check(result.status).toBe(0);
-          check(
-            await readFile(path.join(directory, "gradle-calls.txt"), "utf-8")
-          ).toBe(buildSrc ? ":check :buildSrc:check\n" : "ktlintCheck check\n");
-        } else {
-          check(result.status).toBe(1);
-          await check(
-            readFile(path.join(directory, "gradle-calls.txt"))
-          ).rejects.toMatchObject({ code: "ENOENT" });
-          if (hook === "pre-commit") {
-            check(
-              git("log", "-1", "--format=%s").stdout.toString().trim()
-            ).toBe("Initial fixture");
-          } else {
-            check(
-              git("--git-dir", remote, "show-ref", "refs/heads/main").status
-            ).toBe(1);
-          }
+      const scripts = {
+        ...objectValue(valueAt(manifest, "scripts")),
+        ...(buildSrc
+          ? { "check:test:gradle": "./gradlew :check :buildSrc:check" }
+          : {})
+      };
+      await writeFile(
+        path.join(directory, "package.json"),
+        JSON.stringify({ private: true, scripts })
+      );
+      await cp(
+        path.join(pnpmProfile, ".markdownlint-cli2.jsonc"),
+        path.join(directory, ".markdownlint-cli2.jsonc")
+      );
+      await cp(path.join(pnpmProfile, "rules"), path.join(directory, "rules"), {
+        filter: (source) => !source.endsWith(".test.ts"),
+        recursive: true
+      });
+      await writeFile(
+        path.join(directory, "README.md"),
+        "# Target\n\nReady.\n"
+      );
+      await writeFile(
+        path.join(directory, "gradlew"),
+        "#!/usr/bin/env sh\n# vim: set fileencoding=utf-8 :\nset -e\nprintf '%s\\n' \"$*\" >> gradle-calls.txt\n"
+      );
+      await chmod(path.join(directory, "gradlew"), 0o755);
+      const options = {
+        cwd: directory,
+        signal,
+        env: {
+          ...fixtureEnvironment(),
+          PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
         }
-      } finally {
-        await rm(directory, { force: true, recursive: true });
+      };
+      const identity = [
+        "-c",
+        "user.name=Hook Fixture",
+        "-c",
+        "user.email=fixture@example.invalid"
+      ];
+      const git = (...args: string[]) =>
+        spawnSync("git", [...identity, ...args], options);
+      check(git("init", "--initial-branch=main").status).toBe(0);
+      check(git("add", ".").status).toBe(0);
+      check(git("commit", "-m", "Initial fixture").status).toBe(0);
+      const remote = path.join(directory, "remote.git");
+      check(git("init", "--bare", remote).status).toBe(0);
+      check(git("remote", "add", "origin", remote).status).toBe(0);
+      await cp(
+        path.join(gradleProfile, ".husky"),
+        path.join(directory, ".husky"),
+        {
+          recursive: true
+        }
+      );
+      const preparation = await fixture.run(
+        "pnpm",
+        ["run", "prepare"],
+        options
+      );
+      check(preparation.status).toBe(0);
+      check(
+        git("config", "--get", "core.hooksPath").stdout.toString().trim()
+      ).toBe(".husky/_");
+      await writeFile(
+        path.join(directory, "README.md"),
+        valid ? "# Target\n\nChanged.\n" : "# First\n\n# Second\n"
+      );
+      check(git("add", "README.md").status).toBe(0);
+      const gitArguments =
+        hook === "pre-commit"
+          ? ["commit", "-m", "Changed fixture"]
+          : ["push", "origin", "main"];
+      const result =
+        entrypoint === "pnpm"
+          ? await fixture.run("pnpm", ["run", hook], options)
+          : await fixture.run("git", [...identity, ...gitArguments], options);
+      check(result.error).toBeUndefined();
+      if (valid) {
+        check(result.status).toBe(0);
+        check(
+          await readFile(path.join(directory, "gradle-calls.txt"), "utf-8")
+        ).toBe(buildSrc ? ":check :buildSrc:check\n" : "ktlintCheck check\n");
+      } else {
+        check(result.status).toBe(1);
+        await check(
+          readFile(path.join(directory, "gradle-calls.txt"))
+        ).rejects.toMatchObject({ code: "ENOENT" });
+        if (hook === "pre-commit") {
+          check(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
+            "Initial fixture"
+          );
+        } else {
+          check(
+            git("--git-dir", remote, "show-ref", "refs/heads/main").status
+          ).toBe(1);
+        }
       }
     }
   );

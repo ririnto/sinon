@@ -1,11 +1,14 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, expect, test } from "vitest";
 
+import {
+  createCommandFixture,
+  waitForFixtureTasks
+} from "../../../tests/fixture-command.ts";
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
 import blankLines from "../plugins/no-blank-lines-in-functions.js";
 import siblingSpacing from "../plugins/sibling-test-spacing.js";
@@ -27,50 +30,47 @@ const writeRuleConfiguration = async (
 };
 
 test("blank-line checks preserve directive, comment, and literal gaps", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "sinon-blank-lines-"));
-  try {
-    await writeRuleConfiguration(
-      directory,
-      "no-blank-lines-in-functions.ts",
-      "style/no-blank-lines-in-functions"
-    );
-    await writeFile(
-      path.join(directory, "valid.ts"),
-      "function valid() {\n'use strict';\n\n/**\n * Document the nested value.\n\n */\nconst text = `first\n\nlast`;\nreturn text;\n}\nvalid();"
-    );
-    await writeFile(
-      path.join(directory, "invalid.ts"),
-      [
-        "function blank() {\n\nreturn 1;\n}",
-        "function windows() {\r\n\r\nreturn 1;\r\n}",
-        "function unicode() {\u2028\u2028return 1;\u2028}",
-        "function nested() {\nconst inner = () => {\n// Explain the return value\nreturn 1;\n};\nreturn inner();\n}",
-        "blank(); windows(); unicode(); nested();"
-      ].join("\n")
-    );
-    const formatted = await runUltracite(directory, "valid.ts", "fix");
-    expect(formatted.status).toBe(0);
-    const valid = await runUltracite(directory, "valid.ts");
-    expect(valid.status).toBe(0);
-    expect(
-      valid.diagnostics.filter(
-        ({ code }) => code === "style(no-blank-lines-in-functions)"
-      )
-    ).toEqual([]);
-    const invalid = await runUltracite(directory, "invalid.ts");
-    expect(invalid.status).toBe(1);
-    expect(
-      invalid.diagnostics
-        .filter(({ code }) => code?.startsWith("style(") === true)
-        .map(({ code }) => code)
-    ).toEqual([
-      "style(no-blank-lines-in-functions)",
-      "style(no-blank-lines-in-functions)",
-      "style(no-blank-lines-in-functions)"
-    ]);
-  } finally {
-    await rm(directory, { force: true, recursive: true });
-  }
+  await using fixture = await createCommandFixture("sinon-blank-lines-");
+  const { directory } = fixture;
+  await writeRuleConfiguration(
+    directory,
+    "no-blank-lines-in-functions.ts",
+    "style/no-blank-lines-in-functions"
+  );
+  await writeFile(
+    path.join(directory, "valid.ts"),
+    "function valid() {\n'use strict';\n\n/**\n * Document the nested value.\n\n */\nconst text = `first\n\nlast`;\nreturn text;\n}\nvalid();"
+  );
+  await writeFile(
+    path.join(directory, "invalid.ts"),
+    [
+      "function blank() {\n\nreturn 1;\n}",
+      "function windows() {\r\n\r\nreturn 1;\r\n}",
+      "function unicode() {\u2028\u2028return 1;\u2028}",
+      "function nested() {\nconst inner = () => {\n// Explain the return value\nreturn 1;\n};\nreturn inner();\n}",
+      "blank(); windows(); unicode(); nested();"
+    ].join("\n")
+  );
+  const formatted = await runUltracite(fixture, "valid.ts", "fix");
+  expect(formatted.status).toBe(0);
+  const valid = await runUltracite(fixture, "valid.ts");
+  expect(valid.status).toBe(0);
+  expect(
+    valid.diagnostics.filter(
+      ({ code }) => code === "style(no-blank-lines-in-functions)"
+    )
+  ).toEqual([]);
+  const invalid = await runUltracite(fixture, "invalid.ts");
+  expect(invalid.status).toBe(1);
+  expect(
+    invalid.diagnostics
+      .filter(({ code }) => code?.startsWith("style(") === true)
+      .map(({ code }) => code)
+  ).toEqual([
+    "style(no-blank-lines-in-functions)",
+    "style(no-blank-lines-in-functions)",
+    "style(no-blank-lines-in-functions)"
+  ]);
 }, 30_000);
 
 const commentFixtures = [
@@ -224,54 +224,46 @@ const commentFixtures = [
 ] as const;
 
 test("inline-comment checks preserve directives and license notices", async () => {
-  const directory = await mkdtemp(
-    path.join(tmpdir(), "sinon-inline-comments-")
+  await using fixture = await createCommandFixture("sinon-inline-comments-");
+  const { directory } = fixture;
+  await writeRuleConfiguration(
+    directory,
+    "no-inline-comments-in-functions.ts",
+    "style/no-inline-comments-in-functions"
   );
-  try {
-    await writeRuleConfiguration(
-      directory,
-      "no-inline-comments-in-functions.ts",
-      "style/no-inline-comments-in-functions"
-    );
-    await Promise.all(
-      commentFixtures.map(async ({ filename, source }) => {
-        await writeFile(path.join(directory, filename), source);
+  await waitForFixtureTasks(
+    commentFixtures.map(async ({ filename, source }) => {
+      await writeFile(path.join(directory, filename), source);
+    })
+  );
+  const validFiles = commentFixtures
+    .filter(({ expected }) => expected === 0)
+    .map(({ filename }) => filename);
+  const formatted = await runUltracite(fixture, validFiles, "fix");
+  expect(formatted.status, JSON.stringify(formatted.diagnostics)).toBe(0);
+  const valid = await runUltracite(fixture, validFiles);
+  expect(valid.status).toBe(0);
+  expect(
+    valid.diagnostics.filter(
+      ({ code }) => code === "style(no-inline-comments-in-functions)"
+    )
+  ).toHaveLength(0);
+  await waitForFixtureTasks(
+    commentFixtures
+      .filter(({ expected }) => expected > 0)
+      .map(async ({ filename, expected }) => {
+        const { diagnostics, status } = await runUltracite(fixture, filename);
+        const comments = diagnostics.filter(
+          ({ code }) => code === "style(no-inline-comments-in-functions)"
+        );
+        expect(comments, filename).toHaveLength(expected);
+        expect(status, filename).toBe(1);
       })
-    );
-    const validFiles = commentFixtures
-      .filter(({ expected }) => expected === 0)
-      .map(({ filename }) => filename);
-    const formatted = await runUltracite(directory, validFiles, "fix");
-    expect(formatted.status, JSON.stringify(formatted.diagnostics)).toBe(0);
-    const valid = await runUltracite(directory, validFiles);
-    expect(valid.status).toBe(0);
-    expect(
-      valid.diagnostics.filter(
-        ({ code }) => code === "style(no-inline-comments-in-functions)"
-      )
-    ).toHaveLength(0);
-    await Promise.all(
-      commentFixtures
-        .filter(({ expected }) => expected > 0)
-        .map(async ({ filename, expected }) => {
-          const { diagnostics, status } = await runUltracite(
-            directory,
-            filename
-          );
-          const comments = diagnostics.filter(
-            ({ code }) => code === "style(no-inline-comments-in-functions)"
-          );
-          expect(comments, filename).toHaveLength(expected);
-          expect(status, filename).toBe(1);
-        })
-    );
-    await runUltracite(directory, "plain.ts", "fix");
-    const fixed = await readFile(path.join(directory, "plain.ts"), "utf-8");
-    expect(fixed).toContain("// explanatory top-level comment");
-    expect(fixed).toContain("/** Not declaration documentation. */");
-  } finally {
-    await rm(directory, { force: true, recursive: true });
-  }
+  );
+  await runUltracite(fixture, "plain.ts", "fix");
+  const fixed = await readFile(path.join(directory, "plain.ts"), "utf-8");
+  expect(fixed).toContain("// explanatory top-level comment");
+  expect(fixed).toContain("/** Not declaration documentation. */");
 }, 60_000);
 
 const registrationCases = [

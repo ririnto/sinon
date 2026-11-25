@@ -22,7 +22,7 @@ import type {
   TypeScriptProfile
 } from "../scripts/configure.js";
 import formatter from "../tooling/pnpm/oxfmt.config.ts";
-import { runFixtureCommand } from "./fixture-command.ts";
+import { createCommandFixture } from "./fixture-command.ts";
 import { valueAt, objectValue, optionalObject } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
@@ -39,9 +39,9 @@ const profiles: BaselineProfile[] = [
   "react"
 ];
 
-const targetDirectory = async (finish = onTestFinished): Promise<string> => {
+const targetDirectory = async (): Promise<string> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-baseline-"));
-  finish(async () => {
+  onTestFinished(async () => {
     await rm(directory, { force: true, recursive: true });
   });
   return directory;
@@ -683,11 +683,9 @@ describe("fresh-root baseline", () => {
   ] as const)(
     "Node %s hooks run the actual Ultracite gate and reject a source violation",
     { timeout: 30_000 },
-    async (
-      [entrypoint, typescriptProfile],
-      { expect: check, onTestFinished: finish, signal }
-    ) => {
-      const directory = await targetDirectory(finish);
+    async ([entrypoint, typescriptProfile], { expect: check, signal }) => {
+      await using fixture = await createCommandFixture("sinon-baseline-");
+      const { directory } = fixture;
       const options = {
         cwd: directory,
         signal,
@@ -720,19 +718,19 @@ describe("fresh-root baseline", () => {
         path.join(directory, "node_modules"),
         "dir"
       );
-      const preparation = await runFixtureCommand(
+      const preparation = await fixture.run(
         "pnpm",
         ["run", "prepare"],
         options
       );
       check(preparation.status).toBe(0);
       if (typescriptProfile === "node") {
-        const build = await runFixtureCommand("pnpm", ["exec", "tsc"], options);
+        const build = await fixture.run("pnpm", ["exec", "tsc"], options);
         check(
           build.status,
           build.stdout.toString() + build.stderr.toString()
         ).toBe(0);
-        const load = await runFixtureCommand(
+        const load = await fixture.run(
           process.execPath,
           [
             "--input-type=module",
@@ -751,8 +749,8 @@ describe("fresh-root baseline", () => {
       check(git("ls-files", "--", ".husky/_").stdout.toString()).toBe("");
       const commit =
         entrypoint === "pnpm"
-          ? await runFixtureCommand("pnpm", ["run", "pre-commit"], options)
-          : await runFixtureCommand(
+          ? await fixture.run("pnpm", ["run", "pre-commit"], options)
+          : await fixture.run(
               "git",
               [...identity, "commit", "-m", "Configure Node baseline"],
               options
@@ -763,8 +761,8 @@ describe("fresh-root baseline", () => {
       ).toBe(0);
       check(
         (entrypoint === "pnpm"
-          ? await runFixtureCommand("pnpm", ["run", "pre-push"], options)
-          : await runFixtureCommand(
+          ? await fixture.run("pnpm", ["run", "pre-push"], options)
+          : await fixture.run(
               "git",
               [...identity, "push", "origin", "main"],
               options
@@ -778,16 +776,16 @@ describe("fresh-root baseline", () => {
       check(git("add", "bad.ts").status).toBe(0);
       const rejectedCommit =
         entrypoint === "pnpm"
-          ? await runFixtureCommand("pnpm", ["run", "pre-commit"], options)
-          : await runFixtureCommand(
+          ? await fixture.run("pnpm", ["run", "pre-commit"], options)
+          : await fixture.run(
               "git",
               [...identity, "commit", "-m", "Invalid source"],
               options
             );
       const rejectedPush =
         entrypoint === "pnpm"
-          ? await runFixtureCommand("pnpm", ["run", "pre-push"], options)
-          : await runFixtureCommand(
+          ? await fixture.run("pnpm", ["run", "pre-push"], options)
+          : await fixture.run(
               "git",
               [...identity, "push", "origin", "main"],
               options
@@ -852,9 +850,10 @@ describe("Maven and Go hook entrypoints", () => {
     { timeout: 30_000 },
     async (
       { profile, entrypoint, hook, valid, calls },
-      { expect: check, onTestFinished: finish, signal }
+      { expect: check, signal }
     ) => {
-      const directory = await targetDirectory(finish);
+      await using fixture = await createCommandFixture("sinon-baseline-");
+      const { directory } = fixture;
       const options = {
         cwd: directory,
         signal,
@@ -895,7 +894,7 @@ describe("Maven and Go hook entrypoints", () => {
           );
         })
       );
-      const preparation = await runFixtureCommand(
+      const preparation = await fixture.run(
         "pnpm",
         ["run", "prepare"],
         options
@@ -912,12 +911,8 @@ describe("Maven and Go hook entrypoints", () => {
           : ["push", "origin", "main"];
       const result =
         entrypoint === "pnpm"
-          ? await runFixtureCommand("pnpm", ["run", hook], options)
-          : await runFixtureCommand(
-              "git",
-              [...identity, ...gitArguments],
-              options
-            );
+          ? await fixture.run("pnpm", ["run", hook], options)
+          : await fixture.run("git", [...identity, ...gitArguments], options);
       check(result.status).toBe(valid ? 0 : 1);
       if (valid) {
         const recordedCalls = await readFile(

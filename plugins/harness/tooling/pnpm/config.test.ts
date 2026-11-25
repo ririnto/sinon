@@ -23,6 +23,10 @@ import { parseDocument } from "yaml";
 import rootManifest from "../../../../package.json" with { type: "json" };
 import { configureBaseline } from "../../scripts/configure.js";
 import {
+  createCommandFixture,
+  waitForFixtureTasks
+} from "../../tests/fixture-command.ts";
+import {
   readUltraciteResult,
   runUltracite
 } from "../../tests/ultracite-fixture.js";
@@ -299,40 +303,37 @@ describe("pnpm profile configuration", () => {
   });
 
   test("Ultracite runs every installed policy together without duplicate diagnostics", async () => {
-    const directory = await mkdtemp(path.join(tmpdir(), "sinon-profile-lint-"));
-    try {
-      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-      await configureBaseline(directory, "node", "eligible");
-      await symlink(
-        path.resolve(profileDirectory, "../../../../node_modules"),
-        path.join(directory, "node_modules"),
-        "dir"
-      );
-      await writeFile(
-        path.join(directory, "sample.ts"),
-        `${packageStyleFixture}\nexport interface Undocumented { value: string; }\n`
-      );
-      const { diagnostics, status } = await runUltracite(
-        directory,
-        "sample.ts",
-        "check",
-        path.join(directory, "oxlint.config.ts")
-      );
-      expect(status).toBe(1);
-      expect(diagnostics.map(({ code }) => code)).toContain(
-        "tsdoc(require-export-tsdoc)"
-      );
-      for (const code of [
-        "function-spacing(no-blank-lines-in-functions)",
-        "function-comments(no-inline-comments-in-functions)",
-        "test-spacing(sibling-test-spacing)"
-      ]) {
-        expect(
-          diagnostics.filter((diagnostic) => diagnostic.code === code)
-        ).toMatchObject([{ code, severity: "error" }]);
-      }
-    } finally {
-      await rm(directory, { force: true, recursive: true });
+    await using fixture = await createCommandFixture("sinon-profile-lint-");
+    const { directory } = fixture;
+    await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+    await configureBaseline(directory, "node", "eligible");
+    await symlink(
+      path.resolve(profileDirectory, "../../../../node_modules"),
+      path.join(directory, "node_modules"),
+      "dir"
+    );
+    await writeFile(
+      path.join(directory, "sample.ts"),
+      `${packageStyleFixture}\nexport interface Undocumented { value: string; }\n`
+    );
+    const { diagnostics, status } = await runUltracite(
+      fixture,
+      "sample.ts",
+      "check",
+      path.join(directory, "oxlint.config.ts")
+    );
+    expect(status).toBe(1);
+    expect(diagnostics.map(({ code }) => code)).toContain(
+      "tsdoc(require-export-tsdoc)"
+    );
+    for (const code of [
+      "function-spacing(no-blank-lines-in-functions)",
+      "function-comments(no-inline-comments-in-functions)",
+      "test-spacing(sibling-test-spacing)"
+    ]) {
+      expect(
+        diagnostics.filter((diagnostic) => diagnostic.code === code)
+      ).toMatchObject([{ code, severity: "error" }]);
     }
   });
 
@@ -356,42 +357,37 @@ describe("pnpm profile configuration", () => {
   });
 
   test("Ultracite composes the base with a framework preset and target rules", async () => {
-    const directory = await mkdtemp(
-      path.join(tmpdir(), "sinon-profile-compose-")
+    await using fixture = await createCommandFixture("sinon-profile-compose-");
+    const { directory } = fixture;
+    await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+    await preparePackageRoot(directory);
+    await writeFile(
+      path.join(directory, "composed.config.ts"),
+      [
+        'import { defineConfig } from "oxlint";',
+        'import react from "ultracite/oxlint/react";',
+        'import base from "./oxlint.config.ts";',
+        'export default defineConfig({ ...base, extends: [...(base.extends ?? []), react], rules: { ...base.rules, "eslint/no-console": "error" } });'
+      ].join("\n")
     );
-    try {
-      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-      await preparePackageRoot(directory);
-      await writeFile(
-        path.join(directory, "composed.config.ts"),
-        [
-          'import { defineConfig } from "oxlint";',
-          'import react from "ultracite/oxlint/react";',
-          'import base from "./oxlint.config.ts";',
-          'export default defineConfig({ ...base, extends: [...(base.extends ?? []), react], rules: { ...base.rules, "eslint/no-console": "error" } });'
-        ].join("\n")
-      );
-      await writeFile(
-        path.join(directory, "sample.tsx"),
-        '/** Display an image. */\nexport function image() { return <img src="example.png" />; }\nconsole.log(image);\n'
-      );
-      const { diagnostics, status } = await runUltracite(
-        directory,
-        "sample.tsx",
-        "check",
-        path.join(directory, "composed.config.ts")
-      );
-      expect(status).toBe(1);
-      expect(diagnostics.map(({ code }) => code)).toEqual(
-        expect.arrayContaining([
-          "tsdoc(require-export-tsdoc)",
-          "jsx-a11y(alt-text)",
-          "eslint(no-console)"
-        ])
-      );
-    } finally {
-      await rm(directory, { force: true, recursive: true });
-    }
+    await writeFile(
+      path.join(directory, "sample.tsx"),
+      '/** Display an image. */\nexport function image() { return <img src="example.png" />; }\nconsole.log(image);\n'
+    );
+    const { diagnostics, status } = await runUltracite(
+      fixture,
+      "sample.tsx",
+      "check",
+      path.join(directory, "composed.config.ts")
+    );
+    expect(status).toBe(1);
+    expect(diagnostics.map(({ code }) => code)).toEqual(
+      expect.arrayContaining([
+        "tsdoc(require-export-tsdoc)",
+        "jsx-a11y(alt-text)",
+        "eslint(no-console)"
+      ])
+    );
   }, 30_000);
 
   test("materialized scripts discover nested style violations and ignore generated files", async () => {
@@ -477,34 +473,31 @@ describe("pnpm profile configuration", () => {
   }, 90_000);
 
   test("Ultracite keeps implied-eval diagnostics in root and materialized configs", async () => {
-    const directory = await mkdtemp(path.join(tmpdir(), "sinon-implied-eval-"));
-    try {
-      await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-      await preparePackageRoot(directory);
-      await writeFile(
-        path.join(directory, "sample.js"),
-        'setTimeout("alert(1)", 0);\n'
-      );
-      await Promise.all(
-        [
-          path.resolve(profileDirectory, "../../../..", "oxlint.config.ts"),
-          path.join(directory, "oxlint.config.ts")
-        ].map(async (configuration) => {
-          const { diagnostics, status } = await runUltracite(
-            directory,
-            "sample.js",
-            "check",
-            configuration
-          );
-          expect(status).toBe(1);
-          expect(diagnostics.map(({ code }) => code)).toContain(
-            "eslint(no-implied-eval)"
-          );
-        })
-      );
-    } finally {
-      await rm(directory, { force: true, recursive: true });
-    }
+    await using fixture = await createCommandFixture("sinon-implied-eval-");
+    const { directory } = fixture;
+    await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+    await preparePackageRoot(directory);
+    await writeFile(
+      path.join(directory, "sample.js"),
+      'setTimeout("alert(1)", 0);\n'
+    );
+    await waitForFixtureTasks(
+      [
+        path.resolve(profileDirectory, "../../../..", "oxlint.config.ts"),
+        path.join(directory, "oxlint.config.ts")
+      ].map(async (configuration) => {
+        const { diagnostics, status } = await runUltracite(
+          fixture,
+          "sample.js",
+          "check",
+          configuration
+        );
+        expect(status).toBe(1);
+        expect(diagnostics.map(({ code }) => code)).toContain(
+          "eslint(no-implied-eval)"
+        );
+      })
+    );
   }, 30_000);
 
   test("Markdownlint configuration resolves from an installed copy", async () => {

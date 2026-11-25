@@ -2,7 +2,7 @@ import type { SpawnSyncReturns } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 
-import { runFixtureCommand } from "./fixture-command.ts";
+import type { createCommandFixture } from "./fixture-command.ts";
 import { arrayValue, objectValue, stringValue } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
@@ -16,14 +16,14 @@ const ultraciteBin = path.resolve(
  * Preserve intentionally invalid fixture bytes during checks and read structured lint diagnostics.
  */
 export const runUltracite = async (
-  directory: string,
+  fixture: Awaited<ReturnType<typeof createCommandFixture>>,
   filenames: string | readonly string[],
   action: "check" | "fix" = "check",
   configuration?: string,
   extraArguments: readonly string[] = []
 ) =>
   readUltraciteResult(
-    await runFixtureCommand(
+    await fixture.run(
       process.execPath,
       [
         ultraciteBin,
@@ -37,7 +37,6 @@ export const runUltracite = async (
         ...extraArguments
       ],
       {
-        cwd: directory,
         env: {
           ...process.env,
           PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
