@@ -18,7 +18,7 @@ The API documentation profile uses the named catalog for its compatible TypeScri
 The separately distributed specification plugin owns its standalone catalog and lockfile.
 
 The root has no separate `build` or `test` script.
-Pre-push runs the `check:*` scripts for Vitest, TypeScript checking, type-aware lint, formatting, version validation, and lifecycle models.
+Pre-push runs the `check:*` scripts for Vitest, TypeScript checking, lint, formatting, version validation, and lifecycle models.
 `check:test` discovers root-owned TypeScript tests once, including hidden GitHub script tests, without selecting the independent sample packages.
 Pre-commit invokes this same runner with the affected suite paths and always includes version regression tests.
 The complete `check` command also runs the two network-dependent checks.
@@ -27,7 +27,7 @@ The complete `check` command also runs the two network-dependent checks.
 It checks unchanged Storybook fixtures with each consumer's own dependencies and compiler settings, then builds the HTML-Vite and React-Vite stories through each generated `check:storybook` script.
 The root `.eslintignore` separates these consumers from publishing-root configuration discovery.
 The root lint command also checks Harness tooling using its nested Oxlint configuration.
-The root lint command runs `ultracite check` with type awareness enabled in `oxlint.config.ts`.
+The root lint command runs `ultracite check` with the repository's Oxlint configuration.
 Consumer checks need package registry access when the local store lacks a dependency.
 
 Harness fixtures use the profile's own pnpm version, which can differ from the root version.

@@ -542,16 +542,20 @@ export const configureBaseline = async (
   result.created = states
     .filter(({ exists }) => !exists)
     .map(({ relative }) => relative);
-  await Promise.all(
-    [...sources]
-      .filter(([relative]) => result.created.includes(relative))
-      .map(async ([relative, content]) => {
-        await mkdir(path.dirname(path.join(root, relative)), {
-          recursive: true
-        });
-        await writeFile(path.join(root, relative), content, { flag: "wx" });
-      })
-  );
+  const writes = [...sources]
+    .filter(([relative]) => result.created.includes(relative))
+    .map(async ([relative, content]) => {
+      await mkdir(path.dirname(path.join(root, relative)), {
+        recursive: true
+      });
+      await writeFile(path.join(root, relative), content, { flag: "wx" });
+    });
+  try {
+    await Promise.all(writes);
+  } catch (error) {
+    await Promise.allSettled(writes);
+    throw error;
+  }
   return result;
 };
 
