@@ -22,7 +22,9 @@ test("YAML sequence lint requires block style for nonempty sequences", async () 
     cwd: directory,
     encoding: "utf-8",
     env: Object.fromEntries(
-      Object.entries(process.env).filter(([name]) => !gitVariables.has(name))
+      Object.entries(process.env).filter(
+        ([name]) => !gitVariables.has(name) && !name.startsWith("GIT_TRACE")
+      )
     )
   } satisfies SpawnSyncOptionsWithStringEncoding;
   execFileSync("git", ["init", "--quiet"], options);
