@@ -213,7 +213,7 @@ describe("pnpm profile configuration", () => {
         ".github/scripts/hidden.ts",
         "plugins/harness/tooling/pnpm/violation.ts"
       ];
-      await Promise.all(
+      await waitForFixtureTasks(
         files.map(async (filename) => {
           await writeFile(
             path.join(directory, filename),

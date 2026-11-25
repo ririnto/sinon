@@ -14,6 +14,7 @@ import path from "node:path";
 import { expect, onTestFinished, test } from "vitest";
 import { parse } from "yaml";
 
+import { waitForFixtureTasks } from "../../plugins/harness/tests/fixture-command.ts";
 import { valueAt } from "../../plugins/harness/tests/structured-value.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -41,7 +42,7 @@ test("version snapshots detect drift, update, and remain self-contained", async 
     path.join(fixture, "pnpm-workspace.yaml"),
     'catalog:\n  example: "^2.0.0"\ncatalogs:\n  api-docs:\n    example: "^3.0.0"\n  vue:\n    example: "^4.0.0"\n'
   );
-  await Promise.all(
+  await waitForFixtureTasks(
     [
       "plugins/harness/tooling/pnpm",
       "plugins/harness/tooling/frontend",

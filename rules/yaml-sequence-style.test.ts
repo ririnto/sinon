@@ -6,6 +6,8 @@ import path from "node:path";
 
 import { expect, onTestFinished, test } from "vitest";
 
+import { waitForFixtureTasks } from "../plugins/harness/tests/fixture-command.ts";
+
 test("YAML sequence lint requires block style for nonempty sequences", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-yaml-sequences-"));
   onTestFinished(async () => {
@@ -31,7 +33,7 @@ test("YAML sequence lint requires block style for nonempty sequences", async () 
   const file = path.join(directory, "sequences.yml");
   const deletedFile = path.join(directory, "deleted.yml");
   const valid = 'block:\n  - one\n  - two\nempty: []\nquoted: "[one, two]"\n';
-  await Promise.all([
+  await waitForFixtureTasks([
     writeFile(file, valid),
     writeFile(deletedFile, "deleted: [one, two]\n"),
     writeFile(path.join(directory, "pnpm-lock.yaml"), "cpu: [arm64]\n")

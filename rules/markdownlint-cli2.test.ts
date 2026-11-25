@@ -14,6 +14,8 @@ import path from "node:path";
 
 import { expect, test } from "vitest";
 
+import { waitForFixtureTasks } from "../plugins/harness/tests/fixture-command.ts";
+
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
 const markdownlintBin = path.join(
   path.dirname(createRequire(import.meta.url).resolve("markdownlint-cli2")),
@@ -37,7 +39,7 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     path.join(tmpdir(), "sinon-root-markdownlint-")
   );
   try {
-    await Promise.all([
+    await waitForFixtureTasks([
       cp(
         path.join(repositoryRoot, ".markdownlint-cli2.jsonc"),
         path.join(directory, ".markdownlint-cli2.jsonc")
@@ -67,7 +69,7 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
     );
     const ignored = runMarkdownlint(directory, "**/*.md");
     expect(ignored.status).toBe(0);
-    await Promise.all([
+    await waitForFixtureTasks([
       rm(path.join(directory, "ignored.local.md")),
       rm(path.join(directory, "included.md"))
     ]);
@@ -76,11 +78,11 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
       directory,
       "plugins/spec-driven-development"
     );
-    await Promise.all([
+    await waitForFixtureTasks([
       mkdir(harnessDirectory, { recursive: true }),
       mkdir(otherDirectory, { recursive: true })
     ]);
-    await Promise.all([
+    await waitForFixtureTasks([
       writeFile(
         path.join(harnessDirectory, "rules.md"),
         "# Rule loading\n\nFirst sentence. Second sentence.\n\nA box \u2500 character.\n\n| A |\n| ---- |\n| 1 |\n"
@@ -113,14 +115,14 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
       directory,
       "fixtures/plugins/vendor/skills/example"
     );
-    await Promise.all([
+    await waitForFixtureTasks([
       mkdir(skillDirectory, { recursive: true }),
       mkdir(fixtureDirectory, { recursive: true })
     ]);
     const skillFile = path.join(skillDirectory, "SKILL.md");
     const metadata =
       "---\nname: example\ndescription: &summary |\n  A skill with name: in its prose.\nmetadata:\n  summary: *summary\n---\n\n# Example\n";
-    await Promise.all([
+    await waitForFixtureTasks([
       writeFile(skillFile, metadata),
       writeFile(path.join(fixtureDirectory, "SKILL.md"), "# Local fixture\n")
     ]);
@@ -131,7 +133,7 @@ test("root Markdownlint entry points load canonical rules and preserve scope", a
       path.relative(directory, skillFile)
     );
     expect(otherScope.status, otherScope.output).toBe(0);
-    await Promise.all(
+    await waitForFixtureTasks(
       Object.entries({
         duplicate: metadata.replace(
           "name: example",
@@ -196,7 +198,7 @@ const rangeLocations = Array.from({ length: 128 }, (_, index) => [
 test("upstream box drawing configuration preserves Unicode coverage, columns and no fixes", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-upstream-boxes-"));
   try {
-    await Promise.all([
+    await waitForFixtureTasks([
       cp(
         path.join(repositoryRoot, ".markdownlint-cli2.jsonc"),
         path.join(directory, ".markdownlint-cli2.jsonc")
@@ -243,7 +245,7 @@ test("upstream box drawing configuration preserves Unicode coverage, columns and
 test("a copied local box drawing rule preserves its diagnostics through CLI2", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-copied-boxes-"));
   try {
-    await Promise.all([
+    await waitForFixtureTasks([
       cp(
         path.join(repositoryRoot, "rules/no-box-drawing.mjs"),
         path.join(directory, "no-box-drawing.mjs")
@@ -292,7 +294,7 @@ test("a copied local box drawing rule preserves its diagnostics through CLI2", a
 test("the copied prose rule reports sentence and clause joins without fixing them", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-copied-prose-"));
   try {
-    await Promise.all([
+    await waitForFixtureTasks([
       cp(
         path.join(repositoryRoot, "rules/prose-format.ts"),
         path.join(directory, "prose-format.ts")
