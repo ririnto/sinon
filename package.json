@@ -16,6 +16,7 @@
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
     "check:versions": "node .github/scripts/sync-versions.mjs",
+    "check:yaml-sequences": "node rules/yaml-sequence-style.ts",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
     "fix:ultracite": "ultracite fix --type-aware",

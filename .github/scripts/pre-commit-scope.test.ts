@@ -18,7 +18,8 @@ const alwaysRunChecks = [
   "check:markdownlint-cli2",
   "check:typescript",
   "check:ultracite",
-  "check:versions"
+  "check:versions",
+  "check:yaml-sequences"
 ];
 
 const versionTest = "check:test:unit .github/scripts/sync-versions.test.ts";
@@ -118,7 +119,8 @@ test.each([
           "check:test:unit": "node record-tests.mjs",
           "check:typescript": "node --version",
           "check:ultracite": "node --version",
-          "check:versions": "node --version"
+          "check:versions": "node --version",
+          "check:yaml-sequences": "node --version"
         }
       })
     );
