@@ -22,7 +22,10 @@ import type {
   TypeScriptProfile
 } from "../scripts/configure.js";
 import formatter from "../tooling/pnpm/oxfmt.config.ts";
-import { createCommandFixture } from "./fixture-command.ts";
+import {
+  createCommandFixture,
+  waitForFixtureTasks
+} from "./fixture-command.ts";
 import { valueAt, objectValue, optionalObject } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
@@ -883,7 +886,7 @@ describe("Maven and Go hook entrypoints", () => {
       await configureBaseline(directory, profile, "eligible");
       await mkdir(path.join(directory, ".bin"));
       const stubs = profile === "maven" ? ["mvnw"] : ["go"];
-      await Promise.all(
+      await waitForFixtureTasks(
         stubs.map(async (name) => {
           await writeFile(
             path.join(directory, name === "mvnw" ? name : `.bin/${name}`),
