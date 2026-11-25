@@ -22,6 +22,7 @@ import type {
   TypeScriptProfile
 } from "../scripts/configure.js";
 import formatter from "../tooling/pnpm/oxfmt.config.ts";
+import { runFixtureCommand } from "./fixture-command.ts";
 import { valueAt, objectValue, optionalObject } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
@@ -38,9 +39,9 @@ const profiles: BaselineProfile[] = [
   "react"
 ];
 
-const targetDirectory = async (): Promise<string> => {
+const targetDirectory = async (finish = onTestFinished): Promise<string> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-baseline-"));
-  onTestFinished(async () => {
+  finish(async () => {
     await rm(directory, { force: true, recursive: true });
   });
   return directory;
@@ -676,56 +677,62 @@ describe("fresh-root baseline", () => {
     ).toBeGreaterThan(0);
   });
 
-  test.each([
+  test.concurrent.for([
     ["git", undefined],
     ["pnpm", "node"]
   ] as const)(
     "Node %s hooks run the actual Ultracite gate and reject a source violation",
-    async (entrypoint, typescriptProfile) => {
-      const directory = await targetDirectory();
+    { timeout: 30_000 },
+    async (
+      [entrypoint, typescriptProfile],
+      { expect: check, onTestFinished: finish, signal }
+    ) => {
+      const directory = await targetDirectory(finish);
       const options = {
         cwd: directory,
+        signal,
         env: {
           ...fixtureEnvironment(),
           PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
         }
       };
+      const identity = [
+        "-c",
+        "user.name=Node Fixture",
+        "-c",
+        "user.email=fixture@example.invalid"
+      ];
       const git = (...args: string[]) =>
-        spawnSync(
-          "git",
-          [
-            "-c",
-            "user.name=Node Fixture",
-            "-c",
-            "user.email=fixture@example.invalid",
-            ...args
-          ],
-          options
-        );
-      expect(git("init", "--initial-branch=main").status).toBe(0);
+        spawnSync("git", [...identity, ...args], options);
+      check(git("init", "--initial-branch=main").status).toBe(0);
       await writeFile(
         path.join(directory, "README.md"),
         "# Target\n\nReady.\n"
       );
-      expect(git("add", ".").status).toBe(0);
-      expect(git("commit", "-m", "Initial fixture").status).toBe(0);
+      check(git("add", ".").status).toBe(0);
+      check(git("commit", "-m", "Initial fixture").status).toBe(0);
       const remote = path.join(directory, "remote.git");
-      expect(git("init", "--bare", remote).status).toBe(0);
-      expect(git("remote", "add", "origin", remote).status).toBe(0);
+      check(git("init", "--bare", remote).status).toBe(0);
+      check(git("remote", "add", "origin", remote).status).toBe(0);
       await configureBaseline(directory, "node", "eligible", typescriptProfile);
       await symlink(
         path.join(repositoryRoot, "node_modules"),
         path.join(directory, "node_modules"),
         "dir"
       );
-      expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
+      const preparation = await runFixtureCommand(
+        "pnpm",
+        ["run", "prepare"],
+        options
+      );
+      check(preparation.status).toBe(0);
       if (typescriptProfile === "node") {
-        const build = spawnSync("pnpm", ["exec", "tsc"], options);
-        expect(
+        const build = await runFixtureCommand("pnpm", ["exec", "tsc"], options);
+        check(
           build.status,
           build.stdout.toString() + build.stderr.toString()
         ).toBe(0);
-        const load = spawnSync(
+        const load = await runFixtureCommand(
           process.execPath,
           [
             "--input-type=module",
@@ -734,52 +741,67 @@ describe("fresh-root baseline", () => {
           ],
           options
         );
-        expect(load.status, load.stderr.toString()).toBe(0);
+        check(load.status, load.stderr.toString()).toBe(0);
       }
       await writeFile(
         path.join(directory, "good.ts"),
         "export const isReady = (): boolean => true;\n"
       );
-      expect(git("add", ".").status).toBe(0);
-      expect(git("ls-files", "--", ".husky/_").stdout.toString()).toBe("");
+      check(git("add", ".").status).toBe(0);
+      check(git("ls-files", "--", ".husky/_").stdout.toString()).toBe("");
       const commit =
         entrypoint === "pnpm"
-          ? spawnSync("pnpm", ["run", "pre-commit"], options)
-          : git("commit", "-m", "Configure Node baseline");
-      expect(
+          ? await runFixtureCommand("pnpm", ["run", "pre-commit"], options)
+          : await runFixtureCommand(
+              "git",
+              [...identity, "commit", "-m", "Configure Node baseline"],
+              options
+            );
+      check(
         commit.status,
         commit.stderr.toString() + commit.stdout.toString()
       ).toBe(0);
-      expect(
+      check(
         (entrypoint === "pnpm"
-          ? spawnSync("pnpm", ["run", "pre-push"], options)
-          : git("push", "origin", "main")
+          ? await runFixtureCommand("pnpm", ["run", "pre-push"], options)
+          : await runFixtureCommand(
+              "git",
+              [...identity, "push", "origin", "main"],
+              options
+            )
         ).status
       ).toBe(0);
       await writeFile(
         path.join(directory, "bad.ts"),
         "// Bad \u2014 prose\n/** Incorrect delimiters. */\nexport const invalidDocumentation = (): boolean => true;\n"
       );
-      expect(git("add", "bad.ts").status).toBe(0);
+      check(git("add", "bad.ts").status).toBe(0);
       const rejectedCommit =
         entrypoint === "pnpm"
-          ? spawnSync("pnpm", ["run", "pre-commit"], options)
-          : git("commit", "-m", "Invalid source");
+          ? await runFixtureCommand("pnpm", ["run", "pre-commit"], options)
+          : await runFixtureCommand(
+              "git",
+              [...identity, "commit", "-m", "Invalid source"],
+              options
+            );
       const rejectedPush =
         entrypoint === "pnpm"
-          ? spawnSync("pnpm", ["run", "pre-push"], options)
-          : git("push", "origin", "main");
+          ? await runFixtureCommand("pnpm", ["run", "pre-push"], options)
+          : await runFixtureCommand(
+              "git",
+              [...identity, "push", "origin", "main"],
+              options
+            );
       for (const result of [rejectedCommit, rejectedPush]) {
         const output = result.stderr.toString() + result.stdout.toString();
-        expect(result.status, output).toBe(1);
-        expect(output).toContain("tsdoc(require-export-tsdoc)");
-        expect(output).toContain("Use multiline TSDoc");
+        check(result.status, output).toBe(1);
+        check(output).toContain("tsdoc(require-export-tsdoc)");
+        check(output).toContain("Use multiline TSDoc");
       }
-      expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
+      check(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
         entrypoint === "pnpm" ? "Initial fixture" : "Configure Node baseline"
       );
-    },
-    30_000
+    }
   );
 });
 
@@ -790,7 +812,7 @@ describe("Maven and Go hook entrypoints", () => {
         `go tool -modfile=go.mod github.com/go-task/task/v3/cmd/task ${task}`
     )
     .join("\n");
-  test.each(
+  test.concurrent.for(
     (
       [
         {
@@ -827,37 +849,38 @@ describe("Maven and Go hook entrypoints", () => {
     )
   )(
     "$profile $entrypoint $hook honors the shared gate (valid=$valid)",
-    async ({ profile, entrypoint, hook, valid, calls }) => {
-      const directory = await targetDirectory();
+    { timeout: 30_000 },
+    async (
+      { profile, entrypoint, hook, valid, calls },
+      { expect: check, onTestFinished: finish, signal }
+    ) => {
+      const directory = await targetDirectory(finish);
       const options = {
         cwd: directory,
+        signal,
         env: {
           ...fixtureEnvironment(),
           PATH: `${path.join(directory, ".bin")}${path.delimiter}${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
         }
       };
+      const identity = [
+        "-c",
+        "user.name=Baseline Fixture",
+        "-c",
+        "user.email=fixture@example.invalid"
+      ];
       const git = (...args: string[]) =>
-        spawnSync(
-          "git",
-          [
-            "-c",
-            "user.name=Baseline Fixture",
-            "-c",
-            "user.email=fixture@example.invalid",
-            ...args
-          ],
-          options
-        );
-      expect(git("init", "--initial-branch=main").status).toBe(0);
+        spawnSync("git", [...identity, ...args], options);
+      check(git("init", "--initial-branch=main").status).toBe(0);
       await writeFile(
         path.join(directory, "README.md"),
         "# Target\n\nReady.\n"
       );
-      expect(git("add", ".").status).toBe(0);
-      expect(git("commit", "-m", "Initial fixture").status).toBe(0);
+      check(git("add", ".").status).toBe(0);
+      check(git("commit", "-m", "Initial fixture").status).toBe(0);
       const remote = path.join(directory, "remote.git");
-      expect(git("init", "--bare", remote).status).toBe(0);
-      expect(git("remote", "add", "origin", remote).status).toBe(0);
+      check(git("init", "--bare", remote).status).toBe(0);
+      check(git("remote", "add", "origin", remote).status).toBe(0);
       await configureBaseline(directory, profile, "eligible");
       await mkdir(path.join(directory, ".bin"));
       const stubs = profile === "maven" ? ["mvnw"] : ["go"];
@@ -872,44 +895,52 @@ describe("Maven and Go hook entrypoints", () => {
           );
         })
       );
-      expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
+      const preparation = await runFixtureCommand(
+        "pnpm",
+        ["run", "prepare"],
+        options
+      );
+      check(preparation.status).toBe(0);
       await writeFile(
         path.join(directory, "README.md"),
         valid ? "# Target\n\nChanged.\n" : "# First\n\n# Second\n"
       );
-      expect(git("add", "README.md").status).toBe(0);
+      check(git("add", "README.md").status).toBe(0);
       const gitArguments =
         hook === "pre-commit"
           ? ["commit", "-m", "Changed fixture"]
           : ["push", "origin", "main"];
       const result =
         entrypoint === "pnpm"
-          ? spawnSync("pnpm", ["run", hook], options)
-          : git(...gitArguments);
-      expect(result.status).toBe(valid ? 0 : 1);
+          ? await runFixtureCommand("pnpm", ["run", hook], options)
+          : await runFixtureCommand(
+              "git",
+              [...identity, ...gitArguments],
+              options
+            );
+      check(result.status).toBe(valid ? 0 : 1);
       if (valid) {
         const recordedCalls = await readFile(
           path.join(directory, "native-calls.txt"),
           "utf-8"
         );
-        expect(recordedCalls.trim().split("\n").toSorted()).toEqual(
+        check(recordedCalls.trim().split("\n").toSorted()).toEqual(
           calls.trim().split("\n").toSorted()
         );
       } else {
-        await expect(
+        await check(
           readFile(path.join(directory, "native-calls.txt"))
         ).rejects.toMatchObject({ code: "ENOENT" });
         if (hook === "pre-commit") {
-          expect(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
+          check(git("log", "-1", "--format=%s").stdout.toString().trim()).toBe(
             "Initial fixture"
           );
         } else {
-          expect(
+          check(
             git("--git-dir", remote, "show-ref", "refs/heads/main").status
           ).toBe(1);
         }
       }
-    },
-    30_000
+    }
   );
 });

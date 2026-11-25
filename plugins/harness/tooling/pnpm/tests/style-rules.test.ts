@@ -48,15 +48,16 @@ test("blank-line checks preserve directive, comment, and literal gaps", async ()
         "blank(); windows(); unicode(); nested();"
       ].join("\n")
     );
-    expect(runUltracite(directory, "valid.ts", "fix").status).toBe(0);
-    const valid = runUltracite(directory, "valid.ts");
+    const formatted = await runUltracite(directory, "valid.ts", "fix");
+    expect(formatted.status).toBe(0);
+    const valid = await runUltracite(directory, "valid.ts");
     expect(valid.status).toBe(0);
     expect(
       valid.diagnostics.filter(
         ({ code }) => code === "style(no-blank-lines-in-functions)"
       )
     ).toEqual([]);
-    const invalid = runUltracite(directory, "invalid.ts");
+    const invalid = await runUltracite(directory, "invalid.ts");
     expect(invalid.status).toBe(1);
     expect(
       invalid.diagnostics
@@ -237,19 +238,34 @@ test("inline-comment checks preserve directives and license notices", async () =
         await writeFile(path.join(directory, filename), source);
       })
     );
-    for (const { filename, expected } of commentFixtures) {
-      if (expected === 0) {
-        const result = runUltracite(directory, filename, "fix");
-        expect(result.status, JSON.stringify(result.diagnostics)).toBe(0);
-      }
-      const { diagnostics, status } = runUltracite(directory, filename);
-      const comments = diagnostics.filter(
+    const validFiles = commentFixtures
+      .filter(({ expected }) => expected === 0)
+      .map(({ filename }) => filename);
+    const formatted = await runUltracite(directory, validFiles, "fix");
+    expect(formatted.status, JSON.stringify(formatted.diagnostics)).toBe(0);
+    const valid = await runUltracite(directory, validFiles);
+    expect(valid.status).toBe(0);
+    expect(
+      valid.diagnostics.filter(
         ({ code }) => code === "style(no-inline-comments-in-functions)"
-      );
-      expect(comments, filename).toHaveLength(expected);
-      expect(status, filename).toBe(expected === 0 ? 0 : 1);
-    }
-    runUltracite(directory, "plain.ts", "fix");
+      )
+    ).toHaveLength(0);
+    await Promise.all(
+      commentFixtures
+        .filter(({ expected }) => expected > 0)
+        .map(async ({ filename, expected }) => {
+          const { diagnostics, status } = await runUltracite(
+            directory,
+            filename
+          );
+          const comments = diagnostics.filter(
+            ({ code }) => code === "style(no-inline-comments-in-functions)"
+          );
+          expect(comments, filename).toHaveLength(expected);
+          expect(status, filename).toBe(1);
+        })
+    );
+    await runUltracite(directory, "plain.ts", "fix");
     const fixed = await readFile(path.join(directory, "plain.ts"), "utf-8");
     expect(fixed).toContain("// explanatory top-level comment");
     expect(fixed).toContain("/** Not declaration documentation. */");

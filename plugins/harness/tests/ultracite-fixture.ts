@@ -1,8 +1,8 @@
-import { spawnSync } from "node:child_process";
 import type { SpawnSyncReturns } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 
+import { runFixtureCommand } from "./fixture-command.ts";
 import { arrayValue, objectValue, stringValue } from "./structured-value.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
@@ -15,7 +15,7 @@ const ultraciteBin = path.resolve(
  * Run the installed Ultracite CLI with its real lint and format backends.
  * Preserve intentionally invalid fixture bytes during checks and read structured lint diagnostics.
  */
-export const runUltracite = (
+export const runUltracite = async (
   directory: string,
   filenames: string | readonly string[],
   action: "check" | "fix" = "check",
@@ -23,7 +23,7 @@ export const runUltracite = (
   extraArguments: readonly string[] = []
 ) =>
   readUltraciteResult(
-    spawnSync(
+    await runFixtureCommand(
       process.execPath,
       [
         ultraciteBin,
@@ -47,7 +47,10 @@ export const runUltracite = (
   );
 
 export const readUltraciteResult = (
-  result: SpawnSyncReturns<Buffer>
+  result: Pick<
+    SpawnSyncReturns<Buffer>,
+    "error" | "status" | "stderr" | "stdout"
+  >
 ): {
   diagnostics: {
     code?: string;

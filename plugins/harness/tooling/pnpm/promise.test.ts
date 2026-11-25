@@ -7,7 +7,7 @@ import { expect, test } from "vitest";
 
 import { runUltracite } from "../../tests/ultracite-fixture.js";
 
-const findings = (result: ReturnType<typeof runUltracite>) =>
+const findings = (result: Awaited<ReturnType<typeof runUltracite>>) =>
   result.diagnostics.filter(
     ({ code }) => code?.includes("no-floating-promises") === true
   );
@@ -41,7 +41,7 @@ test("Harness promise policy reports unhandled work without rewriting void", asy
     );
     expect(
       findings(
-        runUltracite(directory, "sample.ts", "fix", configuration, [
+        await runUltracite(directory, "sample.ts", "fix", configuration, [
           "--type-aware"
         ])
       )
@@ -51,7 +51,7 @@ test("Harness promise policy reports unhandled work without rewriting void", asy
     expect(text).toContain("void work().catch(");
     expect(
       findings(
-        runUltracite(directory, "sample.ts", "check", configuration, [
+        await runUltracite(directory, "sample.ts", "check", configuration, [
           "--type-aware"
         ])
       )

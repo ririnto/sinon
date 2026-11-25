@@ -110,12 +110,13 @@ Use the [contribution guide](CONTRIBUTING.md) for issues, pull requests, writing
 
 Use the Node range in `package.json` and the repository's pnpm toolchain.
 Run `pnpm install` after dependency changes.
-Run `pnpm run check` for the repository checks.
+Run `pnpm run check` for the local and network-dependent repository checks.
 Use the [verification map](docs/verification.md) for component commands, consumer smoke checks, and evidence limits.
 The root package commands invoke validation suites owned by their catalog or plugin components.
 Store shared npm dependency versions in `pnpm-workspace.yaml` catalogs and reference them with `catalog:`.
 Follow repository guidance for task-specific checks and package validation.
-Run `pnpm run check:test:promtool` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
+Run `pnpm run verify:consumers` to install and verify the workspace and Storybook consumers outside the Git hooks.
+Run `pnpm run verify:promtool-fixtures` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
 That component verifies and runs the official release executable without a separate Go build graph.
 
 ## Current Plugins

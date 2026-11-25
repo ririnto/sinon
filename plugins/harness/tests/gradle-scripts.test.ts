@@ -6,6 +6,7 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { parseDocument } from "yaml";
 
+import { runFixtureCommand } from "./fixture-command.ts";
 import {
   arrayValue,
   objectValue,
@@ -101,7 +102,7 @@ describe("Java CI entrypoints", () => {
 });
 
 describe("Gradle Node-side script integration", () => {
-  test.each(
+  test.concurrent.for(
     [
       { hook: "pre-commit", valid: true },
       { hook: "pre-push", valid: true },
@@ -114,7 +115,11 @@ describe("Gradle Node-side script integration", () => {
     )
   )(
     "$entrypoint $hook respects the Markdown gate (valid=$valid, buildSrc=$buildSrc)",
-    async ({ buildSrc, entrypoint, hook, valid }) => {
+    { timeout: 30_000 },
+    async (
+      { buildSrc, entrypoint, hook, valid },
+      { expect: check, signal }
+    ) => {
       const directory = await mkdtemp(
         path.join(tmpdir(), "sinon-gradle-scripts-")
       );
@@ -155,29 +160,26 @@ describe("Gradle Node-side script integration", () => {
         await chmod(path.join(directory, "gradlew"), 0o755);
         const options = {
           cwd: directory,
+          signal,
           env: {
             ...fixtureEnvironment(),
             PATH: `${path.join(repositoryRoot, "node_modules/.bin")}${path.delimiter}${process.env.PATH}`
           }
         };
+        const identity = [
+          "-c",
+          "user.name=Hook Fixture",
+          "-c",
+          "user.email=fixture@example.invalid"
+        ];
         const git = (...args: string[]) =>
-          spawnSync(
-            "git",
-            [
-              "-c",
-              "user.name=Hook Fixture",
-              "-c",
-              "user.email=fixture@example.invalid",
-              ...args
-            ],
-            options
-          );
-        expect(git("init", "--initial-branch=main").status).toBe(0);
-        expect(git("add", ".").status).toBe(0);
-        expect(git("commit", "-m", "Initial fixture").status).toBe(0);
+          spawnSync("git", [...identity, ...args], options);
+        check(git("init", "--initial-branch=main").status).toBe(0);
+        check(git("add", ".").status).toBe(0);
+        check(git("commit", "-m", "Initial fixture").status).toBe(0);
         const remote = path.join(directory, "remote.git");
-        expect(git("init", "--bare", remote).status).toBe(0);
-        expect(git("remote", "add", "origin", remote).status).toBe(0);
+        check(git("init", "--bare", remote).status).toBe(0);
+        check(git("remote", "add", "origin", remote).status).toBe(0);
         await cp(
           path.join(gradleProfile, ".husky"),
           path.join(directory, ".husky"),
@@ -185,40 +187,49 @@ describe("Gradle Node-side script integration", () => {
             recursive: true
           }
         );
-        expect(spawnSync("pnpm", ["run", "prepare"], options).status).toBe(0);
-        expect(
+        const preparation = await runFixtureCommand(
+          "pnpm",
+          ["run", "prepare"],
+          options
+        );
+        check(preparation.status).toBe(0);
+        check(
           git("config", "--get", "core.hooksPath").stdout.toString().trim()
         ).toBe(".husky/_");
         await writeFile(
           path.join(directory, "README.md"),
           valid ? "# Target\n\nChanged.\n" : "# First\n\n# Second\n"
         );
-        expect(git("add", "README.md").status).toBe(0);
+        check(git("add", "README.md").status).toBe(0);
         const gitArguments =
           hook === "pre-commit"
             ? ["commit", "-m", "Changed fixture"]
             : ["push", "origin", "main"];
         const result =
           entrypoint === "pnpm"
-            ? spawnSync("pnpm", ["run", hook], options)
-            : git(...gitArguments);
-        expect(result.error).toBeUndefined();
+            ? await runFixtureCommand("pnpm", ["run", hook], options)
+            : await runFixtureCommand(
+                "git",
+                [...identity, ...gitArguments],
+                options
+              );
+        check(result.error).toBeUndefined();
         if (valid) {
-          expect(result.status).toBe(0);
-          expect(
+          check(result.status).toBe(0);
+          check(
             await readFile(path.join(directory, "gradle-calls.txt"), "utf-8")
           ).toBe(buildSrc ? ":check :buildSrc:check\n" : "ktlintCheck check\n");
         } else {
-          expect(result.status).toBe(1);
-          await expect(
+          check(result.status).toBe(1);
+          await check(
             readFile(path.join(directory, "gradle-calls.txt"))
           ).rejects.toMatchObject({ code: "ENOENT" });
           if (hook === "pre-commit") {
-            expect(
+            check(
               git("log", "-1", "--format=%s").stdout.toString().trim()
             ).toBe("Initial fixture");
           } else {
-            expect(
+            check(
               git("--git-dir", remote, "show-ref", "refs/heads/main").status
             ).toBe(1);
           }
@@ -226,7 +237,6 @@ describe("Gradle Node-side script integration", () => {
       } finally {
         await rm(directory, { force: true, recursive: true });
       }
-    },
-    30_000
+    }
   );
 });

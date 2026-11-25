@@ -312,7 +312,7 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "sample.ts"),
         `${packageStyleFixture}\nexport interface Undocumented { value: string; }\n`
       );
-      const { diagnostics, status } = runUltracite(
+      const { diagnostics, status } = await runUltracite(
         directory,
         "sample.ts",
         "check",
@@ -375,7 +375,7 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "sample.tsx"),
         '/** Display an image. */\nexport function image() { return <img src="example.png" />; }\nconsole.log(image);\n'
       );
-      const { diagnostics, status } = runUltracite(
+      const { diagnostics, status } = await runUltracite(
         directory,
         "sample.tsx",
         "check",
@@ -485,21 +485,23 @@ describe("pnpm profile configuration", () => {
         path.join(directory, "sample.js"),
         'setTimeout("alert(1)", 0);\n'
       );
-      for (const configuration of [
-        path.resolve(profileDirectory, "../../../..", "oxlint.config.ts"),
-        path.join(directory, "oxlint.config.ts")
-      ]) {
-        const { diagnostics, status } = runUltracite(
-          directory,
-          "sample.js",
-          "check",
-          configuration
-        );
-        expect(status).toBe(1);
-        expect(diagnostics.map(({ code }) => code)).toContain(
-          "eslint(no-implied-eval)"
-        );
-      }
+      await Promise.all(
+        [
+          path.resolve(profileDirectory, "../../../..", "oxlint.config.ts"),
+          path.join(directory, "oxlint.config.ts")
+        ].map(async (configuration) => {
+          const { diagnostics, status } = await runUltracite(
+            directory,
+            "sample.js",
+            "check",
+            configuration
+          );
+          expect(status).toBe(1);
+          expect(diagnostics.map(({ code }) => code)).toContain(
+            "eslint(no-implied-eval)"
+          );
+        })
+      );
     } finally {
       await rm(directory, { force: true, recursive: true });
     }

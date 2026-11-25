@@ -225,45 +225,52 @@ test("root and materialized configs report adopted policies as errors", async ()
       path.join(directory, "unadopted.tsx"),
       "export const labels = [<span />];\n"
     );
-    for (const configuration of [
-      path.resolve(import.meta.dirname, "../../../../../oxlint.config.ts"),
-      path.join(directory, "oxlint.config.ts")
-    ]) {
-      const result = runUltracite(directory, ".", "check", configuration);
-      expect(result.status).toBe(1);
-      expect(
-        result.diagnostics.filter(
-          ({ code }) => code?.startsWith("react(") === true
-        )
-      ).toEqual([]);
-      for (const [filename, , code] of policyCases) {
+    await Promise.all(
+      [
+        path.resolve(import.meta.dirname, "../../../../../oxlint.config.ts"),
+        path.join(directory, "oxlint.config.ts")
+      ].map(async (configuration) => {
+        const result = await runUltracite(
+          directory,
+          ".",
+          "check",
+          configuration
+        );
+        expect(result.status).toBe(1);
         expect(
           result.diagnostics.filter(
-            (diagnostic) =>
-              diagnostic.filename === filename && diagnostic.code === code
-          ),
-          `${filename}: ${code}`
-        ).toMatchObject([{ code, severity: "error" }]);
-        expect(
-          result.diagnostics.filter(
-            (diagnostic) =>
-              diagnostic.filename === `valid-${filename}` &&
-              diagnostic.code === code
-          ),
-          `valid-${filename}: ${code}`
+            ({ code }) => code?.startsWith("react(") === true
+          )
         ).toEqual([]);
-      }
-      expect(
-        result.diagnostics.filter(
-          ({ filename, code }) =>
-            filename === "valid.tsx" &&
-            (code?.startsWith("react(") === true ||
-              code?.startsWith("react-hooks-js(") === true ||
-              code?.startsWith("react-effects(") === true ||
-              code === "oxc(no-accumulating-spread)")
-        )
-      ).toEqual([]);
-    }
+        for (const [filename, , code] of policyCases) {
+          expect(
+            result.diagnostics.filter(
+              (diagnostic) =>
+                diagnostic.filename === filename && diagnostic.code === code
+            ),
+            `${filename}: ${code}`
+          ).toMatchObject([{ code, severity: "error" }]);
+          expect(
+            result.diagnostics.filter(
+              (diagnostic) =>
+                diagnostic.filename === `valid-${filename}` &&
+                diagnostic.code === code
+            ),
+            `valid-${filename}: ${code}`
+          ).toEqual([]);
+        }
+        expect(
+          result.diagnostics.filter(
+            ({ filename, code }) =>
+              filename === "valid.tsx" &&
+              (code?.startsWith("react(") === true ||
+                code?.startsWith("react-hooks-js(") === true ||
+                code?.startsWith("react-effects(") === true ||
+                code === "oxc(no-accumulating-spread)")
+          )
+        ).toEqual([]);
+      })
+    );
   } finally {
     await rm(directory, { force: true, recursive: true });
   }

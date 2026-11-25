@@ -7,7 +7,7 @@
     "./rules/no-sensitive-content": "./plugins/harness/tooling/pnpm/rules/no-sensitive-content.mjs"
   },
   "scripts": {
-    "check": "run-p check:*",
+    "check": "run-p pre-push verify:*",
     "check:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\"",
     "check:promtool": "run-p check:promtool:*",
     "check:promtool:child": "pnpm --dir plugins/observability-assets run model ChildLifecycle",
@@ -21,12 +21,12 @@
     "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
     "fix:ultracite": "ultracite fix --type-aware",
     "pre-commit": "node --import tsx .github/scripts/pre-commit-scope.ts",
-    "pre-push": "run-s check",
+    "pre-push": "run-p check:*",
     "prepare": "husky",
     "versions:sync": "node .github/scripts/sync-versions.mjs --write",
     "check:test:unit": "vitest run",
-    "check:test:promtool": "pnpm --dir plugins/observability-assets run promtool",
-    "check:consumers": "node .github/scripts/check-consumers.ts"
+    "verify:promtool-fixtures": "pnpm --dir plugins/observability-assets run promtool",
+    "verify:consumers": "node .github/scripts/check-consumers.ts"
   },
   "devDependencies": {
     "@google/design.md": "catalog:",

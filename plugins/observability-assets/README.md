@@ -118,6 +118,6 @@ Skill examples are authoring patterns that must be adapted into the target repos
 
 ## Validation
 
-Run `pnpm run check:test:promtool` from the repository root to execute the rule fixtures with the official Prometheus release binary.
+Run `pnpm run verify:promtool-fixtures` from the repository root to execute the rule fixtures with the official Prometheus release binary.
 Run `pnpm run check:promtool` to check both TLC lifecycle models without downloading Prometheus.
 From this plugin directory, use `pnpm run promtool` for the rule fixtures or `pnpm run model ChildLifecycle` for an individual model.

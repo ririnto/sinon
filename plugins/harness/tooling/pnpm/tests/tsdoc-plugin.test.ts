@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { expect, test } from "vitest";
+import { test } from "vitest";
 
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
 
@@ -19,9 +19,9 @@ const writeConfig = async (directory: string): Promise<void> => {
   );
 };
 
-test.each([false, true])(
+test.for([false, true])(
   "Ultracite accepts public methods on a directly exported class expression (documented=%s)",
-  async (documented) => {
+  async (documented, { expect }) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-tsdoc-exported-class-")
     );
@@ -37,9 +37,10 @@ test.each([false, true])(
         `${doc}export const Service = class {\n${memberDoc}  read() {\n    return this;\n  }\n};\n`
       );
       if (documented) {
-        expect(runUltracite(directory, filename, "fix").status).toBe(0);
+        const formatted = await runUltracite(directory, filename, "fix");
+        expect(formatted.status).toBe(0);
       }
-      const result = runUltracite(directory, filename);
+      const result = await runUltracite(directory, filename);
       expect(result.status).toBe(0);
       expect(result.diagnostics).toEqual([]);
     } finally {
@@ -48,7 +49,9 @@ test.each([false, true])(
   }
 );
 
-test("Ultracite checks TSDoc delimiter lines on exports and methods", async () => {
+test.concurrent("Ultracite checks TSDoc delimiter lines on exports and methods", async ({
+  expect
+}) => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-"));
   try {
     await writeConfig(directory);
@@ -76,36 +79,43 @@ test("Ultracite checks TSDoc delimiter lines on exports and methods", async () =
       path.join(directory, "source.js"),
       "export function parse() { return 1; }\n"
     );
-    for (const [filename, exitCode, diagnosticCount] of [
-      ["valid.ts", 0, 0],
-      ["invalid.ts", 1, 8],
-      ["source.js", 0, 0]
-    ] as const) {
-      if (exitCode === 0) {
-        expect(runUltracite(directory, filename, "fix").status).toBe(0);
-      }
-      const { diagnostics, status } = runUltracite(directory, filename);
-      expect(status).toBe(exitCode);
-      expect(diagnostics).toHaveLength(diagnosticCount);
-      if (filename === "invalid.ts") {
-        expect(
-          diagnostics.filter((diagnostic: { message: string }) =>
-            diagnostic.message.includes("Use multiline TSDoc")
-          )
-        ).toHaveLength(8);
-        expect(
-          diagnostics.filter((diagnostic: { message: string }) =>
-            diagnostic.message.includes("Missing TSDoc")
-          )
-        ).toHaveLength(0);
-      }
-    }
+    await Promise.all(
+      (
+        [
+          ["valid.ts", 0, 0],
+          ["invalid.ts", 1, 8],
+          ["source.js", 0, 0]
+        ] as const
+      ).map(async ([filename, exitCode, diagnosticCount]) => {
+        if (exitCode === 0) {
+          const formatted = await runUltracite(directory, filename, "fix");
+          expect(formatted.status).toBe(0);
+        }
+        const { diagnostics, status } = await runUltracite(directory, filename);
+        expect(status).toBe(exitCode);
+        expect(diagnostics).toHaveLength(diagnosticCount);
+        if (filename === "invalid.ts") {
+          expect(
+            diagnostics.filter((diagnostic: { message: string }) =>
+              diagnostic.message.includes("Use multiline TSDoc")
+            )
+          ).toHaveLength(8);
+          expect(
+            diagnostics.filter((diagnostic: { message: string }) =>
+              diagnostic.message.includes("Missing TSDoc")
+            )
+          ).toHaveLength(0);
+        }
+      })
+    );
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
 }, 30_000);
 
-test("Ultracite checks declarations and members without requiring export wrapper comments", async () => {
+test.concurrent("Ultracite checks declarations and members without requiring export wrapper comments", async ({
+  expect
+}) => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-forms-"));
   const doc = "/**\n * Document it.\n */\n";
   try {
@@ -156,33 +166,35 @@ test("Ultracite checks declarations and members without requiring export wrapper
       path.join(directory, "default-class.ts"),
       `${doc}export default class {\n  read() {\n    return 1;\n  }\n}\n`
     );
-    expect(runUltracite(directory, "valid.ts", "fix").status).toBe(0);
-    const valid = runUltracite(directory, "valid.ts");
+    const formatted = await runUltracite(directory, "valid.ts", "fix");
+    expect(formatted.status).toBe(0);
+    const valid = await runUltracite(directory, "valid.ts");
     expect(valid.diagnostics).toEqual([]);
     expect(valid.status).toBe(0);
-    const invalid = runUltracite(directory, "invalid.ts");
+    const invalid = await runUltracite(directory, "invalid.ts");
     expect(invalid.status).toBe(1);
     expect(invalid.diagnostics.map(({ message }) => message)).toEqual([
       'Missing TSDoc for exported public API interface "Shape".',
       'Missing TSDoc for exported public API enum "Mode".',
       'Missing TSDoc for exported public API namespace "Space".'
     ]);
-    expect(
-      runUltracite(directory, "assignment.ts").diagnostics.map(
-        ({ message }) => message
-      )
-    ).toEqual([]);
-    for (const filename of ["default-function.ts", "default-class.ts"]) {
-      const { diagnostics, status } = runUltracite(directory, filename);
-      expect(diagnostics, filename).toEqual([]);
-      expect(status, filename).toBe(0);
-    }
+    const assignment = await runUltracite(directory, "assignment.ts");
+    expect(assignment.diagnostics.map(({ message }) => message)).toEqual([]);
+    await Promise.all(
+      ["default-function.ts", "default-class.ts"].map(async (filename) => {
+        const { diagnostics, status } = await runUltracite(directory, filename);
+        expect(diagnostics, filename).toEqual([]);
+        expect(status, filename).toBe(0);
+      })
+    );
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
 }, 30_000);
 
-test("Ultracite checks each indirectly exported variable in a shared declaration", async () => {
+test.concurrent("Ultracite checks each indirectly exported variable in a shared declaration", async ({
+  expect
+}) => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-tsdoc-bindings-"));
   try {
     await writeConfig(directory);
@@ -192,7 +204,7 @@ test("Ultracite checks each indirectly exported variable in a shared declaration
         "/**\n * Expose the label.\n */\nexport { label };\n" +
         "export { compute };\nexport { compute as calculate, Service };\n"
     );
-    const result = runUltracite(directory, "source.ts");
+    const result = await runUltracite(directory, "source.ts");
     expect(result.status).toBe(1);
     expect(result.diagnostics.map(({ message }) => message)).toEqual([
       'Missing TSDoc for exported public API variable "Service".'
@@ -202,13 +214,14 @@ test("Ultracite checks each indirectly exported variable in a shared declaration
       "/**\n * Expose the value and calculation.\n */\n" +
         "const label = 1, compute = () => 42;\nexport { label };\nexport { compute };\n"
     );
-    expect(runUltracite(directory, "documented.ts").diagnostics).toEqual([]);
+    const documented = await runUltracite(directory, "documented.ts");
+    expect(documented.diagnostics).toEqual([]);
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
 }, 30_000);
 
-test.each(
+test.concurrent.for(
   ["ts", "tsx", "mts", "cts"].flatMap((extension) =>
     [
       "class Service",
@@ -218,7 +231,8 @@ test.each(
   )
 )(
   "Ultracite checks indirectly exported $declaration members in .$extension",
-  async ({ declaration, extension }) => {
+  { timeout: 30_000 },
+  async ({ declaration, extension }, { expect }) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-tsdoc-indirect-")
     );
@@ -263,10 +277,12 @@ test.each(
         path.join(directory, indirectValuesFilename),
         "function lookup() {}\ntype Key = string;\nconst value = 1;\nconst load = () => 1;\nexport { lookup, Key, value, load };\nexport { lookup as find };\n"
       );
-      expect(runUltracite(directory, documentedFilenames, "fix").status).toBe(
-        0
+      const fix = await runUltracite(directory, documentedFilenames, "fix");
+      expect(fix.status).toBe(0);
+      const documentedResult = await runUltracite(
+        directory,
+        documentedFilenames
       );
-      const documentedResult = runUltracite(directory, documentedFilenames);
       expect(documentedResult.status).toBe(0);
       expect(documentedResult.diagnostics).toEqual([]);
       const otherFilenames = [
@@ -275,7 +291,7 @@ test.each(
         indirectFilename,
         indirectValuesFilename
       ];
-      const otherResult = runUltracite(directory, otherFilenames);
+      const otherResult = await runUltracite(directory, otherFilenames);
       expect(otherResult.status).toBe(1);
       expect(
         otherResult.diagnostics.filter(
@@ -309,6 +325,5 @@ test.each(
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
-  },
-  30_000
+  }
 );
