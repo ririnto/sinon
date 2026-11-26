@@ -83,6 +83,8 @@ YAML uses plain or double-quoted short scalars, folded blocks for wrapped logica
 YAML sequences use block style.
 Keep a flow sequence only for an explicit empty sequence (`key: []`).
 A block form cannot express an empty sequence without changing it to null.
+Run `pnpm run check:yaml-sequences` from the repository root to check tracked YAML files, excluding `pnpm-lock.yaml` files.
+The command reports the file, line, and column for each nonempty flow sequence.
 Do not quote a scalar when its parsed type and value already match the consumer's need.
 Use double quotes only when the actual consumer requires the exact string type or value, such as a YAML 1.1 scalar that would coerce, or a version-like or numeric-key scalar that must stay a string.
 
