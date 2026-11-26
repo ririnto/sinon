@@ -29,7 +29,8 @@ Source technical claims from the vendor for the relevant host, model, or runtime
 ## Delivery
 
 Follow [contribution guidance](CONTRIBUTING.md) for formatting, commit bodies, PR review, and integration.
-Use the [verification map](docs/verification.md) for focused checks and the full pre-push gate.
+Run `pnpm run check` for the complete gate, including the network-dependent validators.
+Use the [verification map](docs/verification.md) to select focused checks.
 After an authorized dependency change, run `pnpm install`.
 Report commands, exit status, the behavior observed, and any outstanding evidence.
 

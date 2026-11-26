@@ -333,10 +333,9 @@ The rule reports diagnostics without fixes because replacing effects can change 
 The [mapping](lint-rule-mapping.md#oxlint-policies) records upstream fixture results and compiler coverage limits.
 The custom call diagnostic covers a separate requirement from the upstream checks.
 
-`check:ultracite` runs the root configuration with type awareness, including the React policy.
 The shared check and fix commands each run once, without additional formatter-writing passes.
-Sinon runs `ultracite check --type-aware` once from the repository root across scripts, tests, and Harness tooling.
-The standalone workspace sample and Storybook fixtures use their own installed consumer dependencies through `check:consumers`, rather than the publishing repository's Node-only types.
+Sinon runs `ultracite check` once from the repository root across scripts, tests, and Harness tooling.
+The standalone workspace sample and Storybook fixtures use their own installed consumer dependencies through `verify:consumers`, rather than the publishing repository's Node-only types.
 Oxlint discovers the nested Harness configuration and applies its additional rules within that directory.
 Both configurations register the same React effect module from the Harness profile.
 The root `.eslintignore` keeps independently checked consumer configurations out of root discovery.

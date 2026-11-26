@@ -78,6 +78,7 @@ const includeEntry = async (
 /**
  * Copy an independent sample into an existing empty directory.
  * The destination must be a regular directory and copied entries cannot be symlinks.
+ * A failed copy waits for its sibling copies before the error is reported.
  */
 export const materializeSample = async (
   name: Sample,
@@ -105,16 +106,20 @@ export const materializeSample = async (
     )
   );
   const children = await readdir(source);
-  await Promise.all(
-    children.map(async (child) => {
-      await cp(path.join(source, child), path.join(root, child), {
-        errorOnExist: true,
-        filter: includeEntry.bind(null, source),
-        force: false,
-        recursive: true
-      });
-    })
-  );
+  const copies = children.map(async (child) => {
+    await cp(path.join(source, child), path.join(root, child), {
+      errorOnExist: true,
+      filter: includeEntry.bind(null, source),
+      force: false,
+      recursive: true
+    });
+  });
+  try {
+    await Promise.all(copies);
+  } catch (error) {
+    await Promise.allSettled(copies);
+    throw error;
+  }
   if (name === "gradle-multi-module") {
     await mkdir(path.join(root, "buildSrc"), { recursive: true });
     await copyFile(

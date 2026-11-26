@@ -8,6 +8,10 @@ import { describe, expect, test } from "vitest";
 
 import plugin from "../../../../no-direct-use-effect.js";
 import { configureBaseline } from "../../../scripts/configure.js";
+import {
+  createCommandFixture,
+  waitForFixtureTasks
+} from "../../../tests/fixture-command.ts";
 import { runUltracite } from "../../../tests/ultracite-fixture.js";
 
 const pluginSources = [
@@ -157,79 +161,88 @@ new RuleTester({
   }
 );
 
-test("root and materialized configs report adopted policies as errors", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "sinon-react-compiler-"));
-  try {
-    await configureBaseline(directory, "node", "eligible");
-    await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
-    await symlink(
-      new URL("../../../../../node_modules", import.meta.url),
-      path.join(directory, "node_modules"),
-      "dir"
-    );
-    const policyCases = [
-      [
-        "direct.tsx",
-        'import { useEffect } from "react"; useEffect(() => {});',
-        "react-effects(no-direct-use-effect)",
-        'import { useMount } from "framework"; useMount(() => {});'
-      ],
-      [
-        "render.tsx",
-        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
-        "react-hooks-js(set-state-in-render)",
-        'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }'
-      ],
-      [
-        "effect.tsx",
-        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { setCount(1); }, []); return <div>{count}</div>; }',
-        "react-hooks-js(set-state-in-effect)",
-        'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => setCount(c => c + 1), 1000); return () => clearInterval(id); }, []); return <div>{count}</div>; }'
-      ],
-      [
-        "mutation.tsx",
-        "export function Counter({ value }: { value: { count: number } }) { value.count += 1; return <div>{value.count}</div>; }",
-        "react-hooks-js(immutability)",
-        "export function Counter({ value }: { value: { count: number } }) { const local = { ...value }; local.count += 1; return <div>{local.count}</div>; }"
-      ],
-      [
-        "random.tsx",
-        "export function Counter() { return <div>{Math.random()}</div>; }",
-        "react-hooks-js(purity)",
-        "export function Counter() { return <div>{42}</div>; }"
-      ],
-      [
-        "hooks.tsx",
-        'import { useState } from "react"; export function Counter({ ready }: { ready: boolean }) { if (ready) { const [count] = useState(0); return <div>{count}</div>; } return null; }',
-        "react-hooks-js(rules-of-hooks)",
-        'import { useState } from "react"; export function Counter() { const [count] = useState(0); return <div>{count}</div>; }'
-      ],
-      [
-        "spread.ts",
-        "const items = [1, 2]; items.reduce((acc: number[], item) => [...acc, item], []);",
-        "oxc(no-accumulating-spread)",
-        "const items = [1, 2]; const copy = [...items]; copy.reduce((acc: number[], item) => { acc.push(item); return acc; }, []);"
-      ]
-    ] as const;
-    await Promise.all(
-      policyCases.flatMap(([filename, text, , negative]) => [
-        writeFile(path.join(directory, filename), `${text}\n`),
-        writeFile(path.join(directory, `valid-${filename}`), `${negative}\n`)
-      ])
-    );
-    await writeFile(
-      path.join(directory, "valid.tsx"),
-      'import { useState } from "react"; import { useMount } from "framework"; export function Counter() { const [count, setCount] = useState(0); useMount(() => {}); return <button onClick={() => setCount(count + 1)}>{count}</button>; }\n'
-    );
-    await writeFile(
-      path.join(directory, "unadopted.tsx"),
-      "export const labels = [<span />];\n"
-    );
-    for (const configuration of [
+test("root and materialized configs report adopted policies as errors", async ({
+  signal
+}) => {
+  await using fixture = await createCommandFixture("sinon-react-compiler-");
+  const { directory } = fixture;
+  await configureBaseline(directory, "node", "eligible");
+  await writeFile(path.join(directory, ".oxlintrc.json"), "{}\n");
+  await symlink(
+    new URL("../../../../../node_modules", import.meta.url),
+    path.join(directory, "node_modules"),
+    "dir"
+  );
+  const policyCases = [
+    [
+      "direct.tsx",
+      'import { useEffect } from "react"; useEffect(() => {});',
+      "react-effects(no-direct-use-effect)",
+      'import { useMount } from "framework"; useMount(() => {});'
+    ],
+    [
+      "render.tsx",
+      'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); setCount(count + 1); return <div>{count}</div>; }',
+      "react-hooks-js(set-state-in-render)",
+      'import { useState } from "react"; export function Counter() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }'
+    ],
+    [
+      "effect.tsx",
+      'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { setCount(1); }, []); return <div>{count}</div>; }',
+      "react-hooks-js(set-state-in-effect)",
+      'import { useEffect, useState } from "react"; export function Counter() { const [count, setCount] = useState(0); useEffect(() => { const id = setInterval(() => setCount(c => c + 1), 1000); return () => clearInterval(id); }, []); return <div>{count}</div>; }'
+    ],
+    [
+      "mutation.tsx",
+      "export function Counter({ value }: { value: { count: number } }) { value.count += 1; return <div>{value.count}</div>; }",
+      "react-hooks-js(immutability)",
+      "export function Counter({ value }: { value: { count: number } }) { const local = { ...value }; local.count += 1; return <div>{local.count}</div>; }"
+    ],
+    [
+      "random.tsx",
+      "export function Counter() { return <div>{Math.random()}</div>; }",
+      "react-hooks-js(purity)",
+      "export function Counter() { return <div>{42}</div>; }"
+    ],
+    [
+      "hooks.tsx",
+      'import { useState } from "react"; export function Counter({ ready }: { ready: boolean }) { if (ready) { const [count] = useState(0); return <div>{count}</div>; } return null; }',
+      "react-hooks-js(rules-of-hooks)",
+      'import { useState } from "react"; export function Counter() { const [count] = useState(0); return <div>{count}</div>; }'
+    ],
+    [
+      "spread.ts",
+      "const items = [1, 2]; items.reduce((acc: number[], item) => [...acc, item], []);",
+      "oxc(no-accumulating-spread)",
+      "const items = [1, 2]; const copy = [...items]; copy.reduce((acc: number[], item) => { acc.push(item); return acc; }, []);"
+    ]
+  ] as const;
+  await waitForFixtureTasks(
+    policyCases.flatMap(([filename, text, , negative]) => [
+      writeFile(path.join(directory, filename), `${text}\n`),
+      writeFile(path.join(directory, `valid-${filename}`), `${negative}\n`)
+    ])
+  );
+  await writeFile(
+    path.join(directory, "valid.tsx"),
+    'import { useState } from "react"; import { useMount } from "framework"; export function Counter() { const [count, setCount] = useState(0); useMount(() => {}); return <button onClick={() => setCount(count + 1)}>{count}</button>; }\n'
+  );
+  await writeFile(
+    path.join(directory, "unadopted.tsx"),
+    "export const labels = [<span />];\n"
+  );
+  await waitForFixtureTasks(
+    [
       path.resolve(import.meta.dirname, "../../../../../oxlint.config.ts"),
       path.join(directory, "oxlint.config.ts")
-    ]) {
-      const result = runUltracite(directory, ".", "check", configuration);
+    ].map(async (configuration) => {
+      const result = await runUltracite(
+        fixture,
+        ".",
+        signal,
+        "check",
+        configuration
+      );
       expect(result.status).toBe(1);
       expect(
         result.diagnostics.filter(
@@ -263,10 +276,8 @@ test("root and materialized configs report adopted policies as errors", async ()
               code === "oxc(no-accumulating-spread)")
         )
       ).toEqual([]);
-    }
-  } finally {
-    await rm(directory, { force: true, recursive: true });
-  }
+    })
+  );
 }, 60_000);
 
 test("Harness package scripts diagnose direct React effects without rewriting source", async () => {

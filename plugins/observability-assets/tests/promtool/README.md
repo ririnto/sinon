@@ -23,7 +23,7 @@ metadata:
 Run from the repository root:
 
 ```sh
-pnpm run check:test:promtool
+pnpm run verify:promtool-fixtures
 ```
 
 The runner checks the rule file and then runs its unit test fixture.
@@ -41,9 +41,9 @@ The release selection supports Node.js hosts on macOS, Linux, and Windows with x
 Pass native Promtool arguments when checking another fixture:
 
 ```sh
-pnpm run check:test:promtool --version
-pnpm run check:test:promtool check rules plugins/observability-assets/tests/promtool/alerts/api-errors.rules.yaml
-pnpm run check:test:promtool test rules plugins/observability-assets/tests/promtool/alerts/api-errors.test.yaml
+pnpm run verify:promtool-fixtures --version
+pnpm run verify:promtool-fixtures check rules plugins/observability-assets/tests/promtool/alerts/api-errors.rules.yaml
+pnpm run verify:promtool-fixtures test rules plugins/observability-assets/tests/promtool/alerts/api-errors.test.yaml
 ```
 
 From the plugin directory, use `pnpm run promtool` with the same arguments and paths relative to that directory.

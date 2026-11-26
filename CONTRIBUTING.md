@@ -31,7 +31,10 @@ See [GitHub's template documentation](https://docs.github.com/en/communities/usi
 
 Use the Node.js range and pnpm version declared in `package.json`.
 Install locked dependencies with `pnpm install --frozen-lockfile` when the environment needs them.
-Run `pnpm run check` for repository-wide validation or the relevant named `check:*` commands for a bounded change.
+Run `pnpm run check` for repository-wide validation.
+For a bounded change, run the relevant `check:*` commands.
+Run `pnpm run verify:consumers` for the installed workspace and Storybook consumers.
+Run `pnpm run verify:promtool-fixtures` for the Prometheus rule examples.
 Use the [verification map](docs/verification.md) to select checks and understand their runtime coverage.
 Run `claude plugin validate .` from an affected package after changing its packaged content.
 Check Markdown links and rendered readability for changed human-facing documents.

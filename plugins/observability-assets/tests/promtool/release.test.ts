@@ -129,14 +129,17 @@ const archiveBytes = async (
 ): Promise<Buffer> => {
   const directory = await mkdtemp(path.join(tmpdir(), "sinon-release-test-"));
   try {
-    await Promise.all(
-      Object.entries(files).map(async ([member, content]) => {
-        await mkdir(path.dirname(path.join(directory, member)), {
-          recursive: true
-        });
-        await writeFile(path.join(directory, member), content);
-      })
-    );
+    const writes = Object.entries(files).map(async ([member, content]) => {
+      await mkdir(path.dirname(path.join(directory, member)), {
+        recursive: true
+      });
+      await writeFile(path.join(directory, member), content);
+    });
+    for (const result of await Promise.allSettled(writes)) {
+      if (result.status === "rejected") {
+        throw result.reason;
+      }
+    }
     return Buffer.concat(
       await create({ cwd: directory, gzip: true }, [...members]).collect()
     );

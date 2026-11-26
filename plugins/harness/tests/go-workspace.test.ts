@@ -14,6 +14,7 @@ import path from "node:path";
 import { expect, onTestFinished, test } from "vitest";
 
 import { configureBaseline } from "../scripts/configure.js";
+import { waitForFixtureTasks } from "./fixture-command.ts";
 
 test.skipIf(
   process.env.HARNESS_GO_WORKSPACE_TEST === undefined ||
@@ -35,8 +36,8 @@ test.skipIf(
     const firstModule = "module example.com/first\n\ngo 1.27.0\n";
     const secondModule =
       "module example.com/second\n\ngo 1.27.0\n\nrequire example.com/first v0.0.0\n";
-    await Promise.all([mkdir(first), mkdir(second)]);
-    await Promise.all([
+    await waitForFixtureTasks([mkdir(first), mkdir(second)]);
+    await waitForFixtureTasks([
       writeFile(workFile, workspace),
       writeFile(path.join(first, "go.mod"), firstModule),
       writeFile(path.join(second, "go.mod"), secondModule),

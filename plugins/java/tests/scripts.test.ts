@@ -17,7 +17,8 @@ const fixture = async () => {
   });
   const bin = path.join(directory, "bin");
   const project = path.join(directory, "project");
-  await Promise.all([mkdir(bin), mkdir(project)]);
+  await mkdir(bin);
+  await mkdir(project);
   const excluded = new Set([
     "JAVA_ASSISTANT_LOMBOK_JAR",
     "JAVA_ASSISTANT_LOMBOK_ENABLED",
@@ -148,10 +149,8 @@ describe("Java shell script behavior", () => {
     const { project } = await fixture();
     const first = path.join(project, "lombok-1.18.40.jar");
     const second = path.join(project, "lombok-1.18.42.jar");
-    await Promise.all([
-      writeFile(first, "fixture"),
-      writeFile(second, "fixture")
-    ]);
+    await writeFile(first, "fixture");
+    await writeFile(second, "fixture");
     await writeFile(
       path.join(project, ".classpath"),
       'path="missing/lombok-1.18.39.jar"\npath="lombok-1.18.40.jar"'
@@ -182,10 +181,8 @@ describe("Java shell script behavior", () => {
     const { directory, environment, project } = await fixture();
     const override = path.join(directory, "override.jar");
     const projectJar = path.join(project, "lombok-1.18.40.jar");
-    await Promise.all([
-      writeFile(override, "fixture"),
-      writeFile(projectJar, "fixture")
-    ]);
+    await writeFile(override, "fixture");
+    await writeFile(projectJar, "fixture");
     await writeFile(
       path.join(project, ".classpath"),
       'path="lombok-1.18.40.jar"'
@@ -305,13 +302,20 @@ public final class Probe {
 }
 `
       };
-      const sourcePaths = await Promise.all(
-        Object.entries(sources).map(async ([filename, source]) => {
+      const sourceWrites = Object.entries(sources).map(
+        async ([filename, source]) => {
           const sourcePath = path.join(directory, filename);
           await writeFile(sourcePath, source);
           return sourcePath;
-        })
+        }
       );
+      const sourceSettlements = await Promise.allSettled(sourceWrites);
+      const sourcePaths = sourceSettlements.map((result) => {
+        if (result.status === "rejected") {
+          throw result.reason;
+        }
+        return result.value;
+      });
       const compilation = spawnSync("javac", ["-d", classes, ...sourcePaths], {
         cwd: directory,
         env: environment
@@ -325,14 +329,17 @@ public final class Probe {
         [old, "OldLombokAgent"],
         [other, "OtherAgent"]
       ];
-      await Promise.all(
-        agents.map(async ([, mainClass]) => {
-          await writeFile(
-            path.join(directory, `${mainClass}.mf`),
-            `Manifest-Version: 1.0\nPremain-Class: ${mainClass}\n\n`
-          );
-        })
-      );
+      const manifestWrites = agents.map(async ([, mainClass]) => {
+        await writeFile(
+          path.join(directory, `${mainClass}.mf`),
+          `Manifest-Version: 1.0\nPremain-Class: ${mainClass}\n\n`
+        );
+      });
+      for (const result of await Promise.allSettled(manifestWrites)) {
+        if (result.status === "rejected") {
+          throw result.reason;
+        }
+      }
       for (const [jar, mainClass] of agents) {
         const manifest = path.join(directory, `${mainClass}.mf`);
         const packaging = spawnSync(
