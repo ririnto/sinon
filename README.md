@@ -119,6 +119,22 @@ Run `pnpm run verify:consumers` to install and verify the workspace and Storyboo
 Run `pnpm run verify:promtool-fixtures` for the [Prometheus documentation fixtures](plugins/observability-assets/tests/promtool/README.md).
 That component verifies and runs the official release executable without a separate Go build graph.
 
+## Promtool Statecharts
+
+Run `pnpm run statecharts:render` to regenerate both SVGs from the checked-in Mermaid sources.
+
+### ChildLifecycle
+
+The chart shows how process signals are forwarded and how child closure, errors, and cleanup determine the reported result.
+
+![ChildLifecycle statechart](plugins/observability-assets/tests/promtool/model/ChildLifecycle.svg)
+
+### DownloadLifecycle
+
+The chart shows how the two asset downloads return on success or request cancellation and settle before reporting the first failure.
+
+![DownloadLifecycle statechart](plugins/observability-assets/tests/promtool/model/DownloadLifecycle.svg)
+
 ## Current Plugins
 
 The following local plugins are listed in both marketplace catalogs, except where a package README names a single host.
