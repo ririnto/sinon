@@ -40,8 +40,10 @@ const files = execFileSync(
   repositoryOptions
 ).split("\0");
 const modelPaths = files.filter((file) => file.endsWith(".tla"));
+const normalizeModelName = (name: string): string =>
+  name.toLowerCase().replaceAll(/[-_\s]/gu, "");
 const modelNames = new Set(
-  modelPaths.map((file) => path.basename(file, ".tla"))
+  modelPaths.map((file) => normalizeModelName(path.basename(file, ".tla")))
 );
 const modelDirectories = new Set(modelPaths.map((file) => path.dirname(file)));
 const chartExtensions = new Set([".mmd", ".mnd"]);
@@ -71,7 +73,7 @@ const matchesModelTitle = (file: string): boolean => {
   return (
     document.errors.length === 0 &&
     typeof title === "string" &&
-    modelNames.has(title)
+    modelNames.has(normalizeModelName(title))
   );
 };
 
@@ -82,7 +84,7 @@ for (const file of files) {
     chartExtensions.has(ext) &&
     (file.startsWith(skill) ||
       modelDirectories.has(path.dirname(file)) ||
-      modelNames.has(path.basename(file, ext)) ||
+      modelNames.has(normalizeModelName(path.basename(file, ext))) ||
       matchesModelTitle(file))
   ) {
     formalCharts.add(file.slice(0, -ext.length));
@@ -101,7 +103,7 @@ for (const file of files) {
       (ext === ".cfg" &&
         (inSkill ||
           besideModel ||
-          modelNames.has(path.basename(file, ext))))) &&
+          modelNames.has(normalizeModelName(path.basename(file, ext)))))) &&
     !(inSkill && assetPath.test(relative))
   ) {
     required = "assets/<model>/";
