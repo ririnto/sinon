@@ -3,12 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "model": "node ../../.claude/skills/formal-verification/scripts/check.ts",
+    "model": "pnpm --filter @sinon/formal-verification run model",
     "promtool": "node --import tsx tests/promtool/run.ts"
   },
   "devDependencies": {
     "tar": "catalog:",
-    "tla-chaos-loop": "catalog:",
     "tsx": "catalog:"
   },
   "config": {

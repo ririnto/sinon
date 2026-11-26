@@ -19,10 +19,7 @@ const base = fileURLToPath(
   new URL(`../assets/${topic}/${model}`, import.meta.url)
 );
 const tlc = fileURLToPath(
-  new URL(
-    "../../../../plugins/observability-assets/node_modules/tla-chaos-loop/tools/tla2tools.jar",
-    import.meta.url
-  )
+  new URL("../node_modules/tla-chaos-loop/tools/tla2tools.jar", import.meta.url)
 );
 const metadata = mkdtempSync(path.join(tmpdir(), "sinon-tlc-"));
 try {

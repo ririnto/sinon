@@ -13,6 +13,7 @@ Use this skill for changes to the [Promtool runner](../../../plugins/observabili
 From the repository root, use the installed workspace dependencies and Java.
 
 ```sh
+pnpm run check:formal-layout
 pnpm run check:promtool
 pnpm run check:statecharts
 ```

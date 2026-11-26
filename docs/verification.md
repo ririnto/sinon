@@ -56,7 +56,8 @@ The [Harness pnpm reference](../plugins/harness/docs/tools/pnpm.md) explains dif
 The [state-machine inventory](state-machines.md) maps maintained lifecycles to their source and verification.
 The [Promtool model reference](../.claude/skills/formal-verification/SKILL.md) records model assumptions and source mappings.
 Run `pnpm run check:promtool` to check both models, or use the root `check:promtool:download` and `check:promtool:child` scripts individually.
-The [Observability Assets manifest](../plugins/observability-assets/package.json) owns the model and fixture commands, their dependencies, and the Promtool release pin.
+The [formal verification package](../.claude/skills/formal-verification/package.json) owns the model and chart commands and their dependencies.
+The [Observability Assets manifest](../plugins/observability-assets/package.json) owns the fixture command and the Promtool release pin.
 TLC checks the finite models without network access and removes its temporary state files after each run.
 The models supplement runtime tests and do not prove network cancellation, operating-system behavior, or source equivalence.
 
