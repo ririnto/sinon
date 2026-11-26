@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "model": "sh tests/promtool/model/check.sh",
+    "model": "node ../../.claude/skills/formal-verification/scripts/check.ts",
     "promtool": "node --import tsx tests/promtool/run.ts"
   },
   "devDependencies": {

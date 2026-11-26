@@ -39,5 +39,5 @@ The linked tests cover selected behavior, not every possible filesystem race, pr
 ## Verification boundaries
 
 The existing state references and linked tests describe their own scope.
-The [Promtool lifecycle models](../plugins/observability-assets/tests/promtool/model/README.md) check bounded download and child-process interleavings alongside the runtime tests.
+The [Promtool lifecycle models](../.claude/skills/formal-verification/SKILL.md) check bounded download and child-process interleavings alongside the runtime tests.
 A model describes its stated assumptions and transitions, and does not establish that arbitrary agent behavior follows an instruction workflow.
