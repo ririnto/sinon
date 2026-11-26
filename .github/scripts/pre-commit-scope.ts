@@ -30,7 +30,7 @@ const testScopes: readonly {
       /^tsconfig\.json$/u,
       /^\.markdownlint-cli2\.jsonc$/u
     ],
-    tests: ["rules", "plugins/harness/tooling/pnpm", "plugins/harness/tests"]
+    tests: ["rules"]
   },
   {
     patterns: [/^plugins\/java\//u],
@@ -57,7 +57,7 @@ export const selectChecks = (stagedPaths: readonly string[]): string[] => [
   )
     ? ["check:promtool"]
     : []),
-  `check:test:unit ${[
+  `check:test:unit --exclude=plugins/harness/** ${[
     ".github/scripts/sync-versions.test.ts",
     ...testScopes
       .filter(({ patterns }) =>

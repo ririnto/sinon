@@ -21,6 +21,9 @@ The root has no separate `build` or `test` script.
 Pre-push runs the `check:*` scripts for Vitest, TypeScript checking, lint, formatting, version validation, and lifecycle models.
 `check:test` discovers root-owned TypeScript tests once, including hidden GitHub script tests, without selecting the independent sample packages.
 Pre-commit invokes this same runner with the affected suite paths and always includes version regression tests.
+Harness changes and root configuration changes still select the root rule tests during pre-commit.
+The Harness tests and the Harness pnpm tooling tests run in pre-push and the complete repository check.
+Run them on demand with `pnpm run check:test:unit plugins/harness/tooling/pnpm plugins/harness/tests`.
 The complete `check` command also runs the two network-dependent checks.
 `verify:promtool-fixtures` downloads the official release binary and runs the Prometheus rule examples.
 `verify:consumers` installs the independent workspace sample from its lockfile and materializes fresh HTML and React projects.
