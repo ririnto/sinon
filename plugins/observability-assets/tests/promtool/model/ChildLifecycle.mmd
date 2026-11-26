@@ -1,0 +1,43 @@
+---
+title: "Promtool child lifecycle"
+---
+stateDiagram-v2
+  s0: Starting without a PID
+  s1: Starting with a PID
+  s2: Starting after interruption
+  s3: Waiting to forward the first signal
+  s4: Running
+  s5: Child error received
+  s6: Running after interruption
+  s7: Closed
+  s8: Closed with a child error
+  s9: Closed after interruption
+  s10: Exit code reported
+  s11: Child error reported
+  s12: Exit signal reported
+  s13: First interruption reported
+  [*] --> s0
+  [*] --> s1
+  s0 --> s3: Defer signal
+  s0 --> s4: Start child
+  s0 --> s5: Receive child error
+  s1 --> s2: Forward signal
+  s1 --> s4: Start child
+  s1 --> s5: Receive child error
+  s2 --> s6: Start child
+  s2 --> s5: Receive child error
+  s3 --> s6: Start and forward the first signal
+  s3 --> s5: Receive child error
+  s4 --> s6: Forward signal
+  s4 --> s7: Child closes
+  s4 --> s5: Receive child error
+  s5 --> s8: Child closes
+  s6 --> s9: Child closes
+  s6 --> s5: Receive child error
+  s7 --> s9: Forward signal
+  s7 --> s10: Remove listeners and report result
+  s7 --> s8: Receive child error
+  s8 --> s11: Remove listeners and report result
+  s7 --> s12: Remove listeners and report result
+  s9 --> s13: Remove listeners and report result
+  s9 --> s8: Receive child error

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 599 788" width="599" height="788" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele {
+  --pele-bg: #ffffff;
+  --pele-fg: #1c1c1c;
+  --pele-muted: #656565;
+  --pele-line: #808080;
+  --pele-surface: #fcfcfc;
+  --pele-surface-alt: #f1f1f1;
+  --pele-border: #c9c9c9;
+}
+.pele .blue rect { fill: #c3e0ff; }
+.pele .orange rect { fill: #f0d3bf; }
+.pele .purple rect { fill: #e3d5ff; }
+.pele .yellow rect { fill: #f0dcbf; }
+.pele .teal rect { fill: #bfe3df; }
+.pele .tan rect { fill: #e5d9ce; }
+.pele .pink rect { fill: #ffcbe6; }
+.pele .breaks rect {
+  fill: #ffecee !important;
+  stroke: #e72e3b !important;
+  stroke-width: 2.5px !important;
+}
+.pele .breaks text {
+  fill: #cd2834 !important;
+}
+.pele .mayBreak rect {
+  fill: #fff3e6 !important;
+  stroke: #e8730c !important;
+  stroke-width: 2.5px !important;
+}
+.pele .mayBreak text {
+  fill: #b85a06 !important;
+}
+.pele .bugPath rect {
+  stroke: #1680f3 !important;
+  stroke-width: 2.5px !important;
+}
+.pele .repeats rect {
+  stroke: #9b35d6 !important;
+  stroke-width: 2.5px !important;
+  stroke-dasharray: 6 3;
+}
+@media (prefers-color-scheme: dark) {
+  .pele {
+    --pele-bg: #1f1f1f;
+    --pele-fg: #f5f5f5;
+    --pele-muted: #acacac;
+    --pele-line: #939393;
+    --pele-surface: #121212;
+    --pele-surface-alt: #2c2c2c;
+    --pele-border: #4e4e4e;
+  }
+  .pele .blue rect { fill: #1b3857; }
+  .pele .orange rect { fill: #573117; }
+  .pele .purple rect { fill: #3c2e57; }
+  .pele .yellow rect { fill: #573d17; }
+  .pele .teal rect { fill: #174641; }
+  .pele .tan rect { fill: #3d3127; }
+  .pele .pink rect { fill: #57233e; }
+  .pele .breaks rect {
+    fill: #2e2021 !important;
+    stroke: #cf2b35 !important;
+  }
+  .pele .breaks text {
+    fill: #ff6463 !important;
+  }
+  .pele .mayBreak rect {
+    fill: #2e2619 !important;
+    stroke: #d0700f !important;
+  }
+  .pele .mayBreak text {
+    fill: #ffa257 !important;
+  }
+  .pele .bugPath rect {
+    stroke: #116dd2 !important;
+  }
+  .pele .repeats rect {
+    stroke: #9a3fcf !important;
+  }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="299.5" y="25.6">Promtool download lifecycle</tspan></text><g transform="translate(0,36)"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M351.81,22L351.81,59"/><path class="pele-marker" d="M351.81,66L348.45,58L355.17,58Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M341.57,110C341.57,119.25 226.88,119.25 226.88,128.5L226.88,172"/><path class="pele-marker" d="M226.88,179L223.52,171L230.24,171Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M226.88,223L226.88,285"/><path class="pele-marker" d="M226.88,292L223.52,284L230.24,284Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M173.95,336C173.95,345.25 120.93,345.25 120.93,354.5L120.93,398"/><path class="pele-marker" d="M120.93,405L117.57,397L124.29,397Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M120.93,467L120.93,525.5C120.93,532.44 169.5,532.44 169.5,539.38L169.5,544"/><path class="pele-marker" d="M169.5,551L166.14,543L172.86,543Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M279.81,336C279.81,370.5 332.83,370.5 332.83,405L332.83,467C332.83,502.5 284.26,502.5 284.26,538L284.26,544"/><path class="pele-marker" d="M284.26,551L280.9,543L287.62,543Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M226.88,613L226.88,675"/><path class="pele-marker" d="M226.88,682L223.52,674L230.24,674Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M362.05,110C362.05,119.25 476.74,119.25 476.74,128.5L476.74,172"/><path class="pele-marker" d="M476.74,179L473.38,171L480.1,171Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M476.74,223L476.74,285"/><path class="pele-marker" d="M476.74,292L473.38,284L480.1,284Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="177.36" y="130.5" width="99.03" height="21" rx="3" fill="var(--_bg)"/><text x="226.88" y="145.9" text-anchor="middle">Download fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="151.29" y="243.5" width="151.18" height="21" rx="3" fill="var(--_bg)"/><text x="226.88" y="258.9" text-anchor="middle">Reject download group</text></g><g class="pele-edge-label" data-id="edge3"><rect x="51.95" y="356.5" width="137.95" height="21" rx="3" fill="var(--_bg)"/><text x="120.93" y="371.9" text-anchor="middle">Request cancellation</text></g><g class="pele-edge-label" data-id="edge4"><rect x="25.51" y="487.5" width="190.84" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="120.93" y="501.4">Download fails or Finish body</tspan><tspan x="120.93" y="519.4">read</tspan></text></g><g class="pele-edge-label" data-id="edge5"><rect x="263.86" y="425.5" width="137.95" height="21" rx="3" fill="var(--_bg)"/><text x="332.83" y="440.9" text-anchor="middle">Request cancellation</text></g><g class="pele-edge-label" data-id="edge6"><rect x="171.93" y="633.5" width="109.91" height="21" rx="3" fill="var(--_bg)"/><text x="226.88" y="648.9" text-anchor="middle">Report first error</text></g><g class="pele-edge-label" data-id="edge7"><rect x="403.1" y="130.5" width="147.29" height="21" rx="3" fill="var(--_bg)"/><text x="476.74" y="145.9" text-anchor="middle">Finish both downloads</text></g><g class="pele-edge-label" data-id="edge8"><rect x="400.76" y="243.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="476.74" y="258.9" text-anchor="middle">Return both downloads</text></g></g><g class="pele-nodes"><g class="pele-node pele-state" data-id="s0" transform="translate(351.81,88)"><rect x="-62.24" y="-22" width="124.48" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Downloading</text></g><g class="pele-node pele-state" data-id="s1" transform="translate(226.88,201)"><rect x="-89.36" y="-22" width="178.72" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">First download failed</text></g><g class="pele-node pele-state" data-id="s2" transform="translate(226.88,314)"><rect x="-104.93" y="-22" width="209.86" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Download group rejected</text></g><g class="pele-node pele-state" data-id="s3" transform="translate(120.93,436)"><rect x="-112.93" y="-31" width="225.86" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Waiting for downloads after</tspan><tspan x="0" y="16.1">cancellation request</tspan></text></g><g class="pele-node pele-state" data-id="s4" transform="translate(226.88,582)"><rect x="-109.38" y="-31" width="218.75" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">All downloads settled after</tspan><tspan x="0" y="16.1">cancellation request</tspan></text></g><g class="pele-node pele-state" data-id="s5" transform="translate(226.88,713)"><rect x="-87.13" y="-31" width="174.26" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">First download error</tspan><tspan x="0" y="16.1">reported</tspan></text></g><g class="pele-node pele-state" data-id="s6" transform="translate(476.74,201)"><rect x="-113.83" y="-22" width="227.66" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Both downloads succeeded</text></g><g class="pele-node pele-state" data-id="s7" transform="translate(476.74,314)"><rect x="-104.94" y="-22" width="209.87" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Both downloads returned</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(351.81,15)"><circle r="7" fill="var(--_l)"/></g></g></g></svg>

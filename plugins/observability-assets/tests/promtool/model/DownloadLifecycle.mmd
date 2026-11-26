@@ -1,0 +1,21 @@
+---
+title: "Promtool download lifecycle"
+---
+stateDiagram-v2
+  s0: Downloading
+  s1: First download failed
+  s2: Download group rejected
+  s3: Waiting for downloads after cancellation request
+  s4: All downloads settled after cancellation request
+  s5: First download error reported
+  s6: Both downloads succeeded
+  s7: Both downloads returned
+  [*] --> s0
+  s0 --> s1: Download fails
+  s1 --> s2: Reject download group
+  s2 --> s3: Request cancellation
+  s3 --> s4: Download fails or Finish body read
+  s2 --> s4: Request cancellation
+  s4 --> s5: Report first error
+  s0 --> s6: Finish both downloads
+  s6 --> s7: Return both downloads
