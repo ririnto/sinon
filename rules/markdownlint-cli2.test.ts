@@ -247,12 +247,12 @@ test("a copied local box drawing rule preserves its diagnostics through CLI2", a
   try {
     await waitForFixtureTasks([
       cp(
-        path.join(repositoryRoot, "rules/no-box-drawing.mjs"),
-        path.join(directory, "no-box-drawing.mjs")
+        path.join(repositoryRoot, "rules/no-box-drawing.ts"),
+        path.join(directory, "no-box-drawing.ts")
       ),
       writeFile(
         path.join(directory, ".markdownlint-cli2.jsonc"),
-        JSON.stringify({ customRules: ["no-box-drawing.mjs"] })
+        JSON.stringify({ customRules: ["no-box-drawing.ts"] })
       ),
       writeFile(path.join(directory, "boxes.md"), boxes),
       writeFile(

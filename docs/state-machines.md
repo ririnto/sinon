@@ -21,7 +21,7 @@ The linked tests cover selected behavior, not every possible filesystem race, pr
 
 ## One-shot flows and selectors
 
-- The [version snapshot command](../.github/scripts/sync-versions.mjs) computes snapshots from root configuration, reports differences in check mode, or writes changed files in write mode.
+- The [version snapshot command](../.github/scripts/sync-versions.ts) computes snapshots from root configuration, reports differences in check mode, or writes changed files in write mode.
   Concurrent writes are not a transaction, so a write failure can leave partial updates.
   The [version tests](../.github/scripts/sync-versions.test.ts) cover the command.
 - The [pre-commit selector](../.github/scripts/pre-commit-scope.ts) maps staged paths to check names for one invocation.

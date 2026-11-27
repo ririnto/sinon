@@ -45,7 +45,7 @@ Codex uses `.codex-plugin/plugin.json` to load skills from the default `skills/`
 - `tooling/{gradle,maven,pnpm,uv}/`: project-owned API documentation configuration for the selected public entry points.
 - `tooling/gradle/package.json`: bounded pnpm manifest merge guidance for Markdown checks, Gradle aliases, and hook scripts.
 - `tooling/pnpm/.husky/`: Node hooks that delegate to the target's pnpm script entrypoints.
-- `tooling/pnpm/rules/no-sensitive-content.mjs`: canonical, opt-in sensitive-content Markdownlint diagnostics exposed through Sinon's private root package.
+- `tooling/pnpm/rules/no-sensitive-content.ts`: canonical, opt-in sensitive-content Markdownlint diagnostics exposed through Sinon's private root package.
 - `scripts/configure.ts`: conflict-aware fresh-root baseline materialization for verified eligible projects.
 - `scripts/materialize-sample.ts`: copies a runnable workspace or module sample into an empty directory.
 - `samples/`: independent Go, pnpm, Gradle, Maven, Cargo, and uv projects with native workspace or module configurations.

@@ -1,3 +1,5 @@
+import type { Rule } from "markdownlint";
+
 const tokenPatterns = [
   /\b\d{6,}:[A-Za-z0-9_-]{30,}\b/u,
   /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{40,})\b/u,
@@ -28,8 +30,6 @@ const hashPatterns = [
 
 /**
  * Report sensitive-content heuristics once per Markdownlint line without fixes or values.
- *
- * @type {import("markdownlint").Rule}
  */
 export default {
   description:
@@ -37,8 +37,8 @@ export default {
   function(params, onError) {
     for (const [index, line] of params.lines.entries()) {
       const hasToken = tokenPatterns.some((pattern) => pattern.test(line));
-      const secretAssignment =
-        secretAssignmentPattern.exec(line)?.groups?.value;
+      const { value: secretAssignment } =
+        secretAssignmentPattern.exec(line)?.groups ?? {};
       const hasSecretAssignment =
         secretAssignment !== undefined &&
         !placeholderPattern.test(secretAssignment);
@@ -58,4 +58,4 @@ export default {
   names: ["sensitive-content"],
   parser: "none",
   tags: ["security"]
-};
+} satisfies Rule;

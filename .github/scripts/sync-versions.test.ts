@@ -26,8 +26,8 @@ test("version snapshots detect drift, update, and remain self-contained", async 
   });
   await mkdir(path.join(fixture, ".github/scripts"), { recursive: true });
   await cp(
-    path.join(root, ".github/scripts/sync-versions.mjs"),
-    path.join(fixture, ".github/scripts/sync-versions.mjs")
+    path.join(root, ".github/scripts/sync-versions.ts"),
+    path.join(fixture, ".github/scripts/sync-versions.ts")
   );
   await symlink(
     path.join(root, "node_modules"),
@@ -80,7 +80,7 @@ test("version snapshots detect drift, update, and remain self-contained", async 
     path.join(fixture, "plugins/harness/tooling/pnpm/runtime.fragment.json"),
     JSON.stringify({ engines: { node: "^24.0.0" }, private: true })
   );
-  const script = path.join(fixture, ".github/scripts/sync-versions.mjs");
+  const script = path.join(fixture, ".github/scripts/sync-versions.ts");
   expect(spawnSync(process.execPath, [script]).status).toBe(1);
   expect(spawnSync(process.execPath, [script, "--write"]).status).toBe(0);
   expect(spawnSync(process.execPath, [script]).status).toBe(0);

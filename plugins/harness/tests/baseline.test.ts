@@ -277,14 +277,14 @@ describe("fresh-root baseline", () => {
         "markdown-prose.ts",
         "no-em-dash.ts",
         "no-relative-skill-links.ts",
-        "no-sensitive-content.mjs",
+        "no-sensitive-content.ts",
         "table-separators.ts"
       ]);
       expect(
         valueAt(configuration, "config", "sensitive-content")
       ).toBeUndefined();
       expect(valueAt(configuration, "customRules")).not.toContain(
-        "rules/no-sensitive-content.mjs"
+        "rules/no-sensitive-content.ts"
       );
       if (profile === "gradle" || profile === "kotlin") {
         expect(

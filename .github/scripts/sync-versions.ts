@@ -5,8 +5,7 @@ import { isMap, isScalar, parseDocument } from "yaml";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const write = process.argv.includes("--write");
-/** @type {unknown} */
-const manifest = JSON.parse(
+const manifest: unknown = JSON.parse(
   await readFile(path.join(root, "package.json"), "utf-8")
 );
 if (
@@ -66,8 +65,7 @@ const snapshots = await Promise.all(
 const runtimeFile = "plugins/harness/tooling/pnpm/runtime.fragment.json";
 const runtimePath = path.join(root, runtimeFile);
 const originalRuntime = await readFile(runtimePath, "utf-8");
-/** @type {unknown} */
-const runtime = JSON.parse(originalRuntime);
+const runtime: unknown = JSON.parse(originalRuntime);
 if (
   typeof runtime !== "object" ||
   runtime === null ||
@@ -91,7 +89,7 @@ const gitlabFile = "plugins/harness/ci/gitlab/pnpm.gitlab-ci.yaml";
 const gitlabPath = path.join(root, gitlabFile);
 const originalGitlab = await readFile(gitlabPath, "utf-8");
 const image = parseDocument(originalGitlab).getIn(["pnpm", "image"], true);
-if (!isScalar(image) || image.range === undefined) {
+if (!isScalar(image) || image.range === undefined || image.range === null) {
   throw new Error(`Missing Node runtime in ${gitlabFile}`);
 }
 const gitlabSnapshot = {

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./rules/no-sensitive-content": "./plugins/harness/tooling/pnpm/rules/no-sensitive-content.mjs"
+    "./rules/no-sensitive-content": "./plugins/harness/tooling/pnpm/runtime/no-sensitive-content.js"
   },
   "scripts": {
     "check": "run-p pre-push verify:*",
@@ -13,20 +13,23 @@
     "check:promtool": "run-p check:promtool:*",
     "check:promtool:child": "pnpm --filter @sinon/formal-verification run model ChildLifecycle",
     "check:promtool:download": "pnpm --filter @sinon/formal-verification run model DownloadLifecycle",
+    "check:sensitive-content": "node .github/scripts/sync-sensitive-content.ts",
     "check:statecharts": "pnpm --filter @sinon/formal-verification run check:statecharts",
     "check:test": "run-p check:test:*",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
-    "check:versions": "node .github/scripts/sync-versions.mjs",
+    "check:versions": "node .github/scripts/sync-versions.ts",
     "check:yaml-sequences": "node rules/yaml-sequence-style.ts",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
     "fix:ultracite": "ultracite fix --type-aware",
     "pre-commit": "node --import tsx .github/scripts/pre-commit-scope.ts",
+    "prepack": "node .github/scripts/sync-sensitive-content.ts",
     "pre-push": "run-p check:*",
     "prepare": "husky",
+    "rules:sync": "node .github/scripts/sync-sensitive-content.ts --write",
     "statecharts:render": "pnpm --filter @sinon/formal-verification run statecharts:render",
-    "versions:sync": "node .github/scripts/sync-versions.mjs --write",
+    "versions:sync": "node .github/scripts/sync-versions.ts --write",
     "check:test:unit": "vitest run",
     "verify:promtool-fixtures": "pnpm --dir plugins/observability-assets run promtool",
     "verify:consumers": "node .github/scripts/check-consumers.ts"
