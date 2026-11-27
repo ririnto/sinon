@@ -11,7 +11,15 @@ const checker = path.join(
   ".claude/skills/formal-verification/scripts/check-layout.ts"
 );
 
-test.each([
+interface ImportFixture {
+  readonly comment: string;
+  readonly loader: string;
+  readonly quote?: string;
+  readonly specifier: string;
+  readonly status: number;
+}
+
+test.each<ImportFixture>([
   { loader: "await import", comment: "", specifier: "pele", status: 1 },
   { loader: "await import", comment: "", specifier: "node:fs", status: 0 },
   {
@@ -29,10 +37,24 @@ test.each([
   { loader: "require", comment: "", specifier: "pele", status: 1 },
   { loader: "require", comment: "", specifier: "node:fs", status: 0 },
   { loader: "import", comment: "", specifier: "pele/$foo", status: 1 },
-  { loader: "import", comment: "", specifier: `pele/\${name}`, status: 0 }
+  { loader: "import", comment: "", specifier: `pele/\${name}`, status: 0 },
+  { loader: "import", comment: "", specifier: `pele/\\\${name}`, status: 1 },
+  {
+    loader: "import",
+    comment: "",
+    specifier: `pele/foo\\\`\${name}`,
+    status: 0
+  },
+  {
+    loader: "import",
+    comment: "",
+    quote: '"',
+    specifier: `pele/\${name}`,
+    status: 1
+  }
 ])(
   "classifies a literal template specifier of $loader($specifier$comment)",
-  async ({ comment, loader, specifier, status }) => {
+  async ({ comment, loader, quote = "`", specifier, status }) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-formal-layout-")
     );
@@ -58,7 +80,9 @@ test.each([
     } as const;
     execFileSync("git", ["read-tree", "--empty"], options);
     const entry = "scripts/template-import.ts";
-    const source = [loader, "(", "`", specifier, "`", comment, ");\n"].join("");
+    const source = [loader, "(", quote, specifier, quote, comment, ");\n"].join(
+      ""
+    );
     const blob = execFileSync("git", ["hash-object", "-w", "--stdin"], {
       ...options,
       input: source
