@@ -87,7 +87,8 @@ const shebangFiles = new Set(
 const peleImport =
   /(?:^[ \t]*import(?:\s+[\w$*{},\s]+?\s+from)?\s*|\b(?:import|require)\s*\(\s*)["']pele(?:\/[^"'\r\n]+)?["']/mu;
 
-const peleTemplateCall = /\b(?:import|require)\s*\(\s*`pele(?:\/[^`$\r\n]+)?`/u;
+const peleTemplateCall =
+  /\b(?:import|require)\s*\(\s*`pele(?:\/(?:[^`$\r\n]|\$(?!\{))+)?`/u;
 
 const readSource = (file: string): string =>
   execFileSync(

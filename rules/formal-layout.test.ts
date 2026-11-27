@@ -27,7 +27,9 @@ test.each([
     status: 0
   },
   { loader: "require", comment: "", specifier: "pele", status: 1 },
-  { loader: "require", comment: "", specifier: "node:fs", status: 0 }
+  { loader: "require", comment: "", specifier: "node:fs", status: 0 },
+  { loader: "import", comment: "", specifier: "pele/$foo", status: 1 },
+  { loader: "import", comment: "", specifier: `pele/\${name}`, status: 0 }
 ])(
   "classifies a literal template specifier of $loader($specifier$comment)",
   async ({ comment, loader, specifier, status }) => {
@@ -67,9 +69,11 @@ test.each([
       options
     );
     const tree = execFileSync("git", ["write-tree"], options).trim();
-    const result = spawnSync(process.execPath, [checker, tree], options);
-    expect(result.error).toBeUndefined();
-    expect(result.status, result.stderr).toBe(status);
-    expect(result.stderr.includes(entry)).toBe(status === 1);
+    for (const args of [[checker], [checker, tree]]) {
+      const result = spawnSync(process.execPath, args, options);
+      expect(result.error).toBeUndefined();
+      expect(result.status, result.stderr).toBe(status);
+      expect(result.stderr.includes(entry)).toBe(status === 1);
+    }
   }
 );
