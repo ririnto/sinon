@@ -87,6 +87,9 @@ const shebangFiles = new Set(
 const peleImport =
   /(?:^[ \t]*import(?:\s+[\w$*{},\s]+?\s+from)?\s*|\b(?:import|require)\s*\(\s*)["']pele(?:\/[^"'\r\n]+)?["']/mu;
 
+const peleTemplateCall =
+  /\b(?:import|require)\s*\(\s*`pele(?:\/(?:[^`$\\\r\n]|\\[^\r\n]|\$(?!\{))+)?`/u;
+
 const readSource = (file: string): string =>
   execFileSync(
     "git",
@@ -104,7 +107,8 @@ const isFormalScript = (file: string, ext: string): boolean => {
       modelNames.has(normalizeModelName(groups?.stem ?? ""))
     ) ||
     tlcTool.test(source) ||
-    peleImport.test(source)
+    peleImport.test(source) ||
+    peleTemplateCall.test(source)
   );
 };
 
