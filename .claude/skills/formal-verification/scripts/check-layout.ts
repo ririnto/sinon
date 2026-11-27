@@ -41,7 +41,7 @@ const files = execFileSync(
 ).split("\0");
 const modelPaths = files.filter((file) => file.endsWith(".tla"));
 const normalizeModelName = (name: string): string =>
-  name.toLowerCase().replaceAll(/[-_\s]/gu, "");
+  name.toLowerCase().replaceAll(/[-_]/gu, "");
 const modelNames = new Set(
   modelPaths.map((file) => normalizeModelName(path.basename(file, ".tla")))
 );
