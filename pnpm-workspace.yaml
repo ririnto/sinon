@@ -1,4 +1,5 @@
 packages:
+  - .claude/skills/formal-verification
   - plugins/observability-assets
   - plugins/spec-driven-development
 

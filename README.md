@@ -127,13 +127,13 @@ Run `pnpm run statecharts:render` to regenerate both SVGs from the checked-in Me
 
 The chart shows how process signals are forwarded and how child closure, errors, and cleanup determine the reported result.
 
-![ChildLifecycle statechart](plugins/observability-assets/tests/promtool/model/ChildLifecycle.svg)
+![ChildLifecycle statechart](.claude/skills/formal-verification/references/child-lifecycle/ChildLifecycle.svg)
 
 ### DownloadLifecycle
 
 The chart shows how the two asset downloads return on success or request cancellation and settle before reporting the first failure.
 
-![DownloadLifecycle statechart](plugins/observability-assets/tests/promtool/model/DownloadLifecycle.svg)
+![DownloadLifecycle statechart](.claude/skills/formal-verification/references/download-lifecycle/DownloadLifecycle.svg)
 
 ## Current Plugins
 

@@ -22,7 +22,8 @@ const alwaysRunChecks = [
   "check:yaml-sequences"
 ];
 
-const versionTest = "check:test:unit .github/scripts/sync-versions.test.ts";
+const versionTest =
+  "check:test:unit --exclude=plugins/harness/** .github/scripts/sync-versions.test.ts";
 
 test("paths outside every suite keep only the always-run checks", () => {
   expect(
@@ -34,7 +35,7 @@ test("an empty staged set keeps the always-run checks", () => {
   expect(selectChecks([])).toEqual([...alwaysRunChecks, versionTest]);
 });
 
-test("harness and root configuration paths add the lint-rules suite", () => {
+test("harness and root configuration paths add the root rules suite", () => {
   for (const stagedPath of [
     "plugins/harness/tooling/pnpm/config.test.ts",
     "rules/markdownlint-cli2.mjs",
@@ -46,9 +47,10 @@ test("harness and root configuration paths add the lint-rules suite", () => {
     "oxlint.config.ts",
     ".markdownlint-cli2.jsonc"
   ]) {
-    expect(selectChecks([stagedPath])).toContain(
-      `${versionTest} rules plugins/harness/tooling/pnpm plugins/harness/tests`
-    );
+    expect(selectChecks([stagedPath])).toEqual([
+      ...alwaysRunChecks,
+      `${versionTest} rules`
+    ]);
   }
 });
 
@@ -66,6 +68,25 @@ test("each plugin suite is added only by its own plugin paths", () => {
     "check:promtool",
     `${versionTest} plugins/observability-assets/tests/promtool/release.test.ts`
   ]);
+});
+
+test("formal verification model and config changes select Promtool", () => {
+  for (const [directory, model, extension] of [
+    ["child-lifecycle", "ChildLifecycle", "tla"],
+    ["download-lifecycle", "DownloadLifecycle", "cfg"]
+  ]) {
+    const stagedPath = `.claude/skills/formal-verification/assets/${directory}/${model}.${extension}`;
+    expect(selectChecks([stagedPath])).toEqual([
+      ...alwaysRunChecks,
+      "check:promtool",
+      versionTest
+    ]);
+  }
+  expect(
+    selectChecks([
+      ".claude/skills/formal-verification/references/child-lifecycle/README.md"
+    ])
+  ).toEqual([...alwaysRunChecks, versionTest]);
 });
 
 test("hook script paths add the hook-scope suite", () => {
@@ -88,7 +109,7 @@ test("a mixed staging selects every touched suite without duplicates", () => {
   ]);
   expect(selected).toEqual([
     ...alwaysRunChecks,
-    `${versionTest} rules plugins/harness/tooling/pnpm plugins/harness/tests plugins/java/tests`
+    `${versionTest} rules plugins/java/tests`
   ]);
 });
 
@@ -166,7 +187,7 @@ test.each([
       status === 0 ? 0 : 1
     );
     expect(await readFile(path.join(fixture, "calls.jsonl"), "utf-8")).toBe(
-      '[".github/scripts/sync-versions.test.ts","plugins/java/tests"]\n'
+      '["--exclude=plugins/harness/**",".github/scripts/sync-versions.test.ts","plugins/java/tests"]\n'
     );
   }
 );

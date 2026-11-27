@@ -86,10 +86,15 @@ const style = `<style>
 </style>`;
 
 const check = process.argv.includes("--check");
-for (const model of ["ChildLifecycle", "DownloadLifecycle"]) {
-  const base = `plugins/observability-assets/tests/promtool/model/${model}`;
+for (const base of [
+  "child-lifecycle/ChildLifecycle",
+  "download-lifecycle/DownloadLifecycle"
+]) {
   const { svg } = render(
-    readFileSync(new URL(`../../${base}.mmd`, import.meta.url), "utf-8"),
+    readFileSync(
+      new URL(`../references/${base}.mmd`, import.meta.url),
+      "utf-8"
+    ),
     {
       limit: 1_000_000,
       outputLimit: 8_000_000,
@@ -100,10 +105,12 @@ for (const model of ["ChildLifecycle", "DownloadLifecycle"]) {
   const expected = Buffer.from(
     `${svg.slice(0, rootEnd)}${style}${svg.slice(rootEnd)}`
   );
-  const output = new URL(`../../${base}.svg`, import.meta.url);
+  const output = new URL(`../references/${base}.svg`, import.meta.url);
   if (check) {
     if (!expected.equals(readFileSync(output))) {
-      console.error(`${base}.svg is stale. Run pnpm run statecharts:render.`);
+      console.error(
+        `references/${base}.svg is stale. Run pnpm run statecharts:render.`
+      );
       process.exitCode = 1;
     }
   } else {
