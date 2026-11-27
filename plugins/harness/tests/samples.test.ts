@@ -230,7 +230,7 @@ test("a failed copy settles a started sibling copy before the materializer rejec
   });
 });
 
-test("a failed copy reports its failure within the bound when copies are serialized", async () => {
+test("a failed copy reports the original error when copies are serialized", async () => {
   const fixture = await createCommandFixture("sinon-sample-serial-");
   const { directory } = fixture;
   const failedTarget = path.join(directory, "README.md");
@@ -269,11 +269,7 @@ test("a failed copy reports its failure within the bound when copies are seriali
     await using ownedFixture = fixture;
     await materialize("go-workspace", ownedFixture.directory);
   })();
-  const outcome = await settleWithin(failureResultBoundMs, materializing).catch(
-    (error: unknown) => error
-  );
-  await drainWithin(failureResultBoundMs, materializing);
-  expect(outcome).toBe(failure);
+  await expect(materializing).rejects.toBe(failure);
   expect(writesAfterRemoval).toBe(0);
   await expect(stat(fixture.directory)).rejects.toMatchObject({
     code: "ENOENT"
