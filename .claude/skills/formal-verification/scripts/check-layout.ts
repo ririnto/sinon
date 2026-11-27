@@ -87,7 +87,7 @@ const shebangFiles = new Set(
 const peleImport =
   /(?:^[ \t]*import(?:\s+[\w$*{},\s]+?\s+from)?\s*|\b(?:import|require)\s*\(\s*)["']pele(?:\/[^"'\r\n]+)?["']/mu;
 
-const peleTemplateImport = /\bimport\s*\(\s*`pele(?:\/[^`$\r\n]+)?`/u;
+const peleTemplateCall = /\b(?:import|require)\s*\(\s*`pele(?:\/[^`$\r\n]+)?`/u;
 
 const readSource = (file: string): string =>
   execFileSync(
@@ -107,7 +107,7 @@ const isFormalScript = (file: string, ext: string): boolean => {
     ) ||
     tlcTool.test(source) ||
     peleImport.test(source) ||
-    peleTemplateImport.test(source)
+    peleTemplateCall.test(source)
   );
 };
 

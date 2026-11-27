@@ -12,13 +12,25 @@ const checker = path.join(
 );
 
 test.each([
-  { comment: "", specifier: "pele", status: 1 },
-  { comment: "", specifier: "node:fs", status: 0 },
-  { comment: " /* note */", specifier: "pele", status: 1 },
-  { comment: " /* note */", specifier: "node:fs", status: 0 }
+  { loader: "await import", comment: "", specifier: "pele", status: 1 },
+  { loader: "await import", comment: "", specifier: "node:fs", status: 0 },
+  {
+    loader: "await import",
+    comment: " /* note */",
+    specifier: "pele",
+    status: 1
+  },
+  {
+    loader: "await import",
+    comment: " /* note */",
+    specifier: "node:fs",
+    status: 0
+  },
+  { loader: "require", comment: "", specifier: "pele", status: 1 },
+  { loader: "require", comment: "", specifier: "node:fs", status: 0 }
 ])(
-  "classifies a literal template import of $specifier$comment",
-  async ({ comment, specifier, status }) => {
+  "classifies a literal template specifier of $loader($specifier$comment)",
+  async ({ comment, loader, specifier, status }) => {
     const directory = await mkdtemp(
       path.join(tmpdir(), "sinon-formal-layout-")
     );
@@ -44,9 +56,7 @@ test.each([
     } as const;
     execFileSync("git", ["read-tree", "--empty"], options);
     const entry = "scripts/template-import.ts";
-    const source = ["await import(", "`", specifier, "`", comment, ");\n"].join(
-      ""
-    );
+    const source = [loader, "(", "`", specifier, "`", comment, ");\n"].join("");
     const blob = execFileSync("git", ["hash-object", "-w", "--stdin"], {
       ...options,
       input: source
