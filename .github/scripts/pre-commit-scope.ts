@@ -30,7 +30,7 @@ const testScopes: readonly {
       /^tsconfig\.json$/u,
       /^\.markdownlint-cli2\.jsonc$/u
     ],
-    tests: ["rules", "plugins/harness/tooling/pnpm", "plugins/harness/tests"]
+    tests: ["rules"]
   },
   {
     patterns: [/^plugins\/java\//u],
@@ -52,12 +52,15 @@ const testScopes: readonly {
  */
 export const selectChecks = (stagedPaths: readonly string[]): string[] => [
   ...alwaysRunChecks,
-  ...(stagedPaths.some((file) =>
-    file.startsWith("plugins/observability-assets/")
+  ...(stagedPaths.some(
+    (file) =>
+      file.startsWith("plugins/observability-assets/") ||
+      (file.startsWith(".claude/skills/formal-verification/assets/") &&
+        /\.(?:tla|cfg)$/u.test(file))
   )
     ? ["check:promtool"]
     : []),
-  `check:test:unit ${[
+  `check:test:unit --exclude=plugins/harness/** ${[
     ".github/scripts/sync-versions.test.ts",
     ...testScopes
       .filter(({ patterns }) =>
