@@ -70,6 +70,25 @@ test("each plugin suite is added only by its own plugin paths", () => {
   ]);
 });
 
+test("formal verification model and config changes select Promtool", () => {
+  for (const [directory, model, extension] of [
+    ["child-lifecycle", "ChildLifecycle", "tla"],
+    ["download-lifecycle", "DownloadLifecycle", "cfg"]
+  ]) {
+    const stagedPath = `.claude/skills/formal-verification/assets/${directory}/${model}.${extension}`;
+    expect(selectChecks([stagedPath])).toEqual([
+      ...alwaysRunChecks,
+      "check:promtool",
+      versionTest
+    ]);
+  }
+  expect(
+    selectChecks([
+      ".claude/skills/formal-verification/references/child-lifecycle/README.md"
+    ])
+  ).toEqual([...alwaysRunChecks, versionTest]);
+});
+
 test("hook script paths add the hook-scope suite", () => {
   expect(selectChecks([".github/scripts/pre-commit-scope.ts"])).toEqual([
     ...alwaysRunChecks,

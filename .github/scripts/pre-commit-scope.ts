@@ -46,14 +46,13 @@ const testScopes: readonly {
   }
 ];
 
-/**
- * Select repository validators and one scoped test invocation for staged paths.
- * Version regression tests always run alongside version validation.
- */
 export const selectChecks = (stagedPaths: readonly string[]): string[] => [
   ...alwaysRunChecks,
-  ...(stagedPaths.some((file) =>
-    file.startsWith("plugins/observability-assets/")
+  ...(stagedPaths.some(
+    (file) =>
+      file.startsWith("plugins/observability-assets/") ||
+      (file.startsWith(".claude/skills/formal-verification/assets/") &&
+        /\.(?:tla|cfg)$/u.test(file))
   )
     ? ["check:promtool"]
     : []),
