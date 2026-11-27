@@ -71,10 +71,11 @@ test("each plugin suite is added only by its own plugin paths", () => {
 });
 
 test("formal verification model and config changes select Promtool", () => {
-  for (const stagedPath of [
-    ".claude/skills/formal-verification/assets/child-lifecycle/ChildLifecycle.tla",
-    ".claude/skills/formal-verification/assets/download-lifecycle/DownloadLifecycle.cfg"
+  for (const [directory, model, extension] of [
+    ["child-lifecycle", "ChildLifecycle", "tla"],
+    ["download-lifecycle", "DownloadLifecycle", "cfg"]
   ]) {
+    const stagedPath = `.claude/skills/formal-verification/assets/${directory}/${model}.${extension}`;
     expect(selectChecks([stagedPath])).toEqual([
       ...alwaysRunChecks,
       "check:promtool",
