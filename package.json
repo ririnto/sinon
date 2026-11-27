@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./rules/no-sensitive-content": "./plugins/harness/tooling/pnpm/rules/no-sensitive-content.mjs"
+    "./rules/no-sensitive-content": "./plugins/harness/tooling/pnpm/runtime/no-sensitive-content.js"
   },
   "scripts": {
     "check": "run-p pre-push verify:*",
@@ -12,6 +12,7 @@
     "check:promtool": "run-p check:promtool:*",
     "check:promtool:child": "pnpm --dir plugins/observability-assets run model ChildLifecycle",
     "check:promtool:download": "pnpm --dir plugins/observability-assets run model DownloadLifecycle",
+    "check:sensitive-content": "node .github/scripts/sync-sensitive-content.ts",
     "check:statecharts": "node .github/scripts/render-statecharts.mjs --check",
     "check:test": "run-p check:test:*",
     "check:typescript": "tsc --noEmit",
@@ -22,8 +23,10 @@
     "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
     "fix:ultracite": "ultracite fix --type-aware",
     "pre-commit": "node --import tsx .github/scripts/pre-commit-scope.ts",
+    "prepack": "node .github/scripts/sync-sensitive-content.ts",
     "pre-push": "run-p check:*",
     "prepare": "husky",
+    "rules:sync": "node .github/scripts/sync-sensitive-content.ts --write",
     "statecharts:render": "node .github/scripts/render-statecharts.mjs",
     "versions:sync": "node .github/scripts/sync-versions.ts --write",
     "check:test:unit": "vitest run",

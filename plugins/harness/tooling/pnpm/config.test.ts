@@ -546,7 +546,7 @@ describe("pnpm profile configuration", () => {
         "markdown-prose.ts",
         "no-em-dash.ts",
         "no-relative-skill-links.ts",
-        "no-sensitive-content.mjs",
+        "no-sensitive-content.ts",
         "table-separators.ts"
       ]);
       await mkdir(path.join(directory, "nested"));

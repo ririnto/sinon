@@ -37,8 +37,8 @@ export default {
   function(params, onError) {
     for (const [index, line] of params.lines.entries()) {
       const hasToken = tokenPatterns.some((pattern) => pattern.test(line));
-      const secretAssignment =
-        secretAssignmentPattern.exec(line)?.groups?.value;
+      const { value: secretAssignment } =
+        secretAssignmentPattern.exec(line)?.groups ?? {};
       const hasSecretAssignment =
         secretAssignment !== undefined &&
         !placeholderPattern.test(secretAssignment);

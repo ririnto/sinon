@@ -19,7 +19,7 @@ import { describe, expect, test } from "vitest";
 
 import noEmDash from "./no-em-dash.js";
 import noRelativeSkillLinks from "./no-relative-skill-links.js";
-import sensitiveContent from "./no-sensitive-content.mjs";
+import sensitiveContent from "./no-sensitive-content.ts";
 import tableSeparators from "./table-separators.js";
 
 interface Violation {
@@ -251,7 +251,7 @@ describe("sensitive-content package loading", () => {
     const subpath = "sinon/rules/no-sensitive-content";
     const canonical = path.join(
       import.meta.dirname,
-      "no-sensitive-content.mjs"
+      "../runtime/no-sensitive-content.js"
     );
     expect(createRequire(import.meta.url).resolve(subpath)).toBe(canonical);
     expect(import.meta.resolve(subpath)).toBe(pathToFileURL(canonical).href);
