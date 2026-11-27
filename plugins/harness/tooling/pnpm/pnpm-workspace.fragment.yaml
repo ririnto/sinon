@@ -1,5 +1,5 @@
 catalog:
-  "@oxlint/plugins": ^1.94.0
+  "@oxlint/plugins": ^1.95.0
   "@google/design.md": ^0.4.0
   "@tsconfig/next": ^2.0.7
   "@tsconfig/node24": ^24.0.6
@@ -13,8 +13,8 @@ catalog:
   markdownlint-cli2: ^0.24.2
   markdownlint-rule-search-replace: ^1.2.0
   npm-run-all2: ^9.1.0
-  oxfmt: ^0.79.0
-  oxlint: ^1.94.0
+  oxfmt: ^0.80.0
+  oxlint: ^1.95.0
   oxlint-tsgolint: ^7.0.2008
   ultracite: ^8.3.1
   vitest: ^5.1.1

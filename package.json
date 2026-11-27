@@ -16,7 +16,7 @@
     "check:test": "run-p check:test:*",
     "check:typescript": "tsc --noEmit",
     "check:ultracite": "ultracite check",
-    "check:versions": "node .github/scripts/sync-versions.mjs",
+    "check:versions": "node .github/scripts/sync-versions.ts",
     "check:yaml-sequences": "node rules/yaml-sequence-style.ts",
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 \"**/*.md\" --fix",
@@ -25,7 +25,7 @@
     "pre-push": "run-p check:*",
     "prepare": "husky",
     "statecharts:render": "node .github/scripts/render-statecharts.mjs",
-    "versions:sync": "node .github/scripts/sync-versions.mjs --write",
+    "versions:sync": "node .github/scripts/sync-versions.ts --write",
     "check:test:unit": "vitest run",
     "verify:promtool-fixtures": "pnpm --dir plugins/observability-assets run promtool",
     "verify:consumers": "node .github/scripts/check-consumers.ts"

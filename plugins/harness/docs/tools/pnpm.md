@@ -235,6 +235,7 @@ Both resolve configuration and globs from the config file.
 
 Use `sinon/rules/no-sensitive-content` for the opt-in, diagnostic-only Markdownlint rule.
 The existing private Sinon root package exports the canonical `tooling/pnpm/rules/no-sensitive-content.mjs` implementation.
+Keep the packaged rule in JavaScript because Node.js 24 does not strip types from a regular installation under `node_modules`.
 It loads as native ESM without a TypeScript loader, build step, or runtime dependency.
 The root's `0.0.0` version enables packaging and does not identify an npm registry release.
 Install from a named Sinon branch containing this export, preserving the target's package manager and dependency policy.

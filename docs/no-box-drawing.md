@@ -2,10 +2,11 @@
 
 ## Repositories using `docs/no-box-drawing`
 
-Copy [rules/no-box-drawing.mjs](../rules/no-box-drawing.mjs) to `rules/no-box-drawing.mjs` in your repository.
-Replace the old rule file and update its entry in `customRules` to `"rules/no-box-drawing.mjs"`.
+Copy [rules/no-box-drawing.ts](../rules/no-box-drawing.ts) to `rules/no-box-drawing.ts` in your repository.
+Replace the old rule file and update its entry in `customRules` to `"rules/no-box-drawing.ts"`.
 Keep your existing rule settings and inline directives.
-The copy uses your existing Markdownlint CLI2 installation and has no runtime imports.
+Run Markdownlint CLI2 on Node.js 24 to load the TypeScript rule directly.
+The rule has no runtime imports.
 Its diagnostic shows trimmed line context and reports a match immediately after an HTML comment.
 
 ## Repositories using `search-replace`

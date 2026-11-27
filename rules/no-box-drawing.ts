@@ -1,7 +1,7 @@
+import type { Rule } from "markdownlint";
+
 /**
  * Report the first Unicode box-drawing character on each Markdown line without a fix.
- *
- * @type {import("markdownlint").Rule}
  */
 export default {
   description: "Unicode box drawing characters are not allowed in Markdown",
@@ -21,4 +21,4 @@ export default {
   names: ["docs/no-box-drawing"],
   parser: "none",
   tags: ["docs", "unicode"]
-};
+} satisfies Rule;
