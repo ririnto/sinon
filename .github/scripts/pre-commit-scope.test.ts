@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import {
+  chmod,
   mkdir,
   mkdtemp,
   readFile,
@@ -14,111 +15,170 @@ import { expect, onTestFinished, test } from "vitest";
 
 import { selectChecks } from "./pre-commit-scope.ts";
 
-const alwaysRunChecks = [
-  "check:markdownlint-cli2",
-  "check:typescript",
-  "check:ultracite",
-  "check:versions",
-  "check:yaml-sequences"
-];
+test("paths outside maintained check scopes select no checks", () => {
+  expect(selectChecks(["LICENSE", "unknown.data"])).toEqual([]);
+  expect(selectChecks(["README.md"])).toEqual(["check:markdownlint-cli2"]);
+});
 
-const versionTest =
-  "check:test:unit --exclude=plugins/harness/** .github/scripts/sync-versions.test.ts";
+test("an empty staged set selects no checks", () => {
+  expect(selectChecks([])).toEqual([]);
+});
 
-test("paths outside every suite keep only the always-run checks", () => {
+test("source and configuration changes select affected checks and tests", () => {
+  expect(selectChecks([".github/scripts/pre-commit-scope.ts"])).toEqual([
+    "check:typescript",
+    "check:ultracite",
+    "check:formal-layout",
+    "check:test:unit --exclude=plugins/harness/** .github/scripts/pre-commit-scope.test.ts"
+  ]);
+  expect(selectChecks(["plugins/java/tests/fixture.yaml"])).toEqual([
+    "check:yaml-sequences",
+    "check:test:unit --exclude=plugins/harness/** plugins/java/tests"
+  ]);
+  expect(selectChecks(["pnpm-lock.yaml"])).toEqual(["check:*"]);
+  expect(selectChecks([".github/scripts/sync-versions.test.ts"])).toContain(
+    "check:test:unit --exclude=plugins/harness/** .github/scripts/sync-versions.test.ts"
+  );
   expect(
-    selectChecks(["README.md", "docs/verification.md", "LICENSE"])
-  ).toEqual([...alwaysRunChecks, versionTest]);
-});
-
-test("an empty staged set keeps the always-run checks", () => {
-  expect(selectChecks([])).toEqual([...alwaysRunChecks, versionTest]);
-});
-
-test("harness and root configuration paths add the root rules suite", () => {
-  for (const stagedPath of [
-    "plugins/harness/tooling/pnpm/config.test.ts",
-    "rules/markdownlint-cli2.mjs",
-    "package.json",
-    "pnpm-lock.yaml",
-    "pnpm-workspace.yaml",
-    "vitest.config.ts",
-    "tsconfig.json",
-    "oxlint.config.ts",
-    ".markdownlint-cli2.jsonc"
-  ]) {
-    expect(selectChecks([stagedPath])).toEqual([
-      ...alwaysRunChecks,
-      `${versionTest} rules`
-    ]);
-  }
-});
-
-test("each plugin suite is added only by its own plugin paths", () => {
-  expect(selectChecks(["plugins/java/skills/junit/SKILL.md"])).toEqual([
-    ...alwaysRunChecks,
-    `${versionTest} plugins/java/tests`
+    selectChecks(["plugins/harness/tooling/pnpm/rules/no-sensitive-content.ts"])
+  ).toEqual([
+    "check:typescript",
+    "check:ultracite",
+    "check:formal-layout",
+    "check:sensitive-content",
+    "check:test:unit plugins/harness"
   ]);
-  expect(selectChecks(["plugins/spec-driven-development/README.md"])).toEqual([
-    ...alwaysRunChecks,
-    `${versionTest} plugins/spec-driven-development/tests`
+  expect(selectChecks(["rules/no-em-dash.ts"])).toContain(
+    "check:markdownlint-cli2"
+  );
+  expect(
+    selectChecks(["plugins/harness/tooling/pnpm/runtime.fragment.json"])
+  ).toEqual([
+    "check:versions",
+    "check:test:unit --exclude=plugins/harness/** .github/scripts/sync-versions.test.ts",
+    "check:test:unit plugins/harness"
   ]);
-  expect(selectChecks(["plugins/observability-assets/README.md"])).toEqual([
-    ...alwaysRunChecks,
-    "check:promtool",
-    `${versionTest} plugins/observability-assets/tests/promtool/release.test.ts`
-  ]);
-});
-
-test("formal verification model and config changes select Promtool", () => {
-  for (const [directory, model, extension] of [
-    ["child-lifecycle", "ChildLifecycle", "tla"],
-    ["download-lifecycle", "DownloadLifecycle", "cfg"]
-  ]) {
-    const stagedPath = `.claude/skills/formal-verification/assets/${directory}/${model}.${extension}`;
-    expect(selectChecks([stagedPath])).toEqual([
-      ...alwaysRunChecks,
-      "check:promtool",
-      versionTest
-    ]);
-  }
+  expect(selectChecks(["plugins/harness/package.json"])).toEqual(["check:*"]);
   expect(
     selectChecks([
-      ".claude/skills/formal-verification/references/child-lifecycle/README.md"
+      "plugins/harness/tooling/pnpm/rules/no-relative-skill-links.ts"
     ])
-  ).toEqual([...alwaysRunChecks, versionTest]);
+  ).toContain("check:markdownlint-cli2");
+  expect(selectChecks([".github/scripts/sync-sensitive-content.ts"])).toEqual([
+    "check:typescript",
+    "check:ultracite",
+    "check:formal-layout",
+    "check:sensitive-content",
+    "check:test:unit plugins/harness/tooling/pnpm/rules/markdown-rules.test.ts"
+  ]);
+  expect(selectChecks(["vitest.config.ts"])).toContain("check:test");
+  expect(selectChecks([".gitignore"])).toContain("check:markdownlint-cli2");
 });
 
-test("hook script paths add the hook-scope suite", () => {
-  expect(selectChecks([".github/scripts/pre-commit-scope.ts"])).toEqual([
-    ...alwaysRunChecks,
-    `${versionTest} .github/scripts/pre-commit-scope.test.ts`
+test("each plugin selects its own tests and affected checks", () => {
+  expect(selectChecks(["plugins/java/skills/junit/SKILL.md"])).toEqual([
+    "check:markdownlint-cli2",
+    "check:test:unit --exclude=plugins/harness/** plugins/java/tests"
   ]);
+  expect(selectChecks(["plugins/spec-driven-development/README.md"])).toEqual([
+    "check:markdownlint-cli2",
+    "check:test:unit --exclude=plugins/harness/** plugins/spec-driven-development/tests"
+  ]);
+  expect(selectChecks(["plugins/observability-assets/README.md"])).toEqual([
+    "check:markdownlint-cli2",
+    "check:test:unit --exclude=plugins/harness/** plugins/observability-assets/tests/promtool/release.test.ts"
+  ]);
+});
+
+test("formal model changes select the matching model and layout checks", () => {
+  expect(
+    selectChecks([
+      ".claude/skills/formal-verification/assets/child-lifecycle/Example.tla"
+    ])
+  ).toEqual([
+    "check:promtool:child",
+    "check:formal-layout",
+    "check:test:unit --exclude=plugins/harness/** rules/formal-layout.test.ts"
+  ]);
+  expect(
+    selectChecks([
+      ".claude/skills/formal-verification/assets/download-lifecycle/DownloadLifecycle.cfg"
+    ])
+  ).toEqual([
+    "check:promtool:download",
+    "check:formal-layout",
+    "check:test:unit --exclude=plugins/harness/** rules/formal-layout.test.ts"
+  ]);
+  expect(
+    selectChecks([
+      ".claude/skills/formal-verification/references/child-lifecycle/ChildLifecycle.mmd"
+    ])
+  ).toEqual([
+    "check:formal-layout",
+    "check:statecharts",
+    "check:test:unit --exclude=plugins/harness/** rules/formal-layout.test.ts"
+  ]);
+  expect(
+    selectChecks([
+      ".claude/skills/formal-verification/references/child-lifecycle/ChildLifecycle.mmd"
+    ])
+  ).toContain(
+    "check:test:unit --exclude=plugins/harness/** rules/formal-layout.test.ts"
+  );
+});
+
+test("hook changes select the hook scope tests", () => {
   expect(selectChecks([".husky/pre-commit"])).toEqual([
-    ...alwaysRunChecks,
-    `${versionTest} .github/scripts/pre-commit-scope.test.ts`
+    "check:formal-layout",
+    "check:test:unit --exclude=plugins/harness/** .github/scripts/pre-commit-scope.test.ts"
   ]);
 });
 
-test("a mixed staging selects every touched suite without duplicates", () => {
+test("mixed staged paths select affected checks and deduplicate suites", () => {
   const selected = selectChecks([
-    "package.json",
-    "plugins/harness/README.md",
+    "plugins/harness/tooling/pnpm/config.test.ts",
     "plugins/java/README.md",
     "docs/verification.md"
   ]);
   expect(selected).toEqual([
-    ...alwaysRunChecks,
-    `${versionTest} rules plugins/java/tests`
+    "check:markdownlint-cli2",
+    "check:typescript",
+    "check:ultracite",
+    "check:formal-layout",
+    "check:test:unit --exclude=plugins/harness/** plugins/java/tests",
+    "check:test:unit plugins/harness"
   ]);
 });
 
 test.each([
-  { stagedPath: "plugins/java/README.md", status: 0 },
-  { stagedPath: "plugins/java/skills/junit/SKILL.md", status: 7 }
+  {
+    stagedPath: "plugins/java/README-\u00E9.md",
+    stagedContent: "{}\n",
+    expectedCalls: '["--exclude=plugins/harness/**","plugins/java/tests"]\n',
+    status: 0
+  },
+  {
+    stagedPath: "plugins/java/skills/junit/SKILL.md",
+    stagedContent: "{}\n",
+    expectedCalls: '["--exclude=plugins/harness/**","plugins/java/tests"]\n',
+    status: 7
+  },
+  {
+    stagedPath: "scripts/check",
+    stagedContent: "#!/usr/bin/env node\n",
+    gitGrepOutput: "scripts/check\u00001:#!\n",
+    expectedCalls: '["formal-layout"]\n',
+    status: 0
+  }
 ])(
-  "the selector runs one filtered test task for $stagedPath and respects test exit $status",
-  async ({ stagedPath, status }) => {
+  "the selector runs the expected checks for $stagedPath and respects exit $status",
+  async ({
+    stagedPath,
+    stagedContent,
+    gitGrepOutput,
+    expectedCalls,
+    status
+  }) => {
     const fixture = await mkdtemp(path.join(tmpdir(), "sinon-hook-scope-"));
     onTestFinished(async () => {
       await rm(fixture, { force: true, recursive: true });
@@ -130,12 +190,13 @@ test.each([
     );
     const manifest = path.join(fixture, stagedPath);
     await mkdir(path.dirname(manifest), { recursive: true });
-    await writeFile(manifest, "{}\n");
+    await writeFile(manifest, stagedContent);
     await writeFile(
       path.join(fixture, "package.json"),
       JSON.stringify({
         private: true,
         scripts: {
+          "check:formal-layout": "node record-tests.mjs formal-layout",
           "check:markdownlint-cli2": "node --version",
           "check:test:unit": "node record-tests.mjs",
           "check:typescript": "node --version",
@@ -149,6 +210,7 @@ test.each([
       path.join(fixture, "record-tests.mjs"),
       'import { appendFileSync } from "node:fs"; appendFileSync("calls.jsonl", JSON.stringify(process.argv.slice(2)) + "\\n"); process.exitCode = Number(process.env.HARNESS_FIXTURE_EXIT);\n'
     );
+    await writeFile(path.join(fixture, "calls.jsonl"), "");
     const localVariables = spawnSync("git", ["rev-parse", "--local-env-vars"], {
       encoding: "utf-8"
     });
@@ -156,7 +218,7 @@ test.each([
     const localVariableNames = new Set(
       localVariables.stdout.trim().split("\n")
     );
-    const environment = {
+    const environment: Record<string, string> = {
       ...Object.fromEntries(
         Object.entries(process.env).filter(
           ([name]) => !localVariableNames.has(name)
@@ -164,6 +226,36 @@ test.each([
       ),
       HARNESS_FIXTURE_EXIT: String(status)
     };
+    if (gitGrepOutput !== undefined) {
+      const gitBin = path.join(fixture, "bin");
+      await mkdir(gitBin);
+      const gitShim = path.join(gitBin, "git");
+      await writeFile(
+        gitShim,
+        `#!/usr/bin/env node
+const { spawnSync } = require("node:child_process");
+const { existsSync } = require("node:fs");
+const path = require("node:path");
+const args = process.argv.slice(2);
+if (args[0] === "--literal-pathspecs" && args[1] === "grep") {
+  process.stdout.write(${JSON.stringify(gitGrepOutput)});
+} else {
+  const realGit = process.env.PATH
+    .split(path.delimiter)
+    .slice(1)
+    .map((directory) => path.join(directory, "git"))
+    .find(existsSync);
+  const result =
+    realGit === undefined
+      ? { status: 127 }
+      : spawnSync(realGit, args, { stdio: "inherit" });
+  process.exitCode = result.status ?? 1;
+}
+`
+      );
+      await chmod(gitShim, 0o755);
+      environment.PATH = `${gitBin}${path.delimiter}${environment.PATH}`;
+    }
     expect(
       spawnSync("git", ["init", "--quiet"], { cwd: fixture, env: environment })
         .status
@@ -187,7 +279,7 @@ test.each([
       status === 0 ? 0 : 1
     );
     expect(await readFile(path.join(fixture, "calls.jsonl"), "utf-8")).toBe(
-      '["--exclude=plugins/harness/**",".github/scripts/sync-versions.test.ts","plugins/java/tests"]\n'
+      expectedCalls
     );
   }
 );
