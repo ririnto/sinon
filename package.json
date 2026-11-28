@@ -31,7 +31,7 @@
     "pre-push": "run-p check:*",
     "prepare": "husky",
     "rules:sync": "node .github/scripts/sync-sensitive-content.ts --write",
-    "statecharts:render": "pnpm --filter @sinon/formal-verification run statecharts:render",
+    "statecharts:render": "pnpm --filter @sinon/formal-verification run render:statechart",
     "versions:sync": "node .github/scripts/sync-versions.ts --write",
     "check:test:unit": "vitest run",
     "verify:promtool-fixtures": "pnpm --dir plugins/observability-assets run promtool",

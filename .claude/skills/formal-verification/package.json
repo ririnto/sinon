@@ -8,7 +8,8 @@
     "check:statecharts": "node scripts/render-statecharts.ts --check",
     "check:typescript": "tsc",
     "model": "node scripts/check.ts",
-    "statecharts:render": "node scripts/render-statecharts.ts"
+    "render:statechart": "run-p render:statechart:*",
+    "render:statechart:promtool": "node scripts/render-statecharts.ts"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "catalog:",
