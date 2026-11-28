@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "model": "pnpm --filter @sinon/formal-verification run model",
+    "check:model": "pnpm --filter @sinon/formal-verification run check:model",
     "promtool": "node --import tsx tests/promtool/run.ts"
   },
   "devDependencies": {

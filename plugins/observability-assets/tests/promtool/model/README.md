@@ -14,7 +14,7 @@ Each command creates and removes its own temporary metadata directory.
 pnpm run check:promtool
 ```
 
-From the plugin directory, run `pnpm run model ChildLifecycle` or `pnpm run model DownloadLifecycle` to check one model.
+From the plugin directory, run `pnpm run check:model ChildLifecycle` or `pnpm run check:model DownloadLifecycle` to check one model.
 Extra TLC arguments are forwarded and relative paths use the directory from which pnpm was invoked.
 
 ## Download lifecycle

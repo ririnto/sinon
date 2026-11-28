@@ -3,16 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check": "run-p check:*",
     "check:layout": "node scripts/check-layout.ts",
+    "check:model": "node scripts/check.ts",
     "check:statecharts": "node scripts/render-statecharts.ts --check",
-    "model": "node scripts/check.ts",
-    "statecharts:render": "node scripts/render-statecharts.ts"
+    "check:typescript": "tsc",
+    "render:statechart": "run-p render:statechart:*",
+    "render:statechart:promtool": "node scripts/render-statecharts.ts"
   },
   "devDependencies": {
-    "@tsconfig/node24": "catalog:",
+    "@tsconfig/node-lts": "catalog:",
     "@types/node": "catalog:",
+    "npm-run-all2": "catalog:",
     "pele": "catalog:",
     "tla-chaos-loop": "catalog:",
+    "typescript": "catalog:",
     "yaml": "catalog:"
   }
 }
