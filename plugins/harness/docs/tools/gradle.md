@@ -12,6 +12,8 @@ metadata:
       url: https://docs.gradle.org/current/userguide/version_catalogs.html
     Gradle Wrapper:
       url: https://docs.gradle.org/current/userguide/gradle_wrapper.html
+    Gradle Command-Line Interface:
+      url: https://docs.gradle.org/current/userguide/command_line_interface.html
     Gradle CI:
       tag: v6.4.1
       url: https://raw.githubusercontent.com/gradle/actions/v6.4.1/setup-gradle/README.md
@@ -60,12 +62,13 @@ metadata:
 
 # Gradle
 
-Use this profile for an existing Gradle project with Java sources.
+Use this profile for an existing Gradle project with Java or Kotlin sources.
 Detect the tool at the root that owns `build.gradle`, `build.gradle.kts`, `settings.gradle`, or `settings.gradle.kts`.
 In a monorepo, repeat the profile for each independent Gradle root.
 
 ## Native setup
 
+Use this section for Java sources.
 Apply the Gradle `java` or `java-library` plugin already used by the target before enabling Java checks.
 Add the Spotless Gradle plugin only when the target has no existing formatter with overlapping Java ownership.
 The source profile selects `com.diffplug.spotless` `8.10.4`, `palantir-java-format` `2.103.0`, and Checkstyle `14.3.0`.
@@ -150,6 +153,8 @@ Dokka does not report every undocumented declaration by default, so review KDoc 
 
 Use this profile only when the target has Kotlin sources and a Gradle Kotlin integration.
 Copy `tooling/kotlin/src/` into the target's `buildSrc/src/`, including the tests.
+Keep the applicable license and notices with the copied rules, tests, and copy instructions.
+The target owns the installed asset and its configuration.
 Merge the provider line into `buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3`.
 Preserve existing entries and add `com.ririnto.sinon.harness.ktlint.RuleSetProvider` only if it is absent.
 Keep the descriptor target-owned and preserve its existing content and file mode.
@@ -159,12 +164,14 @@ The Gradle sample demonstrates this integration and pins Kotlin `2.4.21`, ktlint
 Kotlin `2.4.21` is fully supported with Gradle `7.6.3` through `9.7.0`.
 Keep the target's wrapper within that range.
 
-The buildSrc JAR and its service descriptor make the rules available to the root build and Kotlin subprojects.
 Apply the ktlint plugin to each Kotlin project and select the compatible ktlint engine.
+Verify that each consumer's ktlint worker loads the provider through the JAR's service descriptor.
+When the worker needs an explicit dependency, register the built ruleset with `ktlintRuleset`.
+Use an artifact that remains available on a clean build and on configuration-cache reuse when the target enables it.
 Run the ruleset tests and buildSrc's own lint through `:buildSrc:check`.
 The buildSrc ktlint runtime does not load its own output automatically.
-To check buildSrc Kotlin sources with the custom rules, configure root ktlint to include `buildSrc/src/**/*.kt` as shown in the sample.
-Retain buildSrc's own ktlint checks for its scripts and standard formatting.
+If buildSrc needs the custom rules, include `buildSrc/src/**/*.kt` in root ktlint as the sample does, or attach the ruleset to buildSrc's own worker with an explicit producer dependency.
+Retain buildSrc's own ktlint checks for its scripts and standard rules.
 
 The qualified root task `:check` does not select subproject checks by name.
 Ensure it aggregates the existing check-bearing subprojects while retaining all existing dependencies.
@@ -194,7 +201,7 @@ Preserve existing identity, commands, dependencies, workspaces, and package-mana
 Create a minimal private target manifest only when none exists, keeping project identity target-owned.
 For an existing script name, retain its command and report the required composition before changing that owner.
 
-The supplied script surface for a target without `buildSrc` is:
+The supplied script surface for a Kotlin target without `buildSrc` is:
 
 | Script | Command |
 | --- | --- |
@@ -212,6 +219,7 @@ The package scripts finish Node-side checks successfully before invoking Gradle.
 For pnpm targets, install `tooling/gradle/.husky/` through the shared [Husky integration](pnpm.md#git-hook-integration) so Git hooks delegate to the matching pnpm scripts.
 For other package managers, adapt hook commands to invoke the corresponding target scripts.
 Keep the checked-in wrapper at the selected root and preserve its task graph.
+For a Java-only target, set `check:test:gradle` to `./gradlew check` so the script selects the Java checks.
 
 For a target with `buildSrc`, replace the Gradle scripts and hook commands with the following:
 
@@ -225,7 +233,7 @@ Omit the separate lint script from this setup.
 Ensure that both root and `buildSrc` checks include their existing ktlint gates.
 Verify that both hooks retain the Node checks and run the exact two-task Gradle command.
 Retain existing target script commands when composing these gates.
-The generic manifest remains suitable for targets without `buildSrc`, where the explicit `:buildSrc` tasks do not exist.
+Select `:buildSrc:check` only when the target has a buildSrc project with that task.
 
 Install the canonical Markdownlint configuration and `rules/` from `tooling/pnpm/`, omitting `*.test.ts` files.
 For pnpm targets, use the [bounded manifest and catalog merge](pnpm.md#bounded-manifest-merge), selecting only the development dependencies in this manifest.
@@ -238,10 +246,26 @@ The [pnpm profile](pnpm.md#bounded-manifest-merge) owns the shared custom-rule r
 
 ### Native Gradle Commands
 
-Run `./gradlew spotlessCheck checkstyleMain checkstyleTest` for the focused Java gate when those tasks exist.
+| Scope | Read-only command | Local formatting command |
+| --- | --- | --- |
+| Java projects with Spotless and Checkstyle | `./gradlew spotlessCheck checkstyleMain checkstyleTest` | `./gradlew spotlessApply` |
+| Kotlin projects with ktlint | `./gradlew ktlintCheck` | `./gradlew ktlintFormat` |
+
+Keep formatting commands opt-in and outside the `check` task, Git hooks, and CI.
+Limit formatting to the intended project and source scope.
+Before adopting a formatter or custom autocorrection, run it on disposable representative inputs and inspect the diff for changes to literals, comments, evaluation order, and behavior.
+Keep rules diagnostic-only where their corrections lack that evidence.
+
 For a target without `buildSrc`, run `./gradlew check` for the full gate.
 For a target with `buildSrc` configured above, run `./gradlew :check :buildSrc:check` for the full gate.
-Run `./gradlew spotlessApply` only after reviewing the resulting Java diff.
+From the root, the unqualified `check` selects matching tasks in the root and subprojects.
+The qualified `:check` starts at the root task and reaches subprojects through dependencies.
+Keep required lint, tests, and drift checks reachable from the maintained lifecycle entry point.
+Keep environment-dependent acceptance tasks explicit when they need separate prerequisites.
+Use `--dry-run` to inspect the selected task graph, then execute the gate to verify its result.
+Have hooks and CI invoke the maintained read-only commands and record any differences in coverage.
+Retain direct pnpm calls in pnpm hooks and use the target's checked-in Gradle Wrapper.
+See the [Gradle consumer comparison](gradle-consumers.md) for source examples and Regiscope follow-ups.
 
 Spotless `8.10.4` requires Gradle `7.3` or newer and a Java 17 or newer runtime.
 Checkstyle `14.3.0` is the selected engine version for this profile.
