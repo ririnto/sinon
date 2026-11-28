@@ -5,9 +5,9 @@
   "scripts": {
     "check": "run-p check:*",
     "check:layout": "node scripts/check-layout.ts",
+    "check:model": "node scripts/check.ts",
     "check:statecharts": "node scripts/render-statecharts.ts --check",
     "check:typescript": "tsc",
-    "model": "node scripts/check.ts",
     "render:statechart": "run-p render:statechart:*",
     "render:statechart:promtool": "node scripts/render-statecharts.ts"
   },
