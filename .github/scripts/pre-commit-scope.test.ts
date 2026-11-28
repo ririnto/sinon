@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import {
+  chmod,
   mkdir,
   mkdtemp,
   readFile,
@@ -150,11 +151,34 @@ test("mixed staged paths select affected checks and deduplicate suites", () => {
 });
 
 test.each([
-  { stagedPath: "plugins/java/README-\u00E9.md", status: 0 },
-  { stagedPath: "plugins/java/skills/junit/SKILL.md", status: 7 }
+  {
+    stagedPath: "plugins/java/README-\u00E9.md",
+    stagedContent: "{}\n",
+    expectedCalls: '["--exclude=plugins/harness/**","plugins/java/tests"]\n',
+    status: 0
+  },
+  {
+    stagedPath: "plugins/java/skills/junit/SKILL.md",
+    stagedContent: "{}\n",
+    expectedCalls: '["--exclude=plugins/harness/**","plugins/java/tests"]\n',
+    status: 7
+  },
+  {
+    stagedPath: "scripts/check",
+    stagedContent: "#!/usr/bin/env node\n",
+    gitGrepOutput: "scripts/check\u00001:#!\n",
+    expectedCalls: '["formal-layout"]\n',
+    status: 0
+  }
 ])(
-  "the selector runs one filtered test task for $stagedPath and respects test exit $status",
-  async ({ stagedPath, status }) => {
+  "the selector runs the expected checks for $stagedPath and respects exit $status",
+  async ({
+    stagedPath,
+    stagedContent,
+    gitGrepOutput,
+    expectedCalls,
+    status
+  }) => {
     const fixture = await mkdtemp(path.join(tmpdir(), "sinon-hook-scope-"));
     onTestFinished(async () => {
       await rm(fixture, { force: true, recursive: true });
@@ -166,12 +190,13 @@ test.each([
     );
     const manifest = path.join(fixture, stagedPath);
     await mkdir(path.dirname(manifest), { recursive: true });
-    await writeFile(manifest, "{}\n");
+    await writeFile(manifest, stagedContent);
     await writeFile(
       path.join(fixture, "package.json"),
       JSON.stringify({
         private: true,
         scripts: {
+          "check:formal-layout": "node record-tests.mjs formal-layout",
           "check:markdownlint-cli2": "node --version",
           "check:test:unit": "node record-tests.mjs",
           "check:typescript": "node --version",
@@ -185,6 +210,7 @@ test.each([
       path.join(fixture, "record-tests.mjs"),
       'import { appendFileSync } from "node:fs"; appendFileSync("calls.jsonl", JSON.stringify(process.argv.slice(2)) + "\\n"); process.exitCode = Number(process.env.HARNESS_FIXTURE_EXIT);\n'
     );
+    await writeFile(path.join(fixture, "calls.jsonl"), "");
     const localVariables = spawnSync("git", ["rev-parse", "--local-env-vars"], {
       encoding: "utf-8"
     });
@@ -192,7 +218,7 @@ test.each([
     const localVariableNames = new Set(
       localVariables.stdout.trim().split("\n")
     );
-    const environment = {
+    const environment: Record<string, string> = {
       ...Object.fromEntries(
         Object.entries(process.env).filter(
           ([name]) => !localVariableNames.has(name)
@@ -200,6 +226,36 @@ test.each([
       ),
       HARNESS_FIXTURE_EXIT: String(status)
     };
+    if (gitGrepOutput !== undefined) {
+      const gitBin = path.join(fixture, "bin");
+      await mkdir(gitBin);
+      const gitShim = path.join(gitBin, "git");
+      await writeFile(
+        gitShim,
+        `#!/usr/bin/env node
+const { spawnSync } = require("node:child_process");
+const { existsSync } = require("node:fs");
+const path = require("node:path");
+const args = process.argv.slice(2);
+if (args[0] === "--literal-pathspecs" && args[1] === "grep") {
+  process.stdout.write(${JSON.stringify(gitGrepOutput)});
+} else {
+  const realGit = process.env.PATH
+    .split(path.delimiter)
+    .slice(1)
+    .map((directory) => path.join(directory, "git"))
+    .find(existsSync);
+  const result =
+    realGit === undefined
+      ? { status: 127 }
+      : spawnSync(realGit, args, { stdio: "inherit" });
+  process.exitCode = result.status ?? 1;
+}
+`
+      );
+      await chmod(gitShim, 0o755);
+      environment.PATH = `${gitBin}${path.delimiter}${environment.PATH}`;
+    }
     expect(
       spawnSync("git", ["init", "--quiet"], { cwd: fixture, env: environment })
         .status
@@ -223,7 +279,7 @@ test.each([
       status === 0 ? 0 : 1
     );
     expect(await readFile(path.join(fixture, "calls.jsonl"), "utf-8")).toBe(
-      '["--exclude=plugins/harness/**","plugins/java/tests"]\n'
+      expectedCalls
     );
   }
 );

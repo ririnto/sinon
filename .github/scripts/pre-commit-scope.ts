@@ -257,11 +257,7 @@ const runCli = (): void => {
     if (shebangs.error || (shebangs.status !== 0 && shebangs.status !== 1)) {
       throw shebangs.error ?? new Error(shebangs.stderr.trim());
     }
-    if (
-      shebangs.stdout
-        .split("\0#!\n")
-        .some((entry) => entry.split("\0").at(-1) === "1")
-    ) {
+    if (/\0\d+(?::|\0)#!\n/u.test(shebangs.stdout)) {
       checks.push("check:formal-layout");
     }
   }
