@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check": "run-p check:*",
     "check:layout": "node scripts/check-layout.ts",
     "check:statecharts": "node scripts/render-statecharts.ts --check",
     "check:typescript": "tsc",
